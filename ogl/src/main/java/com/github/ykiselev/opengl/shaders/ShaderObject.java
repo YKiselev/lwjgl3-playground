@@ -1,9 +1,8 @@
 package com.github.ykiselev.opengl.shaders;
 
 import com.github.ykiselev.opengl.Identified;
-import com.google.common.io.Resources;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.lwjgl.opengl.Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,7 +12,6 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 import static org.lwjgl.opengl.GL11.GL_TRUE;
-import static org.lwjgl.opengl.GL11.glGetError;
 import static org.lwjgl.opengl.GL20.GL_COMPILE_STATUS;
 import static org.lwjgl.opengl.GL20.glCompileShader;
 import static org.lwjgl.opengl.GL20.glCreateShader;
@@ -36,29 +34,33 @@ public final class ShaderObject implements Identified, AutoCloseable {
         return id;
     }
 
-    public ShaderObject(int type, String source) throws ShaderException {
-        this.id = glCreateShader(type);
-        Util.checkGLError();
-        if (this.id == 0) {
-            throw new ShaderException("Unable to create shader, GL error: " + glGetError());
+    public ShaderObject(int id) {
+        if (id == 0) {
+            throw new IllegalArgumentException("Zero is not a valid shader id!");
         }
-        glShaderSource(this.id, source);
-        Util.checkGLError();
-        glCompileShader(this.id);
-        Util.checkGLError();
-        final int status = glGetShaderi(this.id, GL_COMPILE_STATUS);
-        final String log = glGetShaderInfoLog(this.id, 8 * 1024);
+        this.id = id;
+    }
+
+    public ShaderObject(int type, String source) throws ShaderException {
+        this(glCreateShader(type));
+        // todo ? Util.checkGLError();
+        glShaderSource(id, source);
+        // todo ? Util.checkGLError();
+        glCompileShader(id);
+        // todo ? Util.checkGLError();
+        final int status = glGetShaderi(id, GL_COMPILE_STATUS);
+        final String log = glGetShaderInfoLog(id, 8 * 1024);
         if (status != GL_TRUE) {
             throw new ShaderException(log);
         } else {
             if (StringUtils.isNotEmpty(log)) {
-                this.logger.warn("Shader log: {}", log);
+                logger.warn("Shader log: {}", log);
             }
         }
     }
 
     public ShaderObject(int type, URL resource, Charset charset) throws ShaderException, IOException {
-        this(type, Resources.toString(resource, charset));
+        this(type, IOUtils.toString(resource, charset));
     }
 
     public ShaderObject(int type, URL resource) throws ShaderException, IOException {

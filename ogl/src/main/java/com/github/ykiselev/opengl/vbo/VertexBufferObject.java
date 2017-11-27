@@ -1,7 +1,5 @@
 package com.github.ykiselev.opengl.vbo;
 
-import org.lwjgl.opengl.Util;
-
 import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
 import static org.lwjgl.opengl.GL20.glEnableVertexAttribArray;
 import static org.lwjgl.opengl.GL20.glVertexAttribPointer;
@@ -17,9 +15,9 @@ public final class VertexBufferObject extends BufferObject {
 
     public void attribute(int index, int size, int type, boolean normalized, int stride, long bbo) {
         glVertexAttribPointer(index, size, type, normalized, stride, bbo);
-        Util.checkGLError();
+        //todo Util.checkGLError();
         glEnableVertexAttribArray(index);
-        Util.checkGLError();
+        //todo Util.checkGLError();
     }
 
 }

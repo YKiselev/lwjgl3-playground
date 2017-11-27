@@ -1,7 +1,6 @@
 package com.github.ykiselev.opengl.shaders.uniforms;
 
 import org.lwjgl.opengl.GL20;
-import org.lwjgl.opengl.Util;
 
 import java.nio.FloatBuffer;
 
@@ -28,7 +27,7 @@ public final class UniformVariable {
     }
 
     public void matrix4(boolean transpose, FloatBuffer matrix) {
-        GL20.glUniformMatrix4(this.location, transpose, matrix);
-        Util.checkGLError();
+        GL20.glUniformMatrix4fv(this.location, transpose, matrix);
+        //Util.checkGLError();
     }
 }

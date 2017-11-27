@@ -2,7 +2,6 @@ package com.github.ykiselev.opengl.textures;
 
 import com.github.ykiselev.opengl.Bindable;
 import com.github.ykiselev.opengl.Identified;
-import org.lwjgl.opengl.Util;
 
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
 import static org.lwjgl.opengl.GL11.glBindTexture;
@@ -25,8 +24,8 @@ public class Texture implements Identified, Bindable {
 
     @Override
     public void bind() {
-        glBindTexture(GL_TEXTURE_2D, this.id);
-        Util.checkGLError();
+        glBindTexture(GL_TEXTURE_2D, id);
+        //todo Util.checkGLError();
     }
 
     @Override
@@ -36,6 +35,6 @@ public class Texture implements Identified, Bindable {
 
     @Override
     public int id() {
-        return this.id;
+        return id;
     }
 }

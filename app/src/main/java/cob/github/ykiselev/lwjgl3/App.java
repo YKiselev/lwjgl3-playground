@@ -32,6 +32,8 @@ public final class App {
             }
         } finally {
             glfwTerminate();
+            glfwSetErrorCallback(null);
+            errorCallback.free();
         }
     }
 }

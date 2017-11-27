@@ -3,7 +3,6 @@ package com.github.ykiselev.opengl.shaders;
 import com.github.ykiselev.opengl.Bindable;
 import com.github.ykiselev.opengl.shaders.uniforms.UniformVariable;
 import org.apache.commons.lang3.StringUtils;
-import org.lwjgl.opengl.Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,30 +40,30 @@ public final class ProgramObject implements Bindable, AutoCloseable {
     public ProgramObject(Collection<VertexAttributeLocation> locations, Collection<String> samplers, ShaderObject... shaders) throws ShaderException {
         this.shaders = shaders;
         this.id = glCreateProgram();
-        Util.checkGLError();
+        //todo Util.checkGLError();
         for (ShaderObject s : shaders) {
-            glAttachShader(this.id, s.id());
-            Util.checkGLError();
+            glAttachShader(id, s.id());
+            //todo Util.checkGLError();
         }
         for (VertexAttributeLocation location : locations) {
-            glBindAttribLocation(this.id, location.index(), location.name());
-            Util.checkGLError();
+            glBindAttribLocation(id, location.index(), location.name());
+            //todo Util.checkGLError();
         }
-        glLinkProgram(this.id);
-        Util.checkGLError();
-        final String log = glGetProgramInfoLog(this.id, 8 * 1024);
-        final int status = glGetProgrami(this.id, GL_LINK_STATUS);
+        glLinkProgram(id);
+        //todo Util.checkGLError();
+        final String log = glGetProgramInfoLog(id, 8 * 1024);
+        final int status = glGetProgrami(id, GL_LINK_STATUS);
         if (status != GL_TRUE) {
             throw new ShaderException(log);
         } else if (StringUtils.isNotEmpty(log)) {
-            this.logger.warn("Program link log: {}", log);
+            logger.warn("Program link log: {}", log);
         }
         if (!samplers.isEmpty()) {
             bind();
             int unit = 0;
             for (String sampler : samplers) {
                 glUniform1i(location(sampler), unit);
-                Util.checkGLError();
+                //todo Util.checkGLError();
                 unit++;
             }
             unbind();
@@ -73,14 +72,14 @@ public final class ProgramObject implements Bindable, AutoCloseable {
 
     @Override
     public void bind() {
-        glUseProgram(this.id);
-        Util.checkGLError();
+        glUseProgram(id);
+        //todo Util.checkGLError();
     }
 
     @Override
     public void unbind() {
         glUseProgram(0);
-        Util.checkGLError();
+        //todo Util.checkGLError();
     }
 
     private int location(String uniform) throws ShaderException {
@@ -102,9 +101,9 @@ public final class ProgramObject implements Bindable, AutoCloseable {
 
     @Override
     public void close() throws Exception {
-        for (ShaderObject shader : this.shaders) {
+        for (ShaderObject shader : shaders) {
             shader.close();
         }
-        glDeleteProgram(this.id);
+        glDeleteProgram(id);
     }
 }

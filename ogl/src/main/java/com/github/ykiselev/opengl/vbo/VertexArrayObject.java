@@ -1,7 +1,6 @@
 package com.github.ykiselev.opengl.vbo;
 
 import com.github.ykiselev.opengl.Bindable;
-import org.lwjgl.opengl.Util;
 
 import static org.lwjgl.opengl.GL30.glBindVertexArray;
 import static org.lwjgl.opengl.GL30.glDeleteVertexArrays;
@@ -19,23 +18,23 @@ public final class VertexArrayObject implements Bindable, AutoCloseable {
     public VertexArrayObject(BufferObject... buffers) {
         this.buffers = buffers;
         this.id = glGenVertexArrays();
-        Util.checkGLError();
+        //todo Util.checkGLError();
     }
 
     @Override
     public void close() throws Exception {
-        for (BufferObject buffer : this.buffers) {
+        for (BufferObject buffer : buffers) {
             buffer.close();
-            Util.checkGLError();
+            //todo Util.checkGLError();
         }
         glDeleteVertexArrays(this.id);
-        Util.checkGLError();
+        //todo Util.checkGLError();
     }
 
     @Override
     public void bind() {
-        glBindVertexArray(this.id);
-        Util.checkGLError();
+        glBindVertexArray(id);
+        //todo Util.checkGLError();
     }
 
     @Override

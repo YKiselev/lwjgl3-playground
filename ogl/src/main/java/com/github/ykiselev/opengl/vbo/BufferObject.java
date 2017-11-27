@@ -2,7 +2,6 @@ package com.github.ykiselev.opengl.vbo;
 
 import com.github.ykiselev.opengl.Bindable;
 import org.lwjgl.opengl.GL15;
-import org.lwjgl.opengl.Util;
 
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
@@ -24,7 +23,7 @@ public abstract class BufferObject implements Bindable, AutoCloseable {
     protected BufferObject(int target) {
         this.target = target;
         this.id = GL15.glGenBuffers();
-        Util.checkGLError();
+        // todd Util.checkGLError();
     }
 
     @Override
@@ -34,17 +33,17 @@ public abstract class BufferObject implements Bindable, AutoCloseable {
 
     @Override
     public final void bind() {
-        glBindBuffer(this.target, this.id);
+        glBindBuffer(target, id);
     }
 
     @Override
     public final void unbind() {
-        glBindBuffer(this.target, 0);
+        glBindBuffer(target, 0);
     }
 
     @Override
     public final void close() throws Exception {
-        glDeleteBuffers(this.id);
+        glDeleteBuffers(id);
     }
 
     /**
@@ -55,16 +54,16 @@ public abstract class BufferObject implements Bindable, AutoCloseable {
      */
     public final void bufferData(FloatBuffer data, int usage) {
         glBufferData(this.target, data, usage);
-        Util.checkGLError();
+        //todo Util.checkGLError();
     }
 
     public final void bufferData(ByteBuffer data, int usage) {
         glBufferData(this.target, data, usage);
-        Util.checkGLError();
+        //todo Util.checkGLError();
     }
 
     public final void bufferData(IntBuffer data, int usage) {
         glBufferData(this.target, data, usage);
-        Util.checkGLError();
+        //todo Util.checkGLError();
     }
 }
