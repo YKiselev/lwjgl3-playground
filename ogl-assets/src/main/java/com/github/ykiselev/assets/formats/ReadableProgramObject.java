@@ -1,71 +1,129 @@
+/*
+ * Copyright 2017 Yuriy Kiselev (uze@yandex.ru)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.github.ykiselev.assets.formats;
 
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.assets.ReadableResource;
 import com.github.ykiselev.assets.ResourceException;
 import com.github.ykiselev.opengl.shaders.ProgramObject;
-import com.github.ykiselev.opengl.shaders.ShaderException;
 import com.github.ykiselev.opengl.shaders.ShaderObject;
-import com.github.ykiselev.opengl.shaders.VertexAttributeLocation;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import com.typesafe.config.ConfigValue;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URI;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+
+import static java.util.Objects.requireNonNull;
+import static org.lwjgl.opengl.GL11.GL_TRUE;
+import static org.lwjgl.opengl.GL20.GL_LINK_STATUS;
+import static org.lwjgl.opengl.GL20.glAttachShader;
+import static org.lwjgl.opengl.GL20.glBindAttribLocation;
+import static org.lwjgl.opengl.GL20.glCreateProgram;
+import static org.lwjgl.opengl.GL20.glGetProgramInfoLog;
+import static org.lwjgl.opengl.GL20.glGetProgrami;
+import static org.lwjgl.opengl.GL20.glLinkProgram;
+import static org.lwjgl.opengl.GL20.glUniform1i;
 
 /**
  * Created by Y.Kiselev on 15.05.2016.
  */
 public final class ReadableProgramObject implements ReadableResource {
 
+    private final Logger logger = LoggerFactory.getLogger(getClass());
+
+    private final Charset charset;
+
+    public ReadableProgramObject(Charset charset) {
+        this.charset = requireNonNull(charset);
+    }
+
+    public ReadableProgramObject() {
+        this(StandardCharsets.UTF_8);
+    }
+
     @Override
-    public ProgramObject read(URI resource, Assets assets) throws ResourceException {
-        final Config fallback = assets.load("/shaders/fallback-prog.conf");
+    public Object read(InputStream inputStream, URI resource, Assets assets) throws ResourceException {
+        final Config config = readConfig(inputStream, assets);
+        final int id = glCreateProgram();
+        final ShaderObject[] shaders = readShaders(assets, config);
+        for (ShaderObject s : shaders) {
+            glAttachShader(id, s.id());
+        }
+        final List<String> locations = config.getStringList("vertex-attribute-locations");
+        int i = 0;
+        for (String location : locations) {
+            glBindAttribLocation(id, i, location);
+            i++;
+        }
+        glLinkProgram(id);
+        final String log = glGetProgramInfoLog(id, 8 * 1024);
+        final int status = glGetProgrami(id, GL_LINK_STATUS);
+        if (status != GL_TRUE) {
+            throw new ResourceException(log);
+        } else if (StringUtils.isNotEmpty(log)) {
+            logger.warn("Program link log: {}", log);
+        }
+        final ProgramObject program = new ProgramObject(id, shaders);
+        final List<String> samplers = config.getStringList("samplers");
+        if (!samplers.isEmpty()) {
+            program.bind();
+            int unit = 0;
+            for (String uniform : samplers) {
+                glUniform1i(program.location(uniform), unit);
+                unit++;
+            }
+            program.unbind();
+        }
+        return program;
+    }
+
+    private ShaderObject[] readShaders(Assets assets, Config config) {
+        return config.getConfig("shaders").root()
+                .entrySet()
+                .stream()
+                .map(Map.Entry::getValue)
+                .map(ConfigValue::unwrapped)
+                .map(String.class::cast)
+                .filter(v -> !v.isEmpty())
+                .map(URI::create)
+                .map(uri -> assets.load(uri, null))
+                .toArray(ShaderObject[]::new);
+    }
+
+    private Config readConfig(InputStream inputStream, Assets assets) {
+        final Config fallback = assets.load("/fallback/program-object.conf");
         final Config config;
-        try (Reader reader = new InputStreamReader(assets.open(resource), StandardCharsets.UTF_8)) {
+        try (Reader reader = new InputStreamReader(inputStream, charset)) {
             config = ConfigFactory.parseReader(reader)
                     .withFallback(fallback);
         } catch (IOException e) {
             throw new ResourceException(e);
         }
-        final List<String> locations = config.getStringList("vertex-attribute-locations");
-        final List<VertexAttributeLocation> vertexAttributeLocations = new ArrayList<>(locations.size());
-        int i = 0;
-        for (String location : locations) {
-            vertexAttributeLocations.add(new VertexAttributeLocation(i, location));
-            i++;
-        }
-        final List<ShaderObject> shaders = new ArrayList<>();
-        final Config shader = config.getConfig("shader");
-        final ShaderObject vertexShader = tryLoadShader(resource, shader.getString("vertex"), assets);
-        if (vertexShader != null) {
-            shaders.add(vertexShader);
-        }
-        final ShaderObject fragmentShader = tryLoadShader(resource, shader.getString("fragment"), assets);
-        if (fragmentShader != null) {
-            shaders.add(fragmentShader);
-        }
-        try {
-            return new ProgramObject(
-                    vertexAttributeLocations,
-                    config.getStringList("samplers"),
-                    shaders.toArray(new ShaderObject[0])
-            );
-        } catch (ShaderException e) {
-            throw new ResourceException(e);
-        }
-    }
-
-    private ShaderObject tryLoadShader(URI base, String shader, Assets assets) throws ResourceException {
-        if (StringUtils.isEmpty(shader)) {
-            return null;
-        }
-        return assets.load(base.resolve(shader), null);
+        return config;
     }
 }

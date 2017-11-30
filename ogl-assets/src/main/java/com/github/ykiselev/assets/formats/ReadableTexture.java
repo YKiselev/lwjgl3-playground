@@ -1,10 +1,26 @@
+/*
+ * Copyright 2017 Yuriy Kiselev (uze@yandex.ru)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.github.ykiselev.assets.formats;
 
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.assets.ReadableResource;
 import com.github.ykiselev.assets.ResourceException;
 import com.github.ykiselev.buffers.Buffers;
-import com.github.ykiselev.opengl.textures.Texture;
+import com.github.ykiselev.opengl.textures.Texture2d;
 import org.lwjgl.opengl.GL11;
 
 import javax.imageio.ImageIO;
@@ -17,7 +33,7 @@ import java.nio.ByteBuffer;
 /**
  * Created by Y.Kiselev on 05.06.2016.
  */
-public class ReadableTexture implements ReadableResource<Texture> {
+public class ReadableTexture implements ReadableResource<Texture2d> {
 
     private final Buffers buffers;
 
@@ -26,10 +42,10 @@ public class ReadableTexture implements ReadableResource<Texture> {
     }
 
     @Override
-    public Texture read(URI resource, Assets assets) throws ResourceException {
+    public Texture2d read(InputStream inputStream, URI resource, Assets assets) throws ResourceException {
         final BufferedImage image;
-        try (InputStream is = assets.open(resource)) {
-            image = ImageIO.read(is);
+        try {
+            image = ImageIO.read(inputStream);
         } catch (IOException e) {
             throw new ResourceException(e);
         }
@@ -45,7 +61,6 @@ public class ReadableTexture implements ReadableResource<Texture> {
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, texId);
         GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR);
         GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
-        //todo Util.checkGLError();
 
         // Convert to byte buffer
         try (Buffers.Pooled<ByteBuffer> pooled = this.buffers.byteBuffer(pixels.length * 4)) {
@@ -69,8 +84,7 @@ public class ReadableTexture implements ReadableResource<Texture> {
             }
             buffer.flip();
             GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA8, w, h, 0, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, buffer);
-            //todo Util.checkGLError();
-            return new Texture(texId);
+            return new Texture2d(texId);
         }
     }
 }
