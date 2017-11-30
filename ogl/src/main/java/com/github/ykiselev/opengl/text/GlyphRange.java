@@ -14,14 +14,27 @@
  * limitations under the License.
  */
 
-package com.github.ykiselev.opengl;
+package com.github.ykiselev.opengl.text;
 
 /**
- * Created by Y.Kiselev on 08.05.2016.
+ * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public interface Bindable extends Identified {
+public final class GlyphRange {
 
-    void bind();
+    private final char start;
 
-    void unbind();
+    private final Glyph[] glyphs;
+
+    public GlyphRange(char start, Glyph[] glyphs) {
+        this.start = start;
+        this.glyphs = glyphs.clone();
+    }
+
+    public Glyph glyphForCharacter(char ch) {
+        final int index = (int) ch - start;
+        if (index >= 0 && index < glyphs.length) {
+            return glyphs[index];
+        }
+        return null;
+    }
 }

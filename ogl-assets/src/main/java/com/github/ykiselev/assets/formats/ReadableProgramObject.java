@@ -1,3 +1,19 @@
+/*
+ * Copyright 2017 Yuriy Kiselev (uze@yandex.ru)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.github.ykiselev.assets.formats;
 
 import com.github.ykiselev.assets.Assets;
@@ -12,6 +28,7 @@ import com.typesafe.config.ConfigFactory;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URI;
@@ -25,10 +42,10 @@ import java.util.List;
 public final class ReadableProgramObject implements ReadableResource {
 
     @Override
-    public ProgramObject read(URI resource, Assets assets) throws ResourceException {
+    public Object read(InputStream inputStream, Assets assets) throws ResourceException {
         final Config fallback = assets.load("/shaders/fallback-prog.conf");
         final Config config;
-        try (Reader reader = new InputStreamReader(assets.open(resource), StandardCharsets.UTF_8)) {
+        try (Reader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8)) {
             config = ConfigFactory.parseReader(reader)
                     .withFallback(fallback);
         } catch (IOException e) {
@@ -43,11 +60,11 @@ public final class ReadableProgramObject implements ReadableResource {
         }
         final List<ShaderObject> shaders = new ArrayList<>();
         final Config shader = config.getConfig("shader");
-        final ShaderObject vertexShader = tryLoadShader(resource, shader.getString("vertex"), assets);
+        final ShaderObject vertexShader = tryLoadShader(shader.getString("vertex"), assets);
         if (vertexShader != null) {
             shaders.add(vertexShader);
         }
-        final ShaderObject fragmentShader = tryLoadShader(resource, shader.getString("fragment"), assets);
+        final ShaderObject fragmentShader = tryLoadShader(shader.getString("fragment"), assets);
         if (fragmentShader != null) {
             shaders.add(fragmentShader);
         }
@@ -62,10 +79,10 @@ public final class ReadableProgramObject implements ReadableResource {
         }
     }
 
-    private ShaderObject tryLoadShader(URI base, String shader, Assets assets) throws ResourceException {
+    private ShaderObject tryLoadShader(String shader, Assets assets) throws ResourceException {
         if (StringUtils.isEmpty(shader)) {
             return null;
         }
-        return assets.load(base.resolve(shader), null);
+        return assets.load(URI.create(shader), null);
     }
 }

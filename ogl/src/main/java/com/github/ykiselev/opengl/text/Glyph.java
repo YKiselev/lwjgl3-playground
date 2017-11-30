@@ -14,14 +14,40 @@
  * limitations under the License.
  */
 
-package com.github.ykiselev.opengl;
+package com.github.ykiselev.opengl.text;
 
 /**
- * Created by Y.Kiselev on 08.05.2016.
+ * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public interface Bindable extends Identified {
+public class Glyph {
 
-    void bind();
+    private final float s0, t0, s1, t1, width;
 
-    void unbind();
+    public float getS0() {
+        return s0;
+    }
+
+    public float getT0() {
+        return t0;
+    }
+
+    public float getS1() {
+        return s1;
+    }
+
+    public float getT1() {
+        return t1;
+    }
+
+    public float getWidth() {
+        return width;
+    }
+
+    public Glyph(float s0, float t0, float s1, float t1, float width) {
+        this.s0 = s0;
+        this.t0 = t0;
+        this.s1 = s1;
+        this.t1 = t1;
+        this.width = width;
+    }
 }

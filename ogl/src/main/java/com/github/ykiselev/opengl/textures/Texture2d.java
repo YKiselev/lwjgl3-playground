@@ -14,48 +14,39 @@
  * limitations under the License.
  */
 
-package com.github.ykiselev.opengl.vbo;
+package com.github.ykiselev.opengl.textures;
 
 import com.github.ykiselev.opengl.Bindable;
+import com.github.ykiselev.opengl.Identified;
 
-import static org.lwjgl.opengl.GL30.glBindVertexArray;
-import static org.lwjgl.opengl.GL30.glDeleteVertexArrays;
-import static org.lwjgl.opengl.GL30.glGenVertexArrays;
+import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
+import static org.lwjgl.opengl.GL11.glBindTexture;
+import static org.lwjgl.opengl.GL11.glGenTextures;
 
 /**
- * Created by Y.Kiselev on 08.05.2016.
+ * Created by Y.Kiselev on 05.06.2016.
  */
-public final class VertexArrayObject implements Bindable, AutoCloseable {
+public class Texture2d implements Identified, Bindable {
 
     private final int id;
 
-    private final BufferObject[] buffers;
-
-    public VertexArrayObject(BufferObject... buffers) {
-        this.buffers = buffers;
-        this.id = glGenVertexArrays();
-        //todo Util.checkGLError();
+    public Texture2d(int id) {
+        this.id = id;
     }
 
-    @Override
-    public void close() throws Exception {
-        for (BufferObject buffer : buffers) {
-            buffer.close();
-            //todo Util.checkGLError();
-        }
-        glDeleteVertexArrays(this.id);
-        //todo Util.checkGLError();
+    public Texture2d() {
+        this(glGenTextures());
     }
 
     @Override
     public void bind() {
-        glBindVertexArray(id);
+        glBindTexture(GL_TEXTURE_2D, id);
         //todo Util.checkGLError();
     }
 
     @Override
     public void unbind() {
-        glBindVertexArray(0);
+        glBindTexture(GL_TEXTURE_2D, 0);
     }
 
     @Override
