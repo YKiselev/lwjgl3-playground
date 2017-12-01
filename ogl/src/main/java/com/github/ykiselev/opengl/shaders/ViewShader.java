@@ -40,7 +40,7 @@ public final class ViewShader implements Bindable {
         this.modelMatrix = modelMatrix;
     }
 
-    public ViewShader(ProgramObject program) throws ShaderException {
+    public ViewShader(ProgramObject program) throws ProgramException {
         this(
                 program,
                 new Matrix4Variable(program.lookup("projectionMatrix")),

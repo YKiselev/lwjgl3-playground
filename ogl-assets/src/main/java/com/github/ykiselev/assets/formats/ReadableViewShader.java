@@ -19,7 +19,8 @@ package com.github.ykiselev.assets.formats;
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.assets.ReadableResource;
 import com.github.ykiselev.assets.ResourceException;
-import com.github.ykiselev.opengl.shaders.ShaderException;
+import com.github.ykiselev.opengl.shaders.ProgramException;
+import com.github.ykiselev.opengl.shaders.ProgramObject;
 import com.github.ykiselev.opengl.shaders.ViewShader;
 
 import java.io.InputStream;
@@ -34,9 +35,10 @@ public final class ReadableViewShader implements ReadableResource<ViewShader> {
     public ViewShader read(InputStream inputStream, URI resource, Assets assets) throws ResourceException {
         try {
             return new ViewShader(
-                    assets.load(resource, null)
+                    assets.resolve(resource, ProgramObject.class)
+                            .read(inputStream, resource, assets)
             );
-        } catch (ShaderException e) {
+        } catch (ProgramException e) {
             throw new ResourceException("Failed to load " + resource, e);
         }
     }
