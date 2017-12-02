@@ -7,7 +7,7 @@ import static org.junit.Assert.*;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public class ReadableTextureTest {
+public class ReadableTexture2dTest {
 
     @Test
     public void shouldRead() {

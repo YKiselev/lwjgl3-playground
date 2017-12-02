@@ -8,6 +8,7 @@ import java.nio.channels.ReadableByteChannel;
 import static java.util.Objects.requireNonNull;
 
 /**
+ *
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
 public final class ByteChannelAsMemoryUtilByteBuffer implements ByteChannelAsByteBuffer {
@@ -34,6 +35,7 @@ public final class ByteChannelAsMemoryUtilByteBuffer implements ByteChannelAsByt
                     buffer = MemoryUtil.memRealloc(buffer, buffer.capacity() * 3 / 2);
                 }
             }
+            buffer.flip();
             return buffer;
         } catch (Exception ex) {
             MemoryUtil.memFree(buffer);

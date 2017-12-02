@@ -16,21 +16,21 @@
 
 package cob.github.ykiselev.lwjgl3;
 
-import org.lwjgl.BufferUtils;
 import org.lwjgl.glfw.GLFWCursorPosCallbackI;
 import org.lwjgl.glfw.GLFWFramebufferSizeCallbackI;
 import org.lwjgl.glfw.GLFWKeyCallbackI;
 import org.lwjgl.glfw.GLFWMouseButtonCallbackI;
-import org.lwjgl.system.MemoryUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static org.lwjgl.glfw.GLFW.GLFW_CONTEXT_VERSION_MAJOR;
 import static org.lwjgl.glfw.GLFW.GLFW_CONTEXT_VERSION_MINOR;
+import static org.lwjgl.glfw.GLFW.GLFW_FALSE;
 import static org.lwjgl.glfw.GLFW.GLFW_OPENGL_CORE_PROFILE;
 import static org.lwjgl.glfw.GLFW.GLFW_OPENGL_PROFILE;
 import static org.lwjgl.glfw.GLFW.GLFW_RESIZABLE;
 import static org.lwjgl.glfw.GLFW.GLFW_TRUE;
+import static org.lwjgl.glfw.GLFW.GLFW_VISIBLE;
 import static org.lwjgl.glfw.GLFW.glfwCreateWindow;
 import static org.lwjgl.glfw.GLFW.glfwDestroyWindow;
 import static org.lwjgl.glfw.GLFW.glfwGetFramebufferSize;
@@ -86,11 +86,12 @@ final class AppWindow implements AutoCloseable {
 
     AppWindow() {
         glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+        glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
         this.window = glfwCreateWindow(
-                320, 240, TITLE, 0, 0
+                100, 100, TITLE, 0, 0
         );
         if (window == 0) {
             throw new IllegalStateException("Failed to create window");
@@ -104,7 +105,7 @@ final class AppWindow implements AutoCloseable {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         glfwDestroyWindow(window);
     }
 
@@ -137,7 +138,5 @@ final class AppWindow implements AutoCloseable {
             // todo - do something
             frameBufferResized = false;
         }
-        BufferUtils.createByteBuffer(100);
-        MemoryUtil.memAlloc(200);
     }
 }

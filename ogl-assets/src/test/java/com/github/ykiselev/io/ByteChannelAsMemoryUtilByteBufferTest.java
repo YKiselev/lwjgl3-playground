@@ -16,7 +16,7 @@ import static org.mockito.Mockito.when;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public class ByteChannelAsByteBufferTest {
+public class ByteChannelAsMemoryUtilByteBufferTest {
 
     private static final int CHANNEL_LENGTH = 8 * 4 * 1_000;
 
@@ -43,7 +43,6 @@ public class ByteChannelAsByteBufferTest {
                 });
         final ByteBuffer buffer = bc.read();
         try {
-            buffer.flip();
             assertEquals(CHANNEL_LENGTH, buffer.limit());
         } finally {
             MemoryUtil.memFree(buffer);
