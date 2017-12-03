@@ -8,10 +8,9 @@ import java.nio.channels.ReadableByteChannel;
 import static java.util.Objects.requireNonNull;
 
 /**
- *
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class ByteChannelAsMemoryUtilByteBuffer implements ByteChannelAsByteBuffer {
+public final class ByteChannelAsMemoryUtilByteBuffer implements ReadableBytes {
 
     private final ReadableByteChannel channel;
 
@@ -23,7 +22,7 @@ public final class ByteChannelAsMemoryUtilByteBuffer implements ByteChannelAsByt
     }
 
     @Override
-    public ByteBuffer read() {
+    public Wrap<ByteBuffer> read() {
         ByteBuffer buffer = MemoryUtil.memAlloc(initialBufferSize);
         try {
             for (; ; ) {
@@ -36,10 +35,22 @@ public final class ByteChannelAsMemoryUtilByteBuffer implements ByteChannelAsByt
                 }
             }
             buffer.flip();
-            return buffer;
+            return new MemoryUtilWrap(buffer);
         } catch (Exception ex) {
             MemoryUtil.memFree(buffer);
             throw new IllegalStateException(ex);
+        }
+    }
+
+    private static final class MemoryUtilWrap extends Wrap<ByteBuffer> {
+
+        MemoryUtilWrap(ByteBuffer value) {
+            super(value);
+        }
+
+        @Override
+        public void close() {
+            MemoryUtil.memFree(value());
         }
     }
 }

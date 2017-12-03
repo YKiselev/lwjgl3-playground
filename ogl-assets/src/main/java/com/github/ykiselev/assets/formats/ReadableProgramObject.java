@@ -22,17 +22,13 @@ import com.github.ykiselev.assets.ResourceException;
 import com.github.ykiselev.opengl.shaders.ProgramObject;
 import com.github.ykiselev.opengl.shaders.ShaderObject;
 import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValue;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.net.URI;
+import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -67,8 +63,8 @@ public final class ReadableProgramObject implements ReadableResource {
     }
 
     @Override
-    public Object read(InputStream inputStream, URI resource, Assets assets) throws ResourceException {
-        final Config config = readConfig(inputStream, assets);
+    public Object read(ReadableByteChannel channel, URI resource, Assets assets) throws ResourceException {
+        final Config config = readConfig(channel, resource, assets);
         final int id = glCreateProgram();
         final ShaderObject[] shaders = readShaders(assets, config);
         for (ShaderObject s : shaders) {
@@ -94,7 +90,7 @@ public final class ReadableProgramObject implements ReadableResource {
             program.bind();
             int unit = 0;
             for (String uniform : samplers) {
-                glUniform1i(program.location(uniform), unit);
+                glUniform1i(program.uniformLocation(uniform), unit);
                 unit++;
             }
             program.unbind();
@@ -115,15 +111,11 @@ public final class ReadableProgramObject implements ReadableResource {
                 .toArray(ShaderObject[]::new);
     }
 
-    private Config readConfig(InputStream inputStream, Assets assets) {
-        final Config fallback = assets.load("/fallback/program-object.conf");
-        final Config config;
-        try (Reader reader = new InputStreamReader(inputStream, charset)) {
-            config = ConfigFactory.parseReader(reader)
-                    .withFallback(fallback);
-        } catch (IOException e) {
-            throw new ResourceException(e);
-        }
-        return config;
+    private Config readConfig(ReadableByteChannel channel, URI resource, Assets assets) {
+        return assets.resolve(Config.class)
+                .read(channel, resource, assets)
+                .withFallback(
+                        assets.load("/fallback/program-object.conf")
+                );
     }
 }

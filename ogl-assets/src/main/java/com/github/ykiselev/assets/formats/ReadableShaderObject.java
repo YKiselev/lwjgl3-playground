@@ -26,9 +26,12 @@ import org.lwjgl.opengl.GL20;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.Reader;
 import java.net.URI;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.StandardCharsets;
 
 import static org.lwjgl.opengl.GL11.GL_TRUE;
@@ -47,10 +50,10 @@ public final class ReadableShaderObject implements ReadableResource<ShaderObject
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Override
-    public ShaderObject read(InputStream inputStream, URI resource, Assets assets) throws ResourceException {
+    public ShaderObject read(ReadableByteChannel channel, URI resource, Assets assets) throws ResourceException {
         final String text;
-        try {
-            text = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
+        try (Reader reader = new BufferedReader(Channels.newReader(channel, StandardCharsets.UTF_8.newDecoder(), -1))) {
+            text = IOUtils.toString(reader);
         } catch (IOException e) {
             throw new ResourceException(e);
         }

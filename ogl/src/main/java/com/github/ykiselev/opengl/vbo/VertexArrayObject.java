@@ -37,11 +37,11 @@ public final class VertexArrayObject implements Bindable, AutoCloseable {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         for (BufferObject buffer : buffers) {
             buffer.close();
         }
-        glDeleteVertexArrays(this.id);
+        glDeleteVertexArrays(id);
     }
 
     @Override

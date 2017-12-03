@@ -22,11 +22,12 @@ import com.github.ykiselev.assets.ResourceException;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URI;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -35,8 +36,8 @@ import java.nio.charset.StandardCharsets;
 public final class ReadableConfig implements ReadableResource<Config> {
 
     @Override
-    public Config read(InputStream inputStream, URI resource, Assets assets) throws ResourceException {
-        try (Reader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8)) {
+    public Config read(ReadableByteChannel channel, URI resource, Assets assets) throws ResourceException {
+        try (Reader reader = new BufferedReader(Channels.newReader(channel, StandardCharsets.UTF_8.newDecoder(), -1))) {
             return ConfigFactory.parseReader(reader);
         } catch (IOException e) {
             throw new ResourceException(e);

@@ -1,7 +1,6 @@
 package com.github.ykiselev.io;
 
 import org.junit.Test;
-import org.lwjgl.system.MemoryUtil;
 import org.mockito.stubbing.Answer;
 
 import java.io.IOException;
@@ -22,7 +21,7 @@ public class ByteChannelAsMemoryUtilByteBufferTest {
 
     private final ReadableByteChannel channel = mock(ReadableByteChannel.class);
 
-    private final ByteChannelAsByteBuffer bc = new ByteChannelAsMemoryUtilByteBuffer(
+    private final ReadableBytes bc = new ByteChannelAsMemoryUtilByteBuffer(
             channel, 256
     );
 
@@ -41,11 +40,8 @@ public class ByteChannelAsMemoryUtilByteBufferTest {
                     }
                     return result;
                 });
-        final ByteBuffer buffer = bc.read();
-        try {
-            assertEquals(CHANNEL_LENGTH, buffer.limit());
-        } finally {
-            MemoryUtil.memFree(buffer);
+        try (Wrap<ByteBuffer> wrap = bc.read()) {
+            assertEquals(CHANNEL_LENGTH, wrap.value().limit());
         }
     }
 }

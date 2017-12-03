@@ -1,12 +1,12 @@
 package com.github.ykiselev.sandbox;
 
 import com.github.ykiselev.io.ByteChannelAsMemoryUtilByteBuffer;
+import com.github.ykiselev.io.Wrap;
 import org.lwjgl.stb.STBIEOFCallback;
 import org.lwjgl.stb.STBIIOCallbacks;
 import org.lwjgl.stb.STBIReadCallback;
 import org.lwjgl.stb.STBISkipCallback;
 import org.lwjgl.system.MemoryStack;
-import org.lwjgl.system.MemoryUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -55,20 +55,17 @@ public final class StbImageApp {
 
     private void printInfo(URI resource) throws Exception {
         System.out.println("Checking image: " + resource);
-        final ByteBuffer buffer = loadImage(resource);
-        try {
+        try (Wrap<ByteBuffer> wrap = loadImage(resource)) {
             try (MemoryStack ms = MemoryStack.stackPush()) {
                 final IntBuffer wb = ms.callocInt(1);
                 final IntBuffer hb = ms.callocInt(1);
                 final IntBuffer compb = ms.callocInt(1);
-                if (stbi_info_from_memory(buffer, wb, hb, compb)) {
+                if (stbi_info_from_memory(wrap.value(), wb, hb, compb)) {
                     print(wb, hb, compb, null);
                 } else {
                     System.out.println("Unable to read info: " + stbi_failure_reason());
                 }
             }
-        } finally {
-            MemoryUtil.memFree(buffer);
         }
     }
 
@@ -84,13 +81,12 @@ public final class StbImageApp {
 
     private void loadAndPrintInfo(URI resource) throws Exception {
         System.out.println("Checking image: " + resource);
-        final ByteBuffer buffer = loadImage(resource);
-        try {
+        try (Wrap<ByteBuffer> wrap = loadImage(resource)) {
             try (MemoryStack ms = MemoryStack.stackPush()) {
                 final IntBuffer wb = ms.callocInt(1);
                 final IntBuffer hb = ms.callocInt(1);
                 final IntBuffer compb = ms.callocInt(1);
-                final ByteBuffer image = stbi_load_from_memory(buffer, wb, hb, compb, 0);
+                final ByteBuffer image = stbi_load_from_memory(wrap.value(), wb, hb, compb, 0);
                 if (image != null) {
                     try {
                         print(wb, hb, compb, image);
@@ -101,12 +97,10 @@ public final class StbImageApp {
                     System.out.println("Unable to read info: " + stbi_failure_reason());
                 }
             }
-        } finally {
-            MemoryUtil.memFree(buffer);
         }
     }
 
-    private ByteBuffer loadImage(URI resource) throws Exception {
+    private Wrap<ByteBuffer> loadImage(URI resource) throws Exception {
         try (ReadableByteChannel channel = FileChannel.open(Paths.get(resource))) {
             return new ByteChannelAsMemoryUtilByteBuffer(
                     channel,

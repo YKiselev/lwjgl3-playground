@@ -39,7 +39,6 @@ public abstract class BufferObject implements Bindable, AutoCloseable {
     protected BufferObject(int target) {
         this.target = target;
         this.id = GL15.glGenBuffers();
-        // todd Util.checkGLError();
     }
 
     @Override
@@ -58,7 +57,7 @@ public abstract class BufferObject implements Bindable, AutoCloseable {
     }
 
     @Override
-    public final void close() throws Exception {
+    public final void close() {
         glDeleteBuffers(id);
     }
 
@@ -69,17 +68,14 @@ public abstract class BufferObject implements Bindable, AutoCloseable {
      * @param usage the usage constant, like {@link GL15#GL_STATIC_DRAW}
      */
     public final void bufferData(FloatBuffer data, int usage) {
-        glBufferData(this.target, data, usage);
-        //todo Util.checkGLError();
+        glBufferData(target, data, usage);
     }
 
     public final void bufferData(ByteBuffer data, int usage) {
-        glBufferData(this.target, data, usage);
-        //todo Util.checkGLError();
+        glBufferData(target, data, usage);
     }
 
     public final void bufferData(IntBuffer data, int usage) {
-        glBufferData(this.target, data, usage);
-        //todo Util.checkGLError();
+        glBufferData(target, data, usage);
     }
 }

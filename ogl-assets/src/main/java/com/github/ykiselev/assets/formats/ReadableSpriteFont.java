@@ -23,14 +23,15 @@ import com.github.ykiselev.gfx.font.GlyphRange;
 import com.github.ykiselev.opengl.text.Glyph;
 import com.github.ykiselev.opengl.text.SpriteFont;
 import com.github.ykiselev.opengl.textures.Texture2d;
-import org.lwjgl.BufferUtils;
+import org.lwjgl.system.MemoryStack;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.net.URI;
 import java.nio.IntBuffer;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
 
 import static org.lwjgl.opengl.GL11.GL_ONE;
 import static org.lwjgl.opengl.GL11.GL_RED;
@@ -51,35 +52,13 @@ import static org.lwjgl.opengl.GL33.GL_TEXTURE_SWIZZLE_RGBA;
 public final class ReadableSpriteFont implements ReadableResource<SpriteFont> {
 
     @Override
-    public SpriteFont read(InputStream inputStream, URI resource, Assets assets) throws ResourceException {
-        final com.github.ykiselev.gfx.font.SpriteFont spriteFont;
-        try (ObjectInputStream ois = new ObjectInputStream(inputStream)) {
-            spriteFont = (com.github.ykiselev.gfx.font.SpriteFont) ois.readObject();
-        } catch (IOException | ClassNotFoundException e) {
-            throw new ResourceException(e);
-        }
-        final Texture2d texture;
-        try (InputStream is = new ByteArrayInputStream(spriteFont.image())) {
-            texture = assets.resolve(null, Texture2d.class)
-                    .read(is, URI.create("texture.png"), assets);
-        } catch (IOException e) {
-            throw new ResourceException(e);
-        }
+    public SpriteFont read(ReadableByteChannel channel, URI resource, Assets assets) throws ResourceException {
+        final com.github.ykiselev.gfx.font.SpriteFont spriteFont = readSpriteFont(channel);
+        final Texture2d texture = readSpriteFontTexture(assets, spriteFont);
         texture.bind();
         final int width = glGetTexLevelParameteri(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH);
         final int height = glGetTexLevelParameteri(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT);
-        final int format = glGetTexLevelParameteri(GL_TEXTURE_2D, 0, GL_TEXTURE_INTERNAL_FORMAT);
-        if (format == GL_RED) {
-            final IntBuffer swizzleMask = BufferUtils.createIntBuffer(4);
-            swizzleMask.put(GL_ONE)
-                    .put(GL_ONE)
-                    .put(GL_ONE)
-                    .put(GL_RED)
-                    .flip();
-            glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
-        }
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, 0x812F/*GL_CLAMP*/); // todo - wtf?
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, 0x812F/*GL_CLAMP*/);
+        setupTextureParameters();
 
         final int characterWidth = spriteFont.characterWidth();
         final char defaultCharacter = spriteFont.defaultCharacter();
@@ -121,5 +100,43 @@ public final class ReadableSpriteFont implements ReadableResource<SpriteFont> {
                 ranges,
                 defaultCharacter
         );
+    }
+
+    private void setupTextureParameters() {
+        final int format = glGetTexLevelParameteri(GL_TEXTURE_2D, 0, GL_TEXTURE_INTERNAL_FORMAT);
+        if (format == GL_RED) {
+            try (MemoryStack ms = MemoryStack.stackPush()) {
+                final IntBuffer swizzleMask = ms.callocInt(4);
+                swizzleMask.put(GL_ONE)
+                        .put(GL_ONE)
+                        .put(GL_ONE)
+                        .put(GL_RED)
+                        .flip();
+                glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
+            }
+        }
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, 0x812F/*GL_CLAMP*/); // todo - wtf?
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, 0x812F/*GL_CLAMP*/);
+    }
+
+    private Texture2d readSpriteFontTexture(Assets assets, com.github.ykiselev.gfx.font.SpriteFont spriteFont) {
+        final Texture2d texture;
+        try (ReadableByteChannel bc = Channels.newChannel(new ByteArrayInputStream(spriteFont.image()))) {
+            texture = assets.resolve(Texture2d.class)
+                    .read(bc, URI.create("texture.png"), assets);
+        } catch (IOException e) {
+            throw new ResourceException(e);
+        }
+        return texture;
+    }
+
+    private com.github.ykiselev.gfx.font.SpriteFont readSpriteFont(ReadableByteChannel channel) {
+        final com.github.ykiselev.gfx.font.SpriteFont spriteFont;
+        try (ObjectInputStream ois = new ObjectInputStream(Channels.newInputStream(channel))) {
+            spriteFont = (com.github.ykiselev.gfx.font.SpriteFont) ois.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            throw new ResourceException(e);
+        }
+        return spriteFont;
     }
 }

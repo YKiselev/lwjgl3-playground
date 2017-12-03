@@ -23,8 +23,8 @@ import com.github.ykiselev.opengl.shaders.ProgramException;
 import com.github.ykiselev.opengl.shaders.ProgramObject;
 import com.github.ykiselev.opengl.shaders.ViewShader;
 
-import java.io.InputStream;
 import java.net.URI;
+import java.nio.channels.ReadableByteChannel;
 
 /**
  * Created by Y.Kiselev on 15.06.2016.
@@ -32,11 +32,11 @@ import java.net.URI;
 public final class ReadableViewShader implements ReadableResource<ViewShader> {
 
     @Override
-    public ViewShader read(InputStream inputStream, URI resource, Assets assets) throws ResourceException {
+    public ViewShader read(ReadableByteChannel channel, URI resource, Assets assets) throws ResourceException {
         try {
             return new ViewShader(
-                    assets.resolve(resource, ProgramObject.class)
-                            .read(inputStream, resource, assets)
+                    assets.resolve(ProgramObject.class)
+                            .read(channel, resource, assets)
             );
         } catch (ProgramException e) {
             throw new ResourceException("Failed to load " + resource, e);

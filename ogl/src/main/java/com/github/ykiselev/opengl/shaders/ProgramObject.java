@@ -21,6 +21,7 @@ import com.github.ykiselev.opengl.shaders.uniforms.UniformVariable;
 
 import static java.util.Objects.requireNonNull;
 import static org.lwjgl.opengl.GL20.glDeleteProgram;
+import static org.lwjgl.opengl.GL20.glGetAttribLocation;
 import static org.lwjgl.opengl.GL20.glGetUniformLocation;
 import static org.lwjgl.opengl.GL20.glUseProgram;
 
@@ -53,11 +54,20 @@ public final class ProgramObject implements Bindable, AutoCloseable {
         glUseProgram(0);
     }
 
-    public int location(String uniform) throws ProgramException {
-        final int location = glGetUniformLocation(this.id, uniform);
+    public int uniformLocation(String uniform) throws ProgramException {
+        final int location = glGetUniformLocation(id, uniform);
         if (location == -1) {
             throw new ProgramException("Uniform variable not found: " + uniform
-                    + ".\nThis may be due to compiler optimization, check if variable is actually used in code!");
+                    + ".\nThis may be caused by compiler optimization, check if variable is actually used in code!");
+        }
+        return location;
+    }
+
+    public int attributeLocation(String attribute) throws ProgramException {
+        final int location = glGetAttribLocation(id, attribute);
+        if (location == -1) {
+            throw new ProgramException("Attribute not found: " + attribute
+                    + ".\nThis may be caused by compiler optimization, check if attribute is actually used in code!");
         }
         return location;
     }
@@ -67,7 +77,7 @@ public final class ProgramObject implements Bindable, AutoCloseable {
      * @return the new instance of uniform variable
      */
     public UniformVariable lookup(String uniform) throws ProgramException {
-        return new UniformVariable(location(uniform), uniform);
+        return new UniformVariable(uniformLocation(uniform), uniform);
     }
 
     @Override

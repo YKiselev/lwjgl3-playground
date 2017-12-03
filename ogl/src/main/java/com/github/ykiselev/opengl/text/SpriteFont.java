@@ -37,6 +37,10 @@ public final class SpriteFont {
 
     private final Glyph defaultGlyph;
 
+    public Texture2d texture() {
+        return texture;
+    }
+
     public int fontHeight() {
         return fontHeight;
     }
@@ -67,6 +71,39 @@ public final class SpriteFont {
             }
         }
         return defaultGlyph;
+    }
+
+    public int measureHeight(String text, int width) {
+        final int dy = fontHeight + glyphYBorder;
+        int lines = 0;
+        float w = 0;
+        for (int i = 0; i < text.length(); i++) {
+            final char value = text.charAt(i);
+
+            if (value == '\r') {
+                continue;
+            }
+            if (value == '\n') {
+                lines++;
+                w = 0;
+                continue;
+            }
+
+            final Glyph glyph = glyphForCharacter(value);
+
+            if (w + glyph.getWidth() > width) {
+                lines++;
+                w = glyph.getWidth();
+            }
+
+            w += glyph.getWidth();
+        }
+
+        if (w > 0) {
+            lines++;
+        }
+
+        return lines * dy;
     }
 
 }

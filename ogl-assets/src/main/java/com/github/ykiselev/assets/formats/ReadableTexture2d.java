@@ -20,15 +20,14 @@ import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.assets.ReadableResource;
 import com.github.ykiselev.assets.ResourceException;
 import com.github.ykiselev.io.ByteChannelAsMemoryUtilByteBuffer;
+import com.github.ykiselev.io.Wrap;
 import com.github.ykiselev.opengl.textures.Texture2d;
 import org.lwjgl.system.MemoryStack;
-import org.lwjgl.system.MemoryUtil;
 
-import java.io.InputStream;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
-import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
 
 import static org.lwjgl.opengl.GL11.GL_LINEAR;
 import static org.lwjgl.opengl.GL11.GL_RED;
@@ -57,16 +56,15 @@ import static org.lwjgl.system.MemoryStack.stackPush;
 public final class ReadableTexture2d implements ReadableResource<Texture2d> {
 
     @Override
-    public Texture2d read(InputStream inputStream, URI resource, Assets assets) throws ResourceException {
+    public Texture2d read(ReadableByteChannel channel, URI resource, Assets assets) throws ResourceException {
         final ByteBuffer image;
         final int width, height, components;
-        final ByteBuffer raw = readResource(inputStream);
-        try {
+        try (Wrap<ByteBuffer> wrap = readResource(channel)) {
             try (MemoryStack stack = stackPush()) {
                 final IntBuffer xb = stack.callocInt(1);
                 final IntBuffer yb = stack.callocInt(1);
                 final IntBuffer compb = stack.callocInt(1);
-                image = stbi_load_from_memory(raw, xb, yb, compb, 0);
+                image = stbi_load_from_memory(wrap.value(), xb, yb, compb, 0);
                 if (image == null) {
                     throw new ResourceException("Unable to read image: " + stbi_failure_reason());
                 }
@@ -74,8 +72,6 @@ public final class ReadableTexture2d implements ReadableResource<Texture2d> {
                 height = yb.get(0);
                 components = compb.get(0);
             }
-        } finally {
-            MemoryUtil.memFree(raw);
         }
         try {
             return loadTexture(
@@ -135,9 +131,9 @@ public final class ReadableTexture2d implements ReadableResource<Texture2d> {
         return result;
     }
 
-    private ByteBuffer readResource(InputStream is) {
+    private Wrap<ByteBuffer> readResource(ReadableByteChannel channel) {
         return new ByteChannelAsMemoryUtilByteBuffer(
-                Channels.newChannel(is),
+                channel,
                 8 * 1024
         ).read();
     }

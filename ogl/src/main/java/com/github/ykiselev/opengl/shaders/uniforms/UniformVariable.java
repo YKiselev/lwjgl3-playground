@@ -16,9 +16,11 @@
 
 package com.github.ykiselev.opengl.shaders.uniforms;
 
-import org.lwjgl.opengl.GL20;
-
 import java.nio.FloatBuffer;
+
+import static org.lwjgl.opengl.GL20.glUniform1i;
+import static org.lwjgl.opengl.GL20.glUniform4fv;
+import static org.lwjgl.opengl.GL20.glUniformMatrix4fv;
 
 /**
  * Created by Y.Kiselev on 08.05.2016.
@@ -43,7 +45,15 @@ public final class UniformVariable {
     }
 
     public void matrix4(boolean transpose, FloatBuffer matrix) {
-        GL20.glUniformMatrix4fv(this.location, transpose, matrix);
-        //Util.checkGLError();
+        glUniformMatrix4fv(location, transpose, matrix);
     }
+
+    public void vector4fv(FloatBuffer buffer) {
+        glUniform4fv(location, buffer);
+    }
+
+    public void value1i(int value){
+        glUniform1i(location, value);
+    }
+
 }
