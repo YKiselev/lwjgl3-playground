@@ -3,6 +3,7 @@ package cob.github.ykiselev.lwjgl3.playground;
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.opengl.shaders.ProgramObject;
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
+import com.github.ykiselev.opengl.textures.Texture2d;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
@@ -10,6 +11,8 @@ import com.github.ykiselev.opengl.sprites.SpriteBatch;
 public final class Game implements WindowCallbacks, AutoCloseable {
 
     private final SpriteBatch spriteBatch;
+
+    private final Texture2d cuddles;
 
     // frame buffer width
     private int width;
@@ -19,8 +22,9 @@ public final class Game implements WindowCallbacks, AutoCloseable {
 
     public Game(Assets assets) {
         spriteBatch = new SpriteBatch(
-                assets.load("/progs/sprite-batch.conf", ProgramObject.class)
+                assets.load("progs/sprite-batch.conf", ProgramObject.class)
         );
+        cuddles = assets.load("images/htf-cuddles.jpg", Texture2d.class);
     }
 
     @Override
@@ -51,6 +55,8 @@ public final class Game implements WindowCallbacks, AutoCloseable {
     }
 
     public void update() {
-
+        spriteBatch.begin(0, 0, width, height, true);
+        spriteBatch.draw(cuddles, 50, 50, 400, 400, 0xffffffff);
+        spriteBatch.end();
     }
 }

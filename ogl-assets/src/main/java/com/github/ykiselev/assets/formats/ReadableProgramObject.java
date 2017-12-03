@@ -115,7 +115,7 @@ public final class ReadableProgramObject implements ReadableResource {
         return assets.resolve(Config.class)
                 .read(channel, resource, assets)
                 .withFallback(
-                        assets.load("/fallback/program-object.conf")
+                        assets.load("fallback/program-object.conf")
                 );
     }
 }

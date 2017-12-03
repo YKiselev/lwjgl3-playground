@@ -28,6 +28,8 @@ import static org.lwjgl.opengl.GL11.glDisable;
 import static org.lwjgl.opengl.GL11.glDrawElements;
 import static org.lwjgl.opengl.GL11.glEnable;
 import static org.lwjgl.opengl.GL11.glViewport;
+import static org.lwjgl.opengl.GL13.GL_TEXTURE0;
+import static org.lwjgl.opengl.GL13.glActiveTexture;
 import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
 import static org.lwjgl.opengl.GL15.GL_DYNAMIC_DRAW;
 import static org.lwjgl.opengl.GL15.GL_ELEMENT_ARRAY_BUFFER;
@@ -225,6 +227,7 @@ public final class SpriteBatch implements AutoCloseable {
             glBindTexture(GL_TEXTURE_2D, 0);
         } else if (texture != currentTexture) {
             flush();
+            glActiveTexture(GL_TEXTURE0);
             texture.bind();
         }
         currentTexture = texture;
