@@ -16,17 +16,23 @@
 
 package cob.github.ykiselev.lwjgl3;
 
+import cob.github.ykiselev.lwjgl3.playground.WindowCallbacks;
 import org.lwjgl.glfw.GLFWCursorPosCallbackI;
 import org.lwjgl.glfw.GLFWFramebufferSizeCallbackI;
 import org.lwjgl.glfw.GLFWKeyCallbackI;
 import org.lwjgl.glfw.GLFWMouseButtonCallbackI;
+import org.lwjgl.system.MemoryStack;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.IntBuffer;
+
+import static java.util.Objects.requireNonNull;
 import static org.lwjgl.glfw.GLFW.GLFW_CONTEXT_VERSION_MAJOR;
 import static org.lwjgl.glfw.GLFW.GLFW_CONTEXT_VERSION_MINOR;
 import static org.lwjgl.glfw.GLFW.GLFW_FALSE;
 import static org.lwjgl.glfw.GLFW.GLFW_OPENGL_CORE_PROFILE;
+import static org.lwjgl.glfw.GLFW.GLFW_OPENGL_DEBUG_CONTEXT;
 import static org.lwjgl.glfw.GLFW.GLFW_OPENGL_PROFILE;
 import static org.lwjgl.glfw.GLFW.GLFW_RESIZABLE;
 import static org.lwjgl.glfw.GLFW.GLFW_TRUE;
@@ -46,6 +52,8 @@ import static org.lwjgl.glfw.GLFW.glfwShowWindow;
 import static org.lwjgl.glfw.GLFW.glfwSwapBuffers;
 import static org.lwjgl.glfw.GLFW.glfwWindowHint;
 import static org.lwjgl.glfw.GLFW.glfwWindowShouldClose;
+import static org.lwjgl.opengl.GL11.GL_FALSE;
+import static org.lwjgl.opengl.GL11.GL_TRUE;
 
 /**
  * Window class.
@@ -58,6 +66,8 @@ final class AppWindow implements AutoCloseable {
     private static final String TITLE = "LWJGL3 Test App";
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
+
+    private final WindowCallbacks callbacks;
 
     private final long window;
 
@@ -72,24 +82,27 @@ final class AppWindow implements AutoCloseable {
     };
 
     @SuppressWarnings("FieldCanBeLocal")
-    private final GLFWKeyCallbackI keyCallback = (window, key, scancode, action, mods) ->
-            logger.info("keyCallback({},{},{},{})", key, scancode, action, mods);
+    private final GLFWKeyCallbackI keyCallback;
 
     @SuppressWarnings("FieldCanBeLocal")
-    private final GLFWCursorPosCallbackI cursorPosCallback = (window, xpos, ypos) -> {
-        //logger.info("cursorPos({},{})", xpos, ypos);
-    };
+    private final GLFWCursorPosCallbackI cursorPosCallback;
 
     @SuppressWarnings("FieldCanBeLocal")
-    private final GLFWMouseButtonCallbackI mouseButtonCallback = (window, button, action, mods) ->
-            logger.info("mouseButton({},{},{})", button, action, mods);
+    private final GLFWMouseButtonCallbackI mouseButtonCallback;
 
-    AppWindow() {
+    AppWindow(WindowCallbacks callbacks) {
+        this.callbacks = requireNonNull(callbacks);
+        this.keyCallback = (window, key, scancode, action, mods) -> callbacks.keyEvent(key, scancode, action, mods);
+        this.cursorPosCallback = (window, xpos, ypos) -> callbacks.cursorEvent(xpos, ypos);
+        this.mouseButtonCallback = (window, button, action, mods) -> callbacks.mouseButtonEvent(button, action, mods);
+
         glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+        // todo ?
+        glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
         this.window = glfwCreateWindow(
                 100, 100, TITLE, 0, 0
         );
@@ -121,22 +134,28 @@ final class AppWindow implements AutoCloseable {
         return glfwWindowShouldClose(window);
     }
 
-    public void update() {
+    public void checkEvents() {
         glfwMakeContextCurrent(window);
         checkForFrameBufferResize();
         glfwPollEvents();
+    }
+
+    public void swapBuffers() {
         glfwSwapBuffers(window);
     }
 
     private void checkForFrameBufferResize() {
         if (frameBufferResized) {
-            final int[] w = new int[1], h = new int[1];
-            glfwGetFramebufferSize(window, w, h);
-            final int width = w[0];
-            final int height = h[0];
-            logger.info("frameBufferSize now is {}x{}", width, height);
-            // todo - do something
+            final int width, height;
+            try (MemoryStack ms = MemoryStack.stackPush()) {
+                final IntBuffer wb = ms.callocInt(1);
+                final IntBuffer hb = ms.callocInt(1);
+                glfwGetFramebufferSize(window, wb, hb);
+                width = wb.get(0);
+                height = hb.get(0);
+            }
             frameBufferResized = false;
+            callbacks.frameBufferEvent(width, height);
         }
     }
 }

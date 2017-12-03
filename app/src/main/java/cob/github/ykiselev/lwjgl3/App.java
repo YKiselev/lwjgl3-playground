@@ -16,6 +16,9 @@
 
 package cob.github.ykiselev.lwjgl3;
 
+import cob.github.ykiselev.lwjgl3.assets.GameAssets;
+import cob.github.ykiselev.lwjgl3.playground.Callbacks;
+import cob.github.ykiselev.lwjgl3.playground.Game;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.opengl.GL;
 
@@ -30,20 +33,25 @@ public final class App {
 
     private final GLFWErrorCallback errorCallback = GLFWErrorCallback.createPrint(System.err);
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         new App().run();
     }
 
-    private void run() throws Exception {
+    private void run() {
         glfwInit();
         try {
             glfwSetErrorCallback(errorCallback);
-            try (AppWindow window = new AppWindow()) {
+            final Callbacks callbacks = new Callbacks();
+            try (AppWindow window = new AppWindow(callbacks)) {
                 GL.createCapabilities();
-                window.show();
-                while (!window.shouldClose()) {
-                    window.update();
-                    Thread.sleep(10);
+                try (Game game = newGame()) {
+                    callbacks.target(game);
+                    window.show();
+                    while (!window.shouldClose()) {
+                        window.checkEvents();
+                        game.update();
+                        window.swapBuffers();
+                    }
                 }
             }
         } finally {
@@ -51,5 +59,11 @@ public final class App {
             glfwSetErrorCallback(null);
             errorCallback.free();
         }
+    }
+
+    private Game newGame() {
+        return new Game(
+                new GameAssets()
+        );
     }
 }

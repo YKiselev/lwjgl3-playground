@@ -110,10 +110,10 @@ public final class SpriteBatch implements AutoCloseable {
 
         texUniform = program.lookup("tex");
         vbo.attribute(
-                program.attributeLocation("position"), 2, GL_FLOAT, false, 16, 0
+                program.attributeLocation("in_Position"), 2, GL_FLOAT, false, 16, 0
         );
         vbo.attribute(
-                program.attributeLocation("texCoord"), 2, GL_FLOAT, false, 16, 8
+                program.attributeLocation("in_TexCoord"), 2, GL_FLOAT, false, 16, 8
         );
 
         ebo = new IndexBufferObject();
@@ -254,7 +254,7 @@ public final class SpriteBatch implements AutoCloseable {
             glDisable(GL_BLEND);
         }
 
-        // todo - lloks like we already do this in com/github/ykiselev/assets/formats/ReadableProgramObject.java:93
+        // todo - looks like we already do this in com/github/ykiselev/assets/formats/ReadableProgramObject.java:93
         texUniform.value1i(0);
 
         final float oow = 1.0f / (float) width;
