@@ -24,7 +24,6 @@ import com.github.ykiselev.io.Wrap;
 import com.github.ykiselev.opengl.textures.Texture2d;
 import org.lwjgl.system.MemoryStack;
 
-import java.net.URI;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.nio.channels.ReadableByteChannel;
@@ -56,7 +55,7 @@ import static org.lwjgl.system.MemoryStack.stackPush;
 public final class ReadableTexture2d implements ReadableResource<Texture2d> {
 
     @Override
-    public Texture2d read(ReadableByteChannel channel, URI resource, Assets assets) throws ResourceException {
+    public Texture2d read(ReadableByteChannel channel, String resource, Assets assets) throws ResourceException {
         final ByteBuffer image;
         final int width, height, components;
         try (Wrap<ByteBuffer> wrap = readResource(channel)) {

@@ -27,14 +27,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.URI;
 import java.nio.channels.ReadableByteChannel;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
-import static java.util.Objects.requireNonNull;
 import static org.lwjgl.opengl.GL11.GL_TRUE;
 import static org.lwjgl.opengl.GL20.GL_LINK_STATUS;
 import static org.lwjgl.opengl.GL20.glAttachShader;
@@ -52,18 +48,8 @@ public final class ReadableProgramObject implements ReadableResource {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final Charset charset;
-
-    public ReadableProgramObject(Charset charset) {
-        this.charset = requireNonNull(charset);
-    }
-
-    public ReadableProgramObject() {
-        this(StandardCharsets.UTF_8);
-    }
-
     @Override
-    public Object read(ReadableByteChannel channel, URI resource, Assets assets) throws ResourceException {
+    public Object read(ReadableByteChannel channel, String resource, Assets assets) throws ResourceException {
         final Config config = readConfig(channel, resource, assets);
         final int id = glCreateProgram();
         final ShaderObject[] shaders = readShaders(assets, config);
@@ -106,12 +92,11 @@ public final class ReadableProgramObject implements ReadableResource {
                 .map(ConfigValue::unwrapped)
                 .map(String.class::cast)
                 .filter(v -> !v.isEmpty())
-                .map(URI::create)
                 .map(uri -> assets.load(uri, null))
                 .toArray(ShaderObject[]::new);
     }
 
-    private Config readConfig(ReadableByteChannel channel, URI resource, Assets assets) {
+    private Config readConfig(ReadableByteChannel channel, String resource, Assets assets) {
         return assets.resolve(Config.class)
                 .read(channel, resource, assets)
                 .withFallback(

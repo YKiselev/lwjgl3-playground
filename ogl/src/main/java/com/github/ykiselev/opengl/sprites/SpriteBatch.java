@@ -92,6 +92,10 @@ public final class SpriteBatch implements AutoCloseable {
         return height;
     }
 
+    public int drawCount() {
+        return drawCount;
+    }
+
     public SpriteBatch(ProgramObject program) {
         this.program = requireNonNull(program);
 
@@ -137,9 +141,9 @@ public final class SpriteBatch implements AutoCloseable {
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW);
 
         glBindVertexArray(0);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-        glUseProgram(0);
+        vbo.unbind();
+        ebo.unbind();
+        program.unbind();
 
         matrix = MemoryUtil.memAllocFloat(16);
         colors = MemoryUtil.memAllocFloat(MAX_QUADS * 4);
@@ -221,7 +225,7 @@ public final class SpriteBatch implements AutoCloseable {
         quadCounter++;
     }
 
-    private void setTexture(Texture2d texture) {
+    private void use(Texture2d texture) {
         if (texture == null) {
             flush();
             glBindTexture(GL_TEXTURE_2D, 0);
@@ -245,10 +249,10 @@ public final class SpriteBatch implements AutoCloseable {
         this.height = height;
 
         glViewport(x, y, width, height);
-        vao.bind();
 
+        vao.bind();
         program.bind();
-        setTexture(null);
+        use(null);
 
         if (enableAlphaBlending) {
             glEnable(GL_BLEND);
@@ -257,7 +261,6 @@ public final class SpriteBatch implements AutoCloseable {
             glDisable(GL_BLEND);
         }
 
-        // todo - looks like we already do this in com/github/ykiselev/assets/formats/ReadableProgramObject.java:93
         texUniform.value1i(0);
 
         final float oow = 1.0f / (float) width;
@@ -282,7 +285,7 @@ public final class SpriteBatch implements AutoCloseable {
      * Draws text at specified location with specified sprite font, maximum width and color.
      * </p>
      *
-     * @param font     the sprinte font to use
+     * @param font     the sprite font to use
      * @param x        the left coordinate of the origin of the text bounding rectangle
      * @param y        the bottom coordinate of the origin of the text bounding rectangle
      * @param text     the text to draw (possibly multi-line if there is '\n' characters in text or if maxWidth exceeded)
@@ -290,7 +293,7 @@ public final class SpriteBatch implements AutoCloseable {
      * @param color    the RGBA color (0xff0000ff - red, 0x00ff00ff - green, 0x0000ffff)
      */
     public void draw(SpriteFont font, int x, int y, String text, int maxWidth, int color) {
-        setTexture(font.texture());
+        use(font.texture());
 
         final float dy = font.fontHeight() + font.glyphYBorder();
         float maxX = x + maxWidth;
@@ -327,18 +330,18 @@ public final class SpriteBatch implements AutoCloseable {
     }
 
     public void draw(Texture2d texture, int x, int y, int width, int height, int color) {
-        setTexture(texture);
+        use(texture);
         addQuad(x, y, 0f, 0f, x + width, y + height, 1f, 1f, color);
     }
 
     public void draw(Texture2d texture, int x, int y, int width, int height, float s0, float t0, float s1, float t1, int color) {
-        setTexture(texture);
+        use(texture);
         addQuad(x, y, s0, t0, x + width, y + height, s1, t1, color);
     }
 
     public void end() {
         flush();
-        setTexture(null);
+        use(null);
         vao.unbind();
         vbo.unbind();
         ebo.unbind();

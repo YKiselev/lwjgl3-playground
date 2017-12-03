@@ -14,16 +14,21 @@
  * limitations under the License.
  */
 
-package cob.github.ykiselev.lwjgl3;
+package cob.github.ykiselev.lwjgl3.window;
 
 import cob.github.ykiselev.lwjgl3.playground.WindowCallbacks;
+import org.lwjgl.glfw.GLFWCursorPosCallback;
 import org.lwjgl.glfw.GLFWCursorPosCallbackI;
+import org.lwjgl.glfw.GLFWFramebufferSizeCallback;
 import org.lwjgl.glfw.GLFWFramebufferSizeCallbackI;
+import org.lwjgl.glfw.GLFWKeyCallback;
 import org.lwjgl.glfw.GLFWKeyCallbackI;
+import org.lwjgl.glfw.GLFWMouseButtonCallback;
 import org.lwjgl.glfw.GLFWMouseButtonCallbackI;
+import org.lwjgl.glfw.GLFWVidMode;
+import org.lwjgl.glfw.GLFWWindowSizeCallback;
+import org.lwjgl.glfw.GLFWWindowSizeCallbackI;
 import org.lwjgl.system.MemoryStack;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.nio.IntBuffer;
 
@@ -31,6 +36,7 @@ import static java.util.Objects.requireNonNull;
 import static org.lwjgl.glfw.GLFW.GLFW_CONTEXT_VERSION_MAJOR;
 import static org.lwjgl.glfw.GLFW.GLFW_CONTEXT_VERSION_MINOR;
 import static org.lwjgl.glfw.GLFW.GLFW_FALSE;
+import static org.lwjgl.glfw.GLFW.GLFW_MAXIMIZED;
 import static org.lwjgl.glfw.GLFW.GLFW_OPENGL_CORE_PROFILE;
 import static org.lwjgl.glfw.GLFW.GLFW_OPENGL_DEBUG_CONTEXT;
 import static org.lwjgl.glfw.GLFW.GLFW_OPENGL_PROFILE;
@@ -40,6 +46,8 @@ import static org.lwjgl.glfw.GLFW.GLFW_VISIBLE;
 import static org.lwjgl.glfw.GLFW.glfwCreateWindow;
 import static org.lwjgl.glfw.GLFW.glfwDestroyWindow;
 import static org.lwjgl.glfw.GLFW.glfwGetFramebufferSize;
+import static org.lwjgl.glfw.GLFW.glfwGetPrimaryMonitor;
+import static org.lwjgl.glfw.GLFW.glfwGetVideoMode;
 import static org.lwjgl.glfw.GLFW.glfwHideWindow;
 import static org.lwjgl.glfw.GLFW.glfwMakeContextCurrent;
 import static org.lwjgl.glfw.GLFW.glfwPollEvents;
@@ -47,12 +55,12 @@ import static org.lwjgl.glfw.GLFW.glfwSetCursorPosCallback;
 import static org.lwjgl.glfw.GLFW.glfwSetFramebufferSizeCallback;
 import static org.lwjgl.glfw.GLFW.glfwSetKeyCallback;
 import static org.lwjgl.glfw.GLFW.glfwSetMouseButtonCallback;
-import static org.lwjgl.glfw.GLFW.glfwSetWindowSize;
+import static org.lwjgl.glfw.GLFW.glfwSetWindowSizeCallback;
 import static org.lwjgl.glfw.GLFW.glfwShowWindow;
 import static org.lwjgl.glfw.GLFW.glfwSwapBuffers;
+import static org.lwjgl.glfw.GLFW.glfwSwapInterval;
 import static org.lwjgl.glfw.GLFW.glfwWindowHint;
 import static org.lwjgl.glfw.GLFW.glfwWindowShouldClose;
-import static org.lwjgl.opengl.GL11.GL_FALSE;
 import static org.lwjgl.opengl.GL11.GL_TRUE;
 
 /**
@@ -61,20 +69,20 @@ import static org.lwjgl.opengl.GL11.GL_TRUE;
  * <p>
  * Creates window and sets keyboard, mouse and frame buffer resize callbacks
  */
-final class AppWindow implements AutoCloseable {
+public final class AppWindow implements AutoCloseable {
 
     private static final String TITLE = "LWJGL3 Test App";
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
-
-    private final WindowCallbacks callbacks;
-
     private final long window;
 
-    private volatile boolean frameBufferResized;
+    private boolean frameBufferResized;
+
+    private boolean windowResized;
+
+    private WindowCallbacks callbacks = new WindowCallbacks.NoOp();
 
     @SuppressWarnings("FieldCanBeLocal")
-    private final GLFWFramebufferSizeCallbackI frameBufferSizeCallback = new GLFWFramebufferSizeCallbackI() {
+    private final GLFWFramebufferSizeCallbackI frameBufferSizeCallback = new GLFWFramebufferSizeCallback() {
         @Override
         public void invoke(long window, int width, int height) {
             frameBufferResized = true;
@@ -82,39 +90,83 @@ final class AppWindow implements AutoCloseable {
     };
 
     @SuppressWarnings("FieldCanBeLocal")
-    private final GLFWKeyCallbackI keyCallback;
+    private final GLFWWindowSizeCallbackI windowSizeCallback = new GLFWWindowSizeCallback() {
+        @Override
+        public void invoke(long window, int width, int height) {
+            windowResized = true;
+        }
+    };
 
     @SuppressWarnings("FieldCanBeLocal")
-    private final GLFWCursorPosCallbackI cursorPosCallback;
+    private final GLFWKeyCallbackI keyCallback = new GLFWKeyCallback() {
+        @Override
+        public void invoke(long window, int key, int scancode, int action, int mods) {
+            callbacks.keyEvent(key, scancode, action, mods);
+        }
+    };
 
     @SuppressWarnings("FieldCanBeLocal")
-    private final GLFWMouseButtonCallbackI mouseButtonCallback;
+    private final GLFWCursorPosCallbackI cursorPosCallback = new GLFWCursorPosCallback() {
+        @Override
+        public void invoke(long window, double xpos, double ypos) {
+            callbacks.cursorEvent(xpos, ypos);
+        }
+    };
 
-    AppWindow(WindowCallbacks callbacks) {
-        this.callbacks = requireNonNull(callbacks);
-        this.keyCallback = (window, key, scancode, action, mods) -> callbacks.keyEvent(key, scancode, action, mods);
-        this.cursorPosCallback = (window, xpos, ypos) -> callbacks.cursorEvent(xpos, ypos);
-        this.mouseButtonCallback = (window, button, action, mods) -> callbacks.mouseButtonEvent(button, action, mods);
+    @SuppressWarnings("FieldCanBeLocal")
+    private final GLFWMouseButtonCallbackI mouseButtonCallback = new GLFWMouseButtonCallback() {
+        @Override
+        public void invoke(long window, int button, int action, int mods) {
+            callbacks.mouseButtonEvent(button, action, mods);
+        }
+    };
 
-        glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+    public AppWindow(boolean fullScreen) {
+        if (fullScreen) {
+            glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+            glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
+        } else {
+            glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+            glfwWindowHint(GLFW_MAXIMIZED, GLFW_FALSE);
+        }
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
         // todo ?
         glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
+
+        final int width, height;
+        final long monitor;
+        if (fullScreen) {
+            monitor = glfwGetPrimaryMonitor();
+            GLFWVidMode mode = glfwGetVideoMode(monitor);
+            width = mode.width();
+            height = mode.height();
+        } else {
+            monitor = 0;
+            width = 800;
+            height = 600;
+        }
         this.window = glfwCreateWindow(
-                100, 100, TITLE, 0, 0
+                width, height, TITLE, monitor, 0
         );
         if (window == 0) {
             throw new IllegalStateException("Failed to create window");
         }
         glfwMakeContextCurrent(window);
         glfwSetFramebufferSizeCallback(window, frameBufferSizeCallback);
+        glfwSetWindowSizeCallback(window, windowSizeCallback);
         glfwSetKeyCallback(window, keyCallback);
         glfwSetCursorPosCallback(window, cursorPosCallback);
         glfwSetMouseButtonCallback(window, mouseButtonCallback);
-        glfwSetWindowSize(window, 800, 600);
+        glfwSwapInterval(1);
+        windowResized = true;
+        frameBufferResized = true;
+    }
+
+    public void wire(WindowCallbacks callbacks) {
+        this.callbacks = requireNonNull(callbacks);
     }
 
     @Override
@@ -137,7 +189,15 @@ final class AppWindow implements AutoCloseable {
     public void checkEvents() {
         glfwMakeContextCurrent(window);
         checkForFrameBufferResize();
+        checkWindowResize();
         glfwPollEvents();
+    }
+
+    private void checkWindowResize() {
+        if (windowResized) {
+            windowResized = false;
+            // todo - callback?
+        }
     }
 
     public void swapBuffers() {

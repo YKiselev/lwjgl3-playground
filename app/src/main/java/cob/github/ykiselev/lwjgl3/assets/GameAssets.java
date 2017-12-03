@@ -6,7 +6,6 @@ import com.github.ykiselev.assets.ReadableResource;
 import com.github.ykiselev.assets.ResourceException;
 import com.github.ykiselev.assets.SimpleAssets;
 
-import java.net.URI;
 import java.nio.channels.ReadableByteChannel;
 import java.util.HashMap;
 
@@ -35,12 +34,12 @@ public final class GameAssets implements Assets {
     }
 
     @Override
-    public <T> ReadableResource<T> resolve(URI resource, Class<T> clazz) throws ResourceException {
+    public <T> ReadableResource<T> resolve(String resource, Class<T> clazz) throws ResourceException {
         return assets.resolve(resource, clazz);
     }
 
     @Override
-    public ReadableByteChannel open(URI resource) throws ResourceException {
+    public ReadableByteChannel open(String resource) throws ResourceException {
         return assets.open(resource);
     }
 }

@@ -17,8 +17,8 @@
 package cob.github.ykiselev.lwjgl3;
 
 import cob.github.ykiselev.lwjgl3.assets.GameAssets;
-import cob.github.ykiselev.lwjgl3.playground.Callbacks;
 import cob.github.ykiselev.lwjgl3.playground.Game;
+import cob.github.ykiselev.lwjgl3.window.AppWindow;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.opengl.GL;
 
@@ -41,11 +41,10 @@ public final class App {
         glfwInit();
         try {
             glfwSetErrorCallback(errorCallback);
-            final Callbacks callbacks = new Callbacks();
-            try (AppWindow window = new AppWindow(callbacks)) {
+            try (AppWindow window = new AppWindow(false)) {
                 GL.createCapabilities();
                 try (Game game = newGame()) {
-                    callbacks.target(game);
+                    window.wire(game);
                     window.show();
                     while (!window.shouldClose()) {
                         window.checkEvents();

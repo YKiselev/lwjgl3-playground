@@ -28,7 +28,6 @@ import org.lwjgl.system.MemoryStack;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.net.URI;
 import java.nio.IntBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
@@ -52,7 +51,7 @@ import static org.lwjgl.opengl.GL33.GL_TEXTURE_SWIZZLE_RGBA;
 public final class ReadableSpriteFont implements ReadableResource<SpriteFont> {
 
     @Override
-    public SpriteFont read(ReadableByteChannel channel, URI resource, Assets assets) throws ResourceException {
+    public SpriteFont read(ReadableByteChannel channel, String resource, Assets assets) throws ResourceException {
         final com.github.ykiselev.gfx.font.SpriteFont spriteFont = readSpriteFont(channel);
         final Texture2d texture = readSpriteFontTexture(assets, spriteFont);
         texture.bind();
@@ -91,7 +90,6 @@ public final class ReadableSpriteFont implements ReadableResource<SpriteFont> {
             );
             r++;
         }
-
         return new SpriteFont(
                 texture,
                 fontHeight,
@@ -123,7 +121,7 @@ public final class ReadableSpriteFont implements ReadableResource<SpriteFont> {
         final Texture2d texture;
         try (ReadableByteChannel bc = Channels.newChannel(new ByteArrayInputStream(spriteFont.image()))) {
             texture = assets.resolve(Texture2d.class)
-                    .read(bc, URI.create("texture.png"), assets);
+                    .read(bc, "texture.png", assets);
         } catch (IOException e) {
             throw new ResourceException(e);
         }

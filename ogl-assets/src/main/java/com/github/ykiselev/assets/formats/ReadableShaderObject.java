@@ -29,7 +29,6 @@ import org.slf4j.LoggerFactory;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
-import java.net.URI;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.StandardCharsets;
@@ -50,7 +49,7 @@ public final class ReadableShaderObject implements ReadableResource<ShaderObject
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Override
-    public ShaderObject read(ReadableByteChannel channel, URI resource, Assets assets) throws ResourceException {
+    public ShaderObject read(ReadableByteChannel channel, String resource, Assets assets) throws ResourceException {
         final String text;
         try (Reader reader = new BufferedReader(Channels.newReader(channel, StandardCharsets.UTF_8.newDecoder(), -1))) {
             text = IOUtils.toString(reader);
@@ -74,13 +73,12 @@ public final class ReadableShaderObject implements ReadableResource<ShaderObject
         return new ShaderObject(id);
     }
 
-    private int resolveType(URI resource) {
-        final String path = resource.getPath();
+    private int resolveType(String path) {
         if (StringUtils.endsWithIgnoreCase(path, ".fs")) {
             return GL20.GL_FRAGMENT_SHADER;
         } else if (StringUtils.endsWithIgnoreCase(path, ".vs")) {
             return GL20.GL_VERTEX_SHADER;
         }
-        throw new IllegalArgumentException("Unknown shader type: " + resource);
+        throw new IllegalArgumentException("Unknown shader type: " + path);
     }
 }

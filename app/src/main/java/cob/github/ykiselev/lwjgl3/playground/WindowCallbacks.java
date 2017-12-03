@@ -31,4 +31,23 @@ public interface WindowCallbacks {
      * @see GLFWFramebufferSizeCallbackI#invoke(long, int, int)
      */
     void frameBufferEvent(int width, int height);
+
+    final class NoOp implements WindowCallbacks {
+
+        @Override
+        public void keyEvent(int key, int scanCode, int action, int mods) {
+        }
+
+        @Override
+        public void cursorEvent(double x, double y) {
+        }
+
+        @Override
+        public void mouseButtonEvent(int button, int action, int mods) {
+        }
+
+        @Override
+        public void frameBufferEvent(int width, int height) {
+        }
+    }
 }

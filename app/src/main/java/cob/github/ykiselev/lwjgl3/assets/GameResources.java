@@ -4,7 +4,6 @@ import com.github.ykiselev.assets.ResourceException;
 import com.github.ykiselev.assets.Resources;
 
 import java.io.IOException;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.channels.FileChannel;
@@ -20,39 +19,26 @@ import java.util.stream.Stream;
 public final class GameResources implements Resources {
 
     @Override
-    public ReadableByteChannel open(URI resource) throws ResourceException {
+    public ReadableByteChannel open(String resource) throws ResourceException {
         if (resource == null) {
             return null;
         }
-        final URI resolved;
-        if (!resource.isAbsolute()) {
-            // todo check override places first, then classpath, then try raw resource uri
-            resolved = Optional.<URI>empty().or(() -> resolveClassPathResource(resource))
-                    .orElse(resource);
-        } else {
-            resolved = resource;
-        }
+        // todo check override places first, then classpath, then try raw resource uri
+        final URL resolved = Optional.<URL>empty()
+                .or(() -> resolveClassPathResource(resource))
+                .orElseThrow(() -> new ResourceException("Resource not found: " + resource));
         try {
-            return FileChannel.open(Paths.get(resolved));
-        } catch (IOException e) {
+            return FileChannel.open(Paths.get(resolved.toURI()));
+        } catch (IOException | URISyntaxException e) {
             throw new ResourceException(e);
         }
     }
 
-    private Optional<URI> resolveClassPathResource(URI resource) {
-        final String str = resource.toString();
-        return Stream.of(str, "/" + str)
+    private Optional<URL> resolveClassPathResource(String resource) {
+        return Stream.of(resource, "/" + resource)
                 .map(s -> getClass().getResource(s))
                 .filter(Objects::nonNull)
-                .findFirst()
-                .map(this::toUri);
+                .findFirst();
     }
 
-    private URI toUri(URL url) throws ResourceException {
-        try {
-            return url.toURI();
-        } catch (URISyntaxException e) {
-            throw new ResourceException(e);
-        }
-    }
 }

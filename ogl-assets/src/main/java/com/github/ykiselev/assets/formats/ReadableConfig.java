@@ -25,7 +25,6 @@ import com.typesafe.config.ConfigFactory;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
-import java.net.URI;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.StandardCharsets;
@@ -36,7 +35,7 @@ import java.nio.charset.StandardCharsets;
 public final class ReadableConfig implements ReadableResource<Config> {
 
     @Override
-    public Config read(ReadableByteChannel channel, URI resource, Assets assets) throws ResourceException {
+    public Config read(ReadableByteChannel channel, String resource, Assets assets) throws ResourceException {
         try (Reader reader = new BufferedReader(Channels.newReader(channel, StandardCharsets.UTF_8.newDecoder(), -1))) {
             return ConfigFactory.parseReader(reader);
         } catch (IOException e) {

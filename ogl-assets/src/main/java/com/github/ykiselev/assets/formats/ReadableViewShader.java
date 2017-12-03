@@ -23,7 +23,6 @@ import com.github.ykiselev.opengl.shaders.ProgramException;
 import com.github.ykiselev.opengl.shaders.ProgramObject;
 import com.github.ykiselev.opengl.shaders.ViewShader;
 
-import java.net.URI;
 import java.nio.channels.ReadableByteChannel;
 
 /**
@@ -32,7 +31,7 @@ import java.nio.channels.ReadableByteChannel;
 public final class ReadableViewShader implements ReadableResource<ViewShader> {
 
     @Override
-    public ViewShader read(ReadableByteChannel channel, URI resource, Assets assets) throws ResourceException {
+    public ViewShader read(ReadableByteChannel channel, String resource, Assets assets) throws ResourceException {
         try {
             return new ViewShader(
                     assets.resolve(ProgramObject.class)
