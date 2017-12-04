@@ -48,11 +48,11 @@ public final class UniformVariable {
         glUniformMatrix4fv(location, transpose, matrix);
     }
 
-    public void vector4fv(FloatBuffer buffer) {
+    public void vector4(FloatBuffer buffer) {
         glUniform4fv(location, buffer);
     }
 
-    public void value1i(int value){
+    public void value(int value){
         glUniform1i(location, value);
     }
 

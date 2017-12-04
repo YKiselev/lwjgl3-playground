@@ -23,6 +23,8 @@ import com.github.ykiselev.gfx.font.GlyphRange;
 import com.github.ykiselev.opengl.text.Glyph;
 import com.github.ykiselev.opengl.text.SpriteFont;
 import com.github.ykiselev.opengl.textures.Texture2d;
+import org.lwjgl.opengl.GL12;
+import org.lwjgl.opengl.GL13;
 import org.lwjgl.system.MemoryStack;
 
 import java.io.ByteArrayInputStream;
@@ -32,17 +34,22 @@ import java.nio.IntBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 
+import static org.lwjgl.opengl.GL11.GL_LINEAR;
+import static org.lwjgl.opengl.GL11.GL_NEAREST;
 import static org.lwjgl.opengl.GL11.GL_ONE;
 import static org.lwjgl.opengl.GL11.GL_RED;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_HEIGHT;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_INTERNAL_FORMAT;
+import static org.lwjgl.opengl.GL11.GL_TEXTURE_MAG_FILTER;
+import static org.lwjgl.opengl.GL11.GL_TEXTURE_MIN_FILTER;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_WIDTH;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_WRAP_S;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_WRAP_T;
 import static org.lwjgl.opengl.GL11.glGetTexLevelParameteri;
 import static org.lwjgl.opengl.GL11.glTexParameteri;
 import static org.lwjgl.opengl.GL11.glTexParameteriv;
+import static org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE;
 import static org.lwjgl.opengl.GL33.GL_TEXTURE_SWIZZLE_RGBA;
 
 /**
@@ -78,10 +85,13 @@ public final class ReadableSpriteFont implements ReadableResource<SpriteFont> {
             for (com.github.ykiselev.gfx.font.Glyph src : srcGlyphs) {
                 final int glyphWidth = characterWidth > 0 ? characterWidth : src.width();
                 float s0 = (float) (cs * src.x());
-                float t0 = (float) (1.0 - ct * src.y());
+                //float t0 = (float) (1.0 - ct * src.y());
+                float t0 = (float) (ct * src.y());
                 float s1 = (float) (cs * (src.x() + glyphWidth));
-                float t1 = (float) (1.0 - ct * (src.y() + fontHeight));
-                glyphs[g] = new Glyph(s0, t1, s1, t0, glyphWidth);
+                //float t1 = (float) (1.0 - ct * (src.y() + fontHeight));
+                float t1 = (float) (ct * (src.y() + fontHeight));
+                //glyphs[g] = new Glyph(s0, t1, s1, t0, glyphWidth);
+                glyphs[g] = new Glyph(s0, t0, s1, t1, glyphWidth);
                 g++;
             }
             ranges[r] = new com.github.ykiselev.opengl.text.GlyphRange(
@@ -113,8 +123,10 @@ public final class ReadableSpriteFont implements ReadableResource<SpriteFont> {
                 glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
             }
         }
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, 0x812F/*GL_CLAMP*/); // todo - wtf?
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, 0x812F/*GL_CLAMP*/);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     }
 
     private Texture2d readSpriteFontTexture(Assets assets, com.github.ykiselev.gfx.font.SpriteFont spriteFont) {

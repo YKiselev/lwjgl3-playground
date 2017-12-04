@@ -34,9 +34,7 @@ import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
 import static org.lwjgl.opengl.GL15.GL_DYNAMIC_DRAW;
 import static org.lwjgl.opengl.GL15.GL_ELEMENT_ARRAY_BUFFER;
 import static org.lwjgl.opengl.GL15.GL_STATIC_DRAW;
-import static org.lwjgl.opengl.GL15.glBindBuffer;
 import static org.lwjgl.opengl.GL15.glBufferData;
-import static org.lwjgl.opengl.GL20.glUseProgram;
 import static org.lwjgl.opengl.GL30.glBindVertexArray;
 
 /**
@@ -168,7 +166,7 @@ public final class SpriteBatch implements AutoCloseable {
         glBufferData(GL_ARRAY_BUFFER, vertices, GL_DYNAMIC_DRAW);
 
         colors.flip();
-        colorsUniform.vector4fv(colors);
+        colorsUniform.vector4(colors);
 
         glDrawElements(GL_TRIANGLES, quadCounter * 6, GL_UNSIGNED_INT, 0);
 
@@ -194,11 +192,18 @@ public final class SpriteBatch implements AutoCloseable {
      * <p>Note that if you wish to draw quad with whole texture applied
      * then s, t must be assigned as such:</p>
      * <pre>
-     * (0, 1) --- (1, 1)
-     *  |             |
-     *  |             |
      * (0, 0) --- (1, 0)
+     *  |             |
+     *  |             |
+     * (0, 1) --- (1, 1)
      * </pre>
+     * That is because OpenGL texture origin (0,0) is in lower left corner while most of the image formats have origin in the left top corner.
+     * This leads to images drawn upside-down. To re-mediate this we need to flip image vertically either
+     * <ol>
+     *     <li>During resource preparation step</li>
+     *     <li>At run-time before actually submitting image to OpenGL</li>
+     *     <li>By flipping texture t-coordinate, which I do here, because it's the cheapest solution</li>
+     * </ol>
      * <p>Quad is rendered as two triangles with indices 0, 1, 2, 2, 1, 3</p>
      *
      * @param color the RGBA color (0xff0000ff - red, 0x00ff00ff - green, 0x0000ffff - blue)
@@ -208,10 +213,10 @@ public final class SpriteBatch implements AutoCloseable {
             flush();
         }
 
-        vertices.put(x0).put(y0).put(s0).put(t0);
-        vertices.put(x1).put(y0).put(s1).put(t0);
-        vertices.put(x0).put(y1).put(s0).put(t1);
-        vertices.put(x1).put(y1).put(s1).put(t1);
+        vertices.put(x0).put(y0).put(s0).put(t1);
+        vertices.put(x1).put(y0).put(s1).put(t1);
+        vertices.put(x0).put(y1).put(s0).put(t0);
+        vertices.put(x1).put(y1).put(s1).put(t0);
 
         // r
         colors.put(COLOR_COEFF * (0xff & (color >>> 24)));
@@ -261,7 +266,7 @@ public final class SpriteBatch implements AutoCloseable {
             glDisable(GL_BLEND);
         }
 
-        texUniform.value1i(0);
+        texUniform.value(0);
 
         final float oow = 1.0f / (float) width;
         final float ooh = 1.0f / (float) height;
@@ -271,10 +276,12 @@ public final class SpriteBatch implements AutoCloseable {
         final float transY = -1;
 
         matrix.clear();
+
         matrix.put(scaleX).put(0).put(0).put(0);
         matrix.put(0).put(scaleY).put(0).put(0);
         matrix.put(0).put(0).put(1).put(0);
         matrix.put(transX).put(transY).put(0).put(1);
+
         matrix.flip();
         mvpUniform.matrix4(false, matrix);
 

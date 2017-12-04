@@ -5,7 +5,6 @@ import com.github.ykiselev.opengl.shaders.ProgramObject;
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
 import com.github.ykiselev.opengl.text.SpriteFont;
 import com.github.ykiselev.opengl.textures.Texture2d;
-import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL13;
 
 import static org.lwjgl.glfw.GLFW.glfwGetTime;
@@ -13,13 +12,11 @@ import static org.lwjgl.opengl.GL11.GL_BACK;
 import static org.lwjgl.opengl.GL11.GL_CCW;
 import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.GL_CULL_FACE;
-import static org.lwjgl.opengl.GL11.GL_CW;
 import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.glClear;
 import static org.lwjgl.opengl.GL11.glClearColor;
 import static org.lwjgl.opengl.GL11.glClearDepth;
 import static org.lwjgl.opengl.GL11.glCullFace;
-import static org.lwjgl.opengl.GL11.glDisable;
 import static org.lwjgl.opengl.GL11.glEnable;
 import static org.lwjgl.opengl.GL11.glFrontFace;
 
@@ -44,7 +41,11 @@ public final class Game implements WindowCallbacks, AutoCloseable {
 
     private double x = 0;
 
-    private double k = 2;
+    private double k = 50;
+
+    private long frames;
+
+    private double avgFps = 0;
 
     public Game(Assets assets) {
         spriteBatch = new SpriteBatch(
@@ -84,34 +85,46 @@ public final class Game implements WindowCallbacks, AutoCloseable {
     public void update() {
         glFrontFace(GL_CCW);
         glCullFace(GL_BACK);
-        // todo debug
-        glDisable(GL_CULL_FACE);
+        glEnable(GL_CULL_FACE);
         glEnable(GL13.GL_MULTISAMPLE);
 
         glClearDepth(1.0f);
         glClearColor(0, 0, 0.5f, 1);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        if (x > width){
-            k = -2;
-        }
-        if (x < 0){
-            k = 2;
+        if (x > width || x < 0) {
+            k *= -1.0;
         }
         final double t = glfwGetTime();
+        avgFps = (double) frames / t;
         final double delta = t - t0;
+        t0 = t;
         spriteBatch.begin(0, 0, width, height, true);
         x += k * delta;
-        //spriteBatch.draw(cuddles, (int) x, 50, 400, 400, 0xffffffff);
+        spriteBatch.draw(cuddles, (int) x, 50, 400, 400, 0xffffffff);
 
-        spriteBatch.draw(liberationMono.texture(), 0, 5, 400, 400, 0xffffffff);
+        //spriteBatch.draw(liberationMono.texture(), 0, 0, 256, 128, 0xffffffff);
+//        spriteBatch.draw(liberationMono.texture(), 0, -200, 400, 400, 0xffffffff);
+//        spriteBatch.draw(liberationMono.texture(), -100, -50, 400, 400, 0xffffffff);
+//        spriteBatch.draw(liberationMono.texture(), -100, 50, 400, 400, 0xffffffff);
+//        spriteBatch.draw(liberationMono.texture(), 100, -350, 400, 400, 0xffffffff);
 
-        //spriteBatch.draw(liberationMono, 100, 100, "ABCD EFGH IJKL", 200, 0xff00ffff);
+        //spriteBatch.draw(liberationMono, 250, 200, "ABCD EFGH IJKL", 200, 0xff00ffff);
 
-        //spriteBatch.draw(liberationMono, 10, 300, "Hello, world!\n Привет!", 100, 0xffffffff);
+        //spriteBatch.draw(liberationMono, 250, 230, "Ерунда какая-то получается, правда? 01234567890-=+./ёЁ", 400, 0xff00ffff);
 
-        //spriteBatch.draw(liberationMono, 10, 200, "Hello, world!\n Привет!", 100, 0xffffffff);
+        //spriteBatch.draw(liberationMono, 10, 400, "Hello, world!\nПривет!", 200, 0xffffffff);
+
+        spriteBatch.draw(
+                liberationMono,
+                0,
+                height - liberationMono.fontHeight(),
+                String.format("avg. fps: %.2f", avgFps),
+                width,
+                0xffffffff
+        );
 
         spriteBatch.end();
+        frames++;
     }
 }
