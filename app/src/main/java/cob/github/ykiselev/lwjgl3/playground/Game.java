@@ -17,6 +17,7 @@ import static org.lwjgl.opengl.GL11.glClear;
 import static org.lwjgl.opengl.GL11.glClearColor;
 import static org.lwjgl.opengl.GL11.glClearDepth;
 import static org.lwjgl.opengl.GL11.glCullFace;
+import static org.lwjgl.opengl.GL11.glDisable;
 import static org.lwjgl.opengl.GL11.glEnable;
 import static org.lwjgl.opengl.GL11.glFrontFace;
 
@@ -44,8 +45,6 @@ public final class Game implements WindowCallbacks, AutoCloseable {
     private double k = 50;
 
     private long frames;
-
-    private double avgFps = 0;
 
     public Game(Assets assets) {
         spriteBatch = new SpriteBatch(
@@ -92,16 +91,20 @@ public final class Game implements WindowCallbacks, AutoCloseable {
         glClearColor(0, 0, 0.5f, 1);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        if (x > width || x < 0) {
+        if (x > width) {
+            x = width;
+            k *= -1.0;
+        } else if (x < 0) {
+            x = 0;
             k *= -1.0;
         }
         final double t = glfwGetTime();
-        avgFps = (double) frames / t;
+        final double fps = (double) frames / t;
         final double delta = t - t0;
         t0 = t;
         spriteBatch.begin(0, 0, width, height, true);
         x += k * delta;
-        spriteBatch.draw(cuddles, (int) x, 50, 400, 400, 0xffffffff);
+        spriteBatch.draw(cuddles, (int) x, 4, 400, 400, 0xffffffff);
 
         //spriteBatch.draw(liberationMono.texture(), 0, 0, 256, 128, 0xffffffff);
 //        spriteBatch.draw(liberationMono.texture(), 0, -200, 400, 400, 0xffffffff);
@@ -119,7 +122,7 @@ public final class Game implements WindowCallbacks, AutoCloseable {
                 liberationMono,
                 0,
                 height - liberationMono.fontHeight(),
-                String.format("avg. fps: %.2f", avgFps),
+                String.format("avg. fps: %.2f", fps),
                 width,
                 0xffffffff
         );
