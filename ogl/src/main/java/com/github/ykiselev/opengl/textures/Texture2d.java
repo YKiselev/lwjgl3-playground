@@ -26,7 +26,7 @@ import static org.lwjgl.opengl.GL11.glGenTextures;
 /**
  * Created by Y.Kiselev on 05.06.2016.
  */
-public class Texture2d implements Identified, Bindable {
+public final class Texture2d implements Identified, Bindable {
 
     private final int id;
 

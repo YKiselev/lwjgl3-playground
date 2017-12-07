@@ -19,17 +19,13 @@ package com.github.ykiselev.assets.formats;
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.assets.ReadableResource;
 import com.github.ykiselev.assets.ResourceException;
+import com.github.ykiselev.io.ByteChannelAsString;
 import com.github.ykiselev.opengl.shaders.ShaderObject;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.lwjgl.opengl.GL20;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.Reader;
-import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.StandardCharsets;
 
@@ -50,16 +46,13 @@ public final class ReadableShaderObject implements ReadableResource<ShaderObject
 
     @Override
     public ShaderObject read(ReadableByteChannel channel, String resource, Assets assets) throws ResourceException {
-        final String text;
-        try (Reader reader = new BufferedReader(Channels.newReader(channel, StandardCharsets.UTF_8.newDecoder(), -1))) {
-            text = IOUtils.toString(reader);
-        } catch (IOException e) {
-            throw new ResourceException(e);
-        }
         final int id = glCreateShader(
                 resolveType(resource)
         );
-        glShaderSource(id, text);
+        glShaderSource(
+                id,
+                new ByteChannelAsString(channel, StandardCharsets.UTF_8).read()
+        );
         glCompileShader(id);
         final int status = glGetShaderi(id, GL_COMPILE_STATUS);
         final String log = glGetShaderInfoLog(id, 8 * 1024);

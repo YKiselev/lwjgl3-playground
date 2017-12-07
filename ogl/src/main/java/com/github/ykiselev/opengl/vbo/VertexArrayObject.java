@@ -23,24 +23,20 @@ import static org.lwjgl.opengl.GL30.glDeleteVertexArrays;
 import static org.lwjgl.opengl.GL30.glGenVertexArrays;
 
 /**
+ * Stores the format of the vertex data as well as the Buffer Objects providing the vertex data arrays.
+ *
  * Created by Y.Kiselev on 08.05.2016.
  */
 public final class VertexArrayObject implements Bindable, AutoCloseable {
 
     private final int id;
 
-    private final BufferObject[] buffers;
-
-    public VertexArrayObject(BufferObject... buffers) {
-        this.buffers = buffers;
+    public VertexArrayObject() {
         this.id = glGenVertexArrays();
     }
 
     @Override
     public void close() {
-        for (BufferObject buffer : buffers) {
-            buffer.close();
-        }
         glDeleteVertexArrays(id);
     }
 

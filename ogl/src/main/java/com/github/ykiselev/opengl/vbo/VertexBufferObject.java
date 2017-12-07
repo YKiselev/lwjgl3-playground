@@ -33,5 +33,4 @@ public final class VertexBufferObject extends BufferObject {
         glVertexAttribPointer(index, size, type, normalized, stride, bbo);
         glEnableVertexAttribArray(index);
     }
-
 }

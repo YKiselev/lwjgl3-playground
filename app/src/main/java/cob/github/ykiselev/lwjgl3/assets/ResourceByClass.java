@@ -2,11 +2,13 @@ package cob.github.ykiselev.lwjgl3.assets;
 
 import com.github.ykiselev.assets.ReadableResource;
 import com.github.ykiselev.assets.formats.ReadableConfig;
+import com.github.ykiselev.assets.formats.ReadableObjModel;
 import com.github.ykiselev.assets.formats.ReadableProgramObject;
 import com.github.ykiselev.assets.formats.ReadableShaderObject;
 import com.github.ykiselev.assets.formats.ReadableSpriteFont;
 import com.github.ykiselev.assets.formats.ReadableTexture2d;
 import com.github.ykiselev.assets.formats.ReadableViewShader;
+import com.github.ykiselev.opengl.models.ObjModel;
 import com.github.ykiselev.opengl.shaders.ProgramObject;
 import com.github.ykiselev.opengl.shaders.ShaderObject;
 import com.github.ykiselev.opengl.shaders.ViewShader;
@@ -38,6 +40,7 @@ public final class ResourceByClass implements Function<Class, ReadableResource> 
                         .put(SpriteFont.class, new ReadableSpriteFont())
                         .put(Texture2d.class, new ReadableTexture2d())
                         .put(ViewShader.class, new ReadableViewShader())
+                        .put(ObjModel.class, new ReadableObjModel())
                         .build()
         );
     }

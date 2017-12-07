@@ -44,6 +44,8 @@ public final class Game implements WindowCallbacks, AutoCloseable {
 
     private double k = 50;
 
+    private double scale = 1.0;
+
     private long frames;
 
     public Game(Assets assets) {
@@ -98,24 +100,25 @@ public final class Game implements WindowCallbacks, AutoCloseable {
             x = 0;
             k *= -1.0;
         }
+        if (scale < 0.1){
+            scale = 1.0;
+        }
         final double t = glfwGetTime();
         final double fps = (double) frames / t;
         final double delta = t - t0;
         t0 = t;
         spriteBatch.begin(0, 0, width, height, true);
         x += k * delta;
-        spriteBatch.draw(cuddles, (int) x, 4, 400, 400, 0xffffffff);
+        scale *= (1 - 0.25*delta);
+        spriteBatch.draw(cuddles, (int) x, 4, (int)(400 * scale), (int)(400 * scale), 0xffffffff);
 
         //spriteBatch.draw(liberationMono.texture(), 0, 0, 256, 128, 0xffffffff);
 //        spriteBatch.draw(liberationMono.texture(), 0, -200, 400, 400, 0xffffffff);
 //        spriteBatch.draw(liberationMono.texture(), -100, -50, 400, 400, 0xffffffff);
 //        spriteBatch.draw(liberationMono.texture(), -100, 50, 400, 400, 0xffffffff);
 //        spriteBatch.draw(liberationMono.texture(), 100, -350, 400, 400, 0xffffffff);
-
         //spriteBatch.draw(liberationMono, 250, 200, "ABCD EFGH IJKL", 200, 0xff00ffff);
-
         //spriteBatch.draw(liberationMono, 250, 230, "Ерунда какая-то получается, правда? 01234567890-=+./ёЁ", 400, 0xff00ffff);
-
         //spriteBatch.draw(liberationMono, 10, 400, "Hello, world!\nПривет!", 200, 0xffffffff);
 
         spriteBatch.draw(

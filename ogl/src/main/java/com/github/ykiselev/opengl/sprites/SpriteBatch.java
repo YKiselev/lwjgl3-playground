@@ -9,10 +9,12 @@ import com.github.ykiselev.opengl.vbo.IndexBufferObject;
 import com.github.ykiselev.opengl.vbo.VertexArrayObject;
 import com.github.ykiselev.opengl.vbo.VertexBufferObject;
 import org.lwjgl.BufferUtils;
+import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 
+import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
+import java.util.function.IntConsumer;
 
 import static java.util.Objects.requireNonNull;
 import static org.lwjgl.opengl.GL11.GL_BLEND;
@@ -21,7 +23,9 @@ import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
 import static org.lwjgl.opengl.GL11.GL_SRC_ALPHA;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
 import static org.lwjgl.opengl.GL11.GL_TRIANGLES;
+import static org.lwjgl.opengl.GL11.GL_UNSIGNED_BYTE;
 import static org.lwjgl.opengl.GL11.GL_UNSIGNED_INT;
+import static org.lwjgl.opengl.GL11.GL_UNSIGNED_SHORT;
 import static org.lwjgl.opengl.GL11.glBindTexture;
 import static org.lwjgl.opengl.GL11.glBlendFunc;
 import static org.lwjgl.opengl.GL11.glDisable;
@@ -31,11 +35,10 @@ import static org.lwjgl.opengl.GL11.glViewport;
 import static org.lwjgl.opengl.GL13.GL_TEXTURE0;
 import static org.lwjgl.opengl.GL13.glActiveTexture;
 import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
-import static org.lwjgl.opengl.GL15.GL_DYNAMIC_DRAW;
 import static org.lwjgl.opengl.GL15.GL_ELEMENT_ARRAY_BUFFER;
 import static org.lwjgl.opengl.GL15.GL_STATIC_DRAW;
+import static org.lwjgl.opengl.GL15.GL_STREAM_DRAW;
 import static org.lwjgl.opengl.GL15.glBufferData;
-import static org.lwjgl.opengl.GL30.glBindVertexArray;
 
 /**
  * Created by Uze on 17.01.2015.
@@ -44,6 +47,7 @@ public final class SpriteBatch implements AutoCloseable {
 
     private static final float COLOR_COEFF = 1.0f / 255.0f;
 
+    // Note: fragment shader depends on this number through colors uniform.
     private static final int MAX_QUADS = 32;
 
     private static final int VERTEX_SIZE_IN_FLOATS = 4;
@@ -51,6 +55,10 @@ public final class SpriteBatch implements AutoCloseable {
     private static final int MAX_VERTICES = MAX_QUADS * 4 * VERTEX_SIZE_IN_FLOATS;
 
     private static final int MAX_INDICES = MAX_QUADS * 6;
+
+    private static final int INDEX_VALUE_TYPE = MAX_INDICES < 0xff
+            ? GL_UNSIGNED_BYTE
+            : (MAX_INDICES < 0xffff ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT);
 
     private final ProgramObject program;
 
@@ -94,25 +102,26 @@ public final class SpriteBatch implements AutoCloseable {
         return drawCount;
     }
 
+    /**
+     * Note that sprite batch doesn't take ownership over supplied program and hence won't call {@link ProgramObject#close()} method on close.
+     *
+     * @param program the program to use
+     */
     public SpriteBatch(ProgramObject program) {
         this.program = requireNonNull(program);
+
+        vertices = BufferUtils.createFloatBuffer(MAX_VERTICES);
+
+        program.bind();
+        mvpUniform = program.lookup("mvp");
+        colorsUniform = program.lookup("colors");
+        texUniform = program.lookup("tex");
 
         vao = new VertexArrayObject();
         vao.bind();
 
-        //todo program.bindFragDataLocation(0, "outColor");
-        program.bind();
-
-        mvpUniform = program.lookup("mvp");
-        colorsUniform = program.lookup("colors");
-
         vbo = new VertexBufferObject();
         vbo.bind();
-
-        vertices = BufferUtils.createFloatBuffer(MAX_VERTICES);
-        glBufferData(GL_ARRAY_BUFFER, vertices, GL_DYNAMIC_DRAW);
-
-        texUniform = program.lookup("tex");
         vbo.attribute(
                 program.attributeLocation("in_Position"), 2, GL_FLOAT, false, 16, 0
         );
@@ -124,27 +133,50 @@ public final class SpriteBatch implements AutoCloseable {
         ebo.bind();
 
         // Quad == 2 triangles == 6 indices (can't use stripes due to texture coordinates difference between quads)
-        final IntBuffer indices = BufferUtils.createIntBuffer(MAX_INDICES);
-        int offset = 0;
-        for (int i = 0; i < MAX_QUADS; i++) {
-            indices.put(offset);
-            indices.put(offset + 1);
-            indices.put(offset + 2);
-            indices.put(offset + 2);
-            indices.put(offset + 1);
-            indices.put(offset + 3);
-            offset += 4;
+        try (MemoryStack ms = MemoryStack.stackPush()) {
+            final ByteBuffer indices = ms.malloc(4, 4 * MAX_INDICES);
+            fillIndexData(indices);
+            indices.flip();
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW);
         }
-        indices.flip();
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW);
 
-        glBindVertexArray(0);
+        vao.unbind();
         vbo.unbind();
         ebo.unbind();
         program.unbind();
 
         matrix = MemoryUtil.memAllocFloat(16);
         colors = MemoryUtil.memAllocFloat(MAX_QUADS * 4);
+    }
+
+    private void fillIndexData(ByteBuffer b) {
+        final IntConsumer c;
+        switch (INDEX_VALUE_TYPE) {
+            case GL_UNSIGNED_BYTE:
+                c = v -> b.put((byte) v);
+                break;
+
+            case GL_UNSIGNED_SHORT:
+                c = v -> b.putShort((short) v);
+                break;
+
+            case GL_UNSIGNED_INT:
+                c = b::putInt;
+                break;
+
+            default:
+                throw new IllegalArgumentException("Bad index value type: " + INDEX_VALUE_TYPE);
+        }
+        int offset = 0;
+        for (int i = 0; i < MAX_QUADS; i++) {
+            c.accept(offset);
+            c.accept(offset + 1);
+            c.accept(offset + 2);
+            c.accept(offset + 2);
+            c.accept(offset + 1);
+            c.accept(offset + 3);
+            offset += 4;
+        }
     }
 
     @Override
@@ -161,14 +193,13 @@ public final class SpriteBatch implements AutoCloseable {
             return;
         }
         vbo.bind();
-
         vertices.flip();
-        glBufferData(GL_ARRAY_BUFFER, vertices, GL_DYNAMIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, vertices, GL_STREAM_DRAW);
 
         colors.flip();
         colorsUniform.vector4(colors);
 
-        glDrawElements(GL_TRIANGLES, quadCounter * 6, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, quadCounter * 6, INDEX_VALUE_TYPE, 0);
 
         colors.clear();
         vertices.clear();
@@ -200,9 +231,9 @@ public final class SpriteBatch implements AutoCloseable {
      * That is because OpenGL texture origin (0,0) is in lower left corner while most of the image formats have origin in the left top corner.
      * This leads to images drawn upside-down. To re-mediate this we need to flip image vertically either
      * <ol>
-     *     <li>During resource preparation step</li>
-     *     <li>At run-time before actually submitting image to OpenGL</li>
-     *     <li>By flipping texture t-coordinate, which I do here, because it's the cheapest solution</li>
+     * <li>During resource preparation step</li>
+     * <li>At run-time before actually submitting image to OpenGL</li>
+     * <li>By flipping texture t-coordinate, which I do here, because it's the cheapest solution</li>
      * </ol>
      * <p>Quad is rendered as two triangles with indices 0, 1, 2, 2, 1, 3</p>
      *
@@ -352,6 +383,7 @@ public final class SpriteBatch implements AutoCloseable {
         vao.unbind();
         vbo.unbind();
         ebo.unbind();
+        program.unbind();
         glDisable(GL_BLEND);
     }
 }
