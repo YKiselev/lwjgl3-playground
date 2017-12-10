@@ -1,93 +1,76 @@
 package com.github.ykiselev.assets.formats.obj;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
 enum ObjFaceVertexKind {
     V(1) {
         @Override
-        public Collection<float[]> toVertices(int[] indices, Vertices vertices, TexCoords texCoords, Vertices normals) {
-            final List<float[]> result = new ArrayList<>();
+        public void emitVertices(int[] indices, Vertices vertices, TexCoords texCoords,
+                                 Vertices normals, float[] target, int targetOffset) {
             for (int index : indices) {
-                result.add(
-                        new float[]{
-                                vertices.x(index),
-                                vertices.y(index),
-                                vertices.z(index),
-                                0, 0,
-                                0, 0, 0
-                        }
-                );
+                target[targetOffset] = vertices.x(index);
+                target[targetOffset + 1] = vertices.y(index);
+                target[targetOffset + 2] = vertices.z(index);
+                target[targetOffset + 3] = 0;
+                target[targetOffset + 4] = 0;
+                target[targetOffset + 5] = 0;
+                target[targetOffset + 6] = 0;
+                target[targetOffset + 7] = 0;
+                targetOffset += 8;
             }
-            return result;
         }
     }, VT(2) {
         @Override
-        public Collection<float[]> toVertices(int[] indices, Vertices vertices, TexCoords texCoords, Vertices normals) {
-            final List<float[]> result = new ArrayList<>();
+        public void emitVertices(int[] indices, Vertices vertices, TexCoords texCoords, Vertices normals, float[] target, int targetOffset) {
             for (int i = 0; i < indices.length / 2; i++) {
                 final int vi = indices[i * 2];
                 final int ti = indices[i * 2 + 1];
-                result.add(
-                        new float[]{
-                                vertices.x(vi),
-                                vertices.y(vi),
-                                vertices.z(vi),
-                                texCoords.s(ti),
-                                texCoords.t(ti),
-                                0, 0, 0
-                        }
-                );
+                target[targetOffset] = vertices.x(vi);
+                target[targetOffset + 1] = vertices.y(vi);
+                target[targetOffset + 2] = vertices.z(vi);
+                target[targetOffset + 3] = texCoords.s(ti);
+                target[targetOffset + 4] = texCoords.t(ti);
+                target[targetOffset + 5] = 0;
+                target[targetOffset + 6] = 0;
+                target[targetOffset + 7] = 0;
+                targetOffset += 8;
             }
-            return result;
         }
     }, VN(2) {
         @Override
-        public Collection<float[]> toVertices(int[] indices, Vertices vertices, TexCoords texCoords, Vertices normals) {
-            final List<float[]> result = new ArrayList<>();
+        public void emitVertices(int[] indices, Vertices vertices, TexCoords texCoords, Vertices normals, float[] target, int targetOffset) {
             for (int i = 0; i < indices.length / 2; i++) {
                 final int vi = indices[i * 2];
                 final int ni = indices[i * 2 + 1];
-                result.add(
-                        new float[]{
-                                vertices.x(vi),
-                                vertices.y(vi),
-                                vertices.z(vi),
-                                0, 0,
-                                normals.x(ni),
-                                normals.y(ni),
-                                normals.z(ni)
-                        }
-                );
+                target[targetOffset] = vertices.x(vi);
+                target[targetOffset + 1] = vertices.y(vi);
+                target[targetOffset + 2] = vertices.z(vi);
+                target[targetOffset + 3] = 0;
+                target[targetOffset + 4] = 0;
+                target[targetOffset + 5] = normals.x(ni);
+                target[targetOffset + 6] = normals.y(ni);
+                target[targetOffset + 7] = normals.z(ni);
+                targetOffset += 8;
             }
-            return result;
         }
     }, VTN(3) {
         @Override
-        public Collection<float[]> toVertices(int[] indices, Vertices vertices, TexCoords texCoords, Vertices normals) {
-            final List<float[]> result = new ArrayList<>();
+        public void emitVertices(int[] indices, Vertices vertices, TexCoords texCoords, Vertices normals, float[] target, int targetOffset) {
             for (int i = 0; i < indices.length / 3; i++) {
                 final int vi = indices[i * 3];
                 final int ti = indices[i * 3 + 1];
                 final int ni = indices[i * 3 + 2];
-                result.add(
-                        new float[]{
-                                vertices.x(vi),
-                                vertices.y(vi),
-                                vertices.z(vi),
-                                texCoords.s(ti),
-                                texCoords.t(ti),
-                                normals.x(ni),
-                                normals.y(ni),
-                                normals.z(ni)
-                        }
-                );
+                target[targetOffset] = vertices.x(vi);
+                target[targetOffset + 1] = vertices.y(vi);
+                target[targetOffset + 2] = vertices.z(vi);
+                target[targetOffset + 3] = texCoords.s(ti);
+                target[targetOffset + 4] = texCoords.t(ti);
+                target[targetOffset + 5] = normals.x(ni);
+                target[targetOffset + 6] = normals.y(ni);
+                target[targetOffset + 7] = normals.z(ni);
+                targetOffset += 8;
             }
-            return result;
         }
     };
 
@@ -101,5 +84,6 @@ enum ObjFaceVertexKind {
         this.size = size;
     }
 
-    public abstract Collection<float[]> toVertices(int[] indices, Vertices vertices, TexCoords texCoords, Vertices normals);
+    public abstract void emitVertices(int[] indices, Vertices vertices, TexCoords texCoords,
+                                      Vertices normals, float[] target, int targetOffset);
 }

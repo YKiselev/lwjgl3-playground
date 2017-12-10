@@ -2,7 +2,7 @@ package com.github.ykiselev.assets.formats;
 
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.assets.ReadableResource;
-import com.github.ykiselev.opengl.models.ObjModel;
+import com.github.ykiselev.assets.formats.obj.ObjModel;
 import org.junit.Test;
 
 import java.io.IOException;

@@ -1,16 +1,20 @@
 package com.github.ykiselev.assets.formats.obj;
 
-import com.github.ykiselev.opengl.models.ObjModel;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Consumer;
+
+import static java.util.Objects.requireNonNull;
 
 /**
+ * Stateful obj model builder.
+ * Note: this is a single-use object. You need to supply new instance each time new obj file is parsed.
+ *
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class ObjModelBuilder implements Consumer<String> {
+public final class ParsedObjModel {
+
+    private final Iterable<String> lines;
 
     private final ObjVertices vertices = new ObjVertices();
 
@@ -20,8 +24,11 @@ public final class ObjModelBuilder implements Consumer<String> {
 
     private final List<ObjFace> faces = new ArrayList<>();
 
-    @Override
-    public void accept(String s) {
+    public ParsedObjModel(Iterable<String> lines) {
+        this.lines = requireNonNull(lines);
+    }
+
+    private void parseLine(String s) {
         if (s == null || s.isEmpty() || s.startsWith("#")) {
             return;
         }
@@ -138,18 +145,37 @@ public final class ObjModelBuilder implements Consumer<String> {
         );
     }
 
-    public ObjModel build() {
-        final List<float[]> buf = new ArrayList<>();
-        for (ObjFace face : faces) {
-            final int indexOffset = buf.size();
-            buf.addAll(
-                    face.toVertices(
-                            vertices,
-                            texCoords,
-                            normals
-                    )
-            );
+    public ObjModel parse() {
+        for (String line : lines) {
+            parseLine(line);
         }
-        return new ObjModel();
+        final int vertexSizeInFloats = 3 + 2 + 3;
+        final int totalVertices = faces.stream()
+                .mapToInt(ObjFace::sizeInVertices)
+                .sum();
+        final float[] vbuf = new float[totalVertices * vertexSizeInFloats];
+        final List<int[]> idxList = new ArrayList<>();
+        int vertexCount = 0;
+        for (ObjFace face : faces) {
+            final int indexOffset = vertexCount;
+            face.emitVertices(
+                    vertices,
+                    texCoords,
+                    normals,
+                    vbuf,
+                    vertexCount * vertexSizeInFloats
+            );
+            vertexCount += face.sizeInVertices();
+            final int[] faceIndices = face.indices();
+            final int[] offsetIndices = new int[faceIndices.length];
+            for (int i = 0; i < faceIndices.length; i++) {
+                offsetIndices[i] = indexOffset + faceIndices[i];
+            }
+            idxList.add(offsetIndices);
+        }
+        if (vbuf.length != totalVertices * vertexSizeInFloats) {
+            throw new IllegalStateException("Vertex number mismatch!");
+        }
+        return new ObjModel(vbuf, idxList);
     }
 }

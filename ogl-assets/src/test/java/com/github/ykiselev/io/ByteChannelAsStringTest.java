@@ -2,8 +2,6 @@ package com.github.ykiselev.io;
 
 import org.junit.Test;
 
-import java.io.ByteArrayInputStream;
-import java.nio.channels.Channels;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
@@ -23,10 +21,8 @@ public class ByteChannelAsStringTest {
         assertEquals(
                 STRING,
                 new ByteChannelAsString(
-                        Channels.newChannel(
-                                new ByteArrayInputStream(
-                                        STRING.getBytes(CHARSET)
-                                )
+                        new ByteChannelFromArray(
+                                STRING.getBytes(CHARSET)
                         ),
                         CHARSET
                 ).read()

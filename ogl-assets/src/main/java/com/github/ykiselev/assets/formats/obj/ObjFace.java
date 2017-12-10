@@ -1,7 +1,5 @@
 package com.github.ykiselev.assets.formats.obj;
 
-import java.util.Collection;
-
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
@@ -15,12 +13,23 @@ final class ObjFace {
         return indices;
     }
 
+    public int sizeInVertices() {
+        return indices.length / kind.size();
+    }
+
     ObjFace(ObjFaceVertexKind kind, int[] indices) {
         this.kind = kind;
         this.indices = indices;
     }
 
-    Collection<float[]> toVertices(Vertices vertices, TexCoords texCoords, Vertices normals) {
-        return kind.toVertices(indices, vertices, texCoords, normals);
+    void emitVertices(Vertices vertices, TexCoords texCoords, Vertices normals, float[] target, int targetOffset) {
+        kind.emitVertices(
+                indices,
+                vertices,
+                texCoords,
+                normals,
+                target,
+                targetOffset
+        );
     }
 }

@@ -2,14 +2,13 @@ package com.github.ykiselev.io;
 
 import org.junit.Test;
 
-import java.io.ByteArrayInputStream;
-import java.nio.channels.Channels;
+import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static org.junit.Assert.assertEquals;
 
@@ -26,18 +25,20 @@ public class ByteChannelAsLinesTest {
     private static final Charset CHARSET = StandardCharsets.UTF_8;
 
     @Test
-    public void shouldRead() {
-        final List<String> result = new ArrayList<>();
-        new ByteChannelAsLines(
-                Channels.newChannel(
-                        new ByteArrayInputStream(
-                                STRINGS.stream()
-                                        .collect(Collectors.joining("\n"))
-                                        .getBytes(CHARSET)
-                        )
+    public void shouldRead() throws IOException {
+        try (ByteChannelAsLines lines = new ByteChannelAsLines(
+                new ByteChannelFromArray(
+                        STRINGS.stream()
+                                .collect(Collectors.joining("\n"))
+                                .getBytes(CHARSET)
                 ),
                 CHARSET
-        ).consume(result::add);
-        assertEquals(STRINGS, result);
+        )) {
+            assertEquals(
+                    STRINGS,
+                    StreamSupport.stream(lines.spliterator(), false)
+                            .collect(Collectors.toList())
+            );
+        }
     }
 }

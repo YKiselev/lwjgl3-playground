@@ -8,7 +8,7 @@ import com.github.ykiselev.assets.formats.ReadableShaderObject;
 import com.github.ykiselev.assets.formats.ReadableSpriteFont;
 import com.github.ykiselev.assets.formats.ReadableTexture2d;
 import com.github.ykiselev.assets.formats.ReadableViewShader;
-import com.github.ykiselev.opengl.models.ObjModel;
+import com.github.ykiselev.assets.formats.obj.ObjModel;
 import com.github.ykiselev.opengl.shaders.ProgramObject;
 import com.github.ykiselev.opengl.shaders.ShaderObject;
 import com.github.ykiselev.opengl.shaders.ViewShader;
