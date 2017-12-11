@@ -1,7 +1,7 @@
 package com.github.ykiselev.sandbox;
 
+import com.github.ykiselev.common.Wrap;
 import com.github.ykiselev.io.ByteChannelAsMemoryUtilByteBuffer;
-import com.github.ykiselev.io.Wrap;
 import org.lwjgl.stb.STBIEOFCallback;
 import org.lwjgl.stb.STBIIOCallbacks;
 import org.lwjgl.stb.STBIReadCallback;

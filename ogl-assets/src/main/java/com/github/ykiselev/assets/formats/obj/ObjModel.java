@@ -17,4 +17,8 @@ public final class ObjModel {
         this.vertices = requireNonNull(vertices);
         this.faces = requireNonNull(faces);
     }
+
+    public IndexedGeometry toIndexedGeometry(){
+        throw new UnsupportedOperationException();
+    }
 }

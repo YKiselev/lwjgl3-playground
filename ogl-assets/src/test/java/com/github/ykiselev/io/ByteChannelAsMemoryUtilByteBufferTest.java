@@ -1,5 +1,6 @@
 package com.github.ykiselev.io;
 
+import com.github.ykiselev.common.Wrap;
 import org.junit.Test;
 import org.mockito.stubbing.Answer;
 

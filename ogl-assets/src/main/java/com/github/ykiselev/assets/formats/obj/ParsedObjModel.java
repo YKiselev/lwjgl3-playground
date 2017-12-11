@@ -1,5 +1,8 @@
 package com.github.ykiselev.assets.formats.obj;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -14,7 +17,7 @@ import static java.util.Objects.requireNonNull;
  */
 public final class ParsedObjModel {
 
-    private final Iterable<String> lines;
+    private final BufferedReader reader;
 
     private final ObjVertices vertices = new ObjVertices();
 
@@ -24,15 +27,15 @@ public final class ParsedObjModel {
 
     private final List<ObjFace> faces = new ArrayList<>();
 
-    public ParsedObjModel(Iterable<String> lines) {
-        this.lines = requireNonNull(lines);
+    public ParsedObjModel(BufferedReader reader) {
+        this.reader = requireNonNull(reader);
     }
 
     private void parseLine(String s) {
         if (s == null || s.isEmpty() || s.startsWith("#")) {
             return;
         }
-        final String[] row = s.split(" ");
+        final String[] row = s.split("\\s");
         if (row.length == 0) {
             return;
         }
@@ -146,9 +149,7 @@ public final class ParsedObjModel {
     }
 
     public ObjModel parse() {
-        for (String line : lines) {
-            parseLine(line);
-        }
+        parseLines();
         final int vertexSizeInFloats = 3 + 2 + 3;
         final int totalVertices = faces.stream()
                 .mapToInt(ObjFace::sizeInVertices)
@@ -177,5 +178,16 @@ public final class ParsedObjModel {
             throw new IllegalStateException("Vertex number mismatch!");
         }
         return new ObjModel(vbuf, idxList);
+    }
+
+    private void parseLines() {
+        try {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                parseLine(line);
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 }

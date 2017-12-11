@@ -19,8 +19,8 @@ package com.github.ykiselev.assets.formats;
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.assets.ReadableResource;
 import com.github.ykiselev.assets.ResourceException;
+import com.github.ykiselev.common.Wrap;
 import com.github.ykiselev.io.ByteChannelAsMemoryUtilByteBuffer;
-import com.github.ykiselev.io.Wrap;
 import com.github.ykiselev.opengl.textures.Texture2d;
 import org.lwjgl.system.MemoryStack;
 

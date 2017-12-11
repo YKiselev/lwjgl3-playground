@@ -39,6 +39,11 @@
         </dependency>
         <dependency>
             <groupId>com.github.ykiselev</groupId>
+            <artifactId>common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.ykiselev</groupId>
             <artifactId>assets</artifactId>
             <version>1.5</version>
         </dependency>

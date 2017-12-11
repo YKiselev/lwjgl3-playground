@@ -38,6 +38,7 @@
         <module>app</module>
         <module>ogl</module>
         <module>ogl-assets</module>
+        <module>common</module>
     </modules>
 
     <dependencyManagement>

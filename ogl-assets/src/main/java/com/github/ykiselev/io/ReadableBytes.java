@@ -1,5 +1,7 @@
 package com.github.ykiselev.io;
 
+import com.github.ykiselev.common.Wrap;
+
 import java.nio.ByteBuffer;
 
 /**

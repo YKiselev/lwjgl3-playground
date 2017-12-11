@@ -1,4 +1,4 @@
-package com.github.ykiselev.io;
+package com.github.ykiselev.common;
 
 /**
  * Abstract base of a class which knows what to do with it's value when it's not needed anymore.

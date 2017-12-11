@@ -5,8 +5,9 @@ import com.github.ykiselev.assets.ReadableResource;
 import com.github.ykiselev.assets.ResourceException;
 import com.github.ykiselev.assets.formats.obj.ObjModel;
 import com.github.ykiselev.assets.formats.obj.ParsedObjModel;
-import com.github.ykiselev.io.ByteChannelAsLines;
 
+import java.io.BufferedReader;
+import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.StandardCharsets;
 
@@ -17,8 +18,13 @@ public final class ReadableObjModel implements ReadableResource<ObjModel> {
 
     @Override
     public ObjModel read(ReadableByteChannel channel, String resource, Assets assets) throws ResourceException {
-        try (ByteChannelAsLines lines = new ByteChannelAsLines(channel, StandardCharsets.UTF_8)) {
-            return new ParsedObjModel(lines).parse();
+        try (BufferedReader reader = new BufferedReader(
+                Channels.newReader(
+                        channel,
+                        StandardCharsets.UTF_8.newDecoder(), -1
+                )
+        )) {
+            return new ParsedObjModel(reader).parse();
         } catch (Exception e) {
             throw new ResourceException("Unable to load " + resource, e);
         }
