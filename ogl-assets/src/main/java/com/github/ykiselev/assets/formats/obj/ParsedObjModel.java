@@ -27,6 +27,10 @@ public final class ParsedObjModel {
 
     private final List<ObjFace> faces = new ArrayList<>();
 
+    private String materialLibrary;
+
+    private String useMaterial;
+
     public ParsedObjModel(BufferedReader reader) {
         this.reader = requireNonNull(reader);
     }
@@ -66,11 +70,28 @@ public final class ParsedObjModel {
                 break;
 
             case "mtllib":
+                materialLibrary = mtllib(row);
+                useMaterial = null;
                 break;
 
             case "usemtl":
+                useMaterial = usemtl(row);
                 break;
         }
+    }
+
+    private String usemtl(String[] row) {
+        if (row.length < 2) {
+            throw new IllegalArgumentException("Bad material: " + Arrays.toString(row));
+        }
+        return row[1];
+    }
+
+    private String mtllib(String[] row) {
+        if (row.length < 2) {
+            throw new IllegalArgumentException("Bad material library: " + Arrays.toString(row));
+        }
+        return row[1];
     }
 
     /**
