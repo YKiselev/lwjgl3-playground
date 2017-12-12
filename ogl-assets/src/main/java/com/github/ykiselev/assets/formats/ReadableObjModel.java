@@ -4,9 +4,10 @@ import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.assets.ReadableResource;
 import com.github.ykiselev.assets.ResourceException;
 import com.github.ykiselev.assets.formats.obj.ObjModel;
-import com.github.ykiselev.assets.formats.obj.ParsedObjModel;
+import com.github.ykiselev.assets.formats.obj.ObjModelBuilder;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.StandardCharsets;
@@ -24,9 +25,18 @@ public final class ReadableObjModel implements ReadableResource<ObjModel> {
                         StandardCharsets.UTF_8.newDecoder(), -1
                 )
         )) {
-            return new ParsedObjModel(reader).parse();
+            return parse(reader);// new ParsedObjModel(reader).parse();
         } catch (Exception e) {
             throw new ResourceException("Unable to load " + resource, e);
         }
+    }
+
+    private ObjModel parse(BufferedReader reader) throws IOException {
+        final ObjModelBuilder builder = new ObjModelBuilder();
+        String line;
+        while ((line = reader.readLine()) != null) {
+            builder.parseLine(line);
+        }
+        return builder.build();
     }
 }

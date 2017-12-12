@@ -1,13 +1,12 @@
 package com.github.ykiselev.assets.formats.obj;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.UncheckedIOException;
+import com.github.ykiselev.common.Wrap;
+import com.github.ykiselev.memory.MemAlloc;
+
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import static java.util.Objects.requireNonNull;
 
 /**
  * Stateful obj model builder.
@@ -15,9 +14,7 @@ import static java.util.Objects.requireNonNull;
  *
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class ParsedObjModel {
-
-    private final BufferedReader reader;
+public final class ObjModelBuilder {
 
     private final ObjVertices vertices = new ObjVertices();
 
@@ -25,17 +22,15 @@ public final class ParsedObjModel {
 
     private final ObjVertices normals = new ObjVertices();
 
-    private final List<ObjFace> faces = new ArrayList<>();
+    private final List<ObjName> objects = new ArrayList<>();
+
+    private ObjName object;
 
     private String materialLibrary;
 
-    private String useMaterial;
+    private String material;
 
-    public ParsedObjModel(BufferedReader reader) {
-        this.reader = requireNonNull(reader);
-    }
-
-    private void parseLine(String s) {
+    public void parseLine(String s) {
         if (s == null || s.isEmpty() || s.startsWith("#")) {
             return;
         }
@@ -57,10 +52,11 @@ public final class ParsedObjModel {
                 break;
 
             case "f":
-                faces.add(face(row));
+                addFace(face(row));
                 break;
 
             case "o":
+                object(row);
                 break;
 
             case "g":
@@ -71,13 +67,28 @@ public final class ParsedObjModel {
 
             case "mtllib":
                 materialLibrary = mtllib(row);
-                useMaterial = null;
+                material = null;
                 break;
 
             case "usemtl":
-                useMaterial = usemtl(row);
+                material = usemtl(row);
                 break;
         }
+    }
+
+    private void object(String[] row) {
+        if (row.length != 2) {
+            throw new IllegalStateException("Bad object: " + Arrays.toString(row));
+        }
+        object = new ObjName(row[1]);
+        objects.add(object);
+    }
+
+    private void addFace(ObjFace face) {
+        if (object == null) {
+            throw new IllegalStateException("No object defined!");
+        }
+        object.addFace(face);
     }
 
     private String usemtl(String[] row) {
@@ -161,6 +172,7 @@ public final class ParsedObjModel {
             throw new NullPointerException("Kind not set!");
         }
         return new ObjFace(
+                material,
                 kind,
                 Arrays.copyOf(
                         indices,
@@ -169,46 +181,36 @@ public final class ParsedObjModel {
         );
     }
 
-    public ObjModel parse() {
-        parseLines();
-        final int vertexSizeInFloats = 3 + 2 + 3;
-        final int totalVertices = faces.stream()
-                .mapToInt(ObjFace::sizeInVertices)
-                .sum();
-        final float[] vbuf = new float[totalVertices * vertexSizeInFloats];
-        final List<int[]> idxList = new ArrayList<>();
-        int vertexCount = 0;
-        for (ObjFace face : faces) {
-            final int indexOffset = vertexCount;
-            face.emitVertices(
-                    vertices,
-                    texCoords,
-                    normals,
-                    vbuf,
-                    vertexCount * vertexSizeInFloats
-            );
-            vertexCount += face.sizeInVertices();
-            final int[] faceIndices = face.indices();
-            final int[] offsetIndices = new int[faceIndices.length];
-            for (int i = 0; i < faceIndices.length; i++) {
-                offsetIndices[i] = indexOffset + faceIndices[i];
-            }
-            idxList.add(offsetIndices);
-        }
-        if (vbuf.length != totalVertices * vertexSizeInFloats) {
-            throw new IllegalStateException("Vertex number mismatch!");
-        }
-        return new ObjModel(vbuf, idxList);
-    }
-
-    private void parseLines() {
-        try {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                parseLine(line);
-            }
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+    public ObjModel build() {
+        throw new UnsupportedOperationException();
+//        final int vertexSizeInFloats = 3 + 2 + 3;
+//        final int totalVertices = faces.stream()
+//                .mapToInt(ObjFace::sizeInVertices)
+//                .sum();
+//        final Wrap<ByteBuffer> vBufWrap = new MemAlloc(Float.SIZE * totalVertices * vertexSizeInFloats);
+//        final ByteBuffer vbuf = vBufWrap.value();
+//        final List<int[]> idxList = new ArrayList<>();
+//        int vertexCount = 0;
+//        for (ObjFace face : faces) {
+//            final int indexOffset = vertexCount;
+//            face.emitVertices(
+//                    vertices,
+//                    texCoords,
+//                    normals,
+//                    vbuf,
+//                    vertexCount * vertexSizeInFloats
+//            );
+//            vertexCount += face.sizeInVertices();
+//            final int[] faceIndices = face.indices();
+//            final int[] offsetIndices = new int[faceIndices.length];
+//            for (int i = 0; i < faceIndices.length; i++) {
+//                offsetIndices[i] = indexOffset + faceIndices[i];
+//            }
+//            idxList.add(offsetIndices);
+//        }
+//        if (vbuf.length != totalVertices * vertexSizeInFloats) {
+//            throw new IllegalStateException("Vertex number mismatch!");
+//        }
+//        return new ObjModel(vbuf, idxList);
     }
 }

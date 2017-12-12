@@ -5,6 +5,8 @@ package com.github.ykiselev.assets.formats.obj;
  */
 final class ObjFace {
 
+    private final String material;
+
     private final ObjFaceVertexKind kind;
 
     private final int[] indices;
@@ -17,7 +19,8 @@ final class ObjFace {
         return indices.length / kind.size();
     }
 
-    ObjFace(ObjFaceVertexKind kind, int[] indices) {
+    ObjFace(String material, ObjFaceVertexKind kind, int[] indices) {
+        this.material = material;
         this.kind = kind;
         this.indices = indices;
     }
