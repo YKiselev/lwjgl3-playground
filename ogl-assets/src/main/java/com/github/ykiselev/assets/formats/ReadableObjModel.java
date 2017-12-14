@@ -19,16 +19,20 @@ public final class ReadableObjModel implements ReadableResource<ObjModel> {
 
     @Override
     public ObjModel read(ReadableByteChannel channel, String resource, Assets assets) throws ResourceException {
-        try (BufferedReader reader = new BufferedReader(
+        try (BufferedReader reader = reader(channel)) {
+            return parse(reader);
+        } catch (Exception e) {
+            throw new ResourceException("Unable to load " + resource, e);
+        }
+    }
+
+    private BufferedReader reader(ReadableByteChannel channel) {
+        return new BufferedReader(
                 Channels.newReader(
                         channel,
                         StandardCharsets.UTF_8.newDecoder(), -1
                 )
-        )) {
-            return parse(reader);// new ParsedObjModel(reader).parse();
-        } catch (Exception e) {
-            throw new ResourceException("Unable to load " + resource, e);
-        }
+        );
     }
 
     private ObjModel parse(BufferedReader reader) throws IOException {

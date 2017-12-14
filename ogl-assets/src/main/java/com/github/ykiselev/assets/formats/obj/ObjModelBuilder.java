@@ -1,9 +1,5 @@
 package com.github.ykiselev.assets.formats.obj;
 
-import com.github.ykiselev.common.Wrap;
-import com.github.ykiselev.memory.MemAlloc;
-
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -16,11 +12,7 @@ import java.util.List;
  */
 public final class ObjModelBuilder {
 
-    private final ObjVertices vertices = new ObjVertices();
-
-    private final ObjTexCoords texCoords = new ObjTexCoords();
-
-    private final ObjVertices normals = new ObjVertices();
+    private final DenormalizedVertices denormalizedVertices = new DenormalizedVertices();
 
     private final List<ObjName> objects = new ArrayList<>();
 
@@ -40,15 +32,21 @@ public final class ObjModelBuilder {
         }
         switch (row[0]) {
             case "v":
-                vertices.add(floats(row));
+                denormalizedVertices.addVertex(
+                        floats(row)
+                );
                 break;
 
             case "vt":
-                texCoords.add(floats(row));
+                denormalizedVertices.addTexCoord(
+                        floats(row)
+                );
                 break;
 
             case "vn":
-                normals.add(floats(row));
+                denormalizedVertices.addNormal(
+                        floats(row)
+                );
                 break;
 
             case "f":
@@ -127,9 +125,8 @@ public final class ObjModelBuilder {
      * @return parsed face
      */
     private ObjFace face(String[] v) {
-        final int[] indices = new int[3 * v.length];
+        final int[] indices = new int[v.length];
         int i = 0, prev = -1;
-        ObjFaceVertexKind kind = null;
         for (int k = 1; k < v.length; k++) {
             // Each vertex may be either v or v/vt or v//vn or v/vt/vn
             final String[] vtn = v[k].split("/");
@@ -139,45 +136,30 @@ public final class ObjModelBuilder {
             if (vtn.length == 0) {
                 throw new IllegalStateException("Invalid face command: " + Arrays.toString(v));
             }
-            ObjFaceVertexKind curKind = ObjFaceVertexKind.V;
             // v
-            indices[i] = Integer.parseInt(vtn[0]) - 1;
-            i++;
+            final int vertexIndex = Integer.parseInt(vtn[0]);
+            // Note: Index in OBJ file is always 1-based, so value of 0 here means "index is undefined".
+            // (according to obj reference negative values are valid cases so we can't use -1 for example)
+            int texCoordIndex = 0, normalIndex = 0;
             if (vtn.length > 1 && vtn[1] != null && !vtn[1].isEmpty()) {
                 // vt
-                indices[i] = Integer.parseInt(vtn[1]) - 1;
-                i++;
-                curKind = ObjFaceVertexKind.VT;
+                texCoordIndex = Integer.parseInt(vtn[1]);
             }
             if (vtn.length > 2) {
                 // vn
-                indices[i] = Integer.parseInt(vtn[2]) - 1;
-                i++;
-                if (curKind == ObjFaceVertexKind.VT) {
-                    curKind = ObjFaceVertexKind.VTN;
-                } else {
-                    curKind = ObjFaceVertexKind.VN;
-                }
+                normalIndex = Integer.parseInt(vtn[2]);
             }
             prev = vtn.length;
-            if (kind == null) {
-                kind = curKind;
-            } else if (kind != curKind) {
-                throw new IllegalStateException(
-                        "Invalid face command: " + Arrays.toString(v) + ", expected " + kind + " got " + curKind
-                );
-            }
-        }
-        if (kind == null) {
-            throw new NullPointerException("Kind not set!");
+            indices[i] = denormalizedVertices.add(
+                    vertexIndex,
+                    texCoordIndex,
+                    normalIndex
+            );
+            i++;
         }
         return new ObjFace(
                 material,
-                kind,
-                Arrays.copyOf(
-                        indices,
-                        kind.size() * v.length
-                )
+                indices
         );
     }
 

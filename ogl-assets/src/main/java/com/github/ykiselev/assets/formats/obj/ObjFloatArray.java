@@ -28,6 +28,11 @@ public abstract class ObjFloatArray {
      */
     protected abstract int itemSize();
 
+    /**
+     * Adds new item of size {@link ObjFloatArray#itemSize()} into array.
+     *
+     * @return the logical index of item
+     */
     int add() {
         ensureSize(count + 1);
         count++;
@@ -50,5 +55,4 @@ public abstract class ObjFloatArray {
     int idx(int index) {
         return index * itemSize();
     }
-
 }
