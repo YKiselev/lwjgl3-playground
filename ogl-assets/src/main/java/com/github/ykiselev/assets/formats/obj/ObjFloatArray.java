@@ -55,4 +55,8 @@ public abstract class ObjFloatArray {
     int idx(int index) {
         return index * itemSize();
     }
+
+    public float[] toArray() {
+        return Arrays.copyOf(floats, count * itemSize());
+    }
 }

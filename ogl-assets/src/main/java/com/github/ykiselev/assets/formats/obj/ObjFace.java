@@ -9,8 +9,16 @@ final class ObjFace {
 
     private final int[] indices;
 
-    public int[] indices() {
-        return indices;
+    public int indexAt(int index) {
+        return indices[index];
+    }
+
+    public int size() {
+        return indices.length;
+    }
+
+    public String material() {
+        return material;
     }
 
     ObjFace(String material, int[] indices) {

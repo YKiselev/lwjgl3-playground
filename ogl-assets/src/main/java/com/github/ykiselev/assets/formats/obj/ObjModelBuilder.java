@@ -164,35 +164,6 @@ public final class ObjModelBuilder {
     }
 
     public ObjModel build() {
-        throw new UnsupportedOperationException();
-//        final int vertexSizeInFloats = 3 + 2 + 3;
-//        final int totalVertices = faces.stream()
-//                .mapToInt(ObjFace::sizeInVertices)
-//                .sum();
-//        final Wrap<ByteBuffer> vBufWrap = new MemAlloc(Float.SIZE * totalVertices * vertexSizeInFloats);
-//        final ByteBuffer vbuf = vBufWrap.value();
-//        final List<int[]> idxList = new ArrayList<>();
-//        int vertexCount = 0;
-//        for (ObjFace face : faces) {
-//            final int indexOffset = vertexCount;
-//            face.emitVertices(
-//                    vertices,
-//                    texCoords,
-//                    normals,
-//                    vbuf,
-//                    vertexCount * vertexSizeInFloats
-//            );
-//            vertexCount += face.sizeInVertices();
-//            final int[] faceIndices = face.indices();
-//            final int[] offsetIndices = new int[faceIndices.length];
-//            for (int i = 0; i < faceIndices.length; i++) {
-//                offsetIndices[i] = indexOffset + faceIndices[i];
-//            }
-//            idxList.add(offsetIndices);
-//        }
-//        if (vbuf.length != totalVertices * vertexSizeInFloats) {
-//            throw new IllegalStateException("Vertex number mismatch!");
-//        }
-//        return new ObjModel(vbuf, idxList);
+        return new ObjModel(denormalizedVertices.toArray(), objects);
     }
 }
