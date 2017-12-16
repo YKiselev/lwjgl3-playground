@@ -7,6 +7,8 @@ import com.github.ykiselev.assets.ResourceException;
 import com.github.ykiselev.assets.SimpleAssets;
 
 import java.nio.channels.ReadableByteChannel;
+import java.nio.file.Path;
+import java.util.Collection;
 import java.util.HashMap;
 
 /**
@@ -20,11 +22,11 @@ public final class GameAssets implements Assets {
         this.assets = assets;
     }
 
-    public GameAssets() {
+    public GameAssets(Collection<Path> paths) {
         this(
                 new ManagedAssets(
                         new SimpleAssets(
-                                new GameResources(),
+                                new GameResources(paths),
                                 new ResourceByClass(),
                                 new ResourceByExtension()
                         ),

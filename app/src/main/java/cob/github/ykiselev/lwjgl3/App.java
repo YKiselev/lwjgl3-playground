@@ -33,8 +33,14 @@ public final class App {
 
     private final GLFWErrorCallback errorCallback = GLFWErrorCallback.createPrint(System.err);
 
+    private final ProgramArguments args;
+
+    private App(ProgramArguments args) {
+        this.args = args;
+    }
+
     public static void main(String[] args) {
-        new App().run();
+        new App(new ProgramArguments(args)).run();
     }
 
     private void run() {
@@ -62,7 +68,9 @@ public final class App {
 
     private Game newGame() {
         return new Game(
-                new GameAssets()
+                new GameAssets(
+                        args.assetPaths()
+                )
         );
     }
 }
