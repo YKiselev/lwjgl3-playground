@@ -1,6 +1,8 @@
 package cob.github.ykiselev.lwjgl3.playground;
 
 import com.github.ykiselev.assets.Assets;
+import com.github.ykiselev.opengl.IndexedGeometrySource;
+import com.github.ykiselev.assets.formats.obj.ObjModel;
 import com.github.ykiselev.opengl.shaders.ProgramObject;
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
 import com.github.ykiselev.opengl.text.SpriteFont;
@@ -17,7 +19,6 @@ import static org.lwjgl.opengl.GL11.glClear;
 import static org.lwjgl.opengl.GL11.glClearColor;
 import static org.lwjgl.opengl.GL11.glClearDepth;
 import static org.lwjgl.opengl.GL11.glCullFace;
-import static org.lwjgl.opengl.GL11.glDisable;
 import static org.lwjgl.opengl.GL11.glEnable;
 import static org.lwjgl.opengl.GL11.glFrontFace;
 
@@ -54,6 +55,9 @@ public final class Game implements WindowCallbacks, AutoCloseable {
         );
         cuddles = assets.load("images/htf-cuddles.jpg", Texture2d.class);
         liberationMono = assets.load("fonts/Liberation Mono.sf", SpriteFont.class);
+        final ObjModel model = assets.load("models/2cubes.obj", ObjModel.class);
+        final IndexedGeometrySource geometry = model.toIndexedTriangles();
+        final ProgramObject program = assets.load("progs/generic.conf", ProgramObject.class);
     }
 
     @Override

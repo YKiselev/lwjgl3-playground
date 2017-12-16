@@ -1,6 +1,8 @@
 package com.github.ykiselev.assets.formats.obj;
 
 import com.github.ykiselev.memory.MemAlloc;
+import com.github.ykiselev.opengl.IndexedGeometrySource;
+import org.lwjgl.opengl.GL11;
 
 import java.nio.ByteBuffer;
 import java.util.List;
@@ -22,14 +24,13 @@ public final class ObjModel {
         this.objects = requireNonNull(objects);
     }
 
-    public IndexedGeometry toIndexedTriangles() {
-        //final MemAlloc vertices2 = new MemAlloc(Float.BYTES * vertices.length);
+    public IndexedGeometrySource toIndexedTriangles() {
         final int totalTriangles = objects.stream()
                 .flatMap(n -> StreamSupport.stream(n.spliterator(), true))
                 .mapToInt(f -> f.size() - 2)
                 .sum();
-        final MemAlloc indices = new MemAlloc(Integer.BYTES * 3 * totalTriangles);
-        final ByteBuffer buffer = indices.value();
+        final MemAlloc wrappedIndices = new MemAlloc(Integer.BYTES * 3 * totalTriangles);
+        final ByteBuffer buffer = wrappedIndices.value();
         for (ObjName object : objects) {
             for (ObjFace face : object) {
                 final int idx0 = face.indexAt(0);
@@ -40,6 +41,48 @@ public final class ObjModel {
                 }
             }
         }
-        throw new UnsupportedOperationException();
+        buffer.flip();
+        final MemAlloc wrappedVertices = new MemAlloc(Float.BYTES * vertices.length);
+        final ByteBuffer vbuff = wrappedVertices.value();
+        for (float v : vertices) {
+            vbuff.putFloat(v);
+        }
+        vbuff.flip();
+        return new ObjModelIndexedGeometrySource(
+                wrappedVertices,
+                wrappedIndices
+        );
+    }
+
+    private static class ObjModelIndexedGeometrySource implements IndexedGeometrySource {
+
+        private final MemAlloc wrappedVertices;
+
+        private final MemAlloc wrappedIndices;
+
+        public ObjModelIndexedGeometrySource(MemAlloc wrappedVertices, MemAlloc wrappedIndices) {
+            this.wrappedVertices = wrappedVertices;
+            this.wrappedIndices = wrappedIndices;
+        }
+
+        @Override
+        public ByteBuffer vertices() {
+            return wrappedVertices.value();
+        }
+
+        @Override
+        public ByteBuffer indices() {
+            return wrappedIndices.value();
+        }
+
+        @Override
+        public int mode() {
+            return GL11.GL_TRIANGLES;
+        }
+
+        @Override
+        public void close() {
+            wrappedIndices.close();
+        }
     }
 }
