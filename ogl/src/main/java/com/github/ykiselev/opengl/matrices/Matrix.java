@@ -79,8 +79,8 @@ public final class Matrix implements AutoCloseable {
      *
      * @param other the matrix to multiply by.
      */
-    public void mul(Matrix other) {
-        mul(m, other.m, m);
+    public void multiply(Matrix other) {
+        multiply(m, other.m, m);
     }
 
     /**
@@ -90,7 +90,7 @@ public final class Matrix implements AutoCloseable {
      * @param b      the second matrix
      * @param result the matrix to store result in
      */
-    public static void mul(FloatBuffer a, FloatBuffer b, FloatBuffer result) {
+    public static void multiply(FloatBuffer a, FloatBuffer b, FloatBuffer result) {
         final float m0 = a.get(0) * b.get(0) + a.get(1) * b.get(4) + a.get(2) * b.get(8) + a.get(3) * b.get(12);
         final float m1 = a.get(0) * b.get(1) + a.get(1) * b.get(5) + a.get(2) * b.get(9) + a.get(3) * b.get(13);
         final float m2 = a.get(0) * b.get(2) + a.get(1) * b.get(6) + a.get(2) * b.get(10) + a.get(3) * b.get(14);
@@ -118,8 +118,26 @@ public final class Matrix implements AutoCloseable {
                 .flip();
     }
 
+
     /**
-     * Adds translation to matrix {@code a}.
+     * Multiplies this matrix by {@code vector} and stores result in supplied {@code vector}.
+     *
+     * @param vector the vector to multiply by.
+     */
+    public void multiply(float[] vector) {
+        final float x = vector[0];
+        final float y = vector[1];
+        final float z = vector[2];
+        final float w = vector[3];
+
+        vector[0] = m.get(0) * x + m.get(4) * y + m.get(8) * z + m.get(12) * w;
+        vector[1] = m.get(1) * x + m.get(5) * y + m.get(9) * z + m.get(13) * w;
+        vector[2] = m.get(2) * x + m.get(6) * y + m.get(10) * z + m.get(14) * w;
+        vector[3] = m.get(3) * x + m.get(7) * y + m.get(11) * z + m.get(15) * w;
+    }
+
+    /**
+     * Combines translation {@code (dx,dy,dz)} with matrix {@code a} and stores resulting matrix in {@code result}.
      *
      * @param a      the original matrix to add translation to
      * @param dx     x translation
@@ -128,15 +146,110 @@ public final class Matrix implements AutoCloseable {
      * @param result the buffer to store result.
      */
     public static void translate(FloatBuffer a, float dx, float dy, float dz, FloatBuffer result) {
-        if (a == result) {
-            result.put(12, a.get(12) + dx).put(13, a.get(13) + dy).put(14, a.get(14) + dz);
-        } else {
+        if (a != result) {
             result.clear()
-                    .put(a.get(0)).put(a.get(1)).put(a.get(2)).put(a.get(3))
-                    .put(a.get(4)).put(a.get(5)).put(a.get(6)).put(a.get(7))
-                    .put(a.get(8)).put(a.get(9)).put(a.get(10)).put(a.get(11))
-                    .put(a.get(12) + dx).put(a.get(13) + dy).put(a.get(14) + dz).put(a.get(15))
+                    .put(a)
                     .flip();
         }
+        result.put(12, a.get(12) + dx)
+                .put(13, a.get(13) + dy)
+                .put(14, a.get(14) + dz);
+    }
+
+    public void translate(float dx, float dy, float dz) {
+        translate(m, dx, dy, dz, m);
+    }
+
+    /**
+     * Combines scaling {@code (sx,sy,sz)} with matrix {@code a} and stores resulting matric in {@code result}
+     *
+     * @param a      the original matrix
+     * @param sx     x scaling factor
+     * @param sy     y  scaling factor
+     * @param sz     z  scaling factor
+     * @param result the buffer to store result
+     */
+    public static void scale(FloatBuffer a, float sx, float sy, float sz, FloatBuffer result) {
+        if (a != result) {
+            result.clear()
+                    .put(a)
+                    .flip();
+        }
+        result.put(0, a.get(0) * sx)
+                .put(5, a.get(5) * sy)
+                .put(10, a.get(10) * sz);
+    }
+
+    /**
+     * Scales this matrix.
+     *
+     * @param sx x scaling factor
+     * @param sy y  scaling factor
+     * @param sz z  scaling factor
+     */
+    public void scale(float sx, float sy, float sz) {
+        scale(m, sx, sy, sz, m);
+    }
+
+    /**
+     * Transposes the matrix {@code a} and stores resulting matrix in {@code result}
+     *
+     * @param a      the matrix to transpose
+     * @param result the buffer to store result
+     */
+    public static void transpose(FloatBuffer a, FloatBuffer result) {
+        float m0 = a.get(0);
+        float m1 = a.get(1);
+        float m2 = a.get(2);
+        float m3 = a.get(3);
+
+        float m4 = a.get(4);
+        float m5 = a.get(5);
+        float m6 = a.get(6);
+        float m7 = a.get(7);
+
+        float m8 = a.get(8);
+        float m9 = a.get(9);
+        float m10 = a.get(10);
+        float m11 = a.get(11);
+
+        float m12 = a.get(12);
+        float m13 = a.get(13);
+        float m14 = a.get(14);
+        float m15 = a.get(15);
+
+        result.clear()
+                .put(m0).put(m4).put(m8).put(m12)
+                .put(m1).put(m5).put(m9).put(m13)
+                .put(m2).put(m6).put(m10).put(m14)
+                .put(m3).put(m7).put(m11).put(m15)
+                .flip();
+    }
+
+    public void transpose() {
+        transpose(m, m);
+    }
+
+    /**
+     * Initializes {@code result} with rotation matrix from Euler's angles {@code ax, ay, rz}.
+     *
+     * @param ax  the x-axis rotation angle (counter-clockwise)
+     * @param ay   the y-axis rotation angle (counter-clockwise)
+     * @param rz  the z-asix rotation angle (counter-clockwise)
+     * @param result the buffer to store result
+     */
+    public static void rotation(double ax, double ay, double rz, FloatBuffer result) {
+        final double a = Math.cos(ax);
+        final double b = Math.sin(ax);
+        final double c = Math.cos(ay);
+        final double d = Math.sin(ay);
+        final double e = Math.cos(rz);
+        final double f = Math.sin(rz);
+        result.clear()
+                .put((float) (c * e)).put((float) (b * d * e + a * f)).put((float) (-a * d * e + b * f)).put(0)
+                .put((float) (-c * f)).put((float) (-b * d * f + a * e)).put((float) (a * d * f + b * e)).put(0)
+                .put((float) d).put((float) (-b * c)).put((float) (a * c)).put(0)
+                .put(0).put(0).put(0).put(1)
+                .flip();
     }
 }
