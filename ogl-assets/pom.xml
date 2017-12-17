@@ -27,10 +27,6 @@
 
     <artifactId>ogl-assets</artifactId>
 
-    <properties>
-        <lwjgl.natives>natives-${os.detected.name}</lwjgl.natives>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>com.github.ykiselev</groupId>
@@ -120,16 +116,6 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
-    <build>
-        <extensions>
-            <extension>
-                <groupId>kr.motd.maven</groupId>
-                <artifactId>os-maven-plugin</artifactId>
-                <version>1.5.0.Final</version>
-            </extension>
-        </extensions>
-    </build>
 
     <profiles>
         <profile>

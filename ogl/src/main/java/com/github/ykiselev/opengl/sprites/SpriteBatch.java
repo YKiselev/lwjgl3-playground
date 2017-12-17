@@ -315,7 +315,7 @@ public final class SpriteBatch implements AutoCloseable {
 //        matrix.flip();
 //        mvpUniform.matrix4(false, matrix);
         matrix.orthographic(x, x+width,y+height, y, -1, 1);
-        matrix.assignTo(mvpUniform, false);
+        mvpUniform.matrix4(matrix);
 
         drawCount = 0;
     }

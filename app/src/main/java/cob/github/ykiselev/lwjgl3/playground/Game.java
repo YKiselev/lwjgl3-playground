@@ -1,8 +1,8 @@
 package cob.github.ykiselev.lwjgl3.playground;
 
 import com.github.ykiselev.assets.Assets;
-import com.github.ykiselev.opengl.IndexedGeometrySource;
 import com.github.ykiselev.assets.formats.obj.ObjModel;
+import com.github.ykiselev.opengl.models.GenericIndexedGeometry;
 import com.github.ykiselev.opengl.shaders.ProgramObject;
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
 import com.github.ykiselev.opengl.text.SpriteFont;
@@ -49,15 +49,18 @@ public final class Game implements WindowCallbacks, AutoCloseable {
 
     private long frames;
 
+    private GenericIndexedGeometry cubes;
+
     public Game(Assets assets) {
         spriteBatch = new SpriteBatch(
                 assets.load("progs/sprite-batch.conf", ProgramObject.class)
         );
         cuddles = assets.load("images/htf-cuddles.jpg", Texture2d.class);
         liberationMono = assets.load("fonts/Liberation Mono.sf", SpriteFont.class);
+
         final ObjModel model = assets.load("models/2cubes.obj", ObjModel.class);
-        final IndexedGeometrySource geometry = model.toIndexedTriangles();
         final ProgramObject program = assets.load("progs/generic.conf", ProgramObject.class);
+        cubes = new GenericIndexedGeometry(program, model.toIndexedTriangles());
     }
 
     @Override
@@ -85,6 +88,7 @@ public final class Game implements WindowCallbacks, AutoCloseable {
     @Override
     public void close() {
         spriteBatch.close();
+        cubes.close();
     }
 
     public void update() {
@@ -97,6 +101,8 @@ public final class Game implements WindowCallbacks, AutoCloseable {
         glClearColor(0, 0, 0.5f, 1);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        cubes.draw();
+
         if (x > width) {
             x = width;
             k *= -1.0;
@@ -104,7 +110,7 @@ public final class Game implements WindowCallbacks, AutoCloseable {
             x = 0;
             k *= -1.0;
         }
-        if (scale < 0.1){
+        if (scale < 0.1) {
             scale = 1.0;
         }
         final double t = glfwGetTime();
@@ -113,8 +119,8 @@ public final class Game implements WindowCallbacks, AutoCloseable {
         t0 = t;
         spriteBatch.begin(0, 0, width, height, true);
         x += k * delta;
-        scale *= (1 - 0.25*delta);
-        spriteBatch.draw(cuddles, (int) x, 4, (int)(400 * scale), (int)(400 * scale), 0xffffffff);
+        scale *= (1 - 0.25 * delta);
+        spriteBatch.draw(cuddles, (int) x, 4, (int) (400 * scale), (int) (400 * scale), 0xffffffff);
 
         //spriteBatch.draw(liberationMono.texture(), 0, 0, 256, 128, 0xffffffff);
 //        spriteBatch.draw(liberationMono.texture(), 0, -200, 400, 400, 0xffffffff);

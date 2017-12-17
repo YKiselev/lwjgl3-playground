@@ -16,6 +16,8 @@
 
 package com.github.ykiselev.opengl.shaders.uniforms;
 
+import com.github.ykiselev.opengl.matrices.Matrix;
+
 import java.nio.FloatBuffer;
 
 import static org.lwjgl.opengl.GL20.glUniform1i;
@@ -48,11 +50,19 @@ public final class UniformVariable {
         glUniformMatrix4fv(location, transpose, matrix);
     }
 
+    public void matrix4(boolean transpose, Matrix matrix) {
+        matrix4(transpose, matrix.buffer());
+    }
+
+    public void matrix4(Matrix matrix) {
+        matrix4(false, matrix.buffer());
+    }
+
     public void vector4(FloatBuffer buffer) {
         glUniform4fv(location, buffer);
     }
 
-    public void value(int value){
+    public void value(int value) {
         glUniform1i(location, value);
     }
 

@@ -1,18 +1,15 @@
 package com.github.ykiselev.opengl.models;
 
 import com.github.ykiselev.opengl.IndexedGeometrySource;
+import com.github.ykiselev.opengl.matrices.Matrix;
 import com.github.ykiselev.opengl.shaders.ProgramObject;
 import com.github.ykiselev.opengl.shaders.uniforms.UniformVariable;
 import com.github.ykiselev.opengl.vbo.IndexBufferObject;
 import com.github.ykiselev.opengl.vbo.VertexArrayObject;
 import com.github.ykiselev.opengl.vbo.VertexBufferObject;
-import org.lwjgl.system.MemoryUtil;
-
-import java.nio.FloatBuffer;
 
 import static java.util.Objects.requireNonNull;
 import static org.lwjgl.opengl.GL11.GL_FLOAT;
-import static org.lwjgl.opengl.GL11.GL_TRIANGLES;
 import static org.lwjgl.opengl.GL11.GL_UNSIGNED_INT;
 import static org.lwjgl.opengl.GL11.glDrawElements;
 import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
@@ -23,7 +20,7 @@ import static org.lwjgl.opengl.GL15.glBufferData;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class GenericIndexedGeometry {
+public final class GenericIndexedGeometry implements AutoCloseable {
 
     private final ProgramObject program;
 
@@ -37,7 +34,7 @@ public final class GenericIndexedGeometry {
 
     private final UniformVariable mvpUniform;
 
-    private final FloatBuffer matrix;
+    private final Matrix matrix;
 
     private final int mode;
 
@@ -78,16 +75,27 @@ public final class GenericIndexedGeometry {
         ebo.unbind();
         program.unbind();
 
-        matrix = MemoryUtil.memAllocFloat(16);
+        matrix = new Matrix();
+        matrix.orthographic(0, 500, 500, 0, -10, 10);
+    }
+
+    @Override
+    public void close() {
+        vbo.close();
+        ebo.close();
+        vao.close();
+        matrix.close();
     }
 
     public void draw() {
         vao.bind();
         program.bind();
+
         texUniform.value(0);
-        mvpUniform.matrix4(false, matrix);
+        mvpUniform.matrix4(matrix);
+
         vbo.bind();
-        glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, 0);
+        glDrawElements(mode, count, GL_UNSIGNED_INT, 0);
 
         vao.unbind();
         vbo.unbind();
