@@ -79,7 +79,7 @@ public final class SpriteBatch implements AutoCloseable {
 
     private final UniformVariable colorsUniform;
 
-    private final Matrix matrix;
+    private final FloatBuffer matrix;
 
     private Texture2d currentTexture;
 
@@ -146,7 +146,7 @@ public final class SpriteBatch implements AutoCloseable {
         ebo.unbind();
         program.unbind();
 
-        matrix = new Matrix();
+        matrix = MemoryUtil.memAllocFloat(16);
         colors = MemoryUtil.memAllocFloat(MAX_QUADS * 4);
     }
 
@@ -185,7 +185,7 @@ public final class SpriteBatch implements AutoCloseable {
         vbo.close();
         ebo.close();
         vao.close();
-        matrix.close();
+        MemoryUtil.memFree(matrix);
         MemoryUtil.memFree(colors);
     }
 
@@ -300,22 +300,8 @@ public final class SpriteBatch implements AutoCloseable {
 
         texUniform.value(0);
 
-//        final float oow = 1.0f / (float) width;
-//        final float ooh = 1.0f / (float) height;
-//        final float scaleX = 2.0f * oow;
-//        final float scaleY = 2.0f * ooh;
-//        final float transX = -1;
-//        final float transY = -1;
-
-//        matrix.clear();
-//        matrix.put(scaleX).put(0).put(0).put(0);
-//        matrix.put(0).put(scaleY).put(0).put(0);
-//        matrix.put(0).put(0).put(1).put(0);
-//        matrix.put(transX).put(transY).put(0).put(1);
-//        matrix.flip();
-//        mvpUniform.matrix4(false, matrix);
-        matrix.orthographic(x, x+width,y+height, y, -1, 1);
-        mvpUniform.matrix4(matrix);
+        Matrix.orthographic(x, x + width, y + height, y, -1, 1, matrix);
+        mvpUniform.matrix4(false, matrix);
 
         drawCount = 0;
     }

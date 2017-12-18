@@ -7,6 +7,9 @@ import com.github.ykiselev.opengl.shaders.uniforms.UniformVariable;
 import com.github.ykiselev.opengl.vbo.IndexBufferObject;
 import com.github.ykiselev.opengl.vbo.VertexArrayObject;
 import com.github.ykiselev.opengl.vbo.VertexBufferObject;
+import org.lwjgl.system.MemoryUtil;
+
+import java.nio.FloatBuffer;
 
 import static java.util.Objects.requireNonNull;
 import static org.lwjgl.opengl.GL11.GL_FLOAT;
@@ -34,7 +37,7 @@ public final class GenericIndexedGeometry implements AutoCloseable {
 
     private final UniformVariable mvpUniform;
 
-    private final Matrix matrix;
+    private final FloatBuffer matrix;
 
     private final int mode;
 
@@ -75,8 +78,8 @@ public final class GenericIndexedGeometry implements AutoCloseable {
         ebo.unbind();
         program.unbind();
 
-        matrix = new Matrix();
-        matrix.orthographic(0, 500, 500, 0, -10, 10);
+        matrix = MemoryUtil.memAllocFloat(16);
+        Matrix.orthographic(0, 500, 500, 0, -10, 10, matrix);
     }
 
     @Override
@@ -84,7 +87,7 @@ public final class GenericIndexedGeometry implements AutoCloseable {
         vbo.close();
         ebo.close();
         vao.close();
-        matrix.close();
+        MemoryUtil.memFree(matrix);
     }
 
     public void draw() {
@@ -92,7 +95,7 @@ public final class GenericIndexedGeometry implements AutoCloseable {
         program.bind();
 
         texUniform.value(0);
-        mvpUniform.matrix4(matrix);
+        mvpUniform.matrix4(false, matrix);
 
         vbo.bind();
         glDrawElements(mode, count, GL_UNSIGNED_INT, 0);
