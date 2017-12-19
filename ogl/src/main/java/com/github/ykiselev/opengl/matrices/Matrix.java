@@ -5,10 +5,17 @@ import java.nio.FloatBuffer;
 /**
  * Column-oriented 4x4 matrix.
  * <pre>
- *     A B C D
- *     E F G H
- *     I J K L
- *     M N O P
+ *   A B C D
+ *   E F G H
+ *   I J K L
+ *   M N O P
+ *
+ * or as indices:
+ *
+ *   0 4  8 12
+ *   1 5  9 13
+ *   2 6 10 14
+ *   3 7 11 15
  * </pre>
  * So A have index 0, E - 1, I - 2, M - 3, etc.
  *
@@ -266,8 +273,60 @@ public final class Matrix {
                 .flip();
     }
 
-    public double determinant(FloatBuffer a) {
-        return 0;//todo a.get(0) * ();
+    /**
+     * For 2x2 matrix M determinant is A*D - B*C
+     * <pre>
+     *       | A B |
+     *   M = |     |
+     *       | C D |
+     * </pre>
+     * So for our 4x4 matrix determinant {@code Det = A * Asubd - B * Bsubd + C * Csubd - D*Dsubd} where
+     * <pre>
+     *     0 4  8 12
+     *     1 5  9 13
+     * M   2 6 10 14
+     *     3 7 11 15
+     *
+     *       5  9 13
+     * Asub  6 10 14
+     *       7 11 15
+     *
+     *       1  9 13
+     * Bsub  2 10 14
+     *       3 11 15
+     *
+     *       1 5 13
+     * Csub  2 6 14
+     *       3 7 15
+     *
+     *       1 5 9
+     * Dsub  2 6 10
+     *       3 7 11
+     *
+     * Here each number is a matrix element index:
+     * Asubd = 5 * (10*15 - 11*14) - 9 * (6*15 - 7*14) + 13 * (6*11 - 7*10)
+     * Bsubd = 1 * (10*15 - 11*14) - 9 * (2*15 - 3*14) + 13 * (2*11 - 3*10)
+     * Csubd = 1 * (6*15 - 7*14) - 5 * (2*15 - 3*14) + 13 * (2*7 - 3*6)
+     * Dsubd = 1 * (6*11 - 7*10) - 5 * (2*11 - 3*10) + 9 * (2*7 - 3*6)
+     * </pre>
+     *
+     * @param a the matrix
+     * @return the determinant of a matrix
+     */
+    public static double determinant(FloatBuffer a) {
+        final double d6_11 = a.get(6) * a.get(11) - a.get(7) * a.get(10);
+        final double d6_15 = a.get(6) * a.get(15) - a.get(7) * a.get(14);
+        final double d10_15 = a.get(10) * a.get(15) - a.get(11) * a.get(14);
+        final double d2_11 = a.get(2) * a.get(11) - a.get(3) * a.get(10);
+        final double d2_15 = a.get(2) * a.get(15) - a.get(3) * a.get(14);
+        final double d2_7 = a.get(2) * a.get(7) - a.get(3) * a.get(6);
+
+        final double Asubd = a.get(5) * d10_15 - a.get(9) * d6_15 + a.get(13) * d6_11;
+        final double Bsubd = a.get(1) * d10_15 - a.get(9) * d2_15 + a.get(13) * d2_11;
+        final double Csubd = a.get(1) * d6_15 - a.get(5) * d2_15 + a.get(13) * d2_7;
+        final double Dsubd = a.get(1) * d6_11 - a.get(5) * d2_11 + a.get(9) * d2_7;
+
+        return a.get(0) * Asubd - a.get(4) * Bsubd + a.get(8) * Csubd - a.get(12) * Dsubd;
     }
 
     public static void inverse(FloatBuffer a, FloatBuffer result) {

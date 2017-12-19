@@ -1,5 +1,6 @@
 package com.github.ykiselev.opengl.matrices;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.nio.FloatBuffer;
@@ -174,6 +175,23 @@ public class MatrixTest {
                 vector,
                 0.001f
         );
+    }
+
+    @Test
+    public void shouldCalculateDeterminant() {
+        m.clear()
+                .put(1).put(3).put(4).put(10)
+                .put(2).put(5).put(9).put(11)
+                .put(6).put(8).put(12).put(15)
+                .put(7).put(13).put(14).put(16)
+                .flip();
+        Assert.assertEquals(-594.0, Matrix.determinant(m), 0.0001d);
+    }
+
+    @Test
+    public void determinantShouldBeOneForIdentity() {
+        Matrix.identity(m);
+        Assert.assertEquals(1.0, Matrix.determinant(m), 0.0001d);
     }
 
 }
