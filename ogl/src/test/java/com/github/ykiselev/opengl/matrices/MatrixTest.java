@@ -6,7 +6,6 @@ import org.junit.Test;
 import java.nio.FloatBuffer;
 
 import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.fail;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
@@ -19,9 +18,7 @@ public class MatrixTest {
         int i = 0;
         for (float v : expected) {
             final float v1 = actual.get(i);
-            if (v != v1) {
-                fail("Expected " + v + " got " + v1 + " at " + i);
-            }
+            Assert.assertEquals("Difference at #" + i, v, v1, 0.0001f);
             i++;
         }
     }
@@ -46,18 +43,6 @@ public class MatrixTest {
                 0, 0, 0, 0,
                 0, 0, 0, 0,
                 0, 0, 0, 0
-        );
-    }
-
-    @Test
-    public void shouldTranslateResult() {
-        Matrix.translate(m, 1, 2, 3, m);
-        assertEquals(
-                m,
-                0, 0, 0, 0,
-                0, 0, 0, 0,
-                0, 0, 0, 0,
-                1, 2, 3, 0
         );
     }
 
@@ -194,4 +179,21 @@ public class MatrixTest {
         Assert.assertEquals(1.0, Matrix.determinant(m), 0.0001d);
     }
 
+    @Test
+    public void shouldInverse() {
+        m.clear()
+                .put(1).put(2).put(4).put(6)
+                .put(3).put(1).put(7).put(10)
+                .put(5).put(8).put(1).put(12)
+                .put(9).put(11).put(13).put(1)
+                .flip();
+        Matrix.inverse(m, m);
+        assertEquals(
+                m,
+                -1643f / 2369, 744f / 2369, 194f / 2369, 90f / 2369,
+                816f / 2369, -593f / 2369, 81f / 2369, 62f / 2369,
+                439f / 2369, -20f / 2369, -209f / 2369, 74f / 2369,
+                104f / 2369, 87f / 2369, 80f / 2369, -85f / 2369
+        );
+    }
 }

@@ -24,6 +24,38 @@ import java.nio.FloatBuffer;
 public final class Matrix {
 
     /**
+     * [column][row][indices]
+     */
+    private final int[][][] subMatrices = new int[][][]{
+            // column 0
+            new int[][]{
+                    // row 0
+                    new int[]{
+                            5, 6, 7, 9, 10, 11, 13, 14, 15
+                    },
+                    // row 1
+                    new int[]{
+                            4, 6, 7, 8, 10, 11, 12, 14, 15
+                    },
+                    // row 2
+                    new int[]{
+                            4, 5, 7, 8, 9, 11, 12, 13, 15
+                    },
+                    // row 3
+                    new int[]{
+                            4, 5, 6, 8, 9, 10, 12, 13, 14
+                    }
+            },
+            // column 1
+            new int[][]{
+                    // row 0
+                    new int[]{
+                            1, 2, 3, 9, 10, 11, 13, 14, 15
+                    }
+            }
+    };
+
+    /**
      * Initialized provided buffer with identity matrix.
      *
      * @param result the buffer to store resulting matrix in.
@@ -251,20 +283,20 @@ public final class Matrix {
     }
 
     /**
-     * Initializes {@code result} with rotation matrix from Euler's angles {@code ax, ay, rz}.
+     * Initializes {@code result} with rotation matrix from Euler's angles {@code ax, ay, az}.
      *
      * @param ax     the x-axis rotation angle (counter-clockwise)
      * @param ay     the y-axis rotation angle (counter-clockwise)
-     * @param rz     the z-asix rotation angle (counter-clockwise)
+     * @param az     the z-axis rotation angle (counter-clockwise)
      * @param result the buffer to store result
      */
-    public static void rotation(double ax, double ay, double rz, FloatBuffer result) {
+    public static void rotation(double ax, double ay, double az, FloatBuffer result) {
         final double a = Math.cos(ax);
         final double b = Math.sin(ax);
         final double c = Math.cos(ay);
         final double d = Math.sin(ay);
-        final double e = Math.cos(rz);
-        final double f = Math.sin(rz);
+        final double e = Math.cos(az);
+        final double f = Math.sin(az);
         result.clear()
                 .put((float) (c * e)).put((float) (b * d * e + a * f)).put((float) (-a * d * e + b * f)).put(0)
                 .put((float) (-c * f)).put((float) (-b * d * f + a * e)).put((float) (a * d * f + b * e)).put(0)
@@ -329,7 +361,109 @@ public final class Matrix {
         return a.get(0) * Asubd - a.get(4) * Bsubd + a.get(8) * Csubd - a.get(12) * Dsubd;
     }
 
+    /**
+     * Calculate inverse matrix.
+     * See {@link Matrix#determinant} for details.
+     * <pre>
+     *     0 4  8 12     A B C D
+     *     1 5  9 13     E F G H
+     * M   2 6 10 14     I J K L
+     *     3 7 11 15     M N O P
+     *
+     * Asub 5  9 13   Bsub 1  9 13   Csub 1 5 13   Dsub 1 5  9
+     *      6 10 14        2 10 14        2 6 14        2 6 10
+     *      7 11 15        3 11 15        3 7 15        3 7 11
+     *
+     * Esub 4  8 12   Fsub 0  8 12   Gsub 0 4 12   Hsub 0 4  8
+     *      6 10 14        2 10 14        2 6 14        2 6 10
+     *      7 11 15        3 11 15        3 7 15        3 7 11
+     *
+     * Isub 4  8 12   Jsub 0  8 12   Ksub 0 4 12   Lsub 0 4  8
+     *      5  9 13        1  9 13        1 5 13        1 5  9
+     *      7 11 15        3 11 15        3 7 15        3 7 11
+     *
+     * Msub 4  8 12   Nsub 0  8 12   Osub 0 4 12   Psub 0 4  8
+     *      5  9 13        1  9 13        1 5 13        1 5  9
+     *      6 10 14        2 10 14        2 6 14        2 6 10
+     * </pre>
+     *
+     * @param a      the original matrix
+     * @param result the inverse matrix
+     */
     public static void inverse(FloatBuffer a, FloatBuffer result) {
-        // todo
+        final double det = determinant(a);
+        if (det == 0) {
+            throw new IllegalArgumentException("Matrix can not be inverted!");
+        }
+        final double d6_11 = a.get(6) * a.get(11) - a.get(7) * a.get(10);
+        final double d6_15 = a.get(6) * a.get(15) - a.get(7) * a.get(14);
+        final double d10_15 = a.get(10) * a.get(15) - a.get(11) * a.get(14);
+        final double d2_11 = a.get(2) * a.get(11) - a.get(3) * a.get(10);
+        final double d2_15 = a.get(2) * a.get(15) - a.get(3) * a.get(14);
+        final double d2_7 = a.get(2) * a.get(7) - a.get(3) * a.get(6);
+        final double d9_14 = a.get(9) * a.get(14) - a.get(10) * a.get(13);
+        final double d9_15 = a.get(9) * a.get(15) - a.get(11) * a.get(13);
+        final double d5_14 = a.get(5) * a.get(14) - a.get(6) * a.get(13);
+        final double d5_15 = a.get(5) * a.get(15) - a.get(7) * a.get(13);
+        final double d1_14 = a.get(1) * a.get(14) - a.get(2) * a.get(13);
+        final double d1_15 = a.get(1) * a.get(15) - a.get(3) * a.get(13);
+        final double d5_10 = a.get(5) * a.get(10) - a.get(6) * a.get(9);
+        final double d5_11 = a.get(5) * a.get(11) - a.get(7) * a.get(9);
+        final double d1_11 = a.get(1) * a.get(11) - a.get(3) * a.get(9);
+        final double d1_6 = a.get(1) * a.get(6) - a.get(2) * a.get(5);
+        final double d1_7 = a.get(1) * a.get(7) - a.get(3) * a.get(5);
+        final double d1_10 = a.get(1) * a.get(10) - a.get(2) * a.get(9);
+
+        // row 0
+        final double A = a.get(5) * d10_15 - a.get(9) * d6_15 + a.get(13) * d6_11;
+        final double B = a.get(1) * d10_15 - a.get(9) * d2_15 + a.get(13) * d2_11;
+        final double C = a.get(1) * d6_15 - a.get(5) * d2_15 + a.get(13) * d2_7;
+        final double D = a.get(1) * d6_11 - a.get(5) * d2_11 + a.get(9) * d2_7;
+
+        // row 1
+        final double E = a.get(4) * d10_15 - a.get(8) * d6_15 + a.get(12) * d6_11;
+        final double F = a.get(0) * d10_15 - a.get(8) * d2_15 + a.get(12) * d2_11;
+        final double G = a.get(0) * d6_15 - a.get(4) * d2_15 + a.get(12) * d2_7;
+        final double H = a.get(0) * d6_11 - a.get(4) * d2_11 + a.get(8) * d2_7;
+
+        // row 2
+        final double I = a.get(4) * d9_15 - a.get(8) * d5_15 + a.get(12) * d5_11;
+        final double J = a.get(0) * d9_15 - a.get(8) * d1_15 + a.get(12) * d1_11;
+        final double K = a.get(0) * d5_15 - a.get(4) * d1_15 + a.get(12) * d1_7;
+        final double L = a.get(0) * d5_11 - a.get(4) * d1_11 + a.get(8) * d1_7;
+
+        // row 3
+        final double M = a.get(4) * d9_14 - a.get(8) * d5_14 + a.get(12) * d5_10;
+        final double N = a.get(0) * d9_14 - a.get(8) * d1_14 + a.get(12) * d1_10;
+        final double O = a.get(0) * d5_14 - a.get(4) * d1_14 + a.get(12) * d1_6;
+        final double P = a.get(0) * d5_10 - a.get(4) * d1_10 + a.get(8) * d1_6;
+
+        result.clear()
+                .put((float) A).put((float) -E).put((float) I).put((float) -M)
+                .put((float) -B).put((float) F).put((float) -J).put((float) N)
+                .put((float) C).put((float) -G).put((float) K).put((float) -O)
+                .put((float) -D).put((float) H).put((float) -L).put((float) P)
+                .flip();
+
+        transpose(result, result);
+
+        final double ood = 1.0 / det;
+        for (int i = 0; i < 16; i++) {
+            a.put(i, (float) (a.get(i) * ood));
+        }
+    }
+
+
+    /**
+     * Multiplies matrix matrix element at {@code index} by {@code scale}.
+     * Note: this method uses absolute buffer positioning.
+     *
+     * @param a     the matrix to use
+     * @param index the element index (0-15)
+     * @param scale the scale to multiply element by
+     */
+    @Deprecated
+    private static void scale(FloatBuffer a, int index, double scale) {
+        a.put(index, (float) (a.get(index) * scale));
     }
 }
