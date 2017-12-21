@@ -189,22 +189,26 @@ public final class Matrix {
                 .flip();
     }
 
-
     /**
-     * Multiplies this matrix by {@code vector} and stores result in supplied {@code vector}.
+     * Multiplies this matrix by {@code vector} and stores result in supplied 3-component {@code vector}.
+     * Note: Vector's buffer position is advanced.
      *
      * @param vector the vector to multiply by.
      */
-    public static void multiply(FloatBuffer a, float[] vector) {
-        final float x = vector[0];
-        final float y = vector[1];
-        final float z = vector[2];
-        final float w = vector[3];
+    public static void multiply(FloatBuffer a, FloatBuffer vector) {
+        final int pos = vector.position();
+        final float x = vector.get();
+        final float y = vector.get();
+        final float z = vector.get();
 
-        vector[0] = a.get(0) * x + a.get(4) * y + a.get(8) * z + a.get(12) * w;
-        vector[1] = a.get(1) * x + a.get(5) * y + a.get(9) * z + a.get(13) * w;
-        vector[2] = a.get(2) * x + a.get(6) * y + a.get(10) * z + a.get(14) * w;
-        vector[3] = a.get(3) * x + a.get(7) * y + a.get(11) * z + a.get(15) * w;
+        final float x1 = a.get(0) * x + a.get(4) * y + a.get(8) * z + a.get(12);
+        final float y1 = a.get(1) * x + a.get(5) * y + a.get(9) * z + a.get(13);
+        final float z1 = a.get(2) * x + a.get(6) * y + a.get(10) * z + a.get(14);
+        final float w1 = a.get(3) * x + a.get(7) * y + a.get(11) * z + a.get(15);
+
+        vector.put(pos, x1 / w1)
+                .put(pos + 1, y1 / w1)
+                .put(pos + 2, z1 / w1);
     }
 
     /**
@@ -391,10 +395,6 @@ public final class Matrix {
      * @param result the inverse matrix
      */
     public static void inverse(FloatBuffer a, FloatBuffer result) {
-        final double det = determinant(a);
-        if (det == 0) {
-            throw new IllegalArgumentException("Matrix can not be inverted!");
-        }
         final double d6_11 = a.get(6) * a.get(11) - a.get(7) * a.get(10);
         final double d6_15 = a.get(6) * a.get(15) - a.get(7) * a.get(14);
         final double d10_15 = a.get(10) * a.get(15) - a.get(11) * a.get(14);
@@ -438,6 +438,11 @@ public final class Matrix {
         final double O = a.get(0) * d5_14 - a.get(4) * d1_14 + a.get(12) * d1_6;
         final double P = a.get(0) * d5_10 - a.get(4) * d1_10 + a.get(8) * d1_6;
 
+        final double det = a.get(0) * A - a.get(4) * B + a.get(8) * C - a.get(12) * D;
+        if (det == 0) {
+            throw new IllegalArgumentException("Matrix can not be inverted!");
+        }
+
         result.clear()
                 .put((float) A).put((float) -E).put((float) I).put((float) -M)
                 .put((float) -B).put((float) F).put((float) -J).put((float) N)
@@ -451,19 +456,5 @@ public final class Matrix {
         for (int i = 0; i < 16; i++) {
             a.put(i, (float) (a.get(i) * ood));
         }
-    }
-
-
-    /**
-     * Multiplies matrix matrix element at {@code index} by {@code scale}.
-     * Note: this method uses absolute buffer positioning.
-     *
-     * @param a     the matrix to use
-     * @param index the element index (0-15)
-     * @param scale the scale to multiply element by
-     */
-    @Deprecated
-    private static void scale(FloatBuffer a, int index, double scale) {
-        a.put(index, (float) (a.get(index) * scale));
     }
 }

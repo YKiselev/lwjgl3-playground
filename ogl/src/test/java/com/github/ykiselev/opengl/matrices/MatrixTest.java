@@ -5,8 +5,6 @@ import org.junit.Test;
 
 import java.nio.FloatBuffer;
 
-import static org.junit.Assert.assertArrayEquals;
-
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
@@ -128,38 +126,32 @@ public class MatrixTest {
 
     @Test
     public void shouldRotateAroundX() {
-        final float[] vector = new float[]{0, 1, 0, 1};
+        final FloatBuffer vector = FloatBuffer.wrap(new float[]{0, 1, 0});
         Matrix.rotation(Math.toRadians(90), 0, 0, m);
         Matrix.multiply(m, vector);
-        assertArrayEquals(
-                new float[]{0, 0, 1, 1},
-                vector,
-                0.001f
-        );
+        Assert.assertEquals(0, vector.get(0), 0.001f);
+        Assert.assertEquals(0, vector.get(1), 0.001f);
+        Assert.assertEquals(1, vector.get(2), 0.001f);
     }
 
     @Test
     public void shouldRotateAroundY() {
-        final float[] vector = new float[]{1, 0, 0, 1};
+        final FloatBuffer vector = FloatBuffer.wrap(new float[]{1, 0, 0});
         Matrix.rotation(0, Math.toRadians(90), 0, m);
         Matrix.multiply(m, vector);
-        assertArrayEquals(
-                new float[]{0, 0, -1, 1},
-                vector,
-                0.001f
-        );
+        Assert.assertEquals(0, vector.get(0), 0.001f);
+        Assert.assertEquals(0, vector.get(1), 0.001f);
+        Assert.assertEquals(-1, vector.get(2), 0.001f);
     }
 
     @Test
     public void shouldRotateAroundZ() {
-        final float[] vector = new float[]{1, 0, 0, 1};
+        final FloatBuffer vector = FloatBuffer.wrap(new float[]{1, 0, 0});
         Matrix.rotation(0, 0, Math.toRadians(90), m);
         Matrix.multiply(m, vector);
-        assertArrayEquals(
-                new float[]{0, 1, 0, 1},
-                vector,
-                0.001f
-        );
+        Assert.assertEquals(0, vector.get(0), 0.001f);
+        Assert.assertEquals(1, vector.get(1), 0.001f);
+        Assert.assertEquals(0, vector.get(2), 0.001f);
     }
 
     @Test
