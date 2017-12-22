@@ -7,6 +7,36 @@ import java.nio.FloatBuffer;
  */
 public final class Vector {
 
+    private enum Ops {
+
+        ADDITION {
+            @Override
+            float apply(float a, float b) {
+                return a + b;
+            }
+        },
+        SUBTRACTION {
+            @Override
+            float apply(float a, float b) {
+                return a - b;
+            }
+        },
+        MULTIPLICATION {
+            @Override
+            float apply(float a, float b) {
+                return a * b;
+            }
+        },
+        DIVISION {
+            @Override
+            float apply(float a, float b) {
+                return a / b;
+            }
+        };
+
+        abstract float apply(float a, float b);
+    }
+
     /**
      * Normalizes vector.
      * This method advances output vector position but left unchanged input vector position (if input and output vectors are not the same).
@@ -85,5 +115,109 @@ public final class Vector {
         result.put(x)
                 .put(y)
                 .put(z);
+    }
+
+    /**
+     * Scales the vector.
+     * Doesn't change positions of vectors a and b (if they are not equal to result vector).
+     *
+     * @param a      the first vector
+     * @param result the resulting vector
+     */
+    public static void scale(FloatBuffer a, float scale, FloatBuffer result) {
+        final int ap = a.position();
+        final float x = scale * a.get(ap);
+        final float y = scale * a.get(ap + 1);
+        final float z = scale * a.get(ap + 2);
+        result.put(x)
+                .put(y)
+                .put(z);
+    }
+
+    /**
+     * Applies specified operation to supplied vectors.
+     * Doesn't change positions of vectors a and b (if they are not equal to result vector).
+     *
+     * @param a      the first vector
+     * @param b      the second vector
+     * @param result the resulting vector
+     */
+    private static void apply(FloatBuffer a, FloatBuffer b, Ops op, FloatBuffer result) {
+        final int ap = a.position();
+        final int bp = b.position();
+        final float x = op.apply(a.get(ap), b.get(bp));
+        final float y = op.apply(a.get(ap + 1), b.get(bp + 1));
+        final float z = op.apply(a.get(ap + 2), b.get(bp + 2));
+        result.put(x)
+                .put(y)
+                .put(z);
+    }
+
+    /**
+     * Adds one vector to another.
+     * Doesn't change positions of vectors a and b (if they are not equal to result vector).
+     *
+     * @param a      the first vector
+     * @param b      the second vector
+     * @param result the resulting vector
+     */
+    public static void add(FloatBuffer a, FloatBuffer b, FloatBuffer result) {
+        apply(a, b, Ops.ADDITION, result);
+    }
+
+    /**
+     * Subtracts one vector from another.
+     * Doesn't change positions of vectors a and b (if they are not equal to result vector).
+     *
+     * @param a      the first vector
+     * @param b      the second vector
+     * @param result the resulting vector
+     */
+    public static void subtract(FloatBuffer a, FloatBuffer b, FloatBuffer result) {
+        apply(a, b, Ops.SUBTRACTION, result);
+    }
+
+    /**
+     * Multiplies one vector by another.
+     * Doesn't change positions of vectors a and b (if they are not equal to result vector).
+     *
+     * @param a      the first vector
+     * @param b      the second vector
+     * @param result the resulting vector
+     */
+    public static void multiply(FloatBuffer a, FloatBuffer b, FloatBuffer result) {
+        apply(a, b, Ops.MULTIPLICATION, result);
+    }
+
+    /**
+     * Divides one vector by another.
+     * Doesn't change positions of vectors a and b (if they are not equal to result vector).
+     *
+     * @param a      the first vector
+     * @param b      the second vector
+     * @param result the resulting vector
+     */
+    public static void divide(FloatBuffer a, FloatBuffer b, FloatBuffer result) {
+        apply(a, b, Ops.DIVISION, result);
+    }
+
+    /**
+     * Checks if two vectors are equal (absolute difference in each components is less than delta).
+     *
+     * @param a     the first vector
+     * @param b     the second vector
+     * @param delta the maximum difference between two numbers for which they are still considered equal.
+     * @return the true if vectors are equal or false otherwise.
+     */
+    public static boolean equals(FloatBuffer a, FloatBuffer b, float delta) {
+        final int ap = a.position();
+        final int bp = b.position();
+        return equals(a.get(ap), b.get(bp), delta)
+                && equals(a.get(ap + 1), b.get(bp + 1), delta)
+                && equals(a.get(ap + 2), b.get(bp + 2), delta);
+    }
+
+    private static boolean equals(float a, float b, float delta) {
+        return Math.abs(a - b) <= delta + delta * Math.abs(b);
     }
 }
