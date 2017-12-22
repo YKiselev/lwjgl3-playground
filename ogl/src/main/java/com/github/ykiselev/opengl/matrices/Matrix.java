@@ -24,38 +24,6 @@ import java.nio.FloatBuffer;
 public final class Matrix {
 
     /**
-     * [column][row][indices]
-     */
-    private final int[][][] subMatrices = new int[][][]{
-            // column 0
-            new int[][]{
-                    // row 0
-                    new int[]{
-                            5, 6, 7, 9, 10, 11, 13, 14, 15
-                    },
-                    // row 1
-                    new int[]{
-                            4, 6, 7, 8, 10, 11, 12, 14, 15
-                    },
-                    // row 2
-                    new int[]{
-                            4, 5, 7, 8, 9, 11, 12, 13, 15
-                    },
-                    // row 3
-                    new int[]{
-                            4, 5, 6, 8, 9, 10, 12, 13, 14
-                    }
-            },
-            // column 1
-            new int[][]{
-                    // row 0
-                    new int[]{
-                            1, 2, 3, 9, 10, 11, 13, 14, 15
-                    }
-            }
-    };
-
-    /**
      * Initialized provided buffer with identity matrix.
      *
      * @param result the buffer to store resulting matrix in.
@@ -70,6 +38,20 @@ public final class Matrix {
     }
 
     /**
+     * Copies matrix {@code a} to {@code result}.
+     *
+     * @param a      the original matrix
+     * @param result the buffer to store copy
+     */
+    public static void copy(FloatBuffer a, FloatBuffer result) {
+        if (result != a) {
+            result.clear()
+                    .put(a)
+                    .flip();
+        }
+    }
+
+    /**
      * Calculates orthographic projection matrix.
      *
      * @param left   the left screen coordinate (usually 0)
@@ -81,11 +63,31 @@ public final class Matrix {
      * @param m      the buffer to store rersulting matrix in.
      */
     public static void orthographic(float left, float right, float top, float bottom, float near, float far, FloatBuffer m) {
+        m.clear()
+                .put(2 / (right - left)).put(0).put(0).put(0)
+                .put(0).put(2 / (top - bottom)).put(0).put(0)
+                .put(0).put(0).put(-2 / (far - near)).put(0)
+                .put(-(right + left) / (right - left)).put(-(top + bottom) / (top - bottom)).put(-(far + near) / (far - near)).put(1)
+                .flip();
+    }
+
+    /**
+     * Calculates perspective projection matrix.
+     *
+     * @param left   the left screen coordinate (usually 0)
+     * @param right  the right screen coordinate (usually width)
+     * @param top    the top screen coordinate (usually height)
+     * @param bottom the bottom screen coordinate (usually 0)
+     * @param near   the near z value (for example -1)
+     * @param far    the far z coordinate (for example 1)
+     * @param m      the buffer to store rersulting matrix in.
+     */
+    public static void perspective(float left, float right, float top, float bottom, float near, float far, FloatBuffer m) {
         m.clear();
-        m.put(2 / (right - left)).put(0).put(0).put(0);
-        m.put(0).put(2 / (top - bottom)).put(0).put(0);
-        m.put(0).put(0).put(-2 / (far - near)).put(0);
-        m.put(-(right + left) / (right - left)).put(-(top + bottom) / (top - bottom)).put(-(far + near) / (far - near)).put(1);
+        m.put(2 * near / (right - left)).put(0).put(0).put(0);
+        m.put(0).put(2 * near / (top - bottom)).put(0).put(0);
+        m.put((right + left) / (right - left)).put((top + bottom) / (top - bottom)).put(-(far + near) / (far - near)).put(-1);
+        m.put(0).put(0).put(-2 * far * near / (far - near)).put(0);
         m.flip();
     }
 
@@ -205,10 +207,11 @@ public final class Matrix {
         final float y1 = a.get(1) * x + a.get(5) * y + a.get(9) * z + a.get(13);
         final float z1 = a.get(2) * x + a.get(6) * y + a.get(10) * z + a.get(14);
         final float w1 = a.get(3) * x + a.get(7) * y + a.get(11) * z + a.get(15);
+        //final float oow = 1 / w1;
 
-        vector.put(pos, x1 / w1)
-                .put(pos + 1, y1 / w1)
-                .put(pos + 2, z1 / w1);
+        vector.put(pos, x1)
+                .put(pos + 1, y1)
+                .put(pos + 2, z1);
     }
 
     /**
@@ -221,11 +224,7 @@ public final class Matrix {
      * @param result the buffer to store result.
      */
     public static void translate(FloatBuffer a, float dx, float dy, float dz, FloatBuffer result) {
-        if (a != result) {
-            result.clear()
-                    .put(a)
-                    .flip();
-        }
+        copy(a, result);
         result.put(12, a.get(12) + dx)
                 .put(13, a.get(13) + dy)
                 .put(14, a.get(14) + dz);

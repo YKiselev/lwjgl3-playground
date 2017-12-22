@@ -75,6 +75,21 @@ public final class Vector {
     }
 
     /**
+     * Converts vector to string representation. May be used for debugging.
+     * This method doesn't change vector's position.
+     *
+     * @param vector the vector
+     * @return string representation of vector
+     */
+    public static String toString(FloatBuffer vector) {
+        final int pos = vector.position();
+        return "{x=" + vector.get(pos) +
+                ", y=" + vector.get(pos + 1) +
+                ", z=" + vector.get(pos + 2) +
+                "}";
+    }
+
+    /**
      * Calculates vector length.
      * This method doesn't change vector's position.
      *

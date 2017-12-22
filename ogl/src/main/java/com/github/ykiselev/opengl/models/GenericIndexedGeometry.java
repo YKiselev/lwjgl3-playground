@@ -7,6 +7,7 @@ import com.github.ykiselev.opengl.shaders.uniforms.UniformVariable;
 import com.github.ykiselev.opengl.vbo.IndexBufferObject;
 import com.github.ykiselev.opengl.vbo.VertexArrayObject;
 import com.github.ykiselev.opengl.vbo.VertexBufferObject;
+import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 
 import java.nio.FloatBuffer;
@@ -93,6 +94,20 @@ public final class GenericIndexedGeometry implements AutoCloseable {
     public void draw() {
         vao.bind();
         program.bind();
+
+        try (MemoryStack ms = MemoryStack.stackPush()) {
+            final FloatBuffer tm = ms.mallocFloat(16);
+            Matrix.identity(tm);
+            Matrix.translate(tm, 0, -2, -9, tm);
+
+            final FloatBuffer pm = ms.mallocFloat(16);
+            Matrix.perspective(-1, 1, 1, -1, 0.5f, 10, pm);
+
+            Matrix.multiply(tm, pm, matrix);
+        }
+        //Matrix.identity(matrix);
+        //Matrix.perspective(-1, 1, 1, -1, 0.5f, 10, matrix);
+        //Matrix.translate(matrix, 0, 0, 0, matrix);
 
         texUniform.value(0);
         mvpUniform.matrix4(false, matrix);

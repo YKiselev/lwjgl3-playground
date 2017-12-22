@@ -5,6 +5,8 @@ import org.junit.Test;
 
 import java.nio.FloatBuffer;
 
+import static org.junit.Assert.assertEquals;
+
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
@@ -12,7 +14,7 @@ public class MatrixTest {
 
     private final FloatBuffer m = FloatBuffer.allocate(16);
 
-    private void assertEquals(FloatBuffer actual, float... expected) {
+    private void assertMatrixEquals(FloatBuffer actual, float... expected) {
         int i = 0;
         for (float v : expected) {
             final float v1 = actual.get(i);
@@ -24,7 +26,7 @@ public class MatrixTest {
     @Test
     public void shouldBeIdentity() {
         Matrix.identity(m);
-        assertEquals(
+        assertMatrixEquals(
                 m,
                 1, 0, 0, 0,
                 0, 1, 0, 0,
@@ -35,7 +37,7 @@ public class MatrixTest {
 
     @Test
     public void shouldBeZero() {
-        assertEquals(
+        assertMatrixEquals(
                 m,
                 0, 0, 0, 0,
                 0, 0, 0, 0,
@@ -47,7 +49,7 @@ public class MatrixTest {
     @Test
     public void shouldTranslate() {
         Matrix.translate(m, 1, 2, 3, m);
-        assertEquals(
+        assertMatrixEquals(
                 m,
                 0, 0, 0, 0,
                 0, 0, 0, 0,
@@ -60,7 +62,7 @@ public class MatrixTest {
     public void shouldScale() {
         Matrix.identity(m);
         Matrix.scale(m, 2, 4, 8, m);
-        assertEquals(
+        assertMatrixEquals(
                 m,
                 2, 0, 0, 0,
                 0, 4, 0, 0,
@@ -78,12 +80,31 @@ public class MatrixTest {
                 .put(13).put(14).put(15).put(16)
                 .flip();
         Matrix.transpose(m, m);
-        assertEquals(
+        assertMatrixEquals(
                 m,
                 1, 5, 9, 13,
                 2, 6, 10, 14,
                 3, 7, 11, 15,
                 4, 8, 12, 16
+        );
+    }
+
+    @Test
+    public void shouldCopy() {
+        m.clear()
+                .put(1).put(2).put(3).put(4)
+                .put(5).put(6).put(7).put(8)
+                .put(9).put(10).put(11).put(12)
+                .put(13).put(14).put(15).put(16)
+                .flip();
+        final FloatBuffer b = FloatBuffer.allocate(16);
+        Matrix.copy(m, b);
+        assertMatrixEquals(
+                b,
+                1, 2, 3, 4,
+                5, 6, 7, 8,
+                9, 10, 11, 12,
+                13, 14, 15, 16
         );
     }
 
@@ -97,7 +118,7 @@ public class MatrixTest {
         a.flip();
         b.flip();
         Matrix.add(a, b, m);
-        assertEquals(
+        assertMatrixEquals(
                 m,
                 17, 17, 17, 17,
                 17, 17, 17, 17,
@@ -115,7 +136,7 @@ public class MatrixTest {
                 .put(13).put(14).put(15).put(16)
                 .flip();
         Matrix.multiply(m, 2, m);
-        assertEquals(
+        assertMatrixEquals(
                 m,
                 2, 4, 6, 8,
                 10, 12, 14, 16,
@@ -180,7 +201,7 @@ public class MatrixTest {
                 .put(9).put(11).put(13).put(1)
                 .flip();
         Matrix.inverse(m, m);
-        assertEquals(
+        assertMatrixEquals(
                 m,
                 -1643f / 2369, 744f / 2369, 194f / 2369, 90f / 2369,
                 816f / 2369, -593f / 2369, 81f / 2369, 62f / 2369,
@@ -188,4 +209,45 @@ public class MatrixTest {
                 104f / 2369, 87f / 2369, 80f / 2369, -85f / 2369
         );
     }
+
+    private void assertVectorEquals(float x, float y, float z, FloatBuffer v) {
+        assertEquals(x, v.get(0), 0.001f);
+        assertEquals(y, v.get(1), 0.001f);
+        assertEquals(z, v.get(2), 0.001f);
+    }
+
+    @Test
+    public void shouldBeOrthographic() {
+        Matrix.orthographic(0, 100, 200, 0, -1, 1, m);
+        final FloatBuffer v = FloatBuffer.wrap(new float[]{0, 0, 0});
+        Matrix.multiply(m, v);
+        assertVectorEquals(-1, -1, 0, v);
+
+        v.clear().put(50).put(100).put(0).flip();
+        Matrix.multiply(m, v);
+        assertVectorEquals(0, 0, 0, v);
+
+        v.clear().put(100).put(200).put(0).flip();
+        Matrix.multiply(m, v);
+        assertVectorEquals(1, 1, 0, v);
+    }
+
+    @Test
+    public void shouldBePerspective() {
+        Matrix.perspective(-1, 1, 1, -1, 0.5f, 10, m);
+        final FloatBuffer v = FloatBuffer.wrap(new float[]{0, 0, -5});
+        Matrix.multiply(m, v);
+        assertVectorEquals(0, 0, 4.4736f, v);
+
+        v.clear().put(5).put(5).put(-5).flip();
+        Matrix.multiply(m, v);
+        assertVectorEquals(2.5f, 2.5f, 4.4736f, v);
+
+        v.clear().put(-5).put(-5).put(-5).flip();
+        Matrix.multiply(m, v);
+        v.flip();
+        System.out.println(Vector.toString(v));
+        assertVectorEquals(-2.5f, -2.5f, 4.4736f, v);
+    }
+
 }
