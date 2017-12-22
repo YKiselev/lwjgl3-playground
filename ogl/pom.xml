@@ -29,6 +29,11 @@
 
     <dependencies>
         <dependency>
+            <groupId>com.github.ykiselev</groupId>
+            <artifactId>common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.lwjgl</groupId>
             <artifactId>lwjgl-opengl</artifactId>
         </dependency>

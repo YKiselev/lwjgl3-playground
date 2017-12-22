@@ -8,7 +8,6 @@ import com.github.ykiselev.opengl.vbo.IndexBufferObject;
 import com.github.ykiselev.opengl.vbo.VertexArrayObject;
 import com.github.ykiselev.opengl.vbo.VertexBufferObject;
 import org.lwjgl.system.MemoryStack;
-import org.lwjgl.system.MemoryUtil;
 
 import java.nio.FloatBuffer;
 
@@ -38,8 +37,6 @@ public final class GenericIndexedGeometry implements AutoCloseable {
 
     private final UniformVariable mvpUniform;
 
-    private final FloatBuffer matrix;
-
     private final int mode;
 
     private final int count;
@@ -47,7 +44,7 @@ public final class GenericIndexedGeometry implements AutoCloseable {
     public GenericIndexedGeometry(ProgramObject program, IndexedGeometrySource geometrySource) {
         this.program = requireNonNull(program);
         this.mode = geometrySource.mode();
-        this.count = geometrySource.indices().remaining();
+        this.count = geometrySource.indices().remaining() / Integer.BYTES;
 
         program.bind();
         mvpUniform = program.lookup("mvp");
@@ -78,9 +75,6 @@ public final class GenericIndexedGeometry implements AutoCloseable {
         vbo.unbind();
         ebo.unbind();
         program.unbind();
-
-        matrix = MemoryUtil.memAllocFloat(16);
-        Matrix.orthographic(0, 500, 500, 0, -10, 10, matrix);
     }
 
     @Override
@@ -88,29 +82,30 @@ public final class GenericIndexedGeometry implements AutoCloseable {
         vbo.close();
         ebo.close();
         vao.close();
-        MemoryUtil.memFree(matrix);
     }
 
-    public void draw() {
+    public void draw(FloatBuffer projection) {
         vao.bind();
         program.bind();
 
         try (MemoryStack ms = MemoryStack.stackPush()) {
             final FloatBuffer tm = ms.mallocFloat(16);
             Matrix.identity(tm);
-            Matrix.translate(tm, 0, -2, -9, tm);
+            Matrix.translate(tm, 0, 0, -1, tm);
 
-            final FloatBuffer pm = ms.mallocFloat(16);
-            Matrix.perspective(-1, 1, 1, -1, 0.5f, 10, pm);
+            final long sec = System.currentTimeMillis() / 100;
+            final FloatBuffer rm = ms.mallocFloat(16);
+            Matrix.rotation(0, 0, Math.toRadians(sec % 360), rm);
 
-            Matrix.multiply(tm, pm, matrix);
+            Matrix.multiply(tm, rm, tm);
+
+            final FloatBuffer mvp = ms.mallocFloat(16);
+            Matrix.multiply(tm, projection, mvp);
+
+            mvpUniform.matrix4(false, mvp);
         }
-        //Matrix.identity(matrix);
-        //Matrix.perspective(-1, 1, 1, -1, 0.5f, 10, matrix);
-        //Matrix.translate(matrix, 0, 0, 0, matrix);
 
         texUniform.value(0);
-        mvpUniform.matrix4(false, matrix);
 
         vbo.bind();
         glDrawElements(mode, count, GL_UNSIGNED_INT, 0);

@@ -2,12 +2,17 @@ package cob.github.ykiselev.lwjgl3.playground;
 
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.assets.formats.obj.ObjModel;
+import com.github.ykiselev.opengl.matrices.Matrix;
 import com.github.ykiselev.opengl.models.GenericIndexedGeometry;
+import com.github.ykiselev.opengl.models.Pyramid;
 import com.github.ykiselev.opengl.shaders.ProgramObject;
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
 import com.github.ykiselev.opengl.text.SpriteFont;
 import com.github.ykiselev.opengl.textures.Texture2d;
 import org.lwjgl.opengl.GL13;
+import org.lwjgl.system.MemoryUtil;
+
+import java.nio.FloatBuffer;
 
 import static org.lwjgl.glfw.GLFW.glfwGetTime;
 import static org.lwjgl.opengl.GL11.GL_BACK;
@@ -19,6 +24,7 @@ import static org.lwjgl.opengl.GL11.glClear;
 import static org.lwjgl.opengl.GL11.glClearColor;
 import static org.lwjgl.opengl.GL11.glClearDepth;
 import static org.lwjgl.opengl.GL11.glCullFace;
+import static org.lwjgl.opengl.GL11.glDisable;
 import static org.lwjgl.opengl.GL11.glEnable;
 import static org.lwjgl.opengl.GL11.glFrontFace;
 
@@ -32,6 +38,8 @@ public final class Game implements WindowCallbacks, AutoCloseable {
     private final Texture2d cuddles;
 
     private final SpriteFont liberationMono;
+
+    private final FloatBuffer matrix;
 
     // frame buffer width
     private int width;
@@ -60,7 +68,11 @@ public final class Game implements WindowCallbacks, AutoCloseable {
 
         final ObjModel model = assets.load("models/2cubes.obj", ObjModel.class);
         final ProgramObject program = assets.load("progs/generic.conf", ProgramObject.class);
-        cubes = new GenericIndexedGeometry(program, model.toIndexedTriangles());
+        try (Pyramid p = new Pyramid()) {
+            cubes = new GenericIndexedGeometry(program, p);
+        }
+        //cubes = new GenericIndexedGeometry(program, model.toIndexedTriangles());
+        matrix = MemoryUtil.memAllocFloat(16);
     }
 
     @Override
@@ -89,58 +101,63 @@ public final class Game implements WindowCallbacks, AutoCloseable {
     public void close() {
         spriteBatch.close();
         cubes.close();
+        MemoryUtil.memFree(matrix);
     }
 
     public void update() {
+        Matrix.perspective(-0.5f, 0.5f, 0.5f, -0.5f, 0.5f, 10, matrix);
+
         glFrontFace(GL_CCW);
         glCullFace(GL_BACK);
-        glEnable(GL_CULL_FACE);
+        glDisable(GL_CULL_FACE);
         glEnable(GL13.GL_MULTISAMPLE);
 
         glClearDepth(1.0f);
         glClearColor(0, 0, 0.5f, 1);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        cubes.draw();
+        cubes.draw(matrix);
 
-        if (x > width) {
-            x = width;
-            k *= -1.0;
-        } else if (x < 0) {
-            x = 0;
-            k *= -1.0;
-        }
-        if (scale < 0.1) {
-            scale = 1.0;
-        }
-        final double t = glfwGetTime();
-        final double fps = (double) frames / t;
-        final double delta = t - t0;
-        t0 = t;
-        spriteBatch.begin(0, 0, width, height, true);
-        x += k * delta;
-        scale *= (1 - 0.25 * delta);
-        spriteBatch.draw(cuddles, (int) x, 4, (int) (400 * scale), (int) (400 * scale), 0xffffffff);
+        if (false) {
+            if (x > width) {
+                x = width;
+                k *= -1.0;
+            } else if (x < 0) {
+                x = 0;
+                k *= -1.0;
+            }
+            if (scale < 0.1) {
+                scale = 1.0;
+            }
+            final double t = glfwGetTime();
+            final double fps = (double) frames / t;
+            final double delta = t - t0;
+            t0 = t;
+            spriteBatch.begin(0, 0, width, height, true);
+            x += k * delta;
+            scale *= (1 - 0.25 * delta);
+            spriteBatch.draw(cuddles, (int) x, 4, (int) (400 * scale), (int) (400 * scale), 0xffffffff);
 
-        //spriteBatch.draw(liberationMono.texture(), 0, 0, 256, 128, 0xffffffff);
+            //spriteBatch.draw(liberationMono.texture(), 0, 0, 256, 128, 0xffffffff);
 //        spriteBatch.draw(liberationMono.texture(), 0, -200, 400, 400, 0xffffffff);
 //        spriteBatch.draw(liberationMono.texture(), -100, -50, 400, 400, 0xffffffff);
 //        spriteBatch.draw(liberationMono.texture(), -100, 50, 400, 400, 0xffffffff);
 //        spriteBatch.draw(liberationMono.texture(), 100, -350, 400, 400, 0xffffffff);
-        //spriteBatch.draw(liberationMono, 250, 200, "ABCD EFGH IJKL", 200, 0xff00ffff);
-        //spriteBatch.draw(liberationMono, 250, 230, "Ерунда какая-то получается, правда? 01234567890-=+./ёЁ", 400, 0xff00ffff);
-        //spriteBatch.draw(liberationMono, 10, 400, "Hello, world!\nПривет!", 200, 0xffffffff);
+            //spriteBatch.draw(liberationMono, 250, 200, "ABCD EFGH IJKL", 200, 0xff00ffff);
+            //spriteBatch.draw(liberationMono, 250, 230, "Ерунда какая-то получается, правда? 01234567890-=+./ёЁ", 400, 0xff00ffff);
+            //spriteBatch.draw(liberationMono, 10, 400, "Hello, world!\nПривет!", 200, 0xffffffff);
 
-        spriteBatch.draw(
-                liberationMono,
-                0,
-                height - liberationMono.fontHeight(),
-                String.format("avg. fps: %.2f", fps),
-                width,
-                0xffffffff
-        );
+            spriteBatch.draw(
+                    liberationMono,
+                    0,
+                    height - liberationMono.fontHeight(),
+                    String.format("avg. fps: %.2f", fps),
+                    width,
+                    0xffffffff
+            );
+            spriteBatch.end();
+        }
 
-        spriteBatch.end();
         frames++;
     }
 }
