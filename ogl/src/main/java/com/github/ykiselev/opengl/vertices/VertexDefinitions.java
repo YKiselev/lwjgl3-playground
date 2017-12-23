@@ -18,6 +18,14 @@ public enum VertexDefinitions implements VertexDefinition {
 
         }
     },
+    POSITION2_TEXTURE2 {
+        @Override
+        public void apply(VertexBufferObject target) {
+            final int stride = (2 + 2) * Float.BYTES;
+            target.attribute(0, 2, GL_FLOAT, false, stride, 0);
+            target.attribute(1, 2, GL_FLOAT, false, stride, (Float.BYTES * 2));
+        }
+    },
     POSITION_TEXTURE_NORMAL {
         @Override
         public void apply(VertexBufferObject target) {

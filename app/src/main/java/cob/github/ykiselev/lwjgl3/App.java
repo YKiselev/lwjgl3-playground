@@ -21,6 +21,8 @@ import cob.github.ykiselev.lwjgl3.playground.Game;
 import cob.github.ykiselev.lwjgl3.window.AppWindow;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.opengl.GL;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static org.lwjgl.glfw.GLFW.glfwInit;
 import static org.lwjgl.glfw.GLFW.glfwSetErrorCallback;
@@ -30,6 +32,8 @@ import static org.lwjgl.glfw.GLFW.glfwTerminate;
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
 public final class App {
+
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final GLFWErrorCallback errorCallback = GLFWErrorCallback.createPrint(System.err);
 
@@ -47,7 +51,7 @@ public final class App {
         glfwInit();
         try {
             glfwSetErrorCallback(errorCallback);
-            try (AppWindow window = new AppWindow(false)) {
+            try (AppWindow window = new AppWindow(args.fullScreen())) {
                 GL.createCapabilities();
                 try (Game game = newGame()) {
                     window.wire(game);
@@ -59,6 +63,8 @@ public final class App {
                     }
                 }
             }
+        } catch (ExitAppException e) {
+            logger.info("Application shutdown requested. Buy!");
         } finally {
             glfwTerminate();
             glfwSetErrorCallback(null);

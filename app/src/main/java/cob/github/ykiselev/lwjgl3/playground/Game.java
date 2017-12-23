@@ -1,5 +1,6 @@
 package cob.github.ykiselev.lwjgl3.playground;
 
+import cob.github.ykiselev.lwjgl3.ExitAppException;
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.assets.formats.obj.ObjModel;
 import com.github.ykiselev.opengl.matrices.Matrix;
@@ -17,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.FloatBuffer;
 
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
 import static org.lwjgl.glfw.GLFW.glfwGetTime;
 import static org.lwjgl.opengl.GL11.GL_BACK;
 import static org.lwjgl.opengl.GL11.GL_CCW;
@@ -34,7 +36,7 @@ import static org.lwjgl.opengl.GL11.glViewport;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class Game implements WindowCallbacks, AutoCloseable {
+public final class Game implements WindowEvents, AutoCloseable {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -71,7 +73,7 @@ public final class Game implements WindowCallbacks, AutoCloseable {
         cuddles = assets.load("images/htf-cuddles.jpg", Texture2d.class);
         liberationMono = assets.load("fonts/Liberation Mono.sf", SpriteFont.class);
 
-        final ObjModel model = assets.load("models/2cubes.obj", ObjModel.class);
+        //final ObjModel model = assets.load("models/2cubes.obj", ObjModel.class);
         final ProgramObject program = assets.load("progs/colored.conf", ProgramObject.class);
         try (Pyramid p = new Pyramid()) {
             cubes = new GenericIndexedGeometry(program, VertexDefinitions.POSITION_COLOR, p);
@@ -81,25 +83,32 @@ public final class Game implements WindowCallbacks, AutoCloseable {
     }
 
     @Override
-    public void keyEvent(int key, int scanCode, int action, int mods) {
+    public boolean keyEvent(int key, int scanCode, int action, int mods) {
         //todo
+        if (key == GLFW_KEY_ESCAPE){
+            throw new ExitAppException();
+        }
+        return true;
     }
 
     @Override
-    public void cursorEvent(double x, double y) {
+    public boolean cursorEvent(double x, double y) {
         //todo
+        return true;
     }
 
     @Override
-    public void mouseButtonEvent(int button, int action, int mods) {
+    public boolean mouseButtonEvent(int button, int action, int mods) {
         //todo
+        return true;
     }
 
     @Override
-    public void frameBufferEvent(int width, int height) {
+    public boolean frameBufferEvent(int width, int height) {
         this.width = width;
         this.height = height;
         logger.info("Frame buffer resized to {}x{}", width, height);
+        return true;
     }
 
     @Override
@@ -111,7 +120,10 @@ public final class Game implements WindowCallbacks, AutoCloseable {
 
     public void update() {
         glViewport(0, 0, width, height);
-        Matrix.perspective(-0.5f, 0.5f, 0.5f, -0.5f, 0.5f, 10, matrix);
+        final float ratio = (float) height / width;
+        final float w = 0.5f;
+        final float h = 0.5f * ratio;
+        Matrix.perspective(-w, w, h, -h, 0.5f, 10, matrix);
 
         glFrontFace(GL_CCW);
         glCullFace(GL_BACK);
@@ -124,7 +136,7 @@ public final class Game implements WindowCallbacks, AutoCloseable {
 
         cubes.draw(matrix);
 
-        if (false) {
+        if (true) {
             if (x > width) {
                 x = width;
                 k *= -1.0;

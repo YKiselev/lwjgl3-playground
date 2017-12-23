@@ -56,16 +56,6 @@ public final class GenericIndexedGeometry implements AutoCloseable {
         vbo = new VertexBufferObject();
         vbo.bind();
         vertexDefinition.apply(vbo);
-//        final int stride = (3 + 2 + 3) * Float.BYTES;
-//        vbo.attribute(
-//                program.attributeLocation("in_Position"), 3, GL_FLOAT, false, stride, 0
-//        );
-//        vbo.attribute(
-//                program.attributeLocation("in_TexCoord"), 2, GL_FLOAT, false, stride, (Float.BYTES * 3)
-//        );
-//        vbo.attribute(
-//                program.attributeLocation("in_Normal"), 3, GL_FLOAT, false, stride, (Float.BYTES * (3 + 2))
-//        );
         glBufferData(GL_ARRAY_BUFFER, geometrySource.vertices(), GL_STATIC_DRAW);
 
         ebo = new IndexBufferObject();
@@ -97,7 +87,7 @@ public final class GenericIndexedGeometry implements AutoCloseable {
 
             final long sec = System.currentTimeMillis() / 100;
             final FloatBuffer rm = ms.mallocFloat(16);
-            Matrix.rotation(Math.toRadians(30), 0, Math.toRadians(sec % 360), rm);
+            Matrix.rotation(Math.toRadians(-90), Math.toRadians(0), Math.toRadians(sec % 360), rm);
 
             Matrix.multiply(rm, tm, tm);
 

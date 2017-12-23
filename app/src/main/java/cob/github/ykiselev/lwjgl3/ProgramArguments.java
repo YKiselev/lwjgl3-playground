@@ -23,7 +23,7 @@ public final class ProgramArguments {
      * Searches arguments for key=value pair.
      *
      * @param key the key name
-     * @return the value of {@code null}
+     * @return the value or {@code null}
      */
     private Optional<String> value(String key) {
         for (String arg : args) {
@@ -41,6 +41,15 @@ public final class ProgramArguments {
         return Optional.empty();
     }
 
+    private boolean hasSwitch(String key) {
+        for (String arg : args) {
+            if (arg != null && arg.equals(key)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public Collection<Path> assetPaths() {
         return value("asset.paths").stream()
                 .flatMap(v -> Arrays.stream(v.split(",")))
@@ -52,5 +61,9 @@ public final class ProgramArguments {
     private boolean exists(Path path) {
         final File file = path.toFile();
         return file.exists() && file.isDirectory();
+    }
+
+    public boolean fullScreen() {
+        return hasSwitch("-fullscreen");
     }
 }

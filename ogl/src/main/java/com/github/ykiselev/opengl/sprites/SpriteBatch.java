@@ -9,6 +9,7 @@ import com.github.ykiselev.opengl.textures.Texture2d;
 import com.github.ykiselev.opengl.vbo.IndexBufferObject;
 import com.github.ykiselev.opengl.vbo.VertexArrayObject;
 import com.github.ykiselev.opengl.vbo.VertexBufferObject;
+import com.github.ykiselev.opengl.vertices.VertexDefinitions;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
@@ -19,7 +20,6 @@ import java.util.function.IntConsumer;
 
 import static java.util.Objects.requireNonNull;
 import static org.lwjgl.opengl.GL11.GL_BLEND;
-import static org.lwjgl.opengl.GL11.GL_FLOAT;
 import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
 import static org.lwjgl.opengl.GL11.GL_SRC_ALPHA;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
@@ -123,12 +123,13 @@ public final class SpriteBatch implements AutoCloseable {
 
         vbo = new VertexBufferObject();
         vbo.bind();
-        vbo.attribute(
-                program.attributeLocation("in_Position"), 2, GL_FLOAT, false, 16, 0
-        );
-        vbo.attribute(
-                program.attributeLocation("in_TexCoord"), 2, GL_FLOAT, false, 16, 8
-        );
+        VertexDefinitions.POSITION2_TEXTURE2.apply(vbo);
+//        vbo.attribute(
+//                program.attributeLocation("in_Position"), 2, GL_FLOAT, false, 16, 0
+//        );
+//        vbo.attribute(
+//                program.attributeLocation("in_TexCoord"), 2, GL_FLOAT, false, 16, 8
+//        );
 
         ebo = new IndexBufferObject();
         ebo.bind();
@@ -315,9 +316,10 @@ public final class SpriteBatch implements AutoCloseable {
      * @param y        the bottom coordinate of the origin of the text bounding rectangle
      * @param text     the text to draw (possibly multi-line if there is '\n' characters in text or if maxWidth exceeded)
      * @param maxWidth the maximum width of bounding rectangle. When text width reaches this value next character is drawn as if there '\n' between next and previous characters.
-     * @param color    the RGBA color (0xff0000ff - red, 0x00ff00ff - green, 0x0000ffff)
+     * @param color    the RGBA color (0xff0000ff - red, 0x00ff00ff - green, 0x0000ffff - blue)
+     * @return actual height of text
      */
-    public void draw(SpriteFont font, int x, int y, String text, int maxWidth, int color) {
+    public int draw(SpriteFont font, int x, int y, String text, int maxWidth, int color) {
         use(font.texture());
 
         final float dy = font.fontHeight() + font.glyphYBorder();
@@ -352,8 +354,20 @@ public final class SpriteBatch implements AutoCloseable {
 
             fx = x1;
         }
+        return (int) (fy - y + font.fontHeight());
     }
 
+    /**
+     * Draws sprite represented as texture at specified location with specified width, height and color.
+     * </p>
+     *
+     * @param texture the sprite to use
+     * @param x       the left coordinate of the origin of the sprite
+     * @param y       the bottom coordinate of the origin of the sprite
+     * @param width   the width of sprite
+     * @param height  the height of sprite
+     * @param color   the RGBA color (0xff0000ff - red, 0x00ff00ff - green, 0x0000ffff - blue)
+     */
     public void draw(Texture2d texture, int x, int y, int width, int height, int color) {
         use(texture);
         addQuad(x, y, 0f, 0f, x + width, y + height, 1f, 1f, color);

@@ -16,7 +16,7 @@
 
 package cob.github.ykiselev.lwjgl3.window;
 
-import cob.github.ykiselev.lwjgl3.playground.WindowCallbacks;
+import cob.github.ykiselev.lwjgl3.playground.WindowEvents;
 import org.lwjgl.glfw.GLFWCursorPosCallback;
 import org.lwjgl.glfw.GLFWCursorPosCallbackI;
 import org.lwjgl.glfw.GLFWFramebufferSizeCallback;
@@ -79,7 +79,7 @@ public final class AppWindow implements AutoCloseable {
 
     private boolean windowResized;
 
-    private WindowCallbacks callbacks = new WindowCallbacks.NoOp();
+    private WindowEvents callbacks = new WindowEvents.NoOp();
 
     @SuppressWarnings("FieldCanBeLocal")
     private final GLFWFramebufferSizeCallbackI frameBufferSizeCallback = new GLFWFramebufferSizeCallback() {
@@ -165,7 +165,7 @@ public final class AppWindow implements AutoCloseable {
         frameBufferResized = true;
     }
 
-    public void wire(WindowCallbacks callbacks) {
+    public void wire(WindowEvents callbacks) {
         this.callbacks = requireNonNull(callbacks);
     }
 
