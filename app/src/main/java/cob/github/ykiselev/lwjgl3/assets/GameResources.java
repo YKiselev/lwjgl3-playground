@@ -2,6 +2,8 @@ package cob.github.ykiselev.lwjgl3.assets;
 
 import com.github.ykiselev.assets.ResourceException;
 import com.github.ykiselev.assets.Resources;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,6 +25,8 @@ import static java.util.Objects.requireNonNull;
  */
 public final class GameResources implements Resources {
 
+    private final Logger logger = LoggerFactory.getLogger(getClass());
+
     private final Collection<Path> paths;
 
     public GameResources(Collection<Path> paths) {
@@ -37,6 +41,7 @@ public final class GameResources implements Resources {
         final URL resolved = resolveFileResource(resource)
                 .or(() -> resolveClassPathResource(resource))
                 .orElseThrow(() -> new ResourceException("Resource not found: " + resource));
+        logger.debug("Resource {} resolved into {}", resource, resolved);
         try {
             return Channels.newChannel(
                     resolved.openStream()

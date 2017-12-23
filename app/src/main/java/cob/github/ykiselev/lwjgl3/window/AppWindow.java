@@ -16,6 +16,7 @@
 
 package cob.github.ykiselev.lwjgl3.window;
 
+import cob.github.ykiselev.lwjgl3.playground.FrameBufferEvents;
 import cob.github.ykiselev.lwjgl3.playground.WindowEvents;
 import org.lwjgl.glfw.GLFWCursorPosCallback;
 import org.lwjgl.glfw.GLFWCursorPosCallbackI;
@@ -71,7 +72,7 @@ import static org.lwjgl.opengl.GL11.GL_TRUE;
  */
 public final class AppWindow implements AutoCloseable {
 
-    private static final String TITLE = "LWJGL3 Test App";
+    private static final String TITLE = "LWJGL3 Playground";
 
     private final long window;
 
@@ -79,7 +80,24 @@ public final class AppWindow implements AutoCloseable {
 
     private boolean windowResized;
 
-    private WindowEvents callbacks = new WindowEvents.NoOp();
+    private WindowEvents windowEvents = new WindowEvents() {
+        @Override
+        public boolean keyEvent(int key, int scanCode, int action, int mods) {
+            return true;
+        }
+
+        @Override
+        public boolean cursorEvent(double x, double y) {
+            return true;
+        }
+
+        @Override
+        public boolean mouseButtonEvent(int button, int action, int mods) {
+            return true;
+        }
+    };
+
+    private FrameBufferEvents frameBufferEvents = (width, height) -> true;
 
     @SuppressWarnings("FieldCanBeLocal")
     private final GLFWFramebufferSizeCallbackI frameBufferSizeCallback = new GLFWFramebufferSizeCallback() {
@@ -101,7 +119,7 @@ public final class AppWindow implements AutoCloseable {
     private final GLFWKeyCallbackI keyCallback = new GLFWKeyCallback() {
         @Override
         public void invoke(long window, int key, int scancode, int action, int mods) {
-            callbacks.keyEvent(key, scancode, action, mods);
+            windowEvents.keyEvent(key, scancode, action, mods);
         }
     };
 
@@ -109,7 +127,7 @@ public final class AppWindow implements AutoCloseable {
     private final GLFWCursorPosCallbackI cursorPosCallback = new GLFWCursorPosCallback() {
         @Override
         public void invoke(long window, double xpos, double ypos) {
-            callbacks.cursorEvent(xpos, ypos);
+            windowEvents.cursorEvent(xpos, ypos);
         }
     };
 
@@ -117,7 +135,7 @@ public final class AppWindow implements AutoCloseable {
     private final GLFWMouseButtonCallbackI mouseButtonCallback = new GLFWMouseButtonCallback() {
         @Override
         public void invoke(long window, int button, int action, int mods) {
-            callbacks.mouseButtonEvent(button, action, mods);
+            windowEvents.mouseButtonEvent(button, action, mods);
         }
     };
 
@@ -165,8 +183,12 @@ public final class AppWindow implements AutoCloseable {
         frameBufferResized = true;
     }
 
-    public void wire(WindowEvents callbacks) {
-        this.callbacks = requireNonNull(callbacks);
+    public void wireWindowEvents(WindowEvents events) {
+        this.windowEvents = requireNonNull(events);
+    }
+
+    public void wireFrameBufferEvents(FrameBufferEvents events) {
+        this.frameBufferEvents = requireNonNull(events);
     }
 
     @Override
@@ -215,7 +237,7 @@ public final class AppWindow implements AutoCloseable {
                 height = hb.get(0);
             }
             frameBufferResized = false;
-            callbacks.frameBufferEvent(width, height);
+            frameBufferEvents.frameBufferResized(width, height);
         }
     }
 }

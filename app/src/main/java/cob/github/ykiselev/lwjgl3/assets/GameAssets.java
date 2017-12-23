@@ -14,7 +14,7 @@ import java.util.HashMap;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class GameAssets implements Assets {
+public final class GameAssets implements Assets, AutoCloseable {
 
     private final Assets assets;
 
@@ -41,7 +41,19 @@ public final class GameAssets implements Assets {
     }
 
     @Override
+    public <T> T load(String resource, Class<T> clazz) throws ResourceException {
+        return assets.load(resource, clazz);
+    }
+
+    @Override
     public ReadableByteChannel open(String resource) throws ResourceException {
         return assets.open(resource);
+    }
+
+    @Override
+    public void close() throws Exception {
+        if (assets instanceof AutoCloseable) {
+            ((AutoCloseable) assets).close();
+        }
     }
 }

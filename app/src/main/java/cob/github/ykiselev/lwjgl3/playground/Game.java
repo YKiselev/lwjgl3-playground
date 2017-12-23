@@ -1,8 +1,8 @@
 package cob.github.ykiselev.lwjgl3.playground;
 
-import cob.github.ykiselev.lwjgl3.ExitAppException;
+import cob.github.ykiselev.lwjgl3.layers.UiLayer;
+import cob.github.ykiselev.lwjgl3.layers.UiLayers;
 import com.github.ykiselev.assets.Assets;
-import com.github.ykiselev.assets.formats.obj.ObjModel;
 import com.github.ykiselev.opengl.matrices.Matrix;
 import com.github.ykiselev.opengl.models.GenericIndexedGeometry;
 import com.github.ykiselev.opengl.models.Pyramid;
@@ -18,7 +18,9 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.FloatBuffer;
 
+import static java.util.Objects.requireNonNull;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
+import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
 import static org.lwjgl.glfw.GLFW.glfwGetTime;
 import static org.lwjgl.opengl.GL11.GL_BACK;
 import static org.lwjgl.opengl.GL11.GL_CCW;
@@ -36,7 +38,7 @@ import static org.lwjgl.opengl.GL11.glViewport;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class Game implements WindowEvents, AutoCloseable {
+public final class Game implements UiLayer, AutoCloseable {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -47,12 +49,6 @@ public final class Game implements WindowEvents, AutoCloseable {
     private final SpriteFont liberationMono;
 
     private final FloatBuffer matrix;
-
-    // frame buffer width
-    private int width;
-
-    // frame buffer height
-    private int height;
 
     private double t0 = glfwGetTime();
 
@@ -65,6 +61,8 @@ public final class Game implements WindowEvents, AutoCloseable {
     private long frames;
 
     private GenericIndexedGeometry cubes;
+
+    private UiLayers layers;
 
     public Game(Assets assets) {
         spriteBatch = new SpriteBatch(
@@ -84,9 +82,8 @@ public final class Game implements WindowEvents, AutoCloseable {
 
     @Override
     public boolean keyEvent(int key, int scanCode, int action, int mods) {
-        //todo
-        if (key == GLFW_KEY_ESCAPE){
-            throw new ExitAppException();
+        if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
+            layers.show(UiLayers.Kind.MENU);
         }
         return true;
     }
@@ -104,21 +101,19 @@ public final class Game implements WindowEvents, AutoCloseable {
     }
 
     @Override
-    public boolean frameBufferEvent(int width, int height) {
-        this.width = width;
-        this.height = height;
-        logger.info("Frame buffer resized to {}x{}", width, height);
-        return true;
-    }
-
-    @Override
     public void close() {
         spriteBatch.close();
         cubes.close();
         MemoryUtil.memFree(matrix);
     }
 
-    public void update() {
+    @Override
+    public void attach(UiLayers layers) {
+        this.layers = requireNonNull(layers);
+    }
+
+    @Override
+    public void draw(int width, int height) {
         glViewport(0, 0, width, height);
         final float ratio = (float) height / width;
         final float w = 0.5f;
@@ -177,5 +172,8 @@ public final class Game implements WindowEvents, AutoCloseable {
         }
 
         frames++;
+    }
+
+    public void update() {
     }
 }

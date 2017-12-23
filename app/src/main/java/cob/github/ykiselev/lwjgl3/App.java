@@ -17,8 +17,11 @@
 package cob.github.ykiselev.lwjgl3;
 
 import cob.github.ykiselev.lwjgl3.assets.GameAssets;
+import cob.github.ykiselev.lwjgl3.layers.AppUiLayers;
+import cob.github.ykiselev.lwjgl3.layers.Menu;
 import cob.github.ykiselev.lwjgl3.playground.Game;
 import cob.github.ykiselev.lwjgl3.window.AppWindow;
+import com.github.ykiselev.assets.Assets;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.opengl.GL;
 import org.slf4j.Logger;
@@ -51,20 +54,26 @@ public final class App {
         glfwInit();
         try {
             glfwSetErrorCallback(errorCallback);
-            try (AppWindow window = new AppWindow(args.fullScreen())) {
-                GL.createCapabilities();
-                try (Game game = newGame()) {
-                    window.wire(game);
-                    window.show();
-                    while (!window.shouldClose()) {
-                        window.checkEvents();
-                        game.update();
-                        window.swapBuffers();
+            try (GameAssets assets = new GameAssets(args.assetPaths())) {
+                try (AppWindow window = new AppWindow(args.fullScreen())) {
+                    GL.createCapabilities();
+                    try (Game game = newGame(assets)) {
+                        final AppUiLayers uiLayers = new AppUiLayers(new Menu(assets), game);
+                        window.wireWindowEvents(uiLayers);
+                        window.wireFrameBufferEvents(uiLayers);
+                        window.show();
+                        uiLayers.push(game);
+                        while (!window.shouldClose()) {
+                            window.checkEvents();
+                            game.update();
+                            uiLayers.draw();
+                            window.swapBuffers();
+                        }
                     }
                 }
             }
-        } catch (ExitAppException e) {
-            logger.info("Application shutdown requested. Buy!");
+        } catch (Exception e) {
+            logger.error("Unhandled exception!", e);
         } finally {
             glfwTerminate();
             glfwSetErrorCallback(null);
@@ -72,11 +81,7 @@ public final class App {
         }
     }
 
-    private Game newGame() {
-        return new Game(
-                new GameAssets(
-                        args.assetPaths()
-                )
-        );
+    private Game newGame(Assets assets) {
+        return new Game(assets);
     }
 }
