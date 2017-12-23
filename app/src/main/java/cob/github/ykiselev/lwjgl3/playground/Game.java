@@ -9,8 +9,11 @@ import com.github.ykiselev.opengl.shaders.ProgramObject;
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
 import com.github.ykiselev.opengl.text.SpriteFont;
 import com.github.ykiselev.opengl.textures.Texture2d;
+import com.github.ykiselev.opengl.vertices.VertexDefinitions;
 import org.lwjgl.opengl.GL13;
 import org.lwjgl.system.MemoryUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.FloatBuffer;
 
@@ -24,14 +27,16 @@ import static org.lwjgl.opengl.GL11.glClear;
 import static org.lwjgl.opengl.GL11.glClearColor;
 import static org.lwjgl.opengl.GL11.glClearDepth;
 import static org.lwjgl.opengl.GL11.glCullFace;
-import static org.lwjgl.opengl.GL11.glDisable;
 import static org.lwjgl.opengl.GL11.glEnable;
 import static org.lwjgl.opengl.GL11.glFrontFace;
+import static org.lwjgl.opengl.GL11.glViewport;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
 public final class Game implements WindowCallbacks, AutoCloseable {
+
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final SpriteBatch spriteBatch;
 
@@ -67,9 +72,9 @@ public final class Game implements WindowCallbacks, AutoCloseable {
         liberationMono = assets.load("fonts/Liberation Mono.sf", SpriteFont.class);
 
         final ObjModel model = assets.load("models/2cubes.obj", ObjModel.class);
-        final ProgramObject program = assets.load("progs/generic.conf", ProgramObject.class);
+        final ProgramObject program = assets.load("progs/colored.conf", ProgramObject.class);
         try (Pyramid p = new Pyramid()) {
-            cubes = new GenericIndexedGeometry(program, p);
+            cubes = new GenericIndexedGeometry(program, VertexDefinitions.POSITION_COLOR, p);
         }
         //cubes = new GenericIndexedGeometry(program, model.toIndexedTriangles());
         matrix = MemoryUtil.memAllocFloat(16);
@@ -94,7 +99,7 @@ public final class Game implements WindowCallbacks, AutoCloseable {
     public void frameBufferEvent(int width, int height) {
         this.width = width;
         this.height = height;
-        // todo
+        logger.info("Frame buffer resized to {}x{}", width, height);
     }
 
     @Override
@@ -105,11 +110,12 @@ public final class Game implements WindowCallbacks, AutoCloseable {
     }
 
     public void update() {
+        glViewport(0, 0, width, height);
         Matrix.perspective(-0.5f, 0.5f, 0.5f, -0.5f, 0.5f, 10, matrix);
 
         glFrontFace(GL_CCW);
         glCullFace(GL_BACK);
-        glDisable(GL_CULL_FACE);
+        glEnable(GL_CULL_FACE);
         glEnable(GL13.GL_MULTISAMPLE);
 
         glClearDepth(1.0f);

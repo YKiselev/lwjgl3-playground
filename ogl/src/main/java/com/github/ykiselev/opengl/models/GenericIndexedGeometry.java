@@ -7,12 +7,12 @@ import com.github.ykiselev.opengl.shaders.uniforms.UniformVariable;
 import com.github.ykiselev.opengl.vbo.IndexBufferObject;
 import com.github.ykiselev.opengl.vbo.VertexArrayObject;
 import com.github.ykiselev.opengl.vbo.VertexBufferObject;
+import com.github.ykiselev.opengl.vertices.VertexDefinition;
 import org.lwjgl.system.MemoryStack;
 
 import java.nio.FloatBuffer;
 
 import static java.util.Objects.requireNonNull;
-import static org.lwjgl.opengl.GL11.GL_FLOAT;
 import static org.lwjgl.opengl.GL11.GL_UNSIGNED_INT;
 import static org.lwjgl.opengl.GL11.glDrawElements;
 import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
@@ -33,7 +33,7 @@ public final class GenericIndexedGeometry implements AutoCloseable {
 
     private final IndexBufferObject ebo;
 
-    private final UniformVariable texUniform;
+    //private final UniformVariable texUniform;
 
     private final UniformVariable mvpUniform;
 
@@ -41,30 +41,31 @@ public final class GenericIndexedGeometry implements AutoCloseable {
 
     private final int count;
 
-    public GenericIndexedGeometry(ProgramObject program, IndexedGeometrySource geometrySource) {
+    public GenericIndexedGeometry(ProgramObject program, VertexDefinition vertexDefinition, IndexedGeometrySource geometrySource) {
         this.program = requireNonNull(program);
         this.mode = geometrySource.mode();
         this.count = geometrySource.indices().remaining() / Integer.BYTES;
 
         program.bind();
         mvpUniform = program.lookup("mvp");
-        texUniform = program.lookup("tex");
+        //texUniform = program.lookup("tex");
 
         vao = new VertexArrayObject();
         vao.bind();
 
         vbo = new VertexBufferObject();
         vbo.bind();
-        final int stride = (3 + 2 + 3) * Float.BYTES;
-        vbo.attribute(
-                program.attributeLocation("in_Position"), 3, GL_FLOAT, false, stride, 0
-        );
-        vbo.attribute(
-                program.attributeLocation("in_TexCoord"), 2, GL_FLOAT, false, stride, (Float.BYTES * 3)
-        );
-        vbo.attribute(
-                program.attributeLocation("in_Normal"), 3, GL_FLOAT, false, stride, (Float.BYTES * (3 + 2))
-        );
+        vertexDefinition.apply(vbo);
+//        final int stride = (3 + 2 + 3) * Float.BYTES;
+//        vbo.attribute(
+//                program.attributeLocation("in_Position"), 3, GL_FLOAT, false, stride, 0
+//        );
+//        vbo.attribute(
+//                program.attributeLocation("in_TexCoord"), 2, GL_FLOAT, false, stride, (Float.BYTES * 3)
+//        );
+//        vbo.attribute(
+//                program.attributeLocation("in_Normal"), 3, GL_FLOAT, false, stride, (Float.BYTES * (3 + 2))
+//        );
         glBufferData(GL_ARRAY_BUFFER, geometrySource.vertices(), GL_STATIC_DRAW);
 
         ebo = new IndexBufferObject();
@@ -91,13 +92,14 @@ public final class GenericIndexedGeometry implements AutoCloseable {
         try (MemoryStack ms = MemoryStack.stackPush()) {
             final FloatBuffer tm = ms.mallocFloat(16);
             Matrix.identity(tm);
-            Matrix.translate(tm, 0, 0, -1, tm);
+            Matrix.translate(tm, 0, 0, -2, tm);
+            //Matrix.scale(tm, 240, 240, 1, tm);
 
             final long sec = System.currentTimeMillis() / 100;
             final FloatBuffer rm = ms.mallocFloat(16);
-            Matrix.rotation(0, 0, Math.toRadians(sec % 360), rm);
+            Matrix.rotation(Math.toRadians(30), 0, Math.toRadians(sec % 360), rm);
 
-            Matrix.multiply(tm, rm, tm);
+            Matrix.multiply(rm, tm, tm);
 
             final FloatBuffer mvp = ms.mallocFloat(16);
             Matrix.multiply(tm, projection, mvp);
@@ -105,7 +107,7 @@ public final class GenericIndexedGeometry implements AutoCloseable {
             mvpUniform.matrix4(false, mvp);
         }
 
-        texUniform.value(0);
+        //texUniform.value(0);
 
         vbo.bind();
         glDrawElements(mode, count, GL_UNSIGNED_INT, 0);

@@ -57,7 +57,7 @@ public final class ReadableShaderObject implements ReadableResource<ShaderObject
         final int status = glGetShaderi(id, GL_COMPILE_STATUS);
         final String log = glGetShaderInfoLog(id, 8 * 1024);
         if (status != GL_TRUE) {
-            throw new ResourceException(log);
+            throw new ResourceException(resource + ":" + log);
         } else {
             if (StringUtils.isNotEmpty(log)) {
                 logger.warn("Shader log: {}", log);
