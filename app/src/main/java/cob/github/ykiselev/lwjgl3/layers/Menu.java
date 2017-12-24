@@ -1,5 +1,7 @@
 package cob.github.ykiselev.lwjgl3.layers;
 
+import cob.github.ykiselev.lwjgl3.layers.menu.Link;
+import cob.github.ykiselev.lwjgl3.layers.menu.MenuItem;
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.opengl.shaders.ProgramObject;
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
@@ -25,11 +27,11 @@ public final class Menu implements UiLayer {
 
     private final SpriteBatch spriteBatch;
 
-    private final Texture2d cuddles;
+    private final Texture2d white;
 
     private final SpriteFont font;
 
-    private final List<String> items = Arrays.asList("New", "Exit");
+    private final List<MenuItem> items;
 
     private int selected = 0;
 
@@ -37,8 +39,12 @@ public final class Menu implements UiLayer {
         spriteBatch = new SpriteBatch(
                 assets.load("progs/sprite-batch.conf", ProgramObject.class)
         );
-        cuddles = assets.load("images/htf-cuddles.jpg", Texture2d.class);
+        white = assets.load("images/white.png", Texture2d.class);
         font = assets.load("fonts/GENUINE.sf", SpriteFont.class);
+        items = Arrays.asList(
+                new Link("New", font),
+                new Link("Exit", font)
+        );
     }
 
     @Override
@@ -51,47 +57,59 @@ public final class Menu implements UiLayer {
         this.layers = requireNonNull(layers);
     }
 
+    private MenuItem selectedItem() {
+        return items.get(selected);
+    }
+
     @Override
     public boolean keyEvent(int key, int scanCode, int action, int mods) {
-        if (action == GLFW_PRESS) {
-            switch (key) {
-                case GLFW_KEY_ESCAPE:
-                    layers.pop(this);
-                    break;
+        if (!selectedItem().keyEvent(key, scanCode, action, mods)) {
+            if (action == GLFW_PRESS) {
+                switch (key) {
+                    case GLFW_KEY_ESCAPE:
+                        layers.pop(this);
+                        break;
 
-                case GLFW_KEY_UP:
-                    selected--;
-                    if (selected < 0) {
-                        selected = items.size() - 1;
-                    }
-                    break;
+                    case GLFW_KEY_UP:
+                        selected--;
+                        if (selected < 0) {
+                            selected = items.size() - 1;
+                        }
+                        break;
 
-                case GLFW_KEY_DOWN:
-                    selected++;
-                    if (selected >= items.size()) {
-                        selected = 0;
-                    }
-                    break;
+                    case GLFW_KEY_DOWN:
+                        selected++;
+                        if (selected >= items.size()) {
+                            selected = 0;
+                        }
+                        break;
+                }
+                return true;
             }
-            return true;
         }
-        return false;
+        return true;
     }
 
     @Override
     public boolean cursorEvent(double x, double y) {
+        for (MenuItem item : items) {
+            item.cursorEvent(x, y);
+        }
         return true;
     }
 
     @Override
     public boolean mouseButtonEvent(int button, int action, int mods) {
+        if (!selectedItem().mouseButtonEvent(button, action, mods)) {
+            // todo
+        }
         return true;
     }
 
     @Override
     public void draw(int width, int height) {
         spriteBatch.begin(0, 0, width, height, true);
-        spriteBatch.draw(cuddles, 0, 0, width, height, 0xffffffff);
+        spriteBatch.draw(white, 0, 0, width, height, 0x000030df);
 
         final int cursorWidth;
         final Glyph glyph = font.findGlyph((char) 0x23f5);
@@ -105,13 +123,14 @@ public final class Menu implements UiLayer {
         final int maxWidth = width - x;
         int y = height / 2 + items.size() * font.fontHeight() / 2 - font.fontHeight();
         int i = 0;
-        for (String item : items) {
+        for (MenuItem item : items) {
+            int dx = 0;
             if (i == selected) {
                 spriteBatch.draw(font, x - cursorWidth, y, "\u23F5", maxWidth, 0xffffffff);
+                dx = 4;
             }
-            spriteBatch.draw(font, x, y, item, maxWidth, 0xffffffff);
+            y -= item.draw(x + dx, y, maxWidth, spriteBatch);
             i++;
-            y -= font.fontHeight();
         }
 
         spriteBatch.end();

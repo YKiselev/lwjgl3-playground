@@ -84,9 +84,18 @@ public final class AppUiLayers implements UiLayers {
         return dispatch(layer -> layer.keyEvent(key, scanCode, action, mods));
     }
 
+    /**
+     * Note: {@link com.github.ykiselev.opengl.sprites.SpriteBatch} uses left lower corner as an coordinate system origin (0,0)
+     * while GLFW passes cursor coordinates relative to upper-left corner of the window, so here we translate {@code y} coordinate
+     * to be 0 at the bottom of a window and {@code height} at the top.
+     *
+     * @param x the x coordinate (relative to window left)
+     * @param y the y coordinate (relative to window top)
+     * @return {@code true} if processed
+     */
     @Override
     public boolean cursorEvent(double x, double y) {
-        return dispatch(layer -> layer.cursorEvent(x, y));
+        return dispatch(layer -> layer.cursorEvent(x, height - y));
     }
 
     @Override

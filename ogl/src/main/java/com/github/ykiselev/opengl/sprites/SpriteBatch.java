@@ -124,12 +124,6 @@ public final class SpriteBatch implements AutoCloseable {
         vbo = new VertexBufferObject();
         vbo.bind();
         VertexDefinitions.POSITION2_TEXTURE2.apply(vbo);
-//        vbo.attribute(
-//                program.attributeLocation("in_Position"), 2, GL_FLOAT, false, 16, 0
-//        );
-//        vbo.attribute(
-//                program.attributeLocation("in_TexCoord"), 2, GL_FLOAT, false, 16, 8
-//        );
 
         ebo = new IndexBufferObject();
         ebo.bind();
