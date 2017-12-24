@@ -1,5 +1,8 @@
 package cob.github.ykiselev.lwjgl3.playground;
 
+import cob.github.ykiselev.lwjgl3.Host;
+import cob.github.ykiselev.lwjgl3.events.SubscriberGroup;
+import cob.github.ykiselev.lwjgl3.events.SubscriberGroupBuilder;
 import cob.github.ykiselev.lwjgl3.layers.UiLayer;
 import cob.github.ykiselev.lwjgl3.layers.UiLayers;
 import com.github.ykiselev.assets.Assets;
@@ -18,7 +21,6 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.FloatBuffer;
 
-import static java.util.Objects.requireNonNull;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
 import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
 import static org.lwjgl.glfw.GLFW.glfwGetTime;
@@ -42,6 +44,10 @@ public final class Game implements UiLayer, AutoCloseable {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
+    private final Host host;
+
+    private final SubscriberGroup group;
+
     private final SpriteBatch spriteBatch;
 
     private final Texture2d cuddles;
@@ -49,6 +55,8 @@ public final class Game implements UiLayer, AutoCloseable {
     private final SpriteFont liberationMono;
 
     private final FloatBuffer matrix;
+
+    private final GenericIndexedGeometry cubes;
 
     private double t0 = glfwGetTime();
 
@@ -60,11 +68,10 @@ public final class Game implements UiLayer, AutoCloseable {
 
     private long frames;
 
-    private GenericIndexedGeometry cubes;
-
-    private UiLayers layers;
-
-    public Game(Assets assets) {
+    public Game(Host host, Assets assets) {
+        this.host = host;
+        this.group = new SubscriberGroupBuilder()
+                .build(host.events());
         spriteBatch = new SpriteBatch(
                 assets.load("progs/sprite-batch.conf", ProgramObject.class)
         );
@@ -80,10 +87,13 @@ public final class Game implements UiLayer, AutoCloseable {
         matrix = MemoryUtil.memAllocFloat(16);
     }
 
+
     @Override
     public boolean keyEvent(int key, int scanCode, int action, int mods) {
         if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
-            layers.show(UiLayers.Kind.MENU);
+            host.services()
+                    .resolve(UiLayers.class)
+                    .show(UiLayers.Kind.MENU);
         }
         return true;
     }
@@ -105,11 +115,7 @@ public final class Game implements UiLayer, AutoCloseable {
         spriteBatch.close();
         cubes.close();
         MemoryUtil.memFree(matrix);
-    }
-
-    @Override
-    public void attach(UiLayers layers) {
-        this.layers = requireNonNull(layers);
+        group.unsubscribe();
     }
 
     @Override
@@ -175,5 +181,19 @@ public final class Game implements UiLayer, AutoCloseable {
     }
 
     public void update() {
+    }
+}
+
+class GameGfx implements AutoCloseable {
+
+
+    GameGfx(Assets assets) {
+    }
+
+    void draw(int width, int height) {
+    }
+
+    @Override
+    public void close() {
     }
 }

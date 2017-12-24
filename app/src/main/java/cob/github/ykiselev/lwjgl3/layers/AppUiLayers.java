@@ -58,7 +58,6 @@ public final class AppUiLayers implements UiLayers {
         if (layers.contains(layer)) {
             throw new IllegalArgumentException("Already pushed:" + layer);
         }
-        layer.attach(this);
         layers.push(layer);
     }
 

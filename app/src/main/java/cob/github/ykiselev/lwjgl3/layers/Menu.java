@@ -1,5 +1,9 @@
 package cob.github.ykiselev.lwjgl3.layers;
 
+import cob.github.ykiselev.lwjgl3.Host;
+import cob.github.ykiselev.lwjgl3.events.QuitGameEvent;
+import cob.github.ykiselev.lwjgl3.events.SubscriberGroup;
+import cob.github.ykiselev.lwjgl3.events.SubscriberGroupBuilder;
 import cob.github.ykiselev.lwjgl3.layers.menu.Link;
 import cob.github.ykiselev.lwjgl3.layers.menu.MenuItem;
 import com.github.ykiselev.assets.Assets;
@@ -23,7 +27,9 @@ import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
  */
 public final class Menu implements UiLayer {
 
-    private UiLayers layers;
+    private final Host host;
+
+    private final SubscriberGroup group;
 
     private final SpriteBatch spriteBatch;
 
@@ -35,26 +41,29 @@ public final class Menu implements UiLayer {
 
     private int selected = 0;
 
-    public Menu(Assets assets) {
+    public Menu(Host host, Assets assets) {
+        this.host = requireNonNull(host);
+        group = new SubscriberGroupBuilder()
+                .build(host.events());
         spriteBatch = new SpriteBatch(
                 assets.load("progs/sprite-batch.conf", ProgramObject.class)
         );
         white = assets.load("images/white.png", Texture2d.class);
         font = assets.load("fonts/GENUINE.sf", SpriteFont.class);
         items = Arrays.asList(
-                new Link("New", font),
-                new Link("Exit", font)
+                new Link("New", () -> {
+                }, font),
+                new Link("Exit", () -> {
+                    host.events().send(new QuitGameEvent());
+                }, font)
         );
+
     }
 
     @Override
     public void close() {
         spriteBatch.close();
-    }
-
-    @Override
-    public void attach(UiLayers layers) {
-        this.layers = requireNonNull(layers);
+        group.unsubscribe();
     }
 
     private MenuItem selectedItem() {
@@ -67,7 +76,9 @@ public final class Menu implements UiLayer {
             if (action == GLFW_PRESS) {
                 switch (key) {
                     case GLFW_KEY_ESCAPE:
-                        layers.pop(this);
+                        host.services()
+                                .resolve(UiLayers.class)
+                                .pop(this);
                         break;
 
                     case GLFW_KEY_UP:

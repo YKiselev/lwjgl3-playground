@@ -3,10 +3,7 @@ package cob.github.ykiselev.lwjgl3.events;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public interface EventBus {
+public interface Message<R> {
 
-    void send(Object message);
-
-    void deliver(Object message);
-
+    Class<R> responseType();
 }

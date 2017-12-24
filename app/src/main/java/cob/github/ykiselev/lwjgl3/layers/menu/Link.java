@@ -4,6 +4,7 @@ package cob.github.ykiselev.lwjgl3.layers.menu;
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
 import com.github.ykiselev.opengl.text.SpriteFont;
 
+import static java.util.Objects.requireNonNull;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_ENTER;
 import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
 
@@ -18,11 +19,14 @@ public final class Link implements MenuItem {
 
     private final SpriteFont font;
 
+    private final Runnable action;
+
     private double cx, cy;
 
-    public Link(String name, SpriteFont font) {
-        this.name = name;
-        this.font = font;
+    public Link(String name, Runnable action, SpriteFont font) {
+        this.name = requireNonNull(name);
+        this.action = requireNonNull(action);
+        this.font = requireNonNull(font);
     }
 
     @Override
@@ -41,7 +45,7 @@ public final class Link implements MenuItem {
     public boolean keyEvent(int key, int scanCode, int action, int mods) {
         if (action == GLFW_PRESS) {
             if (key == GLFW_KEY_ENTER) {
-                // todo got ot link
+                this.action.run();
                 return true;
             }
         }
@@ -51,7 +55,7 @@ public final class Link implements MenuItem {
     @Override
     public int draw(int x, int y, int width, SpriteBatch sb) {
         int color = 0xffffffff;
-        if (cx > x && cx < x + width && cy > y && cy < y + font.fontHeight()){
+        if (cx > x && cx < x + width && cy > y && cy < y + font.fontHeight()) {
             color = 0xffff00ff;
         }
         return sb.draw(font, x, y, name, width, color);

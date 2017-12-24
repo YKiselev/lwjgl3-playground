@@ -17,9 +17,12 @@
 package cob.github.ykiselev.lwjgl3;
 
 import cob.github.ykiselev.lwjgl3.assets.GameAssets;
+import cob.github.ykiselev.lwjgl3.events.QuitGameEvent;
 import cob.github.ykiselev.lwjgl3.layers.AppUiLayers;
 import cob.github.ykiselev.lwjgl3.layers.Menu;
+import cob.github.ykiselev.lwjgl3.layers.UiLayers;
 import cob.github.ykiselev.lwjgl3.playground.Game;
+import cob.github.ykiselev.lwjgl3.services.Services;
 import cob.github.ykiselev.lwjgl3.window.AppWindow;
 import com.github.ykiselev.assets.Assets;
 import org.lwjgl.glfw.GLFWErrorCallback;
@@ -42,6 +45,8 @@ public final class App {
 
     private final ProgramArguments args;
 
+    private boolean exitFlag;
+
     private App(ProgramArguments args) {
         this.args = args;
     }
@@ -54,16 +59,23 @@ public final class App {
         glfwInit();
         try {
             glfwSetErrorCallback(errorCallback);
-            try (GameAssets assets = new GameAssets(args.assetPaths())) {
+            try (AppHost host = createHost()) {
+                final Services services = host.services();
+                final GameAssets assets = new GameAssets(args.assetPaths());
+                services.add(Assets.class, assets);
                 try (AppWindow window = new AppWindow(args.fullScreen())) {
                     GL.createCapabilities();
-                    try (Game game = newGame(assets)) {
-                        final AppUiLayers uiLayers = new AppUiLayers(new Menu(assets), game);
+                    try (Game game = newGame(host, assets)) {
+                        final AppUiLayers uiLayers = new AppUiLayers(
+                                createMenu(host, assets),
+                                game
+                        );
+                        services.add(UiLayers.class, uiLayers);
                         window.wireWindowEvents(uiLayers);
                         window.wireFrameBufferEvents(uiLayers);
                         window.show();
                         uiLayers.push(game);
-                        while (!window.shouldClose()) {
+                        while (!window.shouldClose() && !exitFlag) {
                             window.checkEvents();
                             game.update();
                             uiLayers.draw();
@@ -81,7 +93,20 @@ public final class App {
         }
     }
 
-    private Game newGame(Assets assets) {
-        return new Game(assets);
+    private AppHost createHost() {
+        final AppHost host = new AppHost();
+        host.events().subscribe(
+                QuitGameEvent.class,
+                m -> exitFlag = true
+        );
+        return host;
+    }
+
+    private Game newGame(Host host, Assets assets) {
+        return new Game(host, assets);
+    }
+
+    private Menu createMenu(Host host, Assets assets) {
+        return new Menu(host, assets);
     }
 }

@@ -7,7 +7,5 @@ import cob.github.ykiselev.lwjgl3.playground.WindowEvents;
  */
 public interface UiLayer extends WindowEvents, AutoCloseable {
 
-    void attach(UiLayers layers);
-
     void draw(int width, int height);
 }
