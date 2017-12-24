@@ -340,16 +340,16 @@ public final class SpriteBatch implements AutoCloseable {
 
             final Glyph glyph = font.glyphForCharacter(value);
 
-            if (fx + glyph.getWidth() > maxX) {
+            if (fx + glyph.width() > maxX) {
                 fx = x;
                 fy -= dy;
             }
 
-            final float x1 = fx + glyph.getWidth();
+            final float x1 = fx + glyph.width();
             final float y1 = fy + font.fontHeight();
 
             if (value != ' ') {
-                addQuad(fx, fy, glyph.getS0(), glyph.getT0(), x1, y1, glyph.getS1(), glyph.getT1(), color);
+                addQuad(fx, fy, glyph.s0(), glyph.t0(), x1, y1, glyph.s1(), glyph.t1(), color);
             }
 
             fx = x1;

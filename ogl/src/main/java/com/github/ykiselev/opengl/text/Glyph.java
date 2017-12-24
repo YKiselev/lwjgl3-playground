@@ -19,31 +19,33 @@ package com.github.ykiselev.opengl.text;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public class Glyph {
+public final class Glyph {
 
-    private final float s0, t0, s1, t1, width;
+    private final float s0, t0, s1, t1;
 
-    public float getS0() {
+    private final int width;
+
+    public float s0() {
         return s0;
     }
 
-    public float getT0() {
+    public float t0() {
         return t0;
     }
 
-    public float getS1() {
+    public float s1() {
         return s1;
     }
 
-    public float getT1() {
+    public float t1() {
         return t1;
     }
 
-    public float getWidth() {
+    public int width() {
         return width;
     }
 
-    public Glyph(float s0, float t0, float s1, float t1, float width) {
+    public Glyph(float s0, float t0, float s1, float t1, int width) {
         this.s0 = s0;
         this.t0 = t0;
         this.s1 = s1;

@@ -64,13 +64,18 @@ public final class SpriteFont {
     }
 
     public Glyph glyphForCharacter(char ch) {
+        final Glyph g = findGlyph(ch);
+        return g != null ? g : defaultGlyph;
+    }
+
+    public Glyph findGlyph(char ch) {
         for (GlyphRange range : ranges) {
             final Glyph glyph = range.glyphForCharacter(ch);
             if (glyph != null) {
                 return glyph;
             }
         }
-        return defaultGlyph;
+        return null;
     }
 
     public int measureHeight(String text, int width) {
@@ -91,12 +96,12 @@ public final class SpriteFont {
 
             final Glyph glyph = glyphForCharacter(value);
 
-            if (w + glyph.getWidth() > width) {
+            if (w + glyph.width() > width) {
                 lines++;
-                w = glyph.getWidth();
+                w = glyph.width();
             }
 
-            w += glyph.getWidth();
+            w += glyph.width();
         }
 
         if (w > 0) {
