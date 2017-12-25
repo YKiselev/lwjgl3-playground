@@ -18,8 +18,7 @@ public interface MenuItem extends WindowEvents {
     }
 
     @Override
-    default boolean cursorEvent(double x, double y) {
-        return false;
+    default void cursorEvent(double x, double y) {
     }
 
     @Override

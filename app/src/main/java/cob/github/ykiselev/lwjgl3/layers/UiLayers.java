@@ -1,19 +1,13 @@
 package cob.github.ykiselev.lwjgl3.layers;
 
-import cob.github.ykiselev.lwjgl3.playground.FrameBufferEvents;
 import cob.github.ykiselev.lwjgl3.playground.WindowEvents;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public interface UiLayers extends WindowEvents, FrameBufferEvents, AutoCloseable {
+public interface UiLayers extends WindowEvents {
 
-    enum Kind {
-
-        GAME, MENU
-    }
-
-    void show(Kind kind);
+    void replace(UiLayer layer);
 
     void push(UiLayer layer);
 

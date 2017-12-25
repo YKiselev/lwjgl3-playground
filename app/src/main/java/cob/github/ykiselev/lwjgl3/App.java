@@ -17,11 +17,18 @@
 package cob.github.ykiselev.lwjgl3;
 
 import cob.github.ykiselev.lwjgl3.assets.GameAssets;
-import cob.github.ykiselev.lwjgl3.events.QuitGameEvent;
+import cob.github.ykiselev.lwjgl3.events.SubscriberGroup;
+import cob.github.ykiselev.lwjgl3.events.SubscriberGroupBuilder;
+import cob.github.ykiselev.lwjgl3.events.game.NewGameEvent;
+import cob.github.ykiselev.lwjgl3.events.game.QuitGameEvent;
+import cob.github.ykiselev.lwjgl3.events.layers.ShowMenuEvent;
+import cob.github.ykiselev.lwjgl3.host.AppHost;
+import cob.github.ykiselev.lwjgl3.host.Host;
+import cob.github.ykiselev.lwjgl3.host.OnNewGameEvent;
+import cob.github.ykiselev.lwjgl3.host.OnShowMenuEvent;
+import cob.github.ykiselev.lwjgl3.host.ProgramArguments;
 import cob.github.ykiselev.lwjgl3.layers.AppUiLayers;
-import cob.github.ykiselev.lwjgl3.layers.Menu;
 import cob.github.ykiselev.lwjgl3.layers.UiLayers;
-import cob.github.ykiselev.lwjgl3.playground.Game;
 import cob.github.ykiselev.lwjgl3.services.Services;
 import cob.github.ykiselev.lwjgl3.window.AppWindow;
 import com.github.ykiselev.assets.Assets;
@@ -32,6 +39,7 @@ import org.slf4j.LoggerFactory;
 
 import static org.lwjgl.glfw.GLFW.glfwInit;
 import static org.lwjgl.glfw.GLFW.glfwSetErrorCallback;
+import static org.lwjgl.glfw.GLFW.glfwSwapInterval;
 import static org.lwjgl.glfw.GLFW.glfwTerminate;
 
 /**
@@ -59,29 +67,23 @@ public final class App {
         glfwInit();
         try {
             glfwSetErrorCallback(errorCallback);
-            try (AppHost host = createHost()) {
-                final Services services = host.services();
-                final GameAssets assets = new GameAssets(args.assetPaths());
-                services.add(Assets.class, assets);
+            final GameAssets assets = new GameAssets(args.assetPaths());
+            final AppUiLayers layers = new AppUiLayers();
+            try (AppHost host = createHost(assets, layers)) {
+                final SubscriberGroup group = subscribe(host);
                 try (AppWindow window = new AppWindow(args.fullScreen())) {
                     GL.createCapabilities();
-                    try (Game game = newGame(host, assets)) {
-                        final AppUiLayers uiLayers = new AppUiLayers(
-                                createMenu(host, assets),
-                                game
-                        );
-                        services.add(UiLayers.class, uiLayers);
-                        window.wireWindowEvents(uiLayers);
-                        window.wireFrameBufferEvents(uiLayers);
-                        window.show();
-                        uiLayers.push(game);
-                        while (!window.shouldClose() && !exitFlag) {
-                            window.checkEvents();
-                            game.update();
-                            uiLayers.draw();
-                            window.swapBuffers();
-                        }
+                    window.wireWindowEvents(layers);
+                    window.show();
+                    host.events().send(new NewGameEvent());
+                    glfwSwapInterval(1);
+                    while (!window.shouldClose() && !exitFlag) {
+                        window.checkEvents();
+                        layers.draw();
+                        window.swapBuffers();
                     }
+                } finally {
+                    group.unsubscribe();
                 }
             }
         } catch (Exception e) {
@@ -93,20 +95,23 @@ public final class App {
         }
     }
 
-    private AppHost createHost() {
+    private AppHost createHost(GameAssets assets, AppUiLayers layers) {
         final AppHost host = new AppHost();
-        host.events().subscribe(
-                QuitGameEvent.class,
-                m -> exitFlag = true
-        );
+        final Services services = host.services();
+        services.add(Assets.class, assets);
+        services.add(UiLayers.class, layers);
         return host;
     }
 
-    private Game newGame(Host host, Assets assets) {
-        return new Game(host, assets);
+    private SubscriberGroup subscribe(Host host) {
+        return new SubscriberGroupBuilder()
+                .add(QuitGameEvent.class, this::onQuitGame)
+                .add(NewGameEvent.class, new OnNewGameEvent(host))
+                .add(ShowMenuEvent.class, new OnShowMenuEvent(host))
+                .build(host.events());
     }
 
-    private Menu createMenu(Host host, Assets assets) {
-        return new Menu(host, assets);
+    private void onQuitGame(QuitGameEvent event) {
+        exitFlag = true;
     }
 }

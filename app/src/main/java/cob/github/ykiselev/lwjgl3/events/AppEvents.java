@@ -19,7 +19,10 @@ public final class AppEvents implements Events {
 
     @Override
     public <T> void subscribe(Class<T> eventType, Consumer<T> handler) {
-        final Collection<Consumer> consumers = subscribers.computeIfAbsent(eventType, key -> new CopyOnWriteArrayList<>());
+        final Collection<Consumer> consumers = subscribers.computeIfAbsent(
+                eventType,
+                key -> new CopyOnWriteArrayList<>()
+        );
         for (Consumer consumer : consumers) {
             if (consumer == handler) {
                 return;

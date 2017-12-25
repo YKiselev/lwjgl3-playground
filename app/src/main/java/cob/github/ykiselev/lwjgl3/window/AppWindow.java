@@ -16,7 +16,6 @@
 
 package cob.github.ykiselev.lwjgl3.window;
 
-import cob.github.ykiselev.lwjgl3.playground.FrameBufferEvents;
 import cob.github.ykiselev.lwjgl3.playground.WindowEvents;
 import org.lwjgl.glfw.GLFWCursorPosCallback;
 import org.lwjgl.glfw.GLFWCursorPosCallbackI;
@@ -59,7 +58,6 @@ import static org.lwjgl.glfw.GLFW.glfwSetMouseButtonCallback;
 import static org.lwjgl.glfw.GLFW.glfwSetWindowSizeCallback;
 import static org.lwjgl.glfw.GLFW.glfwShowWindow;
 import static org.lwjgl.glfw.GLFW.glfwSwapBuffers;
-import static org.lwjgl.glfw.GLFW.glfwSwapInterval;
 import static org.lwjgl.glfw.GLFW.glfwWindowHint;
 import static org.lwjgl.glfw.GLFW.glfwWindowShouldClose;
 import static org.lwjgl.opengl.GL11.GL_TRUE;
@@ -87,17 +85,18 @@ public final class AppWindow implements AutoCloseable {
         }
 
         @Override
-        public boolean cursorEvent(double x, double y) {
-            return true;
+        public void cursorEvent(double x, double y) {
         }
 
         @Override
         public boolean mouseButtonEvent(int button, int action, int mods) {
             return true;
         }
-    };
 
-    private FrameBufferEvents frameBufferEvents = (width, height) -> true;
+        @Override
+        public void frameBufferResized(int width, int height) {
+        }
+    };
 
     @SuppressWarnings("FieldCanBeLocal")
     private final GLFWFramebufferSizeCallbackI frameBufferSizeCallback = new GLFWFramebufferSizeCallback() {
@@ -178,17 +177,12 @@ public final class AppWindow implements AutoCloseable {
         glfwSetKeyCallback(window, keyCallback);
         glfwSetCursorPosCallback(window, cursorPosCallback);
         glfwSetMouseButtonCallback(window, mouseButtonCallback);
-        glfwSwapInterval(1);
         windowResized = true;
         frameBufferResized = true;
     }
 
     public void wireWindowEvents(WindowEvents events) {
         this.windowEvents = requireNonNull(events);
-    }
-
-    public void wireFrameBufferEvents(FrameBufferEvents events) {
-        this.frameBufferEvents = requireNonNull(events);
     }
 
     @Override
@@ -237,7 +231,7 @@ public final class AppWindow implements AutoCloseable {
                 height = hb.get(0);
             }
             frameBufferResized = false;
-            frameBufferEvents.frameBufferResized(width, height);
+            windowEvents.frameBufferResized(width, height);
         }
     }
 }

@@ -10,4 +10,6 @@ public interface Services extends AutoCloseable {
     <T> void remove(Class<T> clazz, Object instance);
 
     <T> T resolve(Class<T> clazz);
+
+    <T> T tryResolve(Class<T> clazz);
 }

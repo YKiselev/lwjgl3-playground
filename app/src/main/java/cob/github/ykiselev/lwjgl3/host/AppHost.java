@@ -1,4 +1,4 @@
-package cob.github.ykiselev.lwjgl3;
+package cob.github.ykiselev.lwjgl3.host;
 
 import cob.github.ykiselev.lwjgl3.events.AppEvents;
 import cob.github.ykiselev.lwjgl3.events.Events;

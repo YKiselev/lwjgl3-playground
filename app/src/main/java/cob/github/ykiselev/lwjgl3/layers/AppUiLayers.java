@@ -9,26 +9,11 @@ import java.util.function.Predicate;
  */
 public final class AppUiLayers implements UiLayers {
 
-    private final UiLayer menu;
-
-    private final UiLayer game;
-
     private final Deque<UiLayer> layers = new ArrayDeque<>();
 
     private int width;
 
     private int height;
-
-    public AppUiLayers(UiLayer menu, UiLayer game) {
-        this.menu = menu;
-        this.game = game;
-    }
-
-    @Override
-    public void close() throws Exception {
-        menu.close();
-        game.close();
-    }
 
     @Override
     public void draw() {
@@ -38,19 +23,9 @@ public final class AppUiLayers implements UiLayers {
     }
 
     @Override
-    public void show(Kind kind) {
-        switch (kind) {
-            case GAME:
-                push(game);
-                break;
-
-            case MENU:
-                push(menu);
-                break;
-
-            default:
-                throw new IllegalArgumentException("Unsupported layer kind:" + kind);
-        }
+    public void replace(UiLayer layer) {
+        layers.clear();
+        layers.push(layer);
     }
 
     @Override
@@ -90,11 +65,13 @@ public final class AppUiLayers implements UiLayers {
      *
      * @param x the x coordinate (relative to window left)
      * @param y the y coordinate (relative to window top)
-     * @return {@code true} if processed
      */
     @Override
-    public boolean cursorEvent(double x, double y) {
-        return dispatch(layer -> layer.cursorEvent(x, height - y));
+    public void cursorEvent(double x, double y) {
+        dispatch(layer -> {
+            layer.cursorEvent(x, height - y);
+            return false;
+        });
     }
 
     @Override
@@ -103,9 +80,9 @@ public final class AppUiLayers implements UiLayers {
     }
 
     @Override
-    public boolean frameBufferResized(int width, int height) {
+    public void frameBufferResized(int width, int height) {
         this.width = width;
         this.height = height;
-        return true;
+        layers.forEach(layer -> layer.frameBufferResized(width, height));
     }
 }

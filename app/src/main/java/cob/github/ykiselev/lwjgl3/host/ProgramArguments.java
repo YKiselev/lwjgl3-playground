@@ -1,4 +1,4 @@
-package cob.github.ykiselev.lwjgl3;
+package cob.github.ykiselev.lwjgl3.host;
 
 import java.io.File;
 import java.nio.file.Path;

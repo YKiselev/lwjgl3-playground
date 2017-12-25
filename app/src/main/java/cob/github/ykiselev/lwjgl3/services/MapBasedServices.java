@@ -43,6 +43,14 @@ public final class MapBasedServices implements Services {
 
     @Override
     public <T> T resolve(Class<T> clazz) {
+        return requireNonNull(
+                tryResolve(clazz),
+                "Service not found: " + clazz
+        );
+    }
+
+    @Override
+    public <T> T tryResolve(Class<T> clazz) {
         return clazz.cast(services.get(clazz));
     }
 

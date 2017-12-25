@@ -35,10 +35,9 @@ public final class Link implements MenuItem {
     }
 
     @Override
-    public boolean cursorEvent(double x, double y) {
+    public void cursorEvent(double x, double y) {
         cx = x;
         cy = y;
-        return false;
     }
 
     @Override
@@ -50,6 +49,10 @@ public final class Link implements MenuItem {
             }
         }
         return false;
+    }
+
+    @Override
+    public void frameBufferResized(int width, int height) {
     }
 
     @Override

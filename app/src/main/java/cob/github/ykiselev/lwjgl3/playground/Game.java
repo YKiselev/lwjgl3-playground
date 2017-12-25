@@ -1,10 +1,10 @@
 package cob.github.ykiselev.lwjgl3.playground;
 
-import cob.github.ykiselev.lwjgl3.Host;
+import cob.github.ykiselev.lwjgl3.host.Host;
 import cob.github.ykiselev.lwjgl3.events.SubscriberGroup;
 import cob.github.ykiselev.lwjgl3.events.SubscriberGroupBuilder;
+import cob.github.ykiselev.lwjgl3.events.layers.ShowMenuEvent;
 import cob.github.ykiselev.lwjgl3.layers.UiLayer;
-import cob.github.ykiselev.lwjgl3.layers.UiLayers;
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.opengl.matrices.Matrix;
 import com.github.ykiselev.opengl.models.GenericIndexedGeometry;
@@ -91,23 +91,26 @@ public final class Game implements UiLayer, AutoCloseable {
     @Override
     public boolean keyEvent(int key, int scanCode, int action, int mods) {
         if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
-            host.services()
-                    .resolve(UiLayers.class)
-                    .show(UiLayers.Kind.MENU);
+            host.events()
+                    .send(new ShowMenuEvent());
         }
         return true;
     }
 
     @Override
-    public boolean cursorEvent(double x, double y) {
+    public void cursorEvent(double x, double y) {
         //todo
-        return true;
     }
 
     @Override
     public boolean mouseButtonEvent(int button, int action, int mods) {
         //todo
         return true;
+    }
+
+    @Override
+    public void frameBufferResized(int width, int height) {
+        //todo
     }
 
     @Override
@@ -181,19 +184,5 @@ public final class Game implements UiLayer, AutoCloseable {
     }
 
     public void update() {
-    }
-}
-
-class GameGfx implements AutoCloseable {
-
-
-    GameGfx(Assets assets) {
-    }
-
-    void draw(int width, int height) {
-    }
-
-    @Override
-    public void close() {
     }
 }

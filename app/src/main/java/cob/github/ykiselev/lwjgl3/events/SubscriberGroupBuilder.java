@@ -20,6 +20,7 @@ public final class SubscriberGroupBuilder {
     }
 
     public SubscriberGroup build(Events events) {
+        handlers.forEach(events::subscribe);
         return new SubscriberGroup(
                 events,
                 handlers.entrySet().toArray(EMPTY)

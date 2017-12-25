@@ -1,7 +1,7 @@
 package cob.github.ykiselev.lwjgl3.layers;
 
-import cob.github.ykiselev.lwjgl3.Host;
-import cob.github.ykiselev.lwjgl3.events.QuitGameEvent;
+import cob.github.ykiselev.lwjgl3.host.Host;
+import cob.github.ykiselev.lwjgl3.events.game.QuitGameEvent;
 import cob.github.ykiselev.lwjgl3.events.SubscriberGroup;
 import cob.github.ykiselev.lwjgl3.events.SubscriberGroupBuilder;
 import cob.github.ykiselev.lwjgl3.layers.menu.Link;
@@ -25,7 +25,7 @@ import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class Menu implements UiLayer {
+public final class Menu implements UiLayer, AutoCloseable {
 
     private final Host host;
 
@@ -102,11 +102,10 @@ public final class Menu implements UiLayer {
     }
 
     @Override
-    public boolean cursorEvent(double x, double y) {
+    public void cursorEvent(double x, double y) {
         for (MenuItem item : items) {
             item.cursorEvent(x, y);
         }
-        return true;
     }
 
     @Override
@@ -115,6 +114,11 @@ public final class Menu implements UiLayer {
             // todo
         }
         return true;
+    }
+
+    @Override
+    public void frameBufferResized(int width, int height) {
+        items.forEach(item -> item.frameBufferResized(width, height));
     }
 
     @Override
