@@ -1,9 +1,9 @@
 package cob.github.ykiselev.lwjgl3.playground;
 
-import cob.github.ykiselev.lwjgl3.host.Host;
 import cob.github.ykiselev.lwjgl3.events.SubscriberGroup;
 import cob.github.ykiselev.lwjgl3.events.SubscriberGroupBuilder;
 import cob.github.ykiselev.lwjgl3.events.layers.ShowMenuEvent;
+import cob.github.ykiselev.lwjgl3.host.Host;
 import cob.github.ykiselev.lwjgl3.layers.UiLayer;
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.opengl.matrices.Matrix;
@@ -33,6 +33,7 @@ import static org.lwjgl.opengl.GL11.glClear;
 import static org.lwjgl.opengl.GL11.glClearColor;
 import static org.lwjgl.opengl.GL11.glClearDepth;
 import static org.lwjgl.opengl.GL11.glCullFace;
+import static org.lwjgl.opengl.GL11.glDisable;
 import static org.lwjgl.opengl.GL11.glEnable;
 import static org.lwjgl.opengl.GL11.glFrontFace;
 import static org.lwjgl.opengl.GL11.glViewport;
@@ -124,14 +125,11 @@ public final class Game implements UiLayer, AutoCloseable {
     @Override
     public void draw(int width, int height) {
         glViewport(0, 0, width, height);
-        final float ratio = (float) height / width;
-        final float w = 0.5f;
-        final float h = 0.5f * ratio;
-        Matrix.perspective(-w, w, h, -h, 0.5f, 10, matrix);
+        Matrix.perspective((float) Math.toRadians(90), (float) width / height, 10, matrix);
 
         glFrontFace(GL_CCW);
         glCullFace(GL_BACK);
-        glEnable(GL_CULL_FACE);
+        glDisable(GL_CULL_FACE);
         glEnable(GL13.GL_MULTISAMPLE);
 
         glClearDepth(1.0f);
@@ -158,7 +156,7 @@ public final class Game implements UiLayer, AutoCloseable {
             spriteBatch.begin(0, 0, width, height, true);
             x += k * delta;
             scale *= (1 - 0.25 * delta);
-            spriteBatch.draw(cuddles, (int) x, 4, (int) (400 * scale), (int) (400 * scale), 0xffffffff);
+            //spriteBatch.draw(cuddles, (int) x, 4, (int) (400 * scale), (int) (400 * scale), 0xffffffff);
 
             //spriteBatch.draw(liberationMono.texture(), 0, 0, 256, 128, 0xffffffff);
 //        spriteBatch.draw(liberationMono.texture(), 0, -200, 400, 400, 0xffffffff);

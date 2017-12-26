@@ -2,6 +2,7 @@ package com.github.ykiselev.opengl.models;
 
 import com.github.ykiselev.opengl.IndexedGeometrySource;
 import com.github.ykiselev.opengl.matrices.Matrix;
+import com.github.ykiselev.opengl.matrices.Vector3f;
 import com.github.ykiselev.opengl.shaders.ProgramObject;
 import com.github.ykiselev.opengl.shaders.uniforms.UniformVariable;
 import com.github.ykiselev.opengl.vbo.IndexBufferObject;
@@ -79,20 +80,31 @@ public final class GenericIndexedGeometry implements AutoCloseable {
         vao.bind();
         program.bind();
 
+        final long sec = System.currentTimeMillis() / 100;
+
         try (MemoryStack ms = MemoryStack.stackPush()) {
-            final FloatBuffer tm = ms.mallocFloat(16);
-            Matrix.identity(tm);
-            Matrix.translate(tm, 0, 0, -2, tm);
-            //Matrix.scale(tm, 240, 240, 1, tm);
+            final double alpha = Math.toRadians(sec % 360);
 
-            final long sec = System.currentTimeMillis() / 100;
+            final FloatBuffer rm2 = ms.mallocFloat(16);
+            //Matrix.lookAt(new Vector3f(0, 0, 0), new Vector3f((float) Math.sin(alpha), (float) Math.cos(alpha), 0), 0, rm2);
+            Matrix.lookAt(
+                    new Vector3f(0, 0, 0),
+                    new Vector3f(0, 0, -2),
+                    new Vector3f(0, 1, 0),
+                    rm2
+            );
+
             final FloatBuffer rm = ms.mallocFloat(16);
-            Matrix.rotation(Math.toRadians(-90), Math.toRadians(0), Math.toRadians(sec % 360), rm);
-
-            Matrix.multiply(rm, tm, tm);
+            Matrix.rotation(Math.toRadians(0), Math.toRadians(0), Math.toRadians(sec % 360), rm);
+            //Matrix.rotation(Math.toRadians(-90), Math.toRadians(0), Math.toRadians(sec % 360), rm);
+            //Matrix.multiply(rm, tm, tm);
 
             final FloatBuffer mvp = ms.mallocFloat(16);
-            Matrix.multiply(tm, projection, mvp);
+
+            Matrix.identity(mvp);
+            //Matrix.copy(rm2, mvp);
+            Matrix.translate(mvp, 0, 0, -2, mvp);
+            Matrix.multiply(projection, mvp, mvp);
 
             mvpUniform.matrix4(false, mvp);
         }

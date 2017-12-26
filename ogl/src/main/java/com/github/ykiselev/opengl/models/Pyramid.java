@@ -23,10 +23,13 @@ public final class Pyramid implements IndexedGeometrySource, AutoCloseable {
     public Pyramid() {
         vertices.value()
                 .clear()
-                // x, y, z, r, g, b
+                // x, y, z, r, g, b (red)
                 .putFloat(0.5f).putFloat(-0.5f).putFloat(0).putFloat(1f).putFloat(0).putFloat(0)
+                // green
                 .putFloat(0.5f).putFloat(0.5f).putFloat(0).putFloat(0).putFloat(1f).putFloat(0)
+                // blue
                 .putFloat(-0.5f).putFloat(0).putFloat(0).putFloat(0).putFloat(0).putFloat(1f)
+                // white
                 .putFloat(0).putFloat(0).putFloat(1).putFloat(1).putFloat(1).putFloat(1)
                 .flip();
         indices.value()

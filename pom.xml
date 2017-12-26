@@ -33,6 +33,7 @@
         <log4j2.version>2.9.1</log4j2.version>
         <slf4j-api.version>1.7.25</slf4j-api.version>
         <lwjgl.natives>natives-${os.detected.name}</lwjgl.natives>
+        <junit-jupiter.version>5.0.2</junit-jupiter.version>
     </properties>
 
     <modules>
@@ -114,11 +115,16 @@
                 <artifactId>guava</artifactId>
                 <version>21.0</version>
             </dependency>
+            <!-- Testing -->
             <dependency>
-                <groupId>junit</groupId>
-                <artifactId>junit</artifactId>
-                <version>4.12</version>
-                <scope>test</scope>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter-api</artifactId>
+                <version>${junit-jupiter.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter-params</artifactId>
+                <version>${junit-jupiter.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.mockito</groupId>

@@ -1,16 +1,21 @@
 package com.github.ykiselev.opengl.matrices;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.nio.FloatBuffer;
+import java.util.stream.Stream;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public class MatrixTest {
+class MatrixTest {
 
     private final FloatBuffer m = FloatBuffer.allocate(16);
 
@@ -18,14 +23,18 @@ public class MatrixTest {
         int i = 0;
         for (float v : expected) {
             final float v1 = actual.get(i);
-            Assert.assertEquals("Difference at #" + i, v, v1, 0.0001f);
+            assertEquals("Difference at #" + i, v, v1, 0.0001f);
             i++;
         }
     }
 
-    @Test
-    public void shouldBeIdentity() {
+    @BeforeEach
+    void setUp() {
         Matrix.identity(m);
+    }
+
+    @Test
+    void shouldBeIdentity() {
         assertMatrixEquals(
                 m,
                 1, 0, 0, 0,
@@ -35,32 +44,44 @@ public class MatrixTest {
         );
     }
 
-    @Test
-    public void shouldBeZero() {
-        assertMatrixEquals(
-                m,
-                0, 0, 0, 0,
-                0, 0, 0, 0,
-                0, 0, 0, 0,
-                0, 0, 0, 0
+    private static Stream<Arguments> translateArgs() {
+        return Stream.of(
+                Arguments.of(v(1, 2, 3), v(0, 0, 0), v(1, 2, 3)),
+                Arguments.of(v(1, 2, 3), v(1, 0, 0), v(2, 2, 3)),
+                Arguments.of(v(1, 2, 3), v(0, 1, 0), v(1, 3, 3)),
+                Arguments.of(v(1, 2, 3), v(0, 0, 1), v(1, 2, 4)),
+                Arguments.of(v(1, 2, 3), v(-1, 0, 0), v(0, 2, 3)),
+                Arguments.of(v(1, 2, 3), v(0, -1, 0), v(1, 1, 3)),
+                Arguments.of(v(1, 2, 3), v(0, 0, -1), v(1, 2, 2)),
+                Arguments.of(v(1, 2, 3), v(1, 1, 1), v(2, 3, 4))
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("translateArgs")
+    void shouldTranslate(Vector3f v, Vector3f trans, Vector3f expected) {
+        Matrix.translate(m, trans.x, trans.y, trans.z, m);
+        Matrix.multiply(m, v);
+        assertTrue(
+                "expected " + expected + " but was " + v,
+                expected.equals(v, 0.0001f)
         );
     }
 
     @Test
-    public void shouldTranslate() {
-        Matrix.translate(m, 1, 2, 3, m);
-        assertMatrixEquals(
-                m,
-                0, 0, 0, 0,
-                0, 0, 0, 0,
-                0, 0, 0, 0,
-                1, 2, 3, 0
-        );
+    void shouldAddTranslationToExistingMatrix() {
+        Matrix.rotation(0, 0, Math.toRadians(90), m);
+        final FloatBuffer tm = FloatBuffer.allocate(16);
+        Matrix.identity(tm);
+        Matrix.translate(tm, 1, 2, 3, tm);
+        Matrix.multiply(m, tm, m);
+        final Vector3f v = v(4, 5, 6);
+        Matrix.multiply(m, v);
+        assertVectorEquals(-7, 5, 9, v);
     }
 
     @Test
-    public void shouldScale() {
-        Matrix.identity(m);
+    void shouldScale() {
         Matrix.scale(m, 2, 4, 8, m);
         assertMatrixEquals(
                 m,
@@ -72,7 +93,7 @@ public class MatrixTest {
     }
 
     @Test
-    public void shouldTranspose() {
+    void shouldTranspose() {
         m.clear()
                 .put(1).put(2).put(3).put(4)
                 .put(5).put(6).put(7).put(8)
@@ -90,7 +111,7 @@ public class MatrixTest {
     }
 
     @Test
-    public void shouldCopy() {
+    void shouldCopy() {
         m.clear()
                 .put(1).put(2).put(3).put(4)
                 .put(5).put(6).put(7).put(8)
@@ -109,7 +130,7 @@ public class MatrixTest {
     }
 
     @Test
-    public void shouldAdd() {
+    void shouldAdd() {
         FloatBuffer a = FloatBuffer.allocate(16), b = FloatBuffer.allocate(16);
         for (int i = 1; i <= 16; i++) {
             a.put(i);
@@ -128,7 +149,7 @@ public class MatrixTest {
     }
 
     @Test
-    public void shouldMultiplyByScalar() {
+    void shouldMultiplyByScalar() {
         m.clear()
                 .put(1).put(2).put(3).put(4)
                 .put(5).put(6).put(7).put(8)
@@ -146,54 +167,91 @@ public class MatrixTest {
     }
 
     @Test
-    public void shouldRotateAroundX() {
-        final FloatBuffer vector = FloatBuffer.wrap(new float[]{0, 1, 0});
-        Matrix.rotation(Math.toRadians(90), 0, 0, m);
-        Matrix.multiply(m, vector);
-        Assert.assertEquals(0, vector.get(0), 0.001f);
-        Assert.assertEquals(0, vector.get(1), 0.001f);
-        Assert.assertEquals(1, vector.get(2), 0.001f);
+    void shouldMultiplyByVector() {
+        m.clear()
+                .put(1).put(4).put(7).put(0)
+                .put(2).put(5).put(8).put(0)
+                .put(3).put(6).put(9).put(0)
+                .put(0).put(0).put(0).put(1)
+                .flip();
+        final Vector3f v = new Vector3f(1, 2, 3);
+        Matrix.multiply(m, v);
+        assertVectorEquals(14, 32, 50, v);
     }
 
     @Test
-    public void shouldRotateAroundY() {
-        final FloatBuffer vector = FloatBuffer.wrap(new float[]{1, 0, 0});
-        Matrix.rotation(0, Math.toRadians(90), 0, m);
-        Matrix.multiply(m, vector);
-        Assert.assertEquals(0, vector.get(0), 0.001f);
-        Assert.assertEquals(0, vector.get(1), 0.001f);
-        Assert.assertEquals(-1, vector.get(2), 0.001f);
+    void shouldMultiply() {
+        m.clear()
+                .put(1).put(5).put(9).put(0)
+                .put(2).put(6).put(10).put(0)
+                .put(3).put(7).put(11).put(0)
+                .put(0).put(0).put(0).put(1)
+                .flip();
+        Matrix.multiply(
+                m,
+                FloatBuffer.wrap(
+                        new float[]{
+                                1, 0, 0, 1,
+                                0, 1, 0, 2,
+                                0, 0, 1, 3,
+                                0, 0, 0, 1
+                        }
+                ),
+                m
+        );
+        assertMatrixEquals(
+                m,
+                1, 5, 9, 1,
+                2, 6, 10, 2,
+                3, 7, 11, 3,
+                0, 0, 0, 1
+        );
+    }
+
+    /**
+     * Note: angles are in degrees!
+     */
+    private static Stream<Arguments> rotationArgs() {
+        return Stream.of(
+                Arguments.of(90d, 0d, 0d, new Vector3f(0, 1, 0), new Vector3f(0, 0, 1)),
+                Arguments.of(0d, 90d, 0d, new Vector3f(1, 0, 0), new Vector3f(0, 0, -1)),
+                Arguments.of(0d, 0d, 90d, new Vector3f(1, 0, 0), new Vector3f(0, 1, 0))
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("rotationArgs")
+    void shouldRotate(double ax, double ay, double az, Vector3f v, Vector3f expected) {
+        Matrix.rotation(
+                Math.toRadians(ax),
+                Math.toRadians(ay),
+                Math.toRadians(az),
+                m
+        );
+        Matrix.multiply(m, v);
+        assertTrue(
+                expected.equals(v, 0.0001f)
+        );
     }
 
     @Test
-    public void shouldRotateAroundZ() {
-        final FloatBuffer vector = FloatBuffer.wrap(new float[]{1, 0, 0});
-        Matrix.rotation(0, 0, Math.toRadians(90), m);
-        Matrix.multiply(m, vector);
-        Assert.assertEquals(0, vector.get(0), 0.001f);
-        Assert.assertEquals(1, vector.get(1), 0.001f);
-        Assert.assertEquals(0, vector.get(2), 0.001f);
-    }
-
-    @Test
-    public void shouldCalculateDeterminant() {
+    void shouldCalculateDeterminant() {
         m.clear()
                 .put(1).put(3).put(4).put(10)
                 .put(2).put(5).put(9).put(11)
                 .put(6).put(8).put(12).put(15)
                 .put(7).put(13).put(14).put(16)
                 .flip();
-        Assert.assertEquals(-594.0, Matrix.determinant(m), 0.0001d);
+        assertEquals(-594.0, Matrix.determinant(m), 0.0001d);
     }
 
     @Test
-    public void determinantShouldBeOneForIdentity() {
-        Matrix.identity(m);
-        Assert.assertEquals(1.0, Matrix.determinant(m), 0.0001d);
+    void determinantShouldBeOneForIdentity() {
+        assertEquals(1.0, Matrix.determinant(m), 0.0001d);
     }
 
     @Test
-    public void shouldInverse() {
+    void shouldInverse() {
         m.clear()
                 .put(1).put(2).put(4).put(6)
                 .put(3).put(1).put(7).put(10)
@@ -210,44 +268,70 @@ public class MatrixTest {
         );
     }
 
-    private void assertVectorEquals(float x, float y, float z, FloatBuffer v) {
-        assertEquals(x, v.get(0), 0.001f);
-        assertEquals(y, v.get(1), 0.001f);
-        assertEquals(z, v.get(2), 0.001f);
+    private void assertVectorEquals(float x, float y, float z, Vector3f v) {
+        assertEquals("x", x, v.x, 0.001f);
+        assertEquals("y", y, v.y, 0.001f);
+        assertEquals("z", z, v.z, 0.001f);
     }
 
     @Test
-    public void shouldBeOrthographic() {
+    void shouldBeOrthographic() {
         Matrix.orthographic(0, 100, 200, 0, -1, 1, m);
-        final FloatBuffer v = FloatBuffer.wrap(new float[]{0, 0, 0});
+        final Vector3f v = new Vector3f(0, 0, 0);
         Matrix.multiply(m, v);
         assertVectorEquals(-1, -1, 0, v);
 
-        v.clear().put(50).put(100).put(0).flip();
+        v.set(50, 100, 0);
         Matrix.multiply(m, v);
         assertVectorEquals(0, 0, 0, v);
 
-        v.clear().put(100).put(200).put(0).flip();
+        v.set(100, 200, 0);
         Matrix.multiply(m, v);
         assertVectorEquals(1, 1, 0, v);
     }
 
     @Test
-    public void shouldBePerspective() {
+    void shouldBePerspective() {
         Matrix.perspective(-1, 1, 1, -1, 0.5f, 10, m);
-        final FloatBuffer v = FloatBuffer.wrap(new float[]{0, 0, -5});
+        final Vector3f v = new Vector3f(0, 0, -5);
         Matrix.multiply(m, v);
         assertVectorEquals(0, 0, 4.4736f, v);
 
-        v.clear().put(5).put(5).put(-5).flip();
+        v.set(5, 5, -5);
         Matrix.multiply(m, v);
         assertVectorEquals(2.5f, 2.5f, 4.4736f, v);
 
-        v.clear().put(-5).put(-5).put(-5).flip();
+        v.set(-5, -5, -5);
         Matrix.multiply(m, v);
-        v.flip();
-        System.out.println(Vector.toString(v));
         assertVectorEquals(-2.5f, -2.5f, 4.4736f, v);
     }
 
+    private static Vector3f v(float x, float y, float z) {
+        return new Vector3f(x, y, z);
+    }
+
+    private static Stream<Arguments> lookAtArgs() {
+        return Stream.of(
+                Arguments.of(v(1, 0, 0), v(0, 0, 0), v(0, 0, 1), v(1, 0, 0), v(0, 1, 0), v(0, 0, 1)),
+                Arguments.of(v(1, 1, 0), v(0, 0, 0), v(0, 0, 1), v(0.707f, -0.707f, 0), v(0.707f, 0.707f, 0), v(0, 0, 1)),
+                Arguments.of(v(0, 1, 0), v(0, 0, 0), v(0, 0, 1), v(0, -1, 0), v(1, 0, 0), v(0, 0, 1)),
+                Arguments.of(v(0, 0, 1), v(0, 0, 0), v(-1, 0, 0), v(0, 0, -1), v(0, 1, 0), v(1, 0, 0)),
+                Arguments.of(v(0, 0, 0), v(-1, 0, 0), v(0, 0, 1), v(2, 0, 0), v(1, 1, 0), v(1, 0, 1)),
+                Arguments.of(v(0, 0, 0), v(-1, -1, 0), v(0, 0, 1), v(2.121f, -0.707f, 0), v(2.121f, 0.707f, 0), v(1.414f, 0, 1)),
+                Arguments.of(v(0, 0, 0), v(0, -1, 0), v(0, 0, 1), v(1, -1, 0), v(2, 0, 0), v(1, 0, 1))
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("lookAtArgs")
+    void shouldLookAt(Vector3f origin, Vector3f eye, Vector3f up, Vector3f ax, Vector3f ay, Vector3f az) {
+        Matrix.lookAt(origin, eye, up, m);
+        final Vector3f v1 = v(1, 0, 0), v2 = v(0, 1, 0), v3 = v(0, 0, 1);
+        Matrix.multiply(m, v1);
+        Matrix.multiply(m, v2);
+        Matrix.multiply(m, v3);
+        assertTrue("expected " + ax + " but was " + v1, ax.equals(v1, 0.001f));
+        assertTrue("expected " + ay + " but was " + v2, ay.equals(v2, 0.001f));
+        assertTrue("expected " + az + " but was " + v3, az.equals(v3, 0.001f));
+    }
 }

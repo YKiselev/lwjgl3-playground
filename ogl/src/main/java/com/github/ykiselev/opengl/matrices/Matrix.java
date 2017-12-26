@@ -80,7 +80,7 @@ public final class Matrix {
      * @param bottom the bottom screen coordinate (usually 0)
      * @param near   the near z value (for example -1)
      * @param far    the far z coordinate (for example 1)
-     * @param m      the buffer to store rersulting matrix in.
+     * @param m      the buffer to store resulting matrix in.
      */
     public static void perspective(float left, float right, float top, float bottom, float near, float far, FloatBuffer m) {
         m.clear();
@@ -89,6 +89,50 @@ public final class Matrix {
         m.put((right + left) / (right - left)).put((top + bottom) / (top - bottom)).put(-(far + near) / (far - near)).put(-1);
         m.put(0).put(0).put(-2 * far * near / (far - near)).put(0);
         m.flip();
+    }
+
+    /**
+     * Calculates perspective projection matrix.
+     *
+     * @param fow   the horizontal field of view (in radians)
+     * @param ratio the aspect ratio between width and height of screen
+     * @param far   the far z coordinate
+     * @param m     the buffer to store resulting matrix in.
+     */
+    public static void perspective(float fow, float ratio, float far, FloatBuffer m) {
+        final float h = 1 / ratio;
+        final float near = (float) (1 / Math.tan(0.5 * fow));
+        perspective(-1, 1, h, -h, near, far, m);
+    }
+
+    /**
+     * Creates viewing matrix derived from the {@code eye} point, a reference point {@code center} indicating the center of the scene and vector {@code up}
+     * Helpful tip: it's better to think of this as a coordinate system rotation.
+     *
+     * @param center the center of the scene
+     * @param eye    the eye point
+     * @param up     the upward vector, must not be parallel to the direction vector {@code dir = center - eye}
+     * @param m      the buffer to store resulting matrix in.
+     */
+    public static void lookAt(Vector3f center, Vector3f eye, Vector3f up, FloatBuffer m) {
+        final Vector3f f = new Vector3f(), up2 = new Vector3f(up);
+        f.subtract(center, eye);
+        f.normalize();
+        up2.normalize();
+        final Vector3f s = new Vector3f();
+        s.crossProduct(up2, f);
+        s.normalize();
+        final Vector3f u = new Vector3f();
+        u.crossProduct(f, s);
+        // Now we should create fixed-axis rotation matrix and then transpose it to get matrix to rotate given point in old cs to new
+        m.clear()
+                .put(f.x).put(f.y).put(f.z).put(0)
+                .put(s.x).put(s.y).put(s.z).put(0)
+                .put(u.x).put(u.y).put(u.z).put(0)
+                .put(0).put(0).put(0).put(1)
+                .flip();
+        transpose(m, m);
+        translate(m, -eye.x, -eye.y, -eye.z, m);
     }
 
     public static void add(FloatBuffer a, FloatBuffer b, FloatBuffer result) {
@@ -121,7 +165,7 @@ public final class Matrix {
     }
 
     /**
-     * Maltiplies matrix by scalar value.
+     * Multiplies matrix by a scalar value.
      *
      * @param a      the source matrix
      * @param s      the scalsr to multiply by
@@ -157,32 +201,62 @@ public final class Matrix {
     }
 
     /**
-     * Each column of this matrix is multiplied by row of other and then result is summed.
+     * Calclates index of cell in column-major matrix array from pair of row and column indices.
      *
-     * @param a      the first matrix
-     * @param b      the second matrix
-     * @param result the matrix to store result in
+     * @param row the matrix row (0-3)
+     * @param col the matrix column (0-3)
+     * @return the index in matrix linear buffer.
      */
+    private static int idx(int row, int col) {
+        return row + 4 * col;
+    }
+
+    /**
+     * This method is kept for debugging {@link Matrix#multiply(java.nio.FloatBuffer, java.nio.FloatBuffer, java.nio.FloatBuffer)}.
+     */
+    static void multiplyUsingLoops(FloatBuffer a, FloatBuffer b, FloatBuffer result) {
+        final float[] tmp = new float[16];
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                tmp[idx(i, j)] = a.get(idx(i, 0)) * b.get(idx(0, j))+
+                        a.get(idx(i, 1)) * b.get(idx(1, j))+
+                        a.get(idx(i, 2)) * b.get(idx(2, j))+
+                        a.get(idx(i, 3)) * b.get(idx(3, j));
+            }
+        }
+        result.clear()
+                .put(tmp)
+                .flip();
+    }
+        /**
+         * Each row of first matrix is multiplied by the column of second (component-wise) and sum of results is stored in {@code result}'s cell.
+         *
+         * @param a      the first matrix
+         * @param b      the second matrix
+         * @param result the matrix to store result in
+         */
     public static void multiply(FloatBuffer a, FloatBuffer b, FloatBuffer result) {
-        final float m0 = a.get(0) * b.get(0) + a.get(1) * b.get(4) + a.get(2) * b.get(8) + a.get(3) * b.get(12);
-        final float m1 = a.get(0) * b.get(1) + a.get(1) * b.get(5) + a.get(2) * b.get(9) + a.get(3) * b.get(13);
-        final float m2 = a.get(0) * b.get(2) + a.get(1) * b.get(6) + a.get(2) * b.get(10) + a.get(3) * b.get(14);
-        final float m3 = a.get(0) * b.get(3) + a.get(1) * b.get(7) + a.get(2) * b.get(11) + a.get(3) * b.get(15);
+        // r0
+        final float m0 = a.get(0) * b.get(0) + a.get(4) * b.get(1) + a.get(8) * b.get(2) + a.get(12) * b.get(3);
+        final float m4 = a.get(0) * b.get(4) + a.get(4) * b.get(5) + a.get(8) * b.get(6) + a.get(12) * b.get(7);
+        final float m8 = a.get(0) * b.get(8) + a.get(4) * b.get(9) + a.get(8) * b.get(10) + a.get(12) * b.get(11);
+        final float m12 = a.get(0) * b.get(12) + a.get(4) * b.get(13) + a.get(8) * b.get(14) + a.get(12) * b.get(15);
+        // r1
+        final float m1 = a.get(1) * b.get(0) + a.get(5) * b.get(1) + a.get(9) * b.get(2) + a.get(13) * b.get(3);
+        final float m5 = a.get(1) * b.get(4) + a.get(5) * b.get(5) + a.get(9) * b.get(6) + a.get(13) * b.get(7);
+        final float m9 = a.get(1) * b.get(8) + a.get(5) * b.get(9) + a.get(9) * b.get(10) + a.get(13) * b.get(11);
+        final float m13 = a.get(1) * b.get(12) + a.get(5) * b.get(13) + a.get(9) * b.get(14) + a.get(13) * b.get(15);
+        // r2
+        final float m2 = a.get(2) * b.get(0) + a.get(6) * b.get(1) + a.get(10) * b.get(2) + a.get(14) * b.get(3);
+        final float m6 = a.get(2) * b.get(4) + a.get(6) * b.get(5) + a.get(10) * b.get(6) + a.get(14) * b.get(7);
+        final float m10 = a.get(2) * b.get(8) + a.get(6) * b.get(9) + a.get(10) * b.get(10) + a.get(14) * b.get(11);
+        final float m14 = a.get(2) * b.get(12) + a.get(6) * b.get(13) + a.get(10) * b.get(14) + a.get(14) * b.get(15);
+        // r3
+        final float m3 = a.get(3) * b.get(0) + a.get(7) * b.get(1) + a.get(11) * b.get(2) + a.get(15) * b.get(3);
+        final float m7 = a.get(3) * b.get(4) + a.get(7) * b.get(5) + a.get(11) * b.get(6) + a.get(15) * b.get(7);
+        final float m11 = a.get(3) * b.get(8) + a.get(7) * b.get(9) + a.get(11) * b.get(10) + a.get(15) * b.get(11);
+        final float m15 = a.get(3) * b.get(12) + a.get(7) * b.get(13) + a.get(11) * b.get(14) + a.get(15) * b.get(15);
 
-        final float m4 = a.get(4) * b.get(0) + a.get(5) * b.get(4) + a.get(6) * b.get(8) + a.get(7) * b.get(12);
-        final float m5 = a.get(4) * b.get(1) + a.get(5) * b.get(5) + a.get(6) * b.get(9) + a.get(7) * b.get(13);
-        final float m6 = a.get(4) * b.get(2) + a.get(5) * b.get(6) + a.get(6) * b.get(10) + a.get(7) * b.get(14);
-        final float m7 = a.get(4) * b.get(3) + a.get(5) * b.get(7) + a.get(6) * b.get(11) + a.get(7) * b.get(15);
-
-        final float m8 = a.get(8) * b.get(0) + a.get(9) * b.get(4) + a.get(10) * b.get(8) + a.get(11) * b.get(12);
-        final float m9 = a.get(8) * b.get(1) + a.get(9) * b.get(5) + a.get(10) * b.get(9) + a.get(11) * b.get(13);
-        final float m10 = a.get(8) * b.get(2) + a.get(9) * b.get(6) + a.get(10) * b.get(10) + a.get(11) * b.get(14);
-        final float m11 = a.get(8) * b.get(3) + a.get(9) * b.get(7) + a.get(10) * b.get(11) + a.get(11) * b.get(15);
-
-        final float m12 = a.get(12) * b.get(0) + a.get(13) * b.get(4) + a.get(14) * b.get(8) + a.get(15) * b.get(12);
-        final float m13 = a.get(12) * b.get(1) + a.get(13) * b.get(5) + a.get(14) * b.get(9) + a.get(15) * b.get(13);
-        final float m14 = a.get(12) * b.get(2) + a.get(13) * b.get(6) + a.get(14) * b.get(10) + a.get(15) * b.get(14);
-        final float m15 = a.get(12) * b.get(3) + a.get(13) * b.get(7) + a.get(14) * b.get(11) + a.get(15) * b.get(15);
         result.clear()
                 .put(m0).put(m1).put(m2).put(m3)
                 .put(m4).put(m5).put(m6).put(m7)
@@ -192,30 +266,23 @@ public final class Matrix {
     }
 
     /**
-     * Multiplies this matrix by {@code vector} and stores result in supplied 3-component {@code vector}.
-     * Note: Vector's buffer position is advanced.
+     * Multiplies this matrix by vector {@code v} and stores result in vector {@code v}. This is a right multiplication
      *
-     * @param vector the vector to multiply by.
+     * @param a the matrix
+     * @param v the vector
      */
-    public static void multiply(FloatBuffer a, FloatBuffer vector) {
-        final int pos = vector.position();
-        final float x = vector.get();
-        final float y = vector.get();
-        final float z = vector.get();
-
-        final float x1 = a.get(0) * x + a.get(4) * y + a.get(8) * z + a.get(12);
-        final float y1 = a.get(1) * x + a.get(5) * y + a.get(9) * z + a.get(13);
-        final float z1 = a.get(2) * x + a.get(6) * y + a.get(10) * z + a.get(14);
-        final float w1 = a.get(3) * x + a.get(7) * y + a.get(11) * z + a.get(15);
-        //final float oow = 1 / w1;
-
-        vector.put(pos, x1)
-                .put(pos + 1, y1)
-                .put(pos + 2, z1);
+    public static void multiply(FloatBuffer a, Vector3f v) {
+        final float x1 = a.get(0) * v.x + a.get(4) * v.y + a.get(8) * v.z + a.get(12);
+        final float y1 = a.get(1) * v.x + a.get(5) * v.y + a.get(9) * v.z + a.get(13);
+        final float z1 = a.get(2) * v.x + a.get(6) * v.y + a.get(10) * v.z + a.get(14);
+        //final float w1 = a.get(3) * x + a.get(7) * y + a.get(11) * z + a.get(15);
+        v.x = x1;
+        v.y = y1;
+        v.z = z1;
     }
 
     /**
-     * Combines translation {@code (dx,dy,dz)} with matrix {@code a} and stores resulting matrix in {@code result}.
+     * Multiplies matrix {@code a} by translation matrix derived from {@code (dx,dy,dz)} and stores result in {@code result}.
      *
      * @param a      the original matrix to add translation to
      * @param dx     x translation
@@ -225,9 +292,16 @@ public final class Matrix {
      */
     public static void translate(FloatBuffer a, float dx, float dy, float dz, FloatBuffer result) {
         copy(a, result);
-        result.put(12, a.get(12) + dx)
-                .put(13, a.get(13) + dy)
-                .put(14, a.get(14) + dz);
+
+        final float m12 = a.get(0) * dx + a.get(4) * dy + a.get(8) * dz + a.get(12);
+        final float m13 = a.get(1) * dx + a.get(5) * dy + a.get(9) * dz + a.get(13);
+        final float m14 = a.get(2) * dx + a.get(6) * dy + a.get(10) * dz + a.get(14);
+        final float m15 = a.get(3) * dx + a.get(7) * dy + a.get(11) * dz + a.get(15);
+
+        result.put(12, m12)
+                .put(13, m13)
+                .put(14, m14)
+                .put(15, m15);
     }
 
     /**
@@ -455,5 +529,15 @@ public final class Matrix {
         for (int i = 0; i < 16; i++) {
             a.put(i, (float) (a.get(i) * ood));
         }
+    }
+
+    /**
+     * Show matrix by rows
+     */
+    public static String toString(FloatBuffer m) {
+        return "{r0(" + m.get(0) + " " + m.get(4) + " " + m.get(8) + " " + m.get(12) + "), r1(" +
+                m.get(1) + " " + m.get(5) + " " + m.get(9) + " " + m.get(13) + "), r2(" +
+                m.get(2) + " " + m.get(6) + " " + m.get(10) + " " + m.get(14) + "), r3(" +
+                m.get(3) + " " + m.get(7) + " " + m.get(11) + " " + m.get(15) + ")}";
     }
 }
