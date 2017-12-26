@@ -89,8 +89,8 @@ public final class GenericIndexedGeometry implements AutoCloseable {
             //Matrix.lookAt(new Vector3f(0, 0, 0), new Vector3f((float) Math.sin(alpha), (float) Math.cos(alpha), 0), 0, rm2);
             Matrix.lookAt(
                     new Vector3f(0, 0, 0),
-                    new Vector3f(0, 0, -2),
-                    new Vector3f(0, 1, 0),
+                    new Vector3f(-0.3f, 0, 0),
+                    new Vector3f(0, 0, 1),
                     rm2
             );
 
@@ -102,8 +102,9 @@ public final class GenericIndexedGeometry implements AutoCloseable {
             final FloatBuffer mvp = ms.mallocFloat(16);
 
             Matrix.identity(mvp);
-            //Matrix.copy(rm2, mvp);
-            Matrix.translate(mvp, 0, 0, -2, mvp);
+            Matrix.translate(mvp, 0, 0, -2f, mvp);
+            Matrix.multiply(rm, mvp, mvp);
+            Matrix.multiply(rm2, mvp, mvp);
             Matrix.multiply(projection, mvp, mvp);
 
             mvpUniform.matrix4(false, mvp);

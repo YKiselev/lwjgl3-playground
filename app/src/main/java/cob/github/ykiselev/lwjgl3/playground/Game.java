@@ -125,11 +125,11 @@ public final class Game implements UiLayer, AutoCloseable {
     @Override
     public void draw(int width, int height) {
         glViewport(0, 0, width, height);
-        Matrix.perspective((float) Math.toRadians(90), (float) width / height, 10, matrix);
+        Matrix.perspective((float) Math.toRadians(90), (float) width / height, 0.5f, 10, matrix);
 
         glFrontFace(GL_CCW);
         glCullFace(GL_BACK);
-        glDisable(GL_CULL_FACE);
+        glEnable(GL_CULL_FACE);
         glEnable(GL13.GL_MULTISAMPLE);
 
         glClearDepth(1.0f);

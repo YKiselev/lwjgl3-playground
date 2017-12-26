@@ -96,13 +96,14 @@ public final class Matrix {
      *
      * @param fow   the horizontal field of view (in radians)
      * @param ratio the aspect ratio between width and height of screen
+     * @param near  the near z coordinate (should be > 0)
      * @param far   the far z coordinate
      * @param m     the buffer to store resulting matrix in.
      */
-    public static void perspective(float fow, float ratio, float far, FloatBuffer m) {
-        final float h = 1 / ratio;
-        final float near = (float) (1 / Math.tan(0.5 * fow));
-        perspective(-1, 1, h, -h, near, far, m);
+    public static void perspective(float fow, float ratio, float near, float far, FloatBuffer m) {
+        final float w = (float) (near * Math.tan(0.5 * fow));
+        final float h = w / ratio;
+        perspective(-w, w, h, -h, near, far, m);
     }
 
     /**
@@ -218,9 +219,9 @@ public final class Matrix {
         final float[] tmp = new float[16];
         for (int i = 0; i < 4; i++) {
             for (int j = 0; j < 4; j++) {
-                tmp[idx(i, j)] = a.get(idx(i, 0)) * b.get(idx(0, j))+
-                        a.get(idx(i, 1)) * b.get(idx(1, j))+
-                        a.get(idx(i, 2)) * b.get(idx(2, j))+
+                tmp[idx(i, j)] = a.get(idx(i, 0)) * b.get(idx(0, j)) +
+                        a.get(idx(i, 1)) * b.get(idx(1, j)) +
+                        a.get(idx(i, 2)) * b.get(idx(2, j)) +
                         a.get(idx(i, 3)) * b.get(idx(3, j));
             }
         }
@@ -228,13 +229,14 @@ public final class Matrix {
                 .put(tmp)
                 .flip();
     }
-        /**
-         * Each row of first matrix is multiplied by the column of second (component-wise) and sum of results is stored in {@code result}'s cell.
-         *
-         * @param a      the first matrix
-         * @param b      the second matrix
-         * @param result the matrix to store result in
-         */
+
+    /**
+     * Each row of first matrix is multiplied by the column of second (component-wise) and sum of results is stored in {@code result}'s cell.
+     *
+     * @param a      the first matrix
+     * @param b      the second matrix
+     * @param result the matrix to store result in
+     */
     public static void multiply(FloatBuffer a, FloatBuffer b, FloatBuffer result) {
         // r0
         final float m0 = a.get(0) * b.get(0) + a.get(4) * b.get(1) + a.get(8) * b.get(2) + a.get(12) * b.get(3);
