@@ -107,9 +107,9 @@ public final class GenericIndexedGeometry implements AutoCloseable {
 
             // t * r * p = M
             Matrix.identity(mvp);
-            Matrix.translate(mvp, 1, 0, 0, mvp);
+            //Matrix.translate(mvp, 1, 0, 0, mvp);
             Matrix.multiply(rm2, mvp, mvp);
-            Matrix.multiply(mvp, rm, mvp);
+            //Matrix.multiply(mvp, rm, mvp);
             Matrix.multiply(projection, mvp, mvp);
 
             // M = p * t * r
