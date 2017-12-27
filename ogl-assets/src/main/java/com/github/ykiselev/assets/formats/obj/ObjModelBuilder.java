@@ -125,7 +125,8 @@ public final class ObjModelBuilder {
      * @return parsed face
      */
     private ObjFace face(String[] v) {
-        final int[] indices = new int[v.length];
+        // We don't need 'f' (command itself)
+        final int[] indices = new int[v.length - 1];
         int i = 0, prev = -1;
         for (int k = 1; k < v.length; k++) {
             // Each vertex may be either v or v/vt or v//vn or v/vt/vn
@@ -150,11 +151,14 @@ public final class ObjModelBuilder {
                 normalIndex = Integer.parseInt(vtn[2]);
             }
             prev = vtn.length;
-            indices[i] = denormalizedVertices.add(
+            // de-normalized vertices is a float array so it return index of first float in item (where item is our vertex)
+            final int indexOfFirstFloat = denormalizedVertices.add(
                     vertexIndex,
                     texCoordIndex,
                     normalIndex
             );
+            // convert index of first float in vertex into actual vertex index
+            indices[i] = indexOfFirstFloat / denormalizedVertices.itemSize();
             i++;
         }
         return new ObjFace(

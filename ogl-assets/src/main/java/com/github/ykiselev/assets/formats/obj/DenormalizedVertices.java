@@ -41,7 +41,7 @@ public final class DenormalizedVertices extends ObjFloatArray {
      * @param vertex    the vertex index
      * @param texCoords the texture coordinates index
      * @param normal    the normal index
-     * @return the index of de-normalized vertex
+     * @return the index of first float element of de-normalized vertex (to get real index you need to divide this by vertex size in floats)
      */
     public int add(int vertex, int texCoords, int normal) {
         return map.computeIfAbsent(

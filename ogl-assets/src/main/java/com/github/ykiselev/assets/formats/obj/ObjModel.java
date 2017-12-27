@@ -60,7 +60,7 @@ public final class ObjModel {
 
         private final MemAlloc wrappedIndices;
 
-        public ObjModelIndexedGeometrySource(MemAlloc wrappedVertices, MemAlloc wrappedIndices) {
+        ObjModelIndexedGeometrySource(MemAlloc wrappedVertices, MemAlloc wrappedIndices) {
             this.wrappedVertices = wrappedVertices;
             this.wrappedIndices = wrappedIndices;
         }

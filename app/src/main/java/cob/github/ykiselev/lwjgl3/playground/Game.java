@@ -6,15 +6,19 @@ import cob.github.ykiselev.lwjgl3.events.layers.ShowMenuEvent;
 import cob.github.ykiselev.lwjgl3.host.Host;
 import cob.github.ykiselev.lwjgl3.layers.UiLayer;
 import com.github.ykiselev.assets.Assets;
+import com.github.ykiselev.assets.formats.obj.ObjModel;
 import com.github.ykiselev.opengl.matrices.Matrix;
+import com.github.ykiselev.opengl.matrices.Vector3f;
 import com.github.ykiselev.opengl.models.GenericIndexedGeometry;
 import com.github.ykiselev.opengl.models.Pyramid;
 import com.github.ykiselev.opengl.shaders.ProgramObject;
+import com.github.ykiselev.opengl.shaders.uniforms.UniformVariable;
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
 import com.github.ykiselev.opengl.text.SpriteFont;
 import com.github.ykiselev.opengl.textures.Texture2d;
 import com.github.ykiselev.opengl.vertices.VertexDefinitions;
 import org.lwjgl.opengl.GL13;
+import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,11 +33,13 @@ import static org.lwjgl.opengl.GL11.GL_CCW;
 import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.GL_CULL_FACE;
 import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
+import static org.lwjgl.opengl.GL11.GL_DEPTH_TEST;
+import static org.lwjgl.opengl.GL11.GL_LESS;
 import static org.lwjgl.opengl.GL11.glClear;
 import static org.lwjgl.opengl.GL11.glClearColor;
 import static org.lwjgl.opengl.GL11.glClearDepth;
 import static org.lwjgl.opengl.GL11.glCullFace;
-import static org.lwjgl.opengl.GL11.glDisable;
+import static org.lwjgl.opengl.GL11.glDepthFunc;
 import static org.lwjgl.opengl.GL11.glEnable;
 import static org.lwjgl.opengl.GL11.glFrontFace;
 import static org.lwjgl.opengl.GL11.glViewport;
@@ -55,7 +61,9 @@ public final class Game implements UiLayer, AutoCloseable {
 
     private final SpriteFont liberationMono;
 
-    private final FloatBuffer matrix;
+    private final FloatBuffer projection;
+
+    private final GenericIndexedGeometry pyramid;
 
     private final GenericIndexedGeometry cubes;
 
@@ -69,6 +77,8 @@ public final class Game implements UiLayer, AutoCloseable {
 
     private long frames;
 
+    private final UniformVariable texUniform;
+
     public Game(Host host, Assets assets) {
         this.host = host;
         this.group = new SubscriberGroupBuilder()
@@ -79,13 +89,25 @@ public final class Game implements UiLayer, AutoCloseable {
         cuddles = assets.load("images/htf-cuddles.jpg", Texture2d.class);
         liberationMono = assets.load("fonts/Liberation Mono.sf", SpriteFont.class);
 
-        //final ObjModel model = assets.load("models/2cubes.obj", ObjModel.class);
-        final ProgramObject program = assets.load("progs/colored.conf", ProgramObject.class);
+        final ProgramObject generic = assets.load("progs/generic.conf", ProgramObject.class);
+        final ObjModel model = assets.load("models/2cubes.obj", ObjModel.class);
+        cubes = new GenericIndexedGeometry(
+                generic,
+                VertexDefinitions.POSITION_TEXTURE_NORMAL,
+                model.toIndexedTriangles()
+        );
+        texUniform = generic.lookup("tex");
+
+        final ProgramObject colored = assets.load("progs/colored.conf", ProgramObject.class);
         try (Pyramid p = new Pyramid()) {
-            cubes = new GenericIndexedGeometry(program, VertexDefinitions.POSITION_COLOR, p);
+            pyramid = new GenericIndexedGeometry(
+                    colored,
+                    VertexDefinitions.POSITION_COLOR,
+                    p
+            );
         }
-        //cubes = new GenericIndexedGeometry(program, model.toIndexedTriangles());
-        matrix = MemoryUtil.memAllocFloat(16);
+
+        projection = MemoryUtil.memAllocFloat(16);
     }
 
 
@@ -117,26 +139,119 @@ public final class Game implements UiLayer, AutoCloseable {
     @Override
     public void close() {
         spriteBatch.close();
+        pyramid.close();
         cubes.close();
-        MemoryUtil.memFree(matrix);
+        MemoryUtil.memFree(projection);
         group.unsubscribe();
+    }
+
+    private void drawPyramids(){
+        final double sec = System.currentTimeMillis() / 1000.0;
+        try (MemoryStack ms = MemoryStack.stackPush()) {
+            final FloatBuffer view = ms.mallocFloat(16);
+            final double beta = Math.toRadians(15.0 * sec % 360);
+            final float radius = 4;
+            final float x = (float) (Math.sin(beta) * radius);
+            final float z = (float) (Math.cos(beta) * radius);
+            Matrix.lookAt(
+                    new Vector3f(0, 0, 0),
+                    new Vector3f(x, z, -0.5f),
+                    new Vector3f(0, 0, 1),
+                    view
+            );
+
+            final FloatBuffer vp = ms.mallocFloat(16);
+            Matrix.multiply(projection, view, vp);
+
+            final FloatBuffer rm = ms.mallocFloat(16);
+            Matrix.rotation(0, 0, Math.toRadians(25 * sec % 360), rm);
+
+            final FloatBuffer mvp = ms.mallocFloat(16);
+
+            // 1
+            Matrix.multiply(vp, rm, mvp);
+            pyramid.draw(mvp);
+
+            // 2
+            Matrix.translate(vp, 1, 1, 0.5f, mvp);
+            Matrix.scale(mvp, 2, 2, 2, mvp);
+            Matrix.multiply(mvp, rm, mvp);
+            pyramid.draw(mvp);
+
+            // 3
+            Matrix.translate(vp, -1, -1, -0.5f, mvp);
+            Matrix.multiply(mvp, rm, mvp);
+            pyramid.draw(mvp);
+        }
     }
 
     @Override
     public void draw(int width, int height) {
         glViewport(0, 0, width, height);
-        Matrix.perspective((float) Math.toRadians(90), (float) width / height, 0.1f, 100, matrix);
+        Matrix.perspective(
+                (float) Math.toRadians(90),
+                (float) width / height,
+                0.1f,
+                100,
+                projection
+        );
 
         glFrontFace(GL_CCW);
         glCullFace(GL_BACK);
         glEnable(GL_CULL_FACE);
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LESS);
         glEnable(GL13.GL_MULTISAMPLE);
 
         glClearDepth(1.0f);
         glClearColor(0, 0, 0.5f, 1);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        cubes.draw(matrix);
+        //drawPyramids();
+
+        final double sec = System.currentTimeMillis() / 1000.0;
+        try (MemoryStack ms = MemoryStack.stackPush()) {
+            final FloatBuffer view = ms.mallocFloat(16);
+            final double beta = Math.toRadians(15.0 * sec % 360);
+
+            final float radius = 8;
+            final float x = (float) (Math.sin(beta) * radius);
+            final float z = (float) (Math.cos(beta) * radius);
+            Matrix.lookAt(
+                    new Vector3f(0, 0, 0),
+                    new Vector3f(x, z, -0.5f),
+                    new Vector3f(0, 0, 1),
+                    view
+            );
+
+            final FloatBuffer vp = ms.mallocFloat(16);
+            Matrix.multiply(projection, view, vp);
+
+            final FloatBuffer rm = ms.mallocFloat(16);
+            Matrix.rotation(0, 0, Math.toRadians(25 * sec % 360), rm);
+
+            final FloatBuffer mvp = ms.mallocFloat(16);
+
+            texUniform.value(0);
+
+            // 1
+            Matrix.multiply(vp, rm, mvp);
+            cuddles.bind();
+            cubes.draw(mvp);
+
+            // 2
+//            Matrix.translate(vp, 1, 1, 0.5f, mvp);
+//            Matrix.scale(mvp, 2, 2, 2, mvp);
+//            Matrix.multiply(mvp, rm, mvp);
+//            pyramid.draw(mvp);
+
+            // 3
+//            Matrix.translate(vp, -1, -1, -0.5f, mvp);
+//            Matrix.multiply(mvp, rm, mvp);
+//            pyramid.draw(mvp);
+
+            cuddles.unbind();
+        }
 
         final double t = glfwGetTime();
         final double fps = (double) frames / t;
@@ -159,15 +274,6 @@ public final class Game implements UiLayer, AutoCloseable {
             scale *= (1 - 0.25 * delta);
             //spriteBatch.draw(cuddles, (int) x, 4, (int) (400 * scale), (int) (400 * scale), 0xffffffff);
 
-            //spriteBatch.draw(liberationMono.texture(), 0, 0, 256, 128, 0xffffffff);
-//        spriteBatch.draw(liberationMono.texture(), 0, -200, 400, 400, 0xffffffff);
-//        spriteBatch.draw(liberationMono.texture(), -100, -50, 400, 400, 0xffffffff);
-//        spriteBatch.draw(liberationMono.texture(), -100, 50, 400, 400, 0xffffffff);
-//        spriteBatch.draw(liberationMono.texture(), 100, -350, 400, 400, 0xffffffff);
-            //spriteBatch.draw(liberationMono, 250, 200, "ABCD EFGH IJKL", 200, 0xff00ffff);
-            //spriteBatch.draw(liberationMono, 250, 230, "Ерунда какая-то получается, правда? 01234567890-=+./ёЁ", 400, 0xff00ffff);
-            //spriteBatch.draw(liberationMono, 10, 400, "Hello, world!\nПривет!", 200, 0xffffffff);
-
             spriteBatch.draw(
                     liberationMono,
                     0,
@@ -180,8 +286,5 @@ public final class Game implements UiLayer, AutoCloseable {
         }
 
         frames++;
-    }
-
-    public void update() {
     }
 }

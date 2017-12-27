@@ -16,7 +16,7 @@ import java.nio.ByteBuffer;
  */
 public final class Pyramid implements IndexedGeometrySource, AutoCloseable {
 
-    private Wrap<ByteBuffer> vertices = new MemAlloc(4 * Float.BYTES * (3 + 2 + 3));
+    private Wrap<ByteBuffer> vertices = new MemAlloc(4 * Float.BYTES * (3 + 3));
 
     private Wrap<ByteBuffer> indices = new MemAlloc(12 * Integer.BYTES);
 
