@@ -45,9 +45,13 @@ public final class Matrix {
      */
     public static void copy(FloatBuffer a, FloatBuffer result) {
         if (result != a) {
+            if (a.remaining() != 16) {
+                throw new IllegalArgumentException("Expected exactly 16 elements!");
+            }
             result.clear()
                     .put(a)
                     .flip();
+            a.flip();
         }
     }
 
@@ -107,31 +111,37 @@ public final class Matrix {
     }
 
     /**
-     * Creates viewing matrix derived from the {@code eye} point, a reference point {@code center} indicating the center of the scene and vector {@code up}
+     * Creates viewing matrix derived from the {@code eye} point, a reference point {@code target} indicating the target of the scene and vector {@code up}
      * Helpful tip: it's better to think of this as a coordinate system rotation.
      *
-     * @param center the center of the scene
+     * @param target the target of the scene
      * @param eye    the eye point
-     * @param up     the upward vector, must not be parallel to the direction vector {@code dir = center - eye}
+     * @param up     the upward vector, must not be parallel to the direction vector {@code dir = target - eye}
      * @param m      the buffer to store resulting matrix in.
      */
-    public static void lookAt(Vector3f center, Vector3f eye, Vector3f up, FloatBuffer m) {
-        final Vector3f f = new Vector3f(), up2 = new Vector3f(up);
-        f.subtract(center, eye);
-        f.normalize();
+    public static void lookAt(Vector3f target, Vector3f eye, Vector3f up, FloatBuffer m) {
+        final Vector3f zaxis = new Vector3f(), up2 = new Vector3f(up);
+        zaxis.subtract(eye, target);
+        zaxis.normalize();
         up2.normalize();
-        final Vector3f s = new Vector3f();
-        s.crossProduct(up2, f);
-        s.normalize();
-        final Vector3f u = new Vector3f();
-        u.crossProduct(f, s);
-        // Now we should create fixed-axis rotation matrix and then transpose it to get matrix to rotate given point in old cs to new
+        final Vector3f xaxis = new Vector3f();
+        xaxis.crossProduct(up2, zaxis);
+        xaxis.normalize();
+        final Vector3f yaxis = new Vector3f();
+        yaxis.crossProduct(zaxis, xaxis);
         m.clear()
-                .put(f.x).put(f.y).put(f.z).put(0)
-                .put(s.x).put(s.y).put(s.z).put(0)
-                .put(u.x).put(u.y).put(u.z).put(0)
+                .put(xaxis.x).put(xaxis.y).put(xaxis.z).put(0)
+                .put(yaxis.x).put(yaxis.y).put(yaxis.z).put(0)
+                .put(zaxis.x).put(zaxis.y).put(zaxis.z).put(0)
                 .put(0).put(0).put(0).put(1)
                 .flip();
+
+//        m.clear()
+//                .put(zaxis.x).put(zaxis.y).put(zaxis.z).put(0)
+//                .put(xaxis.x).put(xaxis.y).put(xaxis.z).put(0)
+//                .put(yaxis.x).put(yaxis.y).put(yaxis.z).put(0)
+//                .put(0).put(0).put(0).put(1)
+//                .flip();
         transpose(m, m);
         translate(m, -eye.x, -eye.y, -eye.z, m);
     }
@@ -542,4 +552,14 @@ public final class Matrix {
                 m.get(2) + " " + m.get(6) + " " + m.get(10) + " " + m.get(14) + "), r3(" +
                 m.get(3) + " " + m.get(7) + " " + m.get(11) + " " + m.get(15) + ")}";
     }
+
+    /**
+     * Convert to float array
+     */
+    public static float[] toArray(FloatBuffer m) {
+        float[] result = new float[16];
+        m.get(result).flip();
+        return result;
+    }
+
 }

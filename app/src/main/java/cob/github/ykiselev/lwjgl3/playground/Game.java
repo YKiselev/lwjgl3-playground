@@ -125,7 +125,7 @@ public final class Game implements UiLayer, AutoCloseable {
     @Override
     public void draw(int width, int height) {
         glViewport(0, 0, width, height);
-        Matrix.perspective((float) Math.toRadians(90), (float) width / height, 0.5f, 10, matrix);
+        Matrix.perspective((float) Math.toRadians(90), (float) width / height, 0.1f, 100, matrix);
 
         glFrontFace(GL_CCW);
         glCullFace(GL_BACK);
@@ -138,6 +138,9 @@ public final class Game implements UiLayer, AutoCloseable {
 
         cubes.draw(matrix);
 
+        final double t = glfwGetTime();
+        final double fps = (double) frames / t;
+
         if (true) {
             if (x > width) {
                 x = width;
@@ -149,8 +152,6 @@ public final class Game implements UiLayer, AutoCloseable {
             if (scale < 0.1) {
                 scale = 1.0;
             }
-            final double t = glfwGetTime();
-            final double fps = (double) frames / t;
             final double delta = t - t0;
             t0 = t;
             spriteBatch.begin(0, 0, width, height, true);

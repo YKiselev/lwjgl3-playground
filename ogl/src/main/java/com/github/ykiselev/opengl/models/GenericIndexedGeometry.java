@@ -80,16 +80,20 @@ public final class GenericIndexedGeometry implements AutoCloseable {
         vao.bind();
         program.bind();
 
-        final long sec = System.currentTimeMillis() / 100;
+        final double sec = System.currentTimeMillis() / 1000.0;
+
+        final float radius = 4;
 
         try (MemoryStack ms = MemoryStack.stackPush()) {
-            final double alpha = Math.toRadians(sec % 360);
+            final double beta = Math.toRadians(15.0 * sec % 360);
 
             final FloatBuffer rm2 = ms.mallocFloat(16);
             //Matrix.lookAt(new Vector3f(0, 0, 0), new Vector3f((float) Math.sin(alpha), (float) Math.cos(alpha), 0), 0, rm2);
+            final float x = (float) (Math.sin(beta) * radius);
+            final float z = (float) (Math.cos(beta) * radius);
             Matrix.lookAt(
                     new Vector3f(0, 0, 0),
-                    new Vector3f(-0.3f, 0, 0),
+                    new Vector3f(x, z, -0.5f),
                     new Vector3f(0, 0, 1),
                     rm2
             );
@@ -97,15 +101,20 @@ public final class GenericIndexedGeometry implements AutoCloseable {
             final FloatBuffer rm = ms.mallocFloat(16);
             Matrix.rotation(Math.toRadians(0), Math.toRadians(0), Math.toRadians(sec % 360), rm);
             //Matrix.rotation(Math.toRadians(-90), Math.toRadians(0), Math.toRadians(sec % 360), rm);
-            //Matrix.multiply(rm, tm, tm);
 
             final FloatBuffer mvp = ms.mallocFloat(16);
 
+            // t * r * p = M
             Matrix.identity(mvp);
-            Matrix.translate(mvp, 0, 0, -2f, mvp);
-            Matrix.multiply(rm, mvp, mvp);
+            //Matrix.translate(mvp, 0, 0, -4f, mvp);
             Matrix.multiply(rm2, mvp, mvp);
+            //Matrix.multiply(mvp, rm, mvp);
             Matrix.multiply(projection, mvp, mvp);
+
+            // M = p * t * r
+//            Matrix.copy(projection, mvp);
+//            Matrix.translate(mvp, 1, 0, -5f, mvp);
+//            Matrix.multiply(mvp, rm, mvp);
 
             mvpUniform.matrix4(false, mvp);
         }

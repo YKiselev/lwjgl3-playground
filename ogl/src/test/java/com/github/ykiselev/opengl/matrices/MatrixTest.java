@@ -9,6 +9,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import java.nio.FloatBuffer;
 import java.util.stream.Stream;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -69,15 +70,36 @@ class MatrixTest {
     }
 
     @Test
-    void shouldAddTranslationToExistingMatrix() {
-        Matrix.rotation(0, 0, Math.toRadians(90), m);
+    void addingTranslationShouldBeEqualToMultiplication() {
+        final FloatBuffer rm = FloatBuffer.allocate(16);
+        Matrix.rotation(0, 0, Math.toRadians(45), rm);
         final FloatBuffer tm = FloatBuffer.allocate(16);
         Matrix.identity(tm);
         Matrix.translate(tm, 1, 2, 3, tm);
-        Matrix.multiply(m, tm, m);
+
+        // multiply rm * tm
+        Matrix.multiply(rm, tm, m);
+        final float[] r1 = Matrix.toArray(m);
+
+        // add translation and store in separate matrix
+        Matrix.translate(rm, 1, 2, 3, m);
+        final float[] r2 = Matrix.toArray(m);
+
+        // add translation in-place
+        Matrix.translate(rm, 1, 2, 3, rm);
+        final float[] r3 = Matrix.toArray(rm);
+
+        assertArrayEquals("r1 == r2 ?", r1, r2, 0.001f);
+        assertArrayEquals("r2 == r3 ?", r2, r3, 0.001f);
+    }
+
+    @Test
+    void shouldAddTranslationToExistingMatrix() {
+        Matrix.rotation(0, 0, Math.toRadians(45), m);
+        Matrix.translate(m, 1, 2, 3, m);
         final Vector3f v = v(4, 5, 6);
         Matrix.multiply(m, v);
-        assertVectorEquals(-7, 5, 9, v);
+        assertVectorEquals(-1.414f, 8.485f, 9, v);
     }
 
     @Test
