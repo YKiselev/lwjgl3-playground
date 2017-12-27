@@ -13,6 +13,7 @@ import org.lwjgl.system.MemoryStack;
 
 import java.nio.FloatBuffer;
 
+import static java.util.Objects.deepEquals;
 import static java.util.Objects.requireNonNull;
 import static org.lwjgl.opengl.GL11.GL_UNSIGNED_INT;
 import static org.lwjgl.opengl.GL11.glDrawElements;
@@ -99,16 +100,16 @@ public final class GenericIndexedGeometry implements AutoCloseable {
             );
 
             final FloatBuffer rm = ms.mallocFloat(16);
-            Matrix.rotation(Math.toRadians(0), Math.toRadians(0), Math.toRadians(sec % 360), rm);
+            Matrix.rotation(Math.toRadians(0), Math.toRadians(0), Math.toRadians(10*sec%360), rm);
             //Matrix.rotation(Math.toRadians(-90), Math.toRadians(0), Math.toRadians(sec % 360), rm);
 
             final FloatBuffer mvp = ms.mallocFloat(16);
 
             // t * r * p = M
             Matrix.identity(mvp);
-            //Matrix.translate(mvp, 0, 0, -4f, mvp);
+            Matrix.translate(mvp, 1, 0, 0, mvp);
             Matrix.multiply(rm2, mvp, mvp);
-            //Matrix.multiply(mvp, rm, mvp);
+            Matrix.multiply(mvp, rm, mvp);
             Matrix.multiply(projection, mvp, mvp);
 
             // M = p * t * r
