@@ -160,6 +160,10 @@ public final class Vector3f {
         apply(a, b, Ops.ADDITION);
     }
 
+    public void add(Vector3f b) {
+        add(this, b);
+    }
+
     /**
      * Subtracts one vector from another.
      *
@@ -168,6 +172,10 @@ public final class Vector3f {
      */
     public void subtract(Vector3f a, Vector3f b) {
         apply(a, b, Ops.SUBTRACTION);
+    }
+
+    public void subtract(Vector3f b) {
+        subtract(this, b);
     }
 
     /**
@@ -180,6 +188,10 @@ public final class Vector3f {
         apply(a, b, Ops.MULTIPLICATION);
     }
 
+    public void multiply(Vector3f b) {
+        multiply(this, b);
+    }
+
     /**
      * Divides one vector by another.
      *
@@ -188,6 +200,10 @@ public final class Vector3f {
      */
     public void divide(Vector3f a, Vector3f b) {
         apply(a, b, Ops.DIVISION);
+    }
+
+    public void divide(Vector3f b) {
+        divide(this, b);
     }
 
     /**

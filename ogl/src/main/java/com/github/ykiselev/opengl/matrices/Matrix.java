@@ -111,21 +111,20 @@ public final class Matrix {
     }
 
     /**
-     * Creates viewing matrix derived from the {@code eye} point, a reference point {@code target} indicating the target of the scene and vector {@code up}
+     * Creates viewing matrix derived from the {@code eye} point, a reference point {@code target} indicating the center of the scene and vector {@code up}
      * Helpful tip: it's better to think of this as a coordinate system rotation.
      *
-     * @param target the target of the scene
+     * @param target the target point in the scene
      * @param eye    the eye point
      * @param up     the upward vector, must not be parallel to the direction vector {@code dir = target - eye}
      * @param m      the buffer to store resulting matrix in.
      */
     public static void lookAt(Vector3f target, Vector3f eye, Vector3f up, FloatBuffer m) {
-        final Vector3f zaxis = new Vector3f(), up2 = new Vector3f(up);
+        final Vector3f zaxis = new Vector3f();
         zaxis.subtract(eye, target);
         zaxis.normalize();
-        up2.normalize();
         final Vector3f xaxis = new Vector3f();
-        xaxis.crossProduct(up2, zaxis);
+        xaxis.crossProduct(up, zaxis);
         xaxis.normalize();
         final Vector3f yaxis = new Vector3f();
         yaxis.crossProduct(zaxis, xaxis);
@@ -135,17 +134,16 @@ public final class Matrix {
                 .put(zaxis.x).put(zaxis.y).put(zaxis.z).put(0)
                 .put(0).put(0).put(0).put(1)
                 .flip();
-
-//        m.clear()
-//                .put(zaxis.x).put(zaxis.y).put(zaxis.z).put(0)
-//                .put(xaxis.x).put(xaxis.y).put(xaxis.z).put(0)
-//                .put(yaxis.x).put(yaxis.y).put(yaxis.z).put(0)
-//                .put(0).put(0).put(0).put(1)
-//                .flip();
         transpose(m, m);
         translate(m, -eye.x, -eye.y, -eye.z, m);
     }
 
+    /**
+     * Adds one matrix to another.
+     * @param a the first matrix
+     * @param b the second matrix
+     * @param result the resulting matrix buffer
+     */
     public static void add(FloatBuffer a, FloatBuffer b, FloatBuffer result) {
         float m0 = a.get(0) + b.get(0);
         float m1 = a.get(1) + b.get(1);
@@ -179,7 +177,7 @@ public final class Matrix {
      * Multiplies matrix by a scalar value.
      *
      * @param a      the source matrix
-     * @param s      the scalsr to multiply by
+     * @param s      the scalar to multiply by
      * @param result the buffer to store result in
      */
     public static void multiply(FloatBuffer a, float s, FloatBuffer result) {

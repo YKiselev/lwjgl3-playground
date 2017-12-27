@@ -95,7 +95,7 @@ public class Vector3fTest {
     }
 
     @Test
-    public void add() {
+    public void addTwoArgs() {
         final Vector3f v = new Vector3f();
         v.add(
                 new Vector3f(1, 2, 3),
@@ -105,7 +105,14 @@ public class Vector3fTest {
     }
 
     @Test
-    public void subtract() {
+    public void add() {
+        final Vector3f v = new Vector3f(1, 2, 3);
+        v.add(new Vector3f(4, 5, 6));
+        assertVectorEquals(5, 7, 9, v);
+    }
+
+    @Test
+    public void subtractTwoArgs() {
         final Vector3f v = new Vector3f();
         v.subtract(
                 new Vector3f(4, 7, 11),
@@ -115,7 +122,14 @@ public class Vector3fTest {
     }
 
     @Test
-    public void multiply() {
+    public void subtract() {
+        final Vector3f v = new Vector3f(4, 7, 11);
+        v.subtract(new Vector3f(1, 2, 3));
+        assertVectorEquals(3, 5, 8, v);
+    }
+
+    @Test
+    public void multiplyTwoArgs() {
         final Vector3f v = new Vector3f();
         v.multiply(
                 new Vector3f(1, 2, 3),
@@ -125,12 +139,26 @@ public class Vector3fTest {
     }
 
     @Test
-    public void divide() {
+    public void multiply() {
+        final Vector3f v = new Vector3f(1, 2, 3);
+        v.multiply(new Vector3f(4, 5, 6));
+        assertVectorEquals(4, 10, 18, v);
+    }
+
+    @Test
+    public void divideTwoArgs() {
         final Vector3f v = new Vector3f();
         v.divide(
                 new Vector3f(2, 6, 9),
                 new Vector3f(1, 2, 3)
         );
+        assertVectorEquals(2, 3, 3, v);
+    }
+
+    @Test
+    public void divide() {
+        final Vector3f v = new Vector3f(2, 6, 9);
+        v.divide(new Vector3f(1, 2, 3));
         assertVectorEquals(2, 3, 3, v);
     }
 
