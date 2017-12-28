@@ -52,11 +52,13 @@ public final class GenericIndexedGeometry implements AutoCloseable {
         vbo = new VertexBufferObject();
         vbo.bind();
         vertexDefinition.apply(vbo);
-        glBufferData(GL_ARRAY_BUFFER, geometrySource.vertices(), GL_STATIC_DRAW);
+        vbo.bufferData(geometrySource.vertices(), GL_STATIC_DRAW);
+        //glBufferData(GL_ARRAY_BUFFER, geometrySource.vertices(), GL_STATIC_DRAW);
 
         ebo = new IndexBufferObject();
         ebo.bind();
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, geometrySource.indices(), GL_STATIC_DRAW);
+        ebo.bufferData(geometrySource.indices(), GL_STATIC_DRAW);
+        //glBufferData(GL_ELEMENT_ARRAY_BUFFER, geometrySource.indices(), GL_STATIC_DRAW);
 
         vao.unbind();
         vbo.unbind();

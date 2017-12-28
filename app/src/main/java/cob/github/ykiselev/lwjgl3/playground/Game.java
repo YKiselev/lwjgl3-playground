@@ -17,7 +17,6 @@ import com.github.ykiselev.opengl.sprites.SpriteBatch;
 import com.github.ykiselev.opengl.text.SpriteFont;
 import com.github.ykiselev.opengl.textures.Texture2d;
 import com.github.ykiselev.opengl.vertices.VertexDefinitions;
-import org.lwjgl.opengl.GL13;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 import org.slf4j.Logger;
@@ -42,6 +41,8 @@ import static org.lwjgl.opengl.GL11.glClearColor;
 import static org.lwjgl.opengl.GL11.glClearDepth;
 import static org.lwjgl.opengl.GL11.glCullFace;
 import static org.lwjgl.opengl.GL11.glDepthFunc;
+import static org.lwjgl.opengl.GL11.glDepthMask;
+import static org.lwjgl.opengl.GL11.glDisable;
 import static org.lwjgl.opengl.GL11.glEnable;
 import static org.lwjgl.opengl.GL11.glFrontFace;
 import static org.lwjgl.opengl.GL11.glViewport;
@@ -89,6 +90,8 @@ public final class Game implements UiLayer, AutoCloseable {
 
     private final UniformVariable texUniform;
 
+    private final FrameBuffer frameBuffer;
+
     public Game(Host host, Assets assets) {
         this.host = host;
         this.group = new SubscriberGroupBuilder()
@@ -118,6 +121,8 @@ public final class Game implements UiLayer, AutoCloseable {
         }
 
         pv = MemoryUtil.memAllocFloat(16);
+
+        frameBuffer = new FrameBuffer();
     }
 
 
@@ -170,6 +175,7 @@ public final class Game implements UiLayer, AutoCloseable {
         pyramid.close();
         cubes.close();
         MemoryUtil.memFree(pv);
+        frameBuffer.close();
         group.unsubscribe();
     }
 
@@ -222,6 +228,9 @@ public final class Game implements UiLayer, AutoCloseable {
                 100,
                 pv
         );
+        if (radius < 1) {
+            radius = 1;
+        }
         if (rmbPressed) {
             cameraZ = (float) Math.max(-4, Math.min(4, cameraZ + 0.1 * cdy));
         }
@@ -243,53 +252,50 @@ public final class Game implements UiLayer, AutoCloseable {
 
     @Override
     public void draw(int width, int height) {
+        frameBuffer.size(width, height);
+
         glViewport(0, 0, width, height);
         glFrontFace(GL_CCW);
         glCullFace(GL_BACK);
         glEnable(GL_CULL_FACE);
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LESS);
-        glEnable(GL13.GL_MULTISAMPLE);
+        glDepthMask(true);
+
+        setupProjectionViewMatrix(width, height);
+
+        frameBuffer.bind();
 
         glClearDepth(1.0f);
         glClearColor(0, 0, 0.5f, 1);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        setupProjectionViewMatrix(width, height);
         drawPyramids(pv);
         drawModel(pv);
+        frameBuffer.unbind();
 
         final double t = glfwGetTime();
         final double fps = (double) frames / t;
 
-        if (true) {
-            if (x > width) {
-                x = width;
-                k *= -1.0;
-            } else if (x < 0) {
-                x = 0;
-                k *= -1.0;
-            }
-            if (scale < 0.1) {
-                scale = 1.0;
-            }
-            final double delta = t - t0;
-            t0 = t;
-            spriteBatch.begin(0, 0, width, height, true);
-            x += k * delta;
-            scale *= (1 - 0.25 * delta);
-            //spriteBatch.draw(cuddles, (int) x, 4, (int) (400 * scale), (int) (400 * scale), 0xffffffff);
+        glClearColor(0.5f, 0.5f, 0.5f, 1);
+        glClear(GL_COLOR_BUFFER_BIT);
+        glDisable(GL_DEPTH_TEST);
 
-            spriteBatch.draw(
-                    liberationMono,
-                    0,
-                    height - liberationMono.fontHeight(),
-                    String.format("avg. fps: %.2f", fps),
-                    width,
-                    0xffffffff
-            );
-            spriteBatch.end();
-        }
+        spriteBatch.begin(0, 0, width, height, true);
+        // show color buffer
+        spriteBatch.draw(frameBuffer.color(), 0, 0, width / 2, height, 0xffffffff);
+        // show depth buffer
+        spriteBatch.draw(frameBuffer.depth(), width / 2, 0, width / 2, height, 0xffffffff);
+
+        spriteBatch.draw(
+                liberationMono,
+                0,
+                height - liberationMono.fontHeight(),
+                String.format("avg. fps: %.2f", fps),
+                width,
+                0xffffffff
+        );
+        spriteBatch.end();
 
         frames++;
     }

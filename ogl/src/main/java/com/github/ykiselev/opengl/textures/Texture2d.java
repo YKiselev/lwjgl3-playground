@@ -21,12 +21,13 @@ import com.github.ykiselev.opengl.Identified;
 
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
 import static org.lwjgl.opengl.GL11.glBindTexture;
+import static org.lwjgl.opengl.GL11.glDeleteTextures;
 import static org.lwjgl.opengl.GL11.glGenTextures;
 
 /**
  * Created by Y.Kiselev on 05.06.2016.
  */
-public final class Texture2d implements Identified, Bindable {
+public final class Texture2d implements Identified, Bindable, AutoCloseable {
 
     private final int id;
 
@@ -51,5 +52,10 @@ public final class Texture2d implements Identified, Bindable {
     @Override
     public int id() {
         return id;
+    }
+
+    @Override
+    public void close() {
+        glDeleteTextures(id);
     }
 }
