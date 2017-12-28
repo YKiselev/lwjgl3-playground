@@ -85,4 +85,9 @@ public final class AppUiLayers implements UiLayers {
         this.height = height;
         layers.forEach(layer -> layer.frameBufferResized(width, height));
     }
+
+    @Override
+    public boolean scrollEvent(double dx, double dy) {
+        return dispatch(layer -> layer.scrollEvent(dx, dy));
+    }
 }

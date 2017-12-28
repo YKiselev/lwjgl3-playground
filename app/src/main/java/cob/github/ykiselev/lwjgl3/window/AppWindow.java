@@ -18,16 +18,12 @@ package cob.github.ykiselev.lwjgl3.window;
 
 import cob.github.ykiselev.lwjgl3.playground.WindowEvents;
 import org.lwjgl.glfw.GLFWCursorPosCallback;
-import org.lwjgl.glfw.GLFWCursorPosCallbackI;
 import org.lwjgl.glfw.GLFWFramebufferSizeCallback;
-import org.lwjgl.glfw.GLFWFramebufferSizeCallbackI;
 import org.lwjgl.glfw.GLFWKeyCallback;
-import org.lwjgl.glfw.GLFWKeyCallbackI;
 import org.lwjgl.glfw.GLFWMouseButtonCallback;
-import org.lwjgl.glfw.GLFWMouseButtonCallbackI;
+import org.lwjgl.glfw.GLFWScrollCallback;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.glfw.GLFWWindowSizeCallback;
-import org.lwjgl.glfw.GLFWWindowSizeCallbackI;
 import org.lwjgl.system.MemoryStack;
 
 import java.nio.IntBuffer;
@@ -55,6 +51,7 @@ import static org.lwjgl.glfw.GLFW.glfwSetCursorPosCallback;
 import static org.lwjgl.glfw.GLFW.glfwSetFramebufferSizeCallback;
 import static org.lwjgl.glfw.GLFW.glfwSetKeyCallback;
 import static org.lwjgl.glfw.GLFW.glfwSetMouseButtonCallback;
+import static org.lwjgl.glfw.GLFW.glfwSetScrollCallback;
 import static org.lwjgl.glfw.GLFW.glfwSetWindowSizeCallback;
 import static org.lwjgl.glfw.GLFW.glfwShowWindow;
 import static org.lwjgl.glfw.GLFW.glfwSwapBuffers;
@@ -96,45 +93,10 @@ public final class AppWindow implements AutoCloseable {
         @Override
         public void frameBufferResized(int width, int height) {
         }
-    };
 
-    @SuppressWarnings("FieldCanBeLocal")
-    private final GLFWFramebufferSizeCallbackI frameBufferSizeCallback = new GLFWFramebufferSizeCallback() {
         @Override
-        public void invoke(long window, int width, int height) {
-            frameBufferResized = true;
-        }
-    };
-
-    @SuppressWarnings("FieldCanBeLocal")
-    private final GLFWWindowSizeCallbackI windowSizeCallback = new GLFWWindowSizeCallback() {
-        @Override
-        public void invoke(long window, int width, int height) {
-            windowResized = true;
-        }
-    };
-
-    @SuppressWarnings("FieldCanBeLocal")
-    private final GLFWKeyCallbackI keyCallback = new GLFWKeyCallback() {
-        @Override
-        public void invoke(long window, int key, int scancode, int action, int mods) {
-            windowEvents.keyEvent(key, scancode, action, mods);
-        }
-    };
-
-    @SuppressWarnings("FieldCanBeLocal")
-    private final GLFWCursorPosCallbackI cursorPosCallback = new GLFWCursorPosCallback() {
-        @Override
-        public void invoke(long window, double xpos, double ypos) {
-            windowEvents.cursorEvent(xpos, ypos);
-        }
-    };
-
-    @SuppressWarnings("FieldCanBeLocal")
-    private final GLFWMouseButtonCallbackI mouseButtonCallback = new GLFWMouseButtonCallback() {
-        @Override
-        public void invoke(long window, int button, int action, int mods) {
-            windowEvents.mouseButtonEvent(button, action, mods);
+        public boolean scrollEvent(double dx, double dy) {
+            return true;
         }
     };
 
@@ -172,13 +134,38 @@ public final class AppWindow implements AutoCloseable {
             throw new IllegalStateException("Failed to create window");
         }
         glfwMakeContextCurrent(window);
-        glfwSetFramebufferSizeCallback(window, frameBufferSizeCallback);
-        glfwSetWindowSizeCallback(window, windowSizeCallback);
-        glfwSetKeyCallback(window, keyCallback);
-        glfwSetCursorPosCallback(window, cursorPosCallback);
-        glfwSetMouseButtonCallback(window, mouseButtonCallback);
+        glfwSetFramebufferSizeCallback(window, GLFWFramebufferSizeCallback.create(this::onFrameBufferSize));
+        glfwSetWindowSizeCallback(window, GLFWWindowSizeCallback.create(this::onWindowSize));
+        glfwSetKeyCallback(window, GLFWKeyCallback.create(this::onKey));
+        glfwSetCursorPosCallback(window, GLFWCursorPosCallback.create(this::onCursorPosition));
+        glfwSetScrollCallback(window, GLFWScrollCallback.create(this::onScroll));
+        glfwSetMouseButtonCallback(window, GLFWMouseButtonCallback.create(this::onMouseButton));
         windowResized = true;
         frameBufferResized = true;
+    }
+
+    private void onFrameBufferSize(long window, int width, int height) {
+        frameBufferResized = true;
+    }
+
+    private void onWindowSize(long window, int width, int height) {
+        windowResized = true;
+    }
+
+    private void onKey(long window, int key, int scanCode, int action, int mods) {
+        windowEvents.keyEvent(key, scanCode, action, mods);
+    }
+
+    private void onCursorPosition(long window, double x, double y) {
+        windowEvents.cursorEvent(x, y);
+    }
+
+    private void onMouseButton(long window, int button, int action, int mods) {
+        windowEvents.mouseButtonEvent(button, action, mods);
+    }
+
+    private void onScroll(long window, double dx, double dy) {
+        windowEvents.scrollEvent(dx, dy);
     }
 
     public void wireWindowEvents(WindowEvents events) {

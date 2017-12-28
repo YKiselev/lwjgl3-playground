@@ -26,6 +26,8 @@ import org.slf4j.LoggerFactory;
 import java.nio.FloatBuffer;
 
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
+import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_LEFT;
+import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_RIGHT;
 import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
 import static org.lwjgl.glfw.GLFW.glfwGetTime;
 import static org.lwjgl.opengl.GL11.GL_BACK;
@@ -61,7 +63,7 @@ public final class Game implements UiLayer, AutoCloseable {
 
     private final SpriteFont liberationMono;
 
-    private final FloatBuffer projection;
+    private final FloatBuffer pv;
 
     private final GenericIndexedGeometry pyramid;
 
@@ -74,6 +76,14 @@ public final class Game implements UiLayer, AutoCloseable {
     private double k = 50;
 
     private double scale = 1.0;
+
+    private float radius = 8;
+
+    private float cameraZ = -0.5f;
+
+    private boolean lmbPressed, rmbPressed;
+
+    private double cx, cy, cdx, cdy;
 
     private long frames;
 
@@ -107,7 +117,7 @@ public final class Game implements UiLayer, AutoCloseable {
             );
         }
 
-        projection = MemoryUtil.memAllocFloat(16);
+        pv = MemoryUtil.memAllocFloat(16);
     }
 
 
@@ -122,12 +132,24 @@ public final class Game implements UiLayer, AutoCloseable {
 
     @Override
     public void cursorEvent(double x, double y) {
-        //todo
+        cdx = x - cx;
+        cdy = y - cy;
+        cx = x;
+        cy = y;
     }
 
     @Override
     public boolean mouseButtonEvent(int button, int action, int mods) {
-        //todo
+        switch (button) {
+            case GLFW_MOUSE_BUTTON_LEFT:
+                lmbPressed = (action == GLFW_PRESS);
+                break;
+
+            case GLFW_MOUSE_BUTTON_RIGHT:
+                rmbPressed = (action == GLFW_PRESS);
+                cdx = cdy = 0;
+                break;
+        }
         return true;
     }
 
@@ -137,32 +159,23 @@ public final class Game implements UiLayer, AutoCloseable {
     }
 
     @Override
+    public boolean scrollEvent(double dx, double dy) {
+        radius += dy;
+        return true;
+    }
+
+    @Override
     public void close() {
         spriteBatch.close();
         pyramid.close();
         cubes.close();
-        MemoryUtil.memFree(projection);
+        MemoryUtil.memFree(pv);
         group.unsubscribe();
     }
 
-    private void drawPyramids(){
+    private void drawPyramids(FloatBuffer vp) {
         final double sec = System.currentTimeMillis() / 1000.0;
         try (MemoryStack ms = MemoryStack.stackPush()) {
-            final FloatBuffer view = ms.mallocFloat(16);
-            final double beta = Math.toRadians(15.0 * sec % 360);
-            final float radius = 4;
-            final float x = (float) (Math.sin(beta) * radius);
-            final float z = (float) (Math.cos(beta) * radius);
-            Matrix.lookAt(
-                    new Vector3f(0, 0, 0),
-                    new Vector3f(x, z, -0.5f),
-                    new Vector3f(0, 0, 1),
-                    view
-            );
-
-            final FloatBuffer vp = ms.mallocFloat(16);
-            Matrix.multiply(projection, view, vp);
-
             final FloatBuffer rm = ms.mallocFloat(16);
             Matrix.rotation(0, 0, Math.toRadians(25 * sec % 360), rm);
 
@@ -185,17 +198,52 @@ public final class Game implements UiLayer, AutoCloseable {
         }
     }
 
-    @Override
-    public void draw(int width, int height) {
-        glViewport(0, 0, width, height);
+    private void drawModel(FloatBuffer vp) {
+        final double sec = System.currentTimeMillis() / 1000.0;
+        texUniform.value(0);
+        cuddles.bind();
+        try (MemoryStack ms = MemoryStack.stackPush()) {
+            final FloatBuffer rm = ms.mallocFloat(16);
+            Matrix.rotation(0, 0, Math.toRadians(25 * sec % 360), rm);
+
+            final FloatBuffer mvp = ms.mallocFloat(16);
+            Matrix.multiply(vp, rm, mvp);
+
+            cubes.draw(mvp);
+        }
+        cuddles.unbind();
+    }
+
+    private void setupProjectionViewMatrix(int width, int height) {
         Matrix.perspective(
                 (float) Math.toRadians(90),
                 (float) width / height,
                 0.1f,
                 100,
-                projection
+                pv
         );
+        if (rmbPressed) {
+            cameraZ = (float) Math.max(-4, Math.min(4, cameraZ + 0.1 * cdy));
+        }
+        final double sec = System.currentTimeMillis() / 1000.0;
+        try (MemoryStack ms = MemoryStack.stackPush()) {
+            final FloatBuffer view = ms.mallocFloat(16);
+            final double beta = Math.toRadians(15.0 * sec % 360);
+            final float x = (float) (Math.sin(beta) * radius);
+            final float y = (float) (Math.cos(beta) * radius);
+            Matrix.lookAt(
+                    new Vector3f(0, 0, 0),
+                    new Vector3f(x, y, cameraZ),
+                    new Vector3f(0, 0, 1),
+                    view
+            );
+            Matrix.multiply(pv, view, pv);
+        }
+    }
 
+    @Override
+    public void draw(int width, int height) {
+        glViewport(0, 0, width, height);
         glFrontFace(GL_CCW);
         glCullFace(GL_BACK);
         glEnable(GL_CULL_FACE);
@@ -207,51 +255,9 @@ public final class Game implements UiLayer, AutoCloseable {
         glClearColor(0, 0, 0.5f, 1);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        //drawPyramids();
-
-        final double sec = System.currentTimeMillis() / 1000.0;
-        try (MemoryStack ms = MemoryStack.stackPush()) {
-            final FloatBuffer view = ms.mallocFloat(16);
-            final double beta = Math.toRadians(15.0 * sec % 360);
-
-            final float radius = 8;
-            final float x = (float) (Math.sin(beta) * radius);
-            final float z = (float) (Math.cos(beta) * radius);
-            Matrix.lookAt(
-                    new Vector3f(0, 0, 0),
-                    new Vector3f(x, z, -0.5f),
-                    new Vector3f(0, 0, 1),
-                    view
-            );
-
-            final FloatBuffer vp = ms.mallocFloat(16);
-            Matrix.multiply(projection, view, vp);
-
-            final FloatBuffer rm = ms.mallocFloat(16);
-            Matrix.rotation(0, 0, Math.toRadians(25 * sec % 360), rm);
-
-            final FloatBuffer mvp = ms.mallocFloat(16);
-
-            texUniform.value(0);
-
-            // 1
-            Matrix.multiply(vp, rm, mvp);
-            cuddles.bind();
-            cubes.draw(mvp);
-
-            // 2
-//            Matrix.translate(vp, 1, 1, 0.5f, mvp);
-//            Matrix.scale(mvp, 2, 2, 2, mvp);
-//            Matrix.multiply(mvp, rm, mvp);
-//            pyramid.draw(mvp);
-
-            // 3
-//            Matrix.translate(vp, -1, -1, -0.5f, mvp);
-//            Matrix.multiply(mvp, rm, mvp);
-//            pyramid.draw(mvp);
-
-            cuddles.unbind();
-        }
+        setupProjectionViewMatrix(width, height);
+        drawPyramids(pv);
+        drawModel(pv);
 
         final double t = glfwGetTime();
         final double fps = (double) frames / t;

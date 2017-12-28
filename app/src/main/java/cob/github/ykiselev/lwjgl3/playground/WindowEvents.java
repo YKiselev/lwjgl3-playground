@@ -4,6 +4,7 @@ import org.lwjgl.glfw.GLFWCursorPosCallbackI;
 import org.lwjgl.glfw.GLFWFramebufferSizeCallbackI;
 import org.lwjgl.glfw.GLFWKeyCallbackI;
 import org.lwjgl.glfw.GLFWMouseButtonCallbackI;
+import org.lwjgl.glfw.GLFWScrollCallback;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
@@ -34,4 +35,8 @@ public interface WindowEvents {
      */
     void frameBufferResized(int width, int height);
 
+    /**
+     * @see GLFWScrollCallback#invoke(long, double, double)
+     */
+    boolean scrollEvent(double dx, double dy);
 }

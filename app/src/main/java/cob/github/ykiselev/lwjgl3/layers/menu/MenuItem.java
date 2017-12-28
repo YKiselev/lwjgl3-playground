@@ -25,4 +25,9 @@ public interface MenuItem extends WindowEvents {
     default boolean mouseButtonEvent(int button, int action, int mods) {
         return false;
     }
+
+    @Override
+    default boolean scrollEvent(double dx, double dy) {
+        return false;
+    }
 }

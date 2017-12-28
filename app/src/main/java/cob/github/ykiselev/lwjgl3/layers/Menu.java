@@ -1,9 +1,9 @@
 package cob.github.ykiselev.lwjgl3.layers;
 
-import cob.github.ykiselev.lwjgl3.host.Host;
-import cob.github.ykiselev.lwjgl3.events.game.QuitGameEvent;
 import cob.github.ykiselev.lwjgl3.events.SubscriberGroup;
 import cob.github.ykiselev.lwjgl3.events.SubscriberGroupBuilder;
+import cob.github.ykiselev.lwjgl3.events.game.QuitGameEvent;
+import cob.github.ykiselev.lwjgl3.host.Host;
 import cob.github.ykiselev.lwjgl3.layers.menu.Link;
 import cob.github.ykiselev.lwjgl3.layers.menu.MenuItem;
 import com.github.ykiselev.assets.Assets;
@@ -119,6 +119,14 @@ public final class Menu implements UiLayer, AutoCloseable {
     @Override
     public void frameBufferResized(int width, int height) {
         items.forEach(item -> item.frameBufferResized(width, height));
+    }
+
+    @Override
+    public boolean scrollEvent(double dx, double dy) {
+        if (!selectedItem().scrollEvent(dx, dy)) {
+            // todo
+        }
+        return true;
     }
 
     @Override
