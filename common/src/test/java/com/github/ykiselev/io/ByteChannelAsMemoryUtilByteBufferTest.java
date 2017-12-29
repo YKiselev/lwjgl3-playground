@@ -1,14 +1,14 @@
 package com.github.ykiselev.io;
 
 import com.github.ykiselev.common.Wrap;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.stubbing.Answer;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -16,7 +16,7 @@ import static org.mockito.Mockito.when;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public class ByteChannelAsMemoryUtilByteBufferTest {
+class ByteChannelAsMemoryUtilByteBufferTest {
 
     private static final int CHANNEL_LENGTH = 8 * 4 * 1_000;
 
@@ -27,7 +27,7 @@ public class ByteChannelAsMemoryUtilByteBufferTest {
     );
 
     @Test
-    public void shouldRead() throws IOException {
+    void shouldRead() throws IOException {
         when(channel.read(any(ByteBuffer.class)))
                 .then((Answer<Integer>) invocation -> {
                     final ByteBuffer buffer = invocation.getArgument(0);

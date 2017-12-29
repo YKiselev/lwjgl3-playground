@@ -224,7 +224,6 @@ public final class Game implements UiLayer, AutoCloseable {
     }
 
     private void setupProjectionViewMatrix(int width, int height) {
-//        Matrix.perspective(-0.1f, 0.1f, 0.1f, -0.1f, 0.1f, 15, pv);
         Matrix.perspective(
                 (float) Math.toRadians(90),
                 (float) width / height,
@@ -236,8 +235,7 @@ public final class Game implements UiLayer, AutoCloseable {
             radius = 1;
         }
         if (rmbPressed) {
-            double deltaZ = 0.1 * (cy - cy0);
-            cameraZ = (float) Math.max(-4, Math.min(4, deltaZ));
+            cameraZ = (float) Math.max(-4, Math.min(4, 0.1 * (cy - cy0)));
         }
         final double sec = System.currentTimeMillis() / 1000.0;
         try (MemoryStack ms = MemoryStack.stackPush()) {

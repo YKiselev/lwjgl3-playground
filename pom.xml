@@ -41,10 +41,16 @@
         <module>ogl</module>
         <module>ogl-assets</module>
         <module>common</module>
+        <module>oal</module>
     </modules>
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>com.github.ykiselev</groupId>
+                <artifactId>assets</artifactId>
+                <version>1.6</version>
+            </dependency>
             <dependency>
                 <groupId>org.lwjgl</groupId>
                 <artifactId>lwjgl</artifactId>
@@ -74,6 +80,48 @@
                 <groupId>org.lwjgl</groupId>
                 <artifactId>lwjgl-stb</artifactId>
                 <version>${lwjgl.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.lwjgl</groupId>
+                <artifactId>lwjgl</artifactId>
+                <version>${lwjgl.version}</version>
+                <classifier>${lwjgl.natives}</classifier>
+                <scope>runtime</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.lwjgl</groupId>
+                <artifactId>lwjgl-glfw</artifactId>
+                <version>${lwjgl.version}</version>
+                <classifier>${lwjgl.natives}</classifier>
+                <scope>runtime</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.lwjgl</groupId>
+                <artifactId>lwjgl-jemalloc</artifactId>
+                <version>${lwjgl.version}</version>
+                <classifier>${lwjgl.natives}</classifier>
+                <scope>runtime</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.lwjgl</groupId>
+                <artifactId>lwjgl-openal</artifactId>
+                <version>${lwjgl.version}</version>
+                <classifier>${lwjgl.natives}</classifier>
+                <scope>runtime</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.lwjgl</groupId>
+                <artifactId>lwjgl-opengl</artifactId>
+                <version>${lwjgl.version}</version>
+                <classifier>${lwjgl.natives}</classifier>
+                <scope>runtime</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.lwjgl</groupId>
+                <artifactId>lwjgl-stb</artifactId>
+                <version>${lwjgl.version}</version>
+                <classifier>${lwjgl.natives}</classifier>
+                <scope>runtime</scope>
             </dependency>
             <dependency>
                 <groupId>org.apache.logging.log4j</groupId>

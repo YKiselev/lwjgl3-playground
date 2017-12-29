@@ -29,6 +29,7 @@ import org.lwjgl.system.MemoryStack;
 import java.nio.IntBuffer;
 
 import static java.util.Objects.requireNonNull;
+import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.GLFW_CONTEXT_VERSION_MAJOR;
 import static org.lwjgl.glfw.GLFW.GLFW_CONTEXT_VERSION_MINOR;
 import static org.lwjgl.glfw.GLFW.GLFW_FALSE;
@@ -174,6 +175,7 @@ public final class AppWindow implements AutoCloseable {
 
     @Override
     public void close() {
+        glfwFreeCallbacks(window);
         glfwDestroyWindow(window);
     }
 
