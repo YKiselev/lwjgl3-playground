@@ -216,8 +216,15 @@ public final class SpriteBatch implements AutoCloseable {
      *  |                 |
      * (x0, y0) --- (x1, y0)
      * </pre>
-     * <p>Note that if you wish to draw quad with whole texture applied
-     * then s, t must be assigned as such:</p>
+     * <p>Here we assign texture coordinates as if texture were flipped during loading:
+     * </p>
+     * <pre>
+     * (0, 0) --- (1, 0)
+     *  |             |
+     *  |             |
+     * (0, 1) --- (1, 1)
+     * </pre>
+     * <p>Note that if you wish to draw quad with texture loaded from external resource then s, t must be assigned as such:</p>
      * <pre>
      * (0, 0) --- (1, 0)
      *  |             |
@@ -229,7 +236,7 @@ public final class SpriteBatch implements AutoCloseable {
      * <ol>
      * <li>During resource preparation step</li>
      * <li>At run-time before actually submitting image to OpenGL</li>
-     * <li>By flipping texture t-coordinate, which I do here, because it's the cheapest solution</li>
+     * <li>By flipping texture t-coordinate (cheapest solution, but leads to increased api complexity)</li>
      * </ol>
      * <p>Quad is rendered as two triangles with indices 0, 1, 2, 2, 1, 3</p>
      *
@@ -240,10 +247,16 @@ public final class SpriteBatch implements AutoCloseable {
             flush();
         }
 
-        vertices.put(x0).put(y0).put(s0).put(t1);
-        vertices.put(x1).put(y0).put(s1).put(t1);
-        vertices.put(x0).put(y1).put(s0).put(t0);
-        vertices.put(x1).put(y1).put(s1).put(t0);
+        if (flipVertically()) {
+            final float tmp = t0;
+            t0 = t1;
+            t1 = tmp;
+        }
+
+        vertices.put(x0).put(y0).put(s0).put(t0);
+        vertices.put(x1).put(y0).put(s1).put(t0);
+        vertices.put(x0).put(y1).put(s0).put(t1);
+        vertices.put(x1).put(y1).put(s1).put(t1);
 
         // r
         colors.put(COLOR_COEFF * (0xff & (color >>> 24)));
@@ -255,6 +268,10 @@ public final class SpriteBatch implements AutoCloseable {
         colors.put(COLOR_COEFF * (0xff & color));
 
         quadCounter++;
+    }
+
+    private boolean flipVertically() {
+        return currentTexture != null && currentTexture.needFlipping();
     }
 
     private void use(Texture2d texture) {

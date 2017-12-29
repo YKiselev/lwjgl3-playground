@@ -17,6 +17,7 @@ import com.github.ykiselev.opengl.sprites.SpriteBatch;
 import com.github.ykiselev.opengl.text.SpriteFont;
 import com.github.ykiselev.opengl.textures.Texture2d;
 import com.github.ykiselev.opengl.vertices.VertexDefinitions;
+import com.github.ykiselev.trigger.Trigger;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 import org.slf4j.Logger;
@@ -36,6 +37,8 @@ import static org.lwjgl.opengl.GL11.GL_CULL_FACE;
 import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.GL_DEPTH_TEST;
 import static org.lwjgl.opengl.GL11.GL_LESS;
+import static org.lwjgl.opengl.GL11.GL_SCISSOR_TEST;
+import static org.lwjgl.opengl.GL11.GL_STENCIL_TEST;
 import static org.lwjgl.opengl.GL11.glClear;
 import static org.lwjgl.opengl.GL11.glClearColor;
 import static org.lwjgl.opengl.GL11.glClearDepth;
@@ -46,6 +49,7 @@ import static org.lwjgl.opengl.GL11.glDisable;
 import static org.lwjgl.opengl.GL11.glEnable;
 import static org.lwjgl.opengl.GL11.glFrontFace;
 import static org.lwjgl.opengl.GL11.glViewport;
+import static org.lwjgl.opengl.GL32.GL_DEPTH_CLAMP;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
@@ -70,13 +74,6 @@ public final class Game implements UiLayer, AutoCloseable {
 
     private final GenericIndexedGeometry cubes;
 
-    private double t0 = glfwGetTime();
-
-    private double x = 0;
-
-    private double k = 50;
-
-    private double scale = 1.0;
 
     private float radius = 8;
 
@@ -84,13 +81,21 @@ public final class Game implements UiLayer, AutoCloseable {
 
     private boolean lmbPressed, rmbPressed;
 
-    private double cx, cy, cdx, cdy;
+    private double cx, cy, cx0, cy0;
 
     private long frames;
 
     private final UniformVariable texUniform;
 
     private final FrameBuffer frameBuffer;
+
+    private final Trigger rmbTrigger = new Trigger(
+            () -> {
+                cx0 = cx;
+                cy0 = cy;
+            },
+            null
+    );
 
     public Game(Host host, Assets assets) {
         this.host = host;
@@ -137,8 +142,6 @@ public final class Game implements UiLayer, AutoCloseable {
 
     @Override
     public void cursorEvent(double x, double y) {
-        cdx = x - cx;
-        cdy = y - cy;
         cx = x;
         cy = y;
     }
@@ -151,8 +154,8 @@ public final class Game implements UiLayer, AutoCloseable {
                 break;
 
             case GLFW_MOUSE_BUTTON_RIGHT:
-                rmbPressed = (action == GLFW_PRESS);
-                cdx = cdy = 0;
+                rmbPressed = action == GLFW_PRESS;
+                rmbTrigger.value(action == GLFW_PRESS);
                 break;
         }
         return true;
@@ -192,13 +195,13 @@ public final class Game implements UiLayer, AutoCloseable {
             pyramid.draw(mvp);
 
             // 2
-            Matrix.translate(vp, 1, 1, 0.5f, mvp);
-            Matrix.scale(mvp, 2, 2, 2, mvp);
+            Matrix.translate(vp, 2, 0, 0, mvp);
+            Matrix.scale(mvp, 3, 3, 3, mvp);
             Matrix.multiply(mvp, rm, mvp);
             pyramid.draw(mvp);
 
             // 3
-            Matrix.translate(vp, -1, -1, -0.5f, mvp);
+            Matrix.translate(vp, -2, 0, 0, mvp);
             Matrix.multiply(mvp, rm, mvp);
             pyramid.draw(mvp);
         }
@@ -221,18 +224,20 @@ public final class Game implements UiLayer, AutoCloseable {
     }
 
     private void setupProjectionViewMatrix(int width, int height) {
+//        Matrix.perspective(-0.1f, 0.1f, 0.1f, -0.1f, 0.1f, 15, pv);
         Matrix.perspective(
                 (float) Math.toRadians(90),
                 (float) width / height,
                 0.1f,
-                100,
+                15,
                 pv
         );
         if (radius < 1) {
             radius = 1;
         }
         if (rmbPressed) {
-            cameraZ = (float) Math.max(-4, Math.min(4, cameraZ + 0.1 * cdy));
+            double deltaZ = 0.1 * (cy - cy0);
+            cameraZ = (float) Math.max(-4, Math.min(4, deltaZ));
         }
         final double sec = System.currentTimeMillis() / 1000.0;
         try (MemoryStack ms = MemoryStack.stackPush()) {
@@ -259,6 +264,8 @@ public final class Game implements UiLayer, AutoCloseable {
         glCullFace(GL_BACK);
         glEnable(GL_CULL_FACE);
         glEnable(GL_DEPTH_TEST);
+        glDisable(GL_SCISSOR_TEST);
+        glDisable(GL_STENCIL_TEST);
         glDepthFunc(GL_LESS);
         glDepthMask(true);
 
@@ -266,7 +273,7 @@ public final class Game implements UiLayer, AutoCloseable {
 
         frameBuffer.bind();
 
-        glClearDepth(1.0f);
+        glClearDepth(100.0f);
         glClearColor(0, 0, 0.5f, 1);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

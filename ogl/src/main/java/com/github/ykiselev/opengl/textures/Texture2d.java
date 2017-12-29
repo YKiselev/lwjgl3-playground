@@ -31,12 +31,19 @@ public final class Texture2d implements Identified, Bindable, AutoCloseable {
 
     private final int id;
 
-    public Texture2d(int id) {
-        this.id = id;
+    private final boolean needFlipping;
+
+    public boolean needFlipping() {
+        return needFlipping;
     }
 
-    public Texture2d() {
-        this(glGenTextures());
+    public Texture2d(int id, boolean needFlipping) {
+        this.id = id;
+        this.needFlipping = needFlipping;
+    }
+
+    public Texture2d(boolean needFlipping) {
+        this(glGenTextures(), needFlipping);
     }
 
     @Override

@@ -85,7 +85,7 @@ public final class ReadableTexture2d implements ReadableResource<Texture2d> {
     }
 
     private Texture2d loadTexture(ByteBuffer image, int width, int height, int components) {
-        final Texture2d texture = new Texture2d();
+        final Texture2d texture = new Texture2d(true);
         texture.bind();
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);

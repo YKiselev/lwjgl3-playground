@@ -87,12 +87,12 @@ public final class Matrix {
      * @param m      the buffer to store resulting matrix in.
      */
     public static void perspective(float left, float right, float top, float bottom, float near, float far, FloatBuffer m) {
-        m.clear();
-        m.put(2 * near / (right - left)).put(0).put(0).put(0);
-        m.put(0).put(2 * near / (top - bottom)).put(0).put(0);
-        m.put((right + left) / (right - left)).put((top + bottom) / (top - bottom)).put(-(far + near) / (far - near)).put(-1);
-        m.put(0).put(0).put(-2 * far * near / (far - near)).put(0);
-        m.flip();
+        m.clear()
+                .put((float) (2.0 * near / (right - left))).put(0).put(0).put(0)
+                .put(0).put((float) (2.0 * near / (top - bottom))).put(0).put(0)
+                .put((right + left) / (right - left)).put((top + bottom) / (top - bottom)).put(-(far + near) / (far - near)).put(-1)
+                .put(0).put(0).put((float) (-2.0 * far * near / (far - near))).put(0)
+                .flip();
     }
 
     /**
@@ -140,8 +140,9 @@ public final class Matrix {
 
     /**
      * Adds one matrix to another.
-     * @param a the first matrix
-     * @param b the second matrix
+     *
+     * @param a      the first matrix
+     * @param b      the second matrix
      * @param result the resulting matrix buffer
      */
     public static void add(FloatBuffer a, FloatBuffer b, FloatBuffer result) {
@@ -282,13 +283,26 @@ public final class Matrix {
      * @param v the vector
      */
     public static void multiply(FloatBuffer a, Vector3f v) {
-        final float x1 = a.get(0) * v.x + a.get(4) * v.y + a.get(8) * v.z + a.get(12);
-        final float y1 = a.get(1) * v.x + a.get(5) * v.y + a.get(9) * v.z + a.get(13);
-        final float z1 = a.get(2) * v.x + a.get(6) * v.y + a.get(10) * v.z + a.get(14);
-        //final float w1 = a.get(3) * x + a.get(7) * y + a.get(11) * z + a.get(15);
-        v.x = x1;
-        v.y = y1;
-        v.z = z1;
+        v.set(
+                a.get(0) * v.x + a.get(4) * v.y + a.get(8) * v.z + a.get(12),
+                a.get(1) * v.x + a.get(5) * v.y + a.get(9) * v.z + a.get(13),
+                a.get(2) * v.x + a.get(6) * v.y + a.get(10) * v.z + a.get(14)
+        );
+    }
+
+    /**
+     * Multiplies this matrix by vector {@code v} and stores result in vector {@code v}. This is a right multiplication
+     *
+     * @param a the matrix
+     * @param v the vector
+     */
+    public static void multiply(FloatBuffer a, Vector4f v) {
+        v.set(
+                a.get(0) * v.x + a.get(4) * v.y + a.get(8) * v.z + a.get(12) * v.w,
+                a.get(1) * v.x + a.get(5) * v.y + a.get(9) * v.z + a.get(13) * v.w,
+                a.get(2) * v.x + a.get(6) * v.y + a.get(10) * v.z + a.get(14) * v.w,
+                a.get(3) * v.x + a.get(7) * v.y + a.get(11) * v.z + a.get(15) * v.w
+        );
     }
 
     /**
@@ -324,14 +338,33 @@ public final class Matrix {
      * @param result the buffer to store result
      */
     public static void scale(FloatBuffer a, float sx, float sy, float sz, FloatBuffer result) {
-        if (a != result) {
-            result.clear()
-                    .put(a)
-                    .flip();
-        }
-        result.put(0, a.get(0) * sx)
-                .put(5, a.get(5) * sy)
-                .put(10, a.get(10) * sz);
+        // r0
+        final float m0 = a.get(0) * sx;
+        final float m4 = a.get(4) * sy;
+        final float m8 = a.get(8) * sz;
+        final float m12 = a.get(12);
+        // r1
+        final float m1 = a.get(1) * sx;
+        final float m5 = a.get(5) * sy;
+        final float m9 = a.get(9) * sz;
+        final float m13 = a.get(13);
+        // r2
+        final float m2 = a.get(2) * sx;
+        final float m6 = a.get(6) * sy;
+        final float m10 = a.get(10) * sz;
+        final float m14 = a.get(14);
+        // r3
+        final float m3 = a.get(3) * sx;
+        final float m7 = a.get(7) * sy;
+        final float m11 = a.get(11) * sz;
+        final float m15 = a.get(15);
+
+        result.clear()
+                .put(m0).put(m1).put(m2).put(m3)
+                .put(m4).put(m5).put(m6).put(m7)
+                .put(m8).put(m9).put(m10).put(m11)
+                .put(m12).put(m13).put(m14).put(m15)
+                .flip();
     }
 
     /**

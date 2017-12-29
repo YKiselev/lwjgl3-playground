@@ -104,13 +104,19 @@ class MatrixTest {
 
     @Test
     void shouldScale() {
+        m.clear()
+                .put(1).put(2).put(3).put(4)
+                .put(5).put(6).put(7).put(8)
+                .put(9).put(10).put(11).put(12)
+                .put(13).put(14).put(15).put(16)
+                .flip();
         Matrix.scale(m, 2, 4, 8, m);
         assertMatrixEquals(
                 m,
-                2, 0, 0, 0,
-                0, 4, 0, 0,
-                0, 0, 8, 0,
-                0, 0, 0, 1
+                2, 4, 6, 8,
+                20, 24, 28, 32,
+                72, 80, 88, 96,
+                13, 14, 15, 16
         );
     }
 
@@ -312,24 +318,32 @@ class MatrixTest {
         assertVectorEquals(1, 1, 0, v);
     }
 
-    @Test
-    void shouldBePerspective() {
-        Matrix.perspective(-1, 1, 1, -1, 0.5f, 10, m);
-        final Vector3f v = new Vector3f(0, 0, -5);
-        Matrix.multiply(m, v);
-        assertVectorEquals(0, 0, 4.4736f, v);
+    private static Stream<Arguments> perspectiveArgs() {
+        return Stream.of(
+                Arguments.of(v(0, 0, 0, 1), v(0, 0, -2.222f, 0)),
+                Arguments.of(v(0, 0, 1, 1), v(0, 0, -3.444f, -1)),
+                Arguments.of(v(0, 0, 5, 1), v(0, 0, -8.333f, -5)),
+                Arguments.of(v(0, 0, 10, 1), v(0, 0, -14.444f, -10)),
+                Arguments.of(v(0, 0, 15, 1), v(0, 0, -20.555f, -15)),
+                Arguments.of(v(1, 1, 1, 1), v(1, 1, -3.444f, -1)),
+                Arguments.of(v(1, 1, 2, 1), v(1, 1, -4.666f, -2))
+        );
+    }
 
-        v.set(5, 5, -5);
+    @ParameterizedTest
+    @MethodSource("perspectiveArgs")
+    void shouldBePerspective(Vector4f v, Vector4f expected) {
+        Matrix.perspective(-1, 1, 1, -1, 1, 10, m);
         Matrix.multiply(m, v);
-        assertVectorEquals(2.5f, 2.5f, 4.4736f, v);
-
-        v.set(-5, -5, -5);
-        Matrix.multiply(m, v);
-        assertVectorEquals(-2.5f, -2.5f, 4.4736f, v);
+        assertTrue("expected " + expected + " but was " + v, expected.equals(v, 0.001f));
     }
 
     private static Vector3f v(float x, float y, float z) {
         return new Vector3f(x, y, z);
+    }
+
+    private static Vector4f v(float x, float y, float z, float w) {
+        return new Vector4f(x, y, z, w);
     }
 
     private static Stream<Arguments> lookAtArgs() {
