@@ -16,6 +16,8 @@
 
 package cob.github.ykiselev.lwjgl3;
 
+import cob.github.ykiselev.lwjgl3.app.ErrorCallbackApp;
+import cob.github.ykiselev.lwjgl3.app.GlfwApp;
 import cob.github.ykiselev.lwjgl3.assets.GameAssets;
 import cob.github.ykiselev.lwjgl3.events.SubscriberGroup;
 import cob.github.ykiselev.lwjgl3.events.SubscriberGroupBuilder;
@@ -32,41 +34,40 @@ import cob.github.ykiselev.lwjgl3.layers.UiLayers;
 import cob.github.ykiselev.lwjgl3.services.Services;
 import cob.github.ykiselev.lwjgl3.window.AppWindow;
 import com.github.ykiselev.assets.Assets;
-import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.opengl.GL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static org.lwjgl.glfw.GLFW.glfwInit;
-import static org.lwjgl.glfw.GLFW.glfwSetErrorCallback;
 import static org.lwjgl.glfw.GLFW.glfwSwapInterval;
-import static org.lwjgl.glfw.GLFW.glfwTerminate;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class App {
+public final class Main implements Runnable {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
-
-    private final GLFWErrorCallback errorCallback = GLFWErrorCallback.createPrint(System.err);
 
     private final ProgramArguments args;
 
     private boolean exitFlag;
 
-    private App(ProgramArguments args) {
+    private Main(ProgramArguments args) {
         this.args = args;
     }
 
     public static void main(String[] args) {
-        new App(new ProgramArguments(args)).run();
+        new ErrorCallbackApp(
+                new GlfwApp(
+                        new Main(
+                                new ProgramArguments(args)
+                        )
+                )
+        ).run();
     }
 
-    private void run() {
-        glfwInit();
+    @Override
+    public void run() {
         try {
-            glfwSetErrorCallback(errorCallback);
             final GameAssets assets = new GameAssets(args.assetPaths());
             final AppUiLayers layers = new AppUiLayers();
             try (AppHost host = createHost(assets, layers)) {
@@ -88,10 +89,6 @@ public final class App {
             }
         } catch (Exception e) {
             logger.error("Unhandled exception!", e);
-        } finally {
-            glfwTerminate();
-            glfwSetErrorCallback(null);
-            errorCallback.free();
         }
     }
 
