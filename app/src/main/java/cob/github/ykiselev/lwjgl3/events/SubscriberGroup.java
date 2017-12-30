@@ -8,7 +8,7 @@ import static java.util.Objects.requireNonNull;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class SubscriberGroup {
+public final class SubscriberGroup implements AutoCloseable {
 
     private final Events events;
 
@@ -21,7 +21,8 @@ public final class SubscriberGroup {
     }
 
     @SuppressWarnings("unchecked")
-    public void unsubscribe() {
+    @Override
+    public void close() {
         for (Map.Entry<Class, Consumer> pair : handlers) {
             events.unsubscribe(pair.getKey(), pair.getValue());
         }

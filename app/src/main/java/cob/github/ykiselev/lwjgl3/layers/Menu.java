@@ -63,7 +63,7 @@ public final class Menu implements UiLayer, AutoCloseable {
     @Override
     public void close() {
         spriteBatch.close();
-        group.unsubscribe();
+        group.close();
     }
 
     private MenuItem selectedItem() {

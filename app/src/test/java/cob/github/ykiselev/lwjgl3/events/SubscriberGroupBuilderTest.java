@@ -29,7 +29,7 @@ public class SubscriberGroupBuilderTest {
         new SubscriberGroupBuilder()
                 .add(String.class, handler)
                 .build(events)
-                .unsubscribe();
+                .close();
         verify(events).unsubscribe(String.class, handler);
     }
 

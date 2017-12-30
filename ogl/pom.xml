@@ -34,13 +34,17 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
+            <groupId>com.github.ykiselev</groupId>
+            <artifactId>sprite-font-lib</artifactId>
+            <version>1.8</version>
+        </dependency>
+        <dependency>
             <groupId>org.lwjgl</groupId>
             <artifactId>lwjgl-opengl</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.github.ykiselev</groupId>
-            <artifactId>sprite-font-lib</artifactId>
-            <version>1.8</version>
+            <groupId>org.lwjgl</groupId>
+            <artifactId>lwjgl-stb</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -78,28 +82,24 @@
         <dependency>
             <groupId>org.lwjgl</groupId>
             <artifactId>lwjgl-glfw</artifactId>
-            <version>${lwjgl.version}</version>
             <classifier>${lwjgl.natives}</classifier>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.lwjgl</groupId>
             <artifactId>lwjgl-stb</artifactId>
-            <version>${lwjgl.version}</version>
             <classifier>${lwjgl.natives}</classifier>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.lwjgl</groupId>
             <artifactId>lwjgl-opengl</artifactId>
-            <version>${lwjgl.version}</version>
             <classifier>${lwjgl.natives}</classifier>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.lwjgl</groupId>
             <artifactId>lwjgl-jemalloc</artifactId>
-            <version>${lwjgl.version}</version>
             <classifier>${lwjgl.natives}</classifier>
             <scope>test</scope>
         </dependency>

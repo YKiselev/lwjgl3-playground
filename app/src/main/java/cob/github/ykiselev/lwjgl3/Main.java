@@ -71,20 +71,19 @@ public final class Main implements Runnable {
             final GameAssets assets = new GameAssets(args.assetPaths());
             final AppUiLayers layers = new AppUiLayers();
             try (AppHost host = createHost(assets, layers)) {
-                final SubscriberGroup group = subscribe(host);
-                try (AppWindow window = new AppWindow(args.fullScreen())) {
-                    GL.createCapabilities();
-                    window.wireWindowEvents(layers);
-                    window.show();
-                    host.events().send(new NewGameEvent());
-                    glfwSwapInterval(1);
-                    while (!window.shouldClose() && !exitFlag) {
-                        window.checkEvents();
-                        layers.draw();
-                        window.swapBuffers();
+                try (SubscriberGroup group = subscribe(host)) {
+                    try (AppWindow window = new AppWindow(args.fullScreen())) {
+                        GL.createCapabilities();
+                        window.wireWindowEvents(layers);
+                        window.show();
+                        host.events().send(new NewGameEvent());
+                        glfwSwapInterval(1);
+                        while (!window.shouldClose() && !exitFlag) {
+                            window.checkEvents();
+                            layers.draw();
+                            window.swapBuffers();
+                        }
                     }
-                } finally {
-                    group.unsubscribe();
                 }
             }
         } catch (Exception e) {

@@ -23,9 +23,12 @@ import org.lwjgl.system.MemoryUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.nio.FloatBuffer;
+import java.nio.file.Paths;
 
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_PRINT_SCREEN;
 import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_LEFT;
 import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_RIGHT;
 import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
@@ -49,7 +52,6 @@ import static org.lwjgl.opengl.GL11.glDisable;
 import static org.lwjgl.opengl.GL11.glEnable;
 import static org.lwjgl.opengl.GL11.glFrontFace;
 import static org.lwjgl.opengl.GL11.glViewport;
-import static org.lwjgl.opengl.GL32.GL_DEPTH_CLAMP;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
@@ -133,9 +135,24 @@ public final class Game implements UiLayer, AutoCloseable {
 
     @Override
     public boolean keyEvent(int key, int scanCode, int action, int mods) {
-        if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
-            host.events()
-                    .send(new ShowMenuEvent());
+        if (action == GLFW_PRESS) {
+            switch (key) {
+                case GLFW_KEY_ESCAPE:
+                    host.events()
+                            .send(new ShowMenuEvent());
+                    break;
+
+                case GLFW_KEY_PRINT_SCREEN:
+                    try {
+                        frameBuffer.color()
+                                .save(Paths.get("color.png"));
+                        frameBuffer.depth()
+                                .save(Paths.get("depth.png"));
+                    } catch (IOException e) {
+                        logger.error("Unable to save image!", e);
+                    }
+                    break;
+            }
         }
         return true;
     }
@@ -179,7 +196,7 @@ public final class Game implements UiLayer, AutoCloseable {
         cubes.close();
         MemoryUtil.memFree(pv);
         frameBuffer.close();
-        group.unsubscribe();
+        group.close();
     }
 
     private void drawPyramids(FloatBuffer vp) {
