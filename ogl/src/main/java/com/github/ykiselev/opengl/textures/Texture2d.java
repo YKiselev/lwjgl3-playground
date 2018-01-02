@@ -25,9 +25,7 @@ import org.lwjgl.stb.STBIWriteCallback;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
+import java.nio.channels.WritableByteChannel;
 
 import static org.lwjgl.opengl.GL11.GL_DEPTH_COMPONENT;
 import static org.lwjgl.opengl.GL11.GL_NONE;
@@ -94,7 +92,7 @@ public final class Texture2d implements Identified, Bindable, AutoCloseable {
         return glGetInteger(GL_TEXTURE_BINDING_2D) == id;
     }
 
-    public void save(Path path) throws IOException {
+    public void save(WritableByteChannel dest) {
         final boolean wasBound = isBound();
         if (!wasBound) {
             bind();
@@ -107,31 +105,36 @@ public final class Texture2d implements Identified, Bindable, AutoCloseable {
             final boolean isRgb = depthType == GL_NONE;
             final int format = isRgb ? GL_RGB : GL_DEPTH_COMPONENT;
             final int comps = isRgb ? 3 : 1;
-            final int widthInBytes = width * comps;
-            final int strideInBytes = packAlignment * ((widthInBytes + packAlignment - 1) / packAlignment);
-            try (FileChannel channel = FileChannel.open(path, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING)) {
-                try (Wrap<ByteBuffer> wrap = new MemAlloc(strideInBytes * height)) {
-                    glGetTexImage(GL_TEXTURE_2D, 0, format, GL_UNSIGNED_BYTE, wrap.value());
-                    final STBIWriteCallback callback = new STBIWriteCallback() {
-                        @Override
-                        public void invoke(long context, long data, int size) {
-                            final ByteBuffer buffer = getData(data, size);
-                            try {
-                                channel.write(buffer);
-                            } catch (IOException e) {
-                                throw new UncheckedIOException(e);
-                            }
+            final int strideInBytes = packAlignment * ((width * comps + packAlignment - 1) / packAlignment);
+            //try (FileChannel channel = FileChannel.open(path, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING)) {
+            try (Wrap<ByteBuffer> wrap = new MemAlloc(strideInBytes * height)) {
+                glGetTexImage(GL_TEXTURE_2D, 0, format, GL_UNSIGNED_BYTE, wrap.value());
+                final STBIWriteCallback callback = new STBIWriteCallback() {
+                    @Override
+                    public void invoke(long context, long data, int size) {
+                        final ByteBuffer buffer = getData(data, size);
+                        try {
+                            dest.write(buffer);
+                        } catch (IOException e) {
+                            throw new UncheckedIOException(e);
                         }
-                    };
-                    if (!stbi_write_png_to_func(callback, 0, width, height, comps, wrap.value(), strideInBytes)) {
-                        throw new IllegalStateException("Write failed: " + stbi_failure_reason());
                     }
+                };
+                if (!stbi_write_png_to_func(callback, 0, width, height, comps, wrap.value(), strideInBytes)) {
+                    throw new IllegalStateException("Write failed: " + stbi_failure_reason());
                 }
             }
+            //}
         } finally {
             if (!wasBound) {
                 unbind();
             }
         }
     }
+
+//    private Wrap<ByteBuffer> pack(int size) {
+//        final Wrap<ByteBuffer> wrap = new MemAlloc(size);
+//        glGetTexImage(GL_TEXTURE_2D, 0, format, GL_UNSIGNED_BYTE, wrap.value());
+//        return wrap;
+//    }
 }

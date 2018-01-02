@@ -24,6 +24,7 @@ import cob.github.ykiselev.lwjgl3.events.SubscriberGroupBuilder;
 import cob.github.ykiselev.lwjgl3.events.game.NewGameEvent;
 import cob.github.ykiselev.lwjgl3.events.game.QuitGameEvent;
 import cob.github.ykiselev.lwjgl3.events.layers.ShowMenuEvent;
+import cob.github.ykiselev.lwjgl3.fs.AppFileSystem;
 import cob.github.ykiselev.lwjgl3.host.AppHost;
 import cob.github.ykiselev.lwjgl3.host.Host;
 import cob.github.ykiselev.lwjgl3.host.OnNewGameEvent;
@@ -34,6 +35,7 @@ import cob.github.ykiselev.lwjgl3.layers.UiLayers;
 import cob.github.ykiselev.lwjgl3.services.Services;
 import cob.github.ykiselev.lwjgl3.window.AppWindow;
 import com.github.ykiselev.assets.Assets;
+import com.github.ykiselev.io.FileSystem;
 import org.lwjgl.opengl.GL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -96,6 +98,7 @@ public final class Main implements Runnable {
         final Services services = host.services();
         services.add(Assets.class, assets);
         services.add(UiLayers.class, layers);
+        services.add(FileSystem.class, new AppFileSystem(args.home()));
         return host;
     }
 

@@ -7,6 +7,7 @@ import cob.github.ykiselev.lwjgl3.host.Host;
 import cob.github.ykiselev.lwjgl3.layers.UiLayer;
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.assets.formats.obj.ObjModel;
+import com.github.ykiselev.io.FileSystem;
 import com.github.ykiselev.opengl.matrices.Matrix;
 import com.github.ykiselev.opengl.matrices.Vector3f;
 import com.github.ykiselev.opengl.models.GenericIndexedGeometry;
@@ -25,7 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.FloatBuffer;
-import java.nio.file.Paths;
+import java.nio.channels.WritableByteChannel;
 
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_PRINT_SCREEN;
@@ -144,10 +145,8 @@ public final class Game implements UiLayer, AutoCloseable {
 
                 case GLFW_KEY_PRINT_SCREEN:
                     try {
-                        frameBuffer.color()
-                                .save(Paths.get("color.png"));
-                        frameBuffer.depth()
-                                .save(Paths.get("depth.png"));
+                        dumpToFile(frameBuffer.color(), "color.png");
+                        dumpToFile(frameBuffer.depth(), "depth.png");
                     } catch (IOException e) {
                         logger.error("Unable to save image!", e);
                     }
@@ -155,6 +154,13 @@ public final class Game implements UiLayer, AutoCloseable {
             }
         }
         return true;
+    }
+
+    private void dumpToFile(Texture2d texture, String name) throws IOException {
+        final FileSystem fs = host.services().resolve(FileSystem.class);
+        try (WritableByteChannel channel = fs.open(name, false)) {
+            texture.save(channel);
+        }
     }
 
     @Override

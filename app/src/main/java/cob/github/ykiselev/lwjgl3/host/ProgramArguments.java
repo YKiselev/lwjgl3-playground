@@ -1,6 +1,9 @@
 package cob.github.ykiselev.lwjgl3.host;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -65,5 +68,20 @@ public final class ProgramArguments {
 
     public boolean fullScreen() {
         return hasSwitch("-fullscreen");
+    }
+
+    public Path home() {
+        final Path path = Paths.get(
+                System.getProperty("user.home"),
+                System.getProperty("app.folder", "lwjgl-playground")
+        );
+        if (!Files.exists(path)) {
+            try {
+                Files.createDirectories(path);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        }
+        return path;
     }
 }
