@@ -16,6 +16,7 @@ import com.github.ykiselev.opengl.shaders.ProgramObject;
 import com.github.ykiselev.opengl.shaders.uniforms.UniformVariable;
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
 import com.github.ykiselev.opengl.text.SpriteFont;
+import com.github.ykiselev.opengl.textures.CurrentTexture2dAsBytes;
 import com.github.ykiselev.opengl.textures.Texture2d;
 import com.github.ykiselev.opengl.vertices.VertexDefinitions;
 import com.github.ykiselev.trigger.Trigger;
@@ -25,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.FloatBuffer;
 import java.nio.channels.WritableByteChannel;
 
@@ -157,9 +159,20 @@ public final class Game implements UiLayer, AutoCloseable {
     }
 
     private void dumpToFile(Texture2d texture, String name) throws IOException {
-        final FileSystem fs = host.services().resolve(FileSystem.class);
-        try (WritableByteChannel channel = fs.openForWriting(name, false)) {
-            texture.save(channel);
+        texture.bind();
+        try {
+            final FileSystem fs = host.services().resolve(FileSystem.class);
+            try (WritableByteChannel channel = fs.openForWriting(name, false)) {
+                new CurrentTexture2dAsBytes().write(bb -> {
+                    try {
+                        channel.write(bb);
+                    } catch (IOException e) {
+                        throw new UncheckedIOException(e);
+                    }
+                });
+            }
+        } finally {
+            texture.unbind();
         }
     }
 
