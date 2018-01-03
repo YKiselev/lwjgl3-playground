@@ -7,7 +7,9 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.channels.FileChannel;
+import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
+import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 
@@ -26,19 +28,28 @@ public final class AppFileSystem implements FileSystem {
         this.home = requireNonNull(home);
     }
 
-    @Override
-    public WritableByteChannel open(String name, boolean append) {
+    private FileChannel open(String name, OpenOption... options) {
         final Path path = home.resolve(name);
         logger.info("Opening file {}...", path);
         try {
-            return FileChannel.open(
-                    path,
-                    StandardOpenOption.CREATE,
-                    StandardOpenOption.WRITE,
-                    append ? StandardOpenOption.APPEND : StandardOpenOption.TRUNCATE_EXISTING
-            );
+            return FileChannel.open(path, options);
         } catch (IOException e) {
             throw new UncheckedIOException("Unable to open " + path, e);
         }
+    }
+
+    @Override
+    public WritableByteChannel openForWriting(String name, boolean append) {
+        return open(
+                name,
+                StandardOpenOption.CREATE,
+                StandardOpenOption.WRITE,
+                append ? StandardOpenOption.APPEND : StandardOpenOption.TRUNCATE_EXISTING
+        );
+    }
+
+    @Override
+    public ReadableByteChannel openForReading(String name) {
+        return open(name, StandardOpenOption.READ);
     }
 }

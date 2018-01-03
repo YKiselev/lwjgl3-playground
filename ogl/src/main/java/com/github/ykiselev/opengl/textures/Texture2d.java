@@ -106,7 +106,6 @@ public final class Texture2d implements Identified, Bindable, AutoCloseable {
             final int format = isRgb ? GL_RGB : GL_DEPTH_COMPONENT;
             final int comps = isRgb ? 3 : 1;
             final int strideInBytes = packAlignment * ((width * comps + packAlignment - 1) / packAlignment);
-            //try (FileChannel channel = FileChannel.open(path, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING)) {
             try (Wrap<ByteBuffer> wrap = new MemAlloc(strideInBytes * height)) {
                 glGetTexImage(GL_TEXTURE_2D, 0, format, GL_UNSIGNED_BYTE, wrap.value());
                 final STBIWriteCallback callback = new STBIWriteCallback() {
@@ -124,17 +123,10 @@ public final class Texture2d implements Identified, Bindable, AutoCloseable {
                     throw new IllegalStateException("Write failed: " + stbi_failure_reason());
                 }
             }
-            //}
         } finally {
             if (!wasBound) {
                 unbind();
             }
         }
     }
-
-//    private Wrap<ByteBuffer> pack(int size) {
-//        final Wrap<ByteBuffer> wrap = new MemAlloc(size);
-//        glGetTexImage(GL_TEXTURE_2D, 0, format, GL_UNSIGNED_BYTE, wrap.value());
-//        return wrap;
-//    }
 }

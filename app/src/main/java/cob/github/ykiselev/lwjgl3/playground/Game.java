@@ -158,7 +158,7 @@ public final class Game implements UiLayer, AutoCloseable {
 
     private void dumpToFile(Texture2d texture, String name) throws IOException {
         final FileSystem fs = host.services().resolve(FileSystem.class);
-        try (WritableByteChannel channel = fs.open(name, false)) {
+        try (WritableByteChannel channel = fs.openForWriting(name, false)) {
             texture.save(channel);
         }
     }

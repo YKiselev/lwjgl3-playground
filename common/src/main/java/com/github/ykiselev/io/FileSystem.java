@@ -1,5 +1,6 @@
 package com.github.ykiselev.io;
 
+import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
 
 /**
@@ -7,5 +8,7 @@ import java.nio.channels.WritableByteChannel;
  */
 public interface FileSystem {
 
-    WritableByteChannel open(String name, boolean append);
+    WritableByteChannel openForWriting(String name, boolean append);
+
+    ReadableByteChannel openForReading(String name);
 }

@@ -71,10 +71,14 @@ public final class ProgramArguments {
     }
 
     public Path home() {
-        final Path path = Paths.get(
-                System.getProperty("user.home"),
-                System.getProperty("app.folder", "lwjgl-playground")
-        );
+        final Path path = value("app.home")
+                .map(Paths::get)
+                .orElse(
+                        Paths.get(
+                                System.getProperty("user.home"),
+                                System.getProperty("app.folder", "lwjgl3-playground")
+                        )
+                );
         if (!Files.exists(path)) {
             try {
                 Files.createDirectories(path);
