@@ -162,7 +162,7 @@ public final class OpenAlApp {
                 System.out.println("Playing...");
                 alSourcePlay(source);
                 assertNoAlErrors();
-                for (int i = 0; i < 2; i++) {
+                for (int i = 0; i < 5; i++) {
                     int processed;
                     while ((processed = alGetSourcei(source, AL_BUFFERS_PROCESSED)) < 1) {
                         try {

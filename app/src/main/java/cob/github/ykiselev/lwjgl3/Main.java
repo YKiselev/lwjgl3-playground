@@ -33,6 +33,8 @@ import cob.github.ykiselev.lwjgl3.host.ProgramArguments;
 import cob.github.ykiselev.lwjgl3.layers.AppUiLayers;
 import cob.github.ykiselev.lwjgl3.layers.UiLayers;
 import cob.github.ykiselev.lwjgl3.services.Services;
+import cob.github.ykiselev.lwjgl3.services.SoundEffects;
+import cob.github.ykiselev.lwjgl3.sound.AppSoundEffects;
 import cob.github.ykiselev.lwjgl3.window.AppWindow;
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.io.FileSystem;
@@ -99,6 +101,7 @@ public final class Main implements Runnable {
         services.add(Assets.class, assets);
         services.add(UiLayers.class, layers);
         services.add(FileSystem.class, new AppFileSystem(args.home()));
+        services.add(SoundEffects.class, new AppSoundEffects());
         return host;
     }
 
