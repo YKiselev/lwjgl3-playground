@@ -1,6 +1,7 @@
 package cob.github.ykiselev.lwjgl3.assets;
 
 import com.github.ykiselev.assets.ReadableResource;
+import com.github.ykiselev.assets.ReadableVorbisAudio;
 import com.github.ykiselev.assets.formats.ReadableConfig;
 import com.github.ykiselev.assets.formats.ReadableShaderObject;
 import com.github.ykiselev.assets.formats.ReadableTexture2d;
@@ -28,6 +29,7 @@ public final class ResourceByExtension implements Function<String, ReadableResou
                         .put("png", new ReadableTexture2d())
                         .put("jpg", new ReadableTexture2d())
                         .put("conf", new ReadableConfig())
+                        .put("ogg", new ReadableVorbisAudio(128 * 1024))
                         .build()
         );
     }

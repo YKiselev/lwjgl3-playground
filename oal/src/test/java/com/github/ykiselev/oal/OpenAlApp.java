@@ -1,41 +1,33 @@
 package com.github.ykiselev.oal;
 
-import com.github.ykiselev.common.Wrap;
-import com.github.ykiselev.io.ByteChannelAsMemoryUtilByteBuffer;
-import com.github.ykiselev.memory.MemAllocShort;
+import com.github.ykiselev.assets.Assets;
+import com.github.ykiselev.assets.ReadableResource;
+import com.github.ykiselev.assets.ReadableVorbisAudio;
+import com.github.ykiselev.openal.AudioSamples;
 import org.junit.jupiter.api.Assertions;
-import org.lwjgl.BufferUtils;
 import org.lwjgl.openal.AL;
 import org.lwjgl.openal.ALC10;
 import org.lwjgl.openal.ALC11;
 import org.lwjgl.openal.ALCCapabilities;
 import org.lwjgl.openal.EXTThreadLocalContext;
-import org.lwjgl.stb.STBVorbisInfo;
 
-import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
-import java.nio.ShortBuffer;
 import java.nio.channels.Channels;
 import java.util.List;
 
+import static com.github.ykiselev.openal.Errors.assertNoAlErrors;
 import static org.lwjgl.openal.AL10.AL_BUFFER;
 import static org.lwjgl.openal.AL10.AL_BUFFERS_PROCESSED;
 import static org.lwjgl.openal.AL10.AL_BUFFERS_QUEUED;
 import static org.lwjgl.openal.AL10.AL_FALSE;
-import static org.lwjgl.openal.AL10.AL_FORMAT_MONO16;
-import static org.lwjgl.openal.AL10.AL_FORMAT_STEREO16;
 import static org.lwjgl.openal.AL10.AL_LOOPING;
-import static org.lwjgl.openal.AL10.AL_NO_ERROR;
 import static org.lwjgl.openal.AL10.AL_SOURCE_STATE;
 import static org.lwjgl.openal.AL10.AL_STOPPED;
-import static org.lwjgl.openal.AL10.alBufferData;
 import static org.lwjgl.openal.AL10.alDeleteBuffers;
 import static org.lwjgl.openal.AL10.alDeleteSources;
 import static org.lwjgl.openal.AL10.alGenBuffers;
 import static org.lwjgl.openal.AL10.alGenSources;
-import static org.lwjgl.openal.AL10.alGetError;
 import static org.lwjgl.openal.AL10.alGetSourcei;
-import static org.lwjgl.openal.AL10.alGetString;
 import static org.lwjgl.openal.AL10.alSourcePlay;
 import static org.lwjgl.openal.AL10.alSourceQueueBuffers;
 import static org.lwjgl.openal.AL10.alSourceStop;
@@ -56,23 +48,23 @@ import static org.lwjgl.openal.ALC10.alcOpenDevice;
 import static org.lwjgl.openal.ALC11.ALC_MONO_SOURCES;
 import static org.lwjgl.openal.ALC11.ALC_STEREO_SOURCES;
 import static org.lwjgl.openal.ALUtil.getStringList;
-import static org.lwjgl.stb.STBVorbis.stb_vorbis_close;
-import static org.lwjgl.stb.STBVorbis.stb_vorbis_get_info;
-import static org.lwjgl.stb.STBVorbis.stb_vorbis_get_samples_short_interleaved;
-import static org.lwjgl.stb.STBVorbis.stb_vorbis_open_memory;
-import static org.lwjgl.stb.STBVorbis.stb_vorbis_stream_length_in_samples;
 import static org.lwjgl.system.MemoryUtil.NULL;
+import static org.mockito.Mockito.mock;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
 public final class OpenAlApp {
 
-    public static void main(String[] args) {
+    private final ReadableResource<AudioSamples> readableResource = new ReadableVorbisAudio(32 * 1024);
+
+    private final Assets assets = mock(Assets.class);
+
+    public static void main(String[] args) throws Exception {
         new OpenAlApp().run();
     }
 
-    private void run() {
+    private void run() throws Exception {
         final long device = alcOpenDevice((CharSequence) null);
         if (device == NULL) {
             throw new IllegalArgumentException("No device found!");
@@ -83,7 +75,6 @@ public final class OpenAlApp {
             if (!capabilities.OpenALC10) {
                 throw new IllegalArgumentException("OpenAL 1.0 is not supported!");
             }
-            System.out.println("OpenALC10: " + capabilities.OpenALC10);
             System.out.println("OpenALC11: " + capabilities.OpenALC11);
             System.out.println("caps.ALC_EXT_EFX = " + capabilities.ALC_EXT_EFX);
 
@@ -91,7 +82,7 @@ public final class OpenAlApp {
             if (capabilities.OpenALC11) {
                 List<String> devices = getStringList(NULL, ALC11.ALC_ALL_DEVICES_SPECIFIER);
                 if (devices == null) {
-                    // todo checkALCError(NULL);
+                    assertNoAlErrors();
                 } else {
                     for (int i = 0; i < devices.size(); i++) {
                         System.out.println(i + ": " + devices.get(i));
@@ -124,125 +115,94 @@ public final class OpenAlApp {
         }
     }
 
-    private void checkALError() {
-        final int err = alGetError();
-        if (err != AL_NO_ERROR) {
-            throw new RuntimeException(alGetString(err));
-        }
-    }
-
-    private void bufferData(int buffer, STBVorbisInfo info, ShortBuffer pcm) {
-        alBufferData(buffer, info.channels() == 1 ? AL_FORMAT_MONO16 : AL_FORMAT_STEREO16, pcm, info.sample_rate());
-        checkALError();
-    }
-
-    private void testPlayback() {
+    private void testPlayback() throws Exception {
         // generate buffers and sources
         final int buffer = alGenBuffers();
-        checkALError();
+        assertNoAlErrors();
 
         final int source = alGenSources();
-        checkALError();
+        assertNoAlErrors();
 
-        try (STBVorbisInfo info = STBVorbisInfo.malloc()) {
-            try (Wrap<ShortBuffer> wrap = readVorbis("/footsteps.ogg", 32 * 1024, info)) {
-                bufferData(buffer, info, wrap.value());
+        final AudioSamples samples = readableResource.read(
+                Channels.newChannel(getClass().getResourceAsStream("/sample.ogg")),
+                "sample.ogg",
+                assets
+        );
+        try {
+            samples.buffer(buffer);
 
-                //lets loop the sound
-                alSourcei(source, AL_LOOPING, AL_FALSE);
-                checkALError();
+            //lets loop the sound
+            alSourcei(source, AL_LOOPING, AL_FALSE);
+            assertNoAlErrors();
 
-                if (false) {
-                    //set up source input
-                    alSourcei(source, AL_BUFFER, buffer);
-                    checkALError();
+            if (false) {
+                //set up source input
+                alSourcei(source, AL_BUFFER, buffer);
+                assertNoAlErrors();
 
-                    //play source 0
-                    alSourcePlay(source);
-                    checkALError();
+                //play source 0
+                alSourcePlay(source);
+                assertNoAlErrors();
 
-                    // not sure this is correct method to wait for sound to stop
-                    while (alGetSourcei(source, AL_SOURCE_STATE) != AL_STOPPED) {
-                        try {
-                            Thread.sleep(10);
-                        } catch (InterruptedException e) {
-                        }
+                // not sure this is correct method to wait for sound to stop
+                while (alGetSourcei(source, AL_SOURCE_STATE) != AL_STOPPED) {
+                    try {
+                        Thread.sleep(10);
+                    } catch (InterruptedException e) {
                     }
+                }
 
-                    //stop source 0
-                    alSourceStop(source);
-                    checkALError();
-                } else {
-                    System.out.println("Queueing first buffer");
-                    alSourceQueueBuffers(source, buffer);
-                    checkALError();
-                    System.out.println("Playing...");
-                    alSourcePlay(source);
-                    checkALError();
-                    for (int i = 0; i < 2; i++) {
-                        int processed;
-                        while ((processed = alGetSourcei(source, AL_BUFFERS_PROCESSED)) < 1) {
-                            try {
-                                Thread.sleep(5);
-                            } catch (InterruptedException e) {
-                            }
-                        }
-                        System.out.println("Processed " + processed);
-                        for (int k = 0; k < processed; k++) {
-                            final int b = alSourceUnqueueBuffers(source);
-                            bufferData(buffer, info, wrap.value());
-                            alSourceQueueBuffers(source, b);
-                            checkALError();
-                            alSourcePlay(source);
-                            checkALError();
-                        }
-                    }
-                    System.out.println("Waiting for completion...");
-                    while (alGetSourcei(source, AL_BUFFERS_QUEUED) > 0) {
-                        if (alGetSourcei(source, AL_BUFFERS_PROCESSED) > 0) {
-                            alSourceUnqueueBuffers(source);
-                            checkALError();
-                        }
+                //stop source 0
+                alSourceStop(source);
+                assertNoAlErrors();
+            } else {
+                System.out.println("Queueing first buffer");
+                alSourceQueueBuffers(source, buffer);
+                assertNoAlErrors();
+                System.out.println("Playing...");
+                alSourcePlay(source);
+                assertNoAlErrors();
+                for (int i = 0; i < 2; i++) {
+                    int processed;
+                    while ((processed = alGetSourcei(source, AL_BUFFERS_PROCESSED)) < 1) {
                         try {
                             Thread.sleep(5);
                         } catch (InterruptedException e) {
                         }
                     }
-                    System.out.println("All is done!");
+                    System.out.println("Processed " + processed);
+                    for (int k = 0; k < processed; k++) {
+                        final int b = alSourceUnqueueBuffers(source);
+                        samples.buffer(b);
+                        //bufferData(buffer, info, wrap.value());
+                        alSourceQueueBuffers(source, b);
+                        assertNoAlErrors();
+                        alSourcePlay(source);
+                        assertNoAlErrors();
+                    }
                 }
-
-                //delete buffers and sources
-                alDeleteSources(source);
-                checkALError();
-
-                alDeleteBuffers(buffer);
-                checkALError();
-            }
-        }
-    }
-
-    private Wrap<ShortBuffer> readVorbis(String resource, int bufferSize, STBVorbisInfo info) {
-        try (Wrap<ByteBuffer> vorbis = new ByteChannelAsMemoryUtilByteBuffer(
-                Channels.newChannel(getClass().getResourceAsStream(resource)),
-                bufferSize
-        ).read()) {
-            IntBuffer error = BufferUtils.createIntBuffer(1);
-            final long decoder = stb_vorbis_open_memory(vorbis.value(), error, null);
-            if (decoder == NULL) {
-                throw new RuntimeException("Failed to open Ogg Vorbis file. Error: " + error.get(0));
+                System.out.println("Waiting for completion...");
+                while (alGetSourcei(source, AL_BUFFERS_QUEUED) > 0) {
+                    if (alGetSourcei(source, AL_BUFFERS_PROCESSED) > 0) {
+                        alSourceUnqueueBuffers(source);
+                        assertNoAlErrors();
+                    }
+                    try {
+                        Thread.sleep(5);
+                    } catch (InterruptedException e) {
+                    }
+                }
+                System.out.println("All is done!");
             }
 
-            stb_vorbis_get_info(decoder, info);
+            //delete buffers and sources
+            alDeleteSources(source);
+            assertNoAlErrors();
 
-            final int channels = info.channels();
-            final int lengthSamples = stb_vorbis_stream_length_in_samples(decoder);
-
-            final MemAllocShort wrap = new MemAllocShort(lengthSamples);
-            final ShortBuffer pcm = wrap.value();// BufferUtils.createShortBuffer(lengthSamples);
-            pcm.limit(stb_vorbis_get_samples_short_interleaved(decoder, channels, pcm) * channels);
-            stb_vorbis_close(decoder);
-
-            return wrap;
+            alDeleteBuffers(buffer);
+            assertNoAlErrors();
+        } finally {
+            samples.close();
         }
     }
 }

@@ -31,6 +31,7 @@ import java.nio.FloatBuffer;
 import java.nio.channels.WritableByteChannel;
 
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_F1;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_PRINT_SCREEN;
 import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_LEFT;
 import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_RIGHT;
@@ -61,6 +62,10 @@ import static org.lwjgl.opengl.GL11.glViewport;
  */
 public final class Game implements UiLayer, AutoCloseable {
 
+    enum FrameBufferMode {
+        COLOR, DEPTH
+    }
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final Host host;
@@ -78,7 +83,6 @@ public final class Game implements UiLayer, AutoCloseable {
     private final GenericIndexedGeometry pyramid;
 
     private final GenericIndexedGeometry cubes;
-
 
     private float radius = 8;
 
@@ -101,6 +105,8 @@ public final class Game implements UiLayer, AutoCloseable {
             },
             null
     );
+
+    private FrameBufferMode frameBufferMode = FrameBufferMode.COLOR;
 
     public Game(Host host, Assets assets) {
         this.host = host;
@@ -152,6 +158,22 @@ public final class Game implements UiLayer, AutoCloseable {
                     } catch (IOException e) {
                         logger.error("Unable to save image!", e);
                     }
+                    break;
+
+                case GLFW_KEY_F1:
+                    int i = 0;
+                    final FrameBufferMode[] values = FrameBufferMode.values();
+                    for (; i < values.length; i++) {
+                        if (values[i] == frameBufferMode) {
+                            break;
+                        }
+                    }
+                    if (i < values.length - 1) {
+                        i++;
+                    } else {
+                        i = 0;
+                    }
+                    frameBufferMode = values[i];
                     break;
             }
         }
@@ -323,16 +345,20 @@ public final class Game implements UiLayer, AutoCloseable {
         glDisable(GL_DEPTH_TEST);
 
         spriteBatch.begin(0, 0, width, height, true);
-        // show color buffer
-        spriteBatch.draw(frameBuffer.color(), 0, 0, width / 2, height, 0xffffffff);
-        // show depth buffer
-        spriteBatch.draw(frameBuffer.depth(), width / 2, 0, width / 2, height, 0xffffffff);
+        switch (frameBufferMode) {
+            case COLOR:
+                spriteBatch.draw(frameBuffer.color(), 0, 0, width, height, 0xffffffff);
+                break;
 
+            case DEPTH:
+                spriteBatch.draw(frameBuffer.depth(), 0, 0, width, height, 0xffffffff);
+                break;
+        }
         spriteBatch.draw(
                 liberationMono,
                 0,
                 height - liberationMono.fontHeight(),
-                String.format("avg. fps: %.2f", fps),
+                String.format("avg. fps: %.2f, frame buffer mode: %s", fps, frameBufferMode),
                 width,
                 0xffffffff
         );

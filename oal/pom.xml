@@ -19,6 +19,10 @@
         </dependency>
         <dependency>
             <groupId>org.lwjgl</groupId>
+            <artifactId>lwjgl</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.lwjgl</groupId>
             <artifactId>lwjgl-openal</artifactId>
         </dependency>
         <dependency>
@@ -29,19 +33,19 @@
         <dependency>
             <groupId>org.lwjgl</groupId>
             <artifactId>lwjgl-stb</artifactId>
-            <version>${lwjgl.version}</version>
         </dependency>
         <dependency>
             <groupId>org.lwjgl</groupId>
             <artifactId>lwjgl-stb</artifactId>
             <classifier>${lwjgl.natives}</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.lwjgl</groupId>
+            <artifactId>lwjgl-jemalloc</artifactId>
+            <classifier>${lwjgl.natives}</classifier>
+            <scope>runtime</scope>
         </dependency>
         <!-- Test dependencies -->
-        <dependency>
-            <groupId>org.lwjgl</groupId>
-            <artifactId>lwjgl</artifactId>
-            <scope>test</scope>
-        </dependency>
         <dependency>
             <groupId>org.lwjgl</groupId>
             <artifactId>lwjgl</artifactId>
@@ -52,38 +56,55 @@
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+        </dependency>
     </dependencies>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>com.googlecode.mavennatives</groupId>
-                <artifactId>maven-nativedependencies-plugin</artifactId>
-                <version>0.0.7</version>
-                <executions>
-                    <execution>
-                        <id>unpacknatives</id>
-                        <phase>generate-resources</phase>
-                        <goals>
-                            <!--suppress MavenModelInspection (this line is for IDEA)-->
-                            <goal>copy</goal>
-                        </goals>
-                        <configuration>
-                            <nativesTargetDir>${project.build.directory}/natives</nativesTargetDir>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
+    <profiles>
+        <profile>
+            <id>testing</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+                <property>
+                    <name>maven.test.skip</name>
+                    <value>!false</value>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-dependency-plugin</artifactId>
+                        <version>3.0.2</version>
+                        <executions>
+                            <execution>
+                                <id>copy</id>
+                                <phase>compile</phase>
+                                <goals>
+                                    <goal>unpack-dependencies</goal>
+                                </goals>
+                                <configuration>
+                                    <includeScope>test</includeScope>
+                                    <includeClassifiers>${lwjgl.natives}</includeClassifiers>
+                                    <outputDirectory>${project.build.directory}/natives</outputDirectory>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
 
-            <!--<plugin>-->
-            <!--<groupId>org.apache.maven.plugins</groupId>-->
-            <!--<artifactId>maven-surefire-plugin</artifactId>-->
-            <!--<configuration>-->
-            <!--<forkMode>once</forkMode>-->
-            <!--<argLine>-Djava.library.path=${project.build.directory}/natives</argLine>-->
-            <!--</configuration>-->
-            <!--</plugin>-->
-        </plugins>
-    </build>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <forkMode>once</forkMode>
+                            <argLine>-Djava.library.path=${project.build.directory}/natives</argLine>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
 </project>
