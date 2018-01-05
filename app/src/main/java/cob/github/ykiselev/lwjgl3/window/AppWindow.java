@@ -169,7 +169,7 @@ public final class AppWindow implements AutoCloseable {
         windowEvents.scrollEvent(dx, dy);
     }
 
-    public void wireWindowEvents(WindowEvents events) {
+    public void wireEvents(WindowEvents events) {
         this.windowEvents = requireNonNull(events);
     }
 

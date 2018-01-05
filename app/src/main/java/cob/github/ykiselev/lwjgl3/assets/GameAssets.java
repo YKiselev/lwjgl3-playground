@@ -9,7 +9,8 @@ import com.github.ykiselev.assets.SimpleAssets;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Path;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
@@ -30,7 +31,7 @@ public final class GameAssets implements Assets, AutoCloseable {
                                 new ResourceByClass(),
                                 new ResourceByExtension()
                         ),
-                        new HashMap<>()
+                        new ConcurrentHashMap<>()
                 )
         );
     }
@@ -41,12 +42,12 @@ public final class GameAssets implements Assets, AutoCloseable {
     }
 
     @Override
-    public <T> T load(String resource, Class<T> clazz) throws ResourceException {
-        return assets.load(resource, clazz);
+    public <T> Optional<T> tryLoad(String resource, Class<T> clazz) throws ResourceException {
+        return assets.tryLoad(resource, clazz);
     }
 
     @Override
-    public ReadableByteChannel open(String resource) throws ResourceException {
+    public Optional<ReadableByteChannel> open(String resource) throws ResourceException {
         return assets.open(resource);
     }
 

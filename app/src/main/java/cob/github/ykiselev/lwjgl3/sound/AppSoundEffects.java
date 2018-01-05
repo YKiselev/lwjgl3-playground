@@ -1,6 +1,8 @@
 package cob.github.ykiselev.lwjgl3.sound;
 
+import cob.github.ykiselev.lwjgl3.host.Host;
 import cob.github.ykiselev.lwjgl3.services.SoundEffects;
+import com.typesafe.config.Config;
 import org.lwjgl.openal.AL;
 import org.lwjgl.openal.ALC10;
 import org.lwjgl.openal.ALC11;
@@ -13,6 +15,7 @@ import java.nio.IntBuffer;
 import java.util.List;
 
 import static com.github.ykiselev.openal.Errors.assertNoAlErrors;
+import static java.util.Objects.requireNonNull;
 import static org.lwjgl.openal.ALC.createCapabilities;
 import static org.lwjgl.openal.ALC10.ALC_FREQUENCY;
 import static org.lwjgl.openal.ALC10.ALC_REFRESH;
@@ -37,12 +40,20 @@ public final class AppSoundEffects implements SoundEffects, AutoCloseable {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
+    private final Host host;
+
     private final long device;
 
     private final long context;
 
-    public AppSoundEffects() {
-        device = alcOpenDevice((CharSequence) null);
+    public AppSoundEffects(Host host) {
+        this.host = requireNonNull(host);
+
+        final Config config = host.services()
+                .resolve(Config.class)
+                .getConfig("sound");
+
+        device = alcOpenDevice(config.getString("device"));
         if (device == NULL) {
             throw new IllegalArgumentException("No device found!");
         }
@@ -62,6 +73,8 @@ public final class AppSoundEffects implements SoundEffects, AutoCloseable {
         }
         final String defaultDeviceSpecifier = alcGetString(NULL, ALC10.ALC_DEFAULT_DEVICE_SPECIFIER);
         logger.info("Default device: {}", defaultDeviceSpecifier);
+        final String deviceSpecifier = alcGetString(device, ALC10.ALC_DEVICE_SPECIFIER);
+        logger.info("Device: {}", deviceSpecifier);
 
         context = alcCreateContext(device, (IntBuffer) null);
         EXTThreadLocalContext.alcSetThreadContext(context);

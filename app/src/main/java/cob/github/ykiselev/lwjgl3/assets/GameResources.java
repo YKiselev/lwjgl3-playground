@@ -34,17 +34,20 @@ public final class GameResources implements Resources {
     }
 
     @Override
-    public ReadableByteChannel open(String resource) throws ResourceException {
+    public Optional<ReadableByteChannel> open(String resource) throws ResourceException {
         if (resource == null) {
-            return null;
+            return Optional.empty();
         }
-        final URL resolved = resolveFileResource(resource)
+        return resolveFileResource(resource)
                 .or(() -> resolveClassPathResource(resource))
-                .orElseThrow(() -> new ResourceException("Resource not found: " + resource));
-        logger.debug("Resource {} resolved into {}", resource, resolved);
+                .map(url -> channel(resource, url));
+    }
+
+    private ReadableByteChannel channel(String resource, URL url) {
+        logger.debug("Resource {} resolved into {}", resource, url);
         try {
             return Channels.newChannel(
-                    resolved.openStream()
+                    url.openStream()
             );
         } catch (IOException e) {
             throw new ResourceException(e);

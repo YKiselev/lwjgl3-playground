@@ -38,6 +38,8 @@ import cob.github.ykiselev.lwjgl3.sound.AppSoundEffects;
 import cob.github.ykiselev.lwjgl3.window.AppWindow;
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.io.FileSystem;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 import org.lwjgl.opengl.GL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,11 +76,12 @@ public final class Main implements Runnable {
         try {
             final GameAssets assets = new GameAssets(args.assetPaths());
             final AppUiLayers layers = new AppUiLayers();
-            try (AppHost host = createHost(assets, layers)) {
+            try (AppHost host = new AppHost()) {
+                createServices(host, assets, layers);
                 try (SubscriberGroup group = subscribe(host)) {
                     try (AppWindow window = new AppWindow(args.fullScreen())) {
                         GL.createCapabilities();
-                        window.wireWindowEvents(layers);
+                        window.wireEvents(layers);
                         window.show();
                         host.events().send(new NewGameEvent());
                         glfwSwapInterval(1);
@@ -95,14 +98,20 @@ public final class Main implements Runnable {
         }
     }
 
-    private AppHost createHost(GameAssets assets, AppUiLayers layers) {
-        final AppHost host = new AppHost();
+    private void createServices(AppHost host, Assets assets, UiLayers layers) {
         final Services services = host.services();
+        services.add(Config.class, createConfig(assets));
         services.add(Assets.class, assets);
         services.add(UiLayers.class, layers);
         services.add(FileSystem.class, new AppFileSystem(args.home()));
-        services.add(SoundEffects.class, new AppSoundEffects());
-        return host;
+        services.add(SoundEffects.class, new AppSoundEffects(host));
+    }
+
+    private Config createConfig(Assets assets) {
+        return assets.tryLoad("app.conf", Config.class)
+                .orElse(ConfigFactory.empty())
+                .withFallback(ConfigFactory.parseResources("fallback/app.conf"))
+                .resolve();
     }
 
     private SubscriberGroup subscribe(Host host) {
