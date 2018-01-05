@@ -40,9 +40,15 @@ import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.io.FileSystem;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import com.typesafe.config.ConfigRenderOptions;
 import org.lwjgl.opengl.GL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.io.Writer;
+import java.nio.channels.Channels;
+import java.nio.channels.WritableByteChannel;
 
 import static org.lwjgl.glfw.GLFW.glfwSwapInterval;
 
@@ -85,6 +91,7 @@ public final class Main implements Runnable {
                         window.show();
                         host.events().send(new NewGameEvent());
                         glfwSwapInterval(1);
+                        logger.info("Entering main loop...");
                         while (!window.shouldClose() && !exitFlag) {
                             window.checkEvents();
                             layers.draw();
@@ -92,6 +99,7 @@ public final class Main implements Runnable {
                         }
                     }
                 }
+                saveConfig(host);
             }
         } catch (Exception e) {
             logger.error("Unhandled exception!", e);
@@ -99,6 +107,7 @@ public final class Main implements Runnable {
     }
 
     private void createServices(AppHost host, Assets assets, UiLayers layers) {
+        logger.info("Creating services...");
         final Services services = host.services();
         services.add(Config.class, createConfig(assets));
         services.add(Assets.class, assets);
@@ -112,6 +121,25 @@ public final class Main implements Runnable {
                 .orElse(ConfigFactory.empty())
                 .withFallback(ConfigFactory.parseResources("fallback/app.conf"))
                 .resolve();
+    }
+
+    private void saveConfig(AppHost host) throws IOException {
+        logger.info("Saving config...");
+        final FileSystem fs = host.services().resolve(FileSystem.class);
+        try (WritableByteChannel channel = fs.openForWriting("app.conf", false)) {
+            try (Writer writer = Channels.newWriter(channel, "utf-8")) {
+                writer.write(
+                        host.services()
+                                .resolve(Config.class)
+                                .root()
+                                .render(
+                                        ConfigRenderOptions.defaults()
+                                                .setOriginComments(false)
+                                                .setJson(false)
+                                )
+                );
+            }
+        }
     }
 
     private SubscriberGroup subscribe(Host host) {

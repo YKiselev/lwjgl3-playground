@@ -24,11 +24,11 @@ public final class OnNewGameEvent implements Consumer<NewGameEvent> {
     @Override
     public void accept(NewGameEvent event) {
         final Services services = host.services();
-        final Game previous = services.tryResolve(Game.class);
-        if (previous != null) {
-            services.remove(Game.class, previous);
-            previous.close();
-        }
+        services.tryResolve(Game.class)
+                .ifPresent(g -> {
+                    services.remove(Game.class, g);
+                    g.close();
+                });
         final Game game = new Game(
                 host,
                 services.resolve(Assets.class)

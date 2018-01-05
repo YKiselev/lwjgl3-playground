@@ -1,5 +1,7 @@
 package cob.github.ykiselev.lwjgl3.services;
 
+import java.util.Optional;
+
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
@@ -11,5 +13,5 @@ public interface Services extends AutoCloseable {
 
     <T> T resolve(Class<T> clazz);
 
-    <T> T tryResolve(Class<T> clazz);
+    <T> Optional<T> tryResolve(Class<T> clazz);
 }

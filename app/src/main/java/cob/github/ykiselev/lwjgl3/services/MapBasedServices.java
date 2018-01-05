@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static java.util.Objects.requireNonNull;
@@ -43,15 +44,17 @@ public final class MapBasedServices implements Services {
 
     @Override
     public <T> T resolve(Class<T> clazz) {
-        return requireNonNull(
-                tryResolve(clazz),
-                "Service not found: " + clazz
-        );
+        return tryResolve(clazz)
+                .orElseThrow(
+                        () -> new IllegalArgumentException("Service not found: " + clazz)
+                );
     }
 
     @Override
-    public <T> T tryResolve(Class<T> clazz) {
-        return clazz.cast(services.get(clazz));
+    public <T> Optional<T> tryResolve(Class<T> clazz) {
+        return Optional.ofNullable(
+                clazz.cast(services.get(clazz))
+        );
     }
 
     @Override
