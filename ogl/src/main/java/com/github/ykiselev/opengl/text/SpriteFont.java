@@ -78,10 +78,45 @@ public final class SpriteFont {
         return null;
     }
 
-    public int measureHeight(CharSequence text, int width) {
+    /**
+     * Calculates width of text. If text is multi-line then width of longest line is returned.
+     *
+     * @param text the text to measure width for
+     * @return the width of text
+     */
+    public int width(CharSequence text) {
+        int w = 0, maxWidth = 0;
+        for (int i = 0; i < text.length(); i++) {
+            final char value = text.charAt(i);
+            if (value == '\r') {
+                continue;
+            }
+            if (value == '\n') {
+                if (w > maxWidth) {
+                    maxWidth = w;
+                }
+                w = 0;
+                continue;
+            }
+            w += glyphForCharacter(value).width();
+        }
+        if (w > maxWidth) {
+            maxWidth = w;
+        }
+        return maxWidth;
+    }
+
+    /**
+     * Calculates height of the text with respect to possible new lines.
+     *
+     * @param text  the text to measure height for
+     * @param width the maximum width of text. Any line exceeding this width will be wrapped just like when new line character is encountered in text.
+     * @return the height of text
+     */
+    public int height(CharSequence text, int width) {
         final int dy = fontHeight + glyphYBorder;
         int lines = 0;
-        float w = 0;
+        int w = 0;
         for (int i = 0; i < text.length(); i++) {
             final char value = text.charAt(i);
 

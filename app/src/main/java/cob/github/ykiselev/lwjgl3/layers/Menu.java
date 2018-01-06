@@ -2,6 +2,7 @@ package cob.github.ykiselev.lwjgl3.layers;
 
 import cob.github.ykiselev.lwjgl3.events.SubscriberGroup;
 import cob.github.ykiselev.lwjgl3.events.SubscriberGroupBuilder;
+import cob.github.ykiselev.lwjgl3.events.game.NewGameEvent;
 import cob.github.ykiselev.lwjgl3.events.game.QuitGameEvent;
 import cob.github.ykiselev.lwjgl3.host.Host;
 import cob.github.ykiselev.lwjgl3.layers.menu.Link;
@@ -57,15 +58,13 @@ public final class Menu implements UiLayer, AutoCloseable {
         items = Arrays.asList(
                 new Link(
                         "New",
-                        () -> {
-                        }
+                        () -> host.events().send(new NewGameEvent())
                 ),
-                new Slider("Volume", 0, 100, 10),
+                new Slider("Effects", 0, 100, 10),
+                new Slider("Music", 0, 100, 10),
                 new Link(
                         "Exit",
-                        () -> {
-                            host.events().send(new QuitGameEvent());
-                        }
+                        () -> host.events().send(new QuitGameEvent())
                 )
         );
         context = new MenuDrawingContext() {

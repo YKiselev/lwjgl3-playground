@@ -69,7 +69,7 @@ public final class Slider implements MenuItem {
                 sb.append('|');
             }
         }
-        sb.append("] ");
+        sb.append("]");
         final int start = sb.length();
         sb.append(maxValue);
         final int target = sb.length();
