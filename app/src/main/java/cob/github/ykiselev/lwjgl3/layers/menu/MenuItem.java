@@ -1,16 +1,13 @@
 package cob.github.ykiselev.lwjgl3.layers.menu;
 
 import cob.github.ykiselev.lwjgl3.playground.WindowEvents;
-import com.github.ykiselev.opengl.sprites.SpriteBatch;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
 public interface MenuItem extends WindowEvents {
 
-    String name();
-
-    int draw(int x, int y, int width, SpriteBatch spriteBatch);
+    int draw(int x, int y, int width, MenuDrawingContext ctx);
 
     @Override
     default boolean keyEvent(int key, int scanCode, int action, int mods) {
@@ -29,5 +26,8 @@ public interface MenuItem extends WindowEvents {
     @Override
     default boolean scrollEvent(double dx, double dy) {
         return false;
+    }
+
+    default void frameBufferResized(int width, int height) {
     }
 }

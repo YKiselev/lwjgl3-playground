@@ -5,7 +5,9 @@ import cob.github.ykiselev.lwjgl3.events.SubscriberGroupBuilder;
 import cob.github.ykiselev.lwjgl3.events.game.QuitGameEvent;
 import cob.github.ykiselev.lwjgl3.host.Host;
 import cob.github.ykiselev.lwjgl3.layers.menu.Link;
+import cob.github.ykiselev.lwjgl3.layers.menu.MenuDrawingContext;
 import cob.github.ykiselev.lwjgl3.layers.menu.MenuItem;
+import cob.github.ykiselev.lwjgl3.layers.menu.Slider;
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.opengl.shaders.ProgramObject;
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
@@ -39,6 +41,8 @@ public final class Menu implements UiLayer, AutoCloseable {
 
     private final List<MenuItem> items;
 
+    private final MenuDrawingContext context;
+
     private int selected = 0;
 
     public Menu(Host host, Assets assets) {
@@ -49,15 +53,37 @@ public final class Menu implements UiLayer, AutoCloseable {
                 assets.load("progs/sprite-batch.conf", ProgramObject.class)
         );
         white = assets.load("images/white.png", Texture2d.class);
-        font = assets.load("fonts/GENUINE.sf", SpriteFont.class);
+        font = assets.load("fonts/Liberation Mono 22.sf", SpriteFont.class);
         items = Arrays.asList(
-                new Link("New", () -> {
-                }, font),
-                new Link("Exit", () -> {
-                    host.events().send(new QuitGameEvent());
-                }, font)
+                new Link(
+                        "New",
+                        () -> {
+                        }
+                ),
+                new Slider("Volume", 0, 100, 10),
+                new Link(
+                        "Exit",
+                        () -> {
+                            host.events().send(new QuitGameEvent());
+                        }
+                )
         );
+        context = new MenuDrawingContext() {
+            @Override
+            public SpriteFont font() {
+                return font;
+            }
 
+            @Override
+            public SpriteBatch spriteBatch() {
+                return spriteBatch;
+            }
+
+            @Override
+            public int draw(int x, int y, int width, CharSequence text, int color) {
+                return spriteBatch.draw(font, x, y, width, text, color);
+            }
+        };
     }
 
     @Override
@@ -149,10 +175,10 @@ public final class Menu implements UiLayer, AutoCloseable {
         for (MenuItem item : items) {
             int dx = 0;
             if (i == selected) {
-                spriteBatch.draw(font, x - cursorWidth, y, "\u23F5", maxWidth, 0xffffffff);
+                spriteBatch.draw(font, x - cursorWidth, y, maxWidth, "\u23F5", 0xffffffff);
                 dx = 4;
             }
-            y -= item.draw(x + dx, y, maxWidth, spriteBatch);
+            y -= item.draw(x + dx, y, maxWidth, context);
             i++;
         }
 

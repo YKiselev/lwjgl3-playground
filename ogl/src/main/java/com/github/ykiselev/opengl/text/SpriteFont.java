@@ -78,7 +78,7 @@ public final class SpriteFont {
         return null;
     }
 
-    public int measureHeight(String text, int width) {
+    public int measureHeight(CharSequence text, int width) {
         final int dy = fontHeight + glyphYBorder;
         int lines = 0;
         float w = 0;

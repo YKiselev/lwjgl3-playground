@@ -325,12 +325,12 @@ public final class SpriteBatch implements AutoCloseable {
      * @param font     the sprite font to use
      * @param x        the left coordinate of the origin of the text bounding rectangle
      * @param y        the bottom coordinate of the origin of the text bounding rectangle
-     * @param text     the text to draw (possibly multi-line if there is '\n' characters in text or if maxWidth exceeded)
      * @param maxWidth the maximum width of bounding rectangle. When text width reaches this value next character is drawn as if there '\n' between next and previous characters.
+     * @param text     the text to draw (possibly multi-line if there is '\n' characters in text or if maxWidth exceeded)
      * @param color    the RGBA color (0xff0000ff - red, 0x00ff00ff - green, 0x0000ffff - blue)
      * @return actual height of text
      */
-    public int draw(SpriteFont font, int x, int y, String text, int maxWidth, int color) {
+    public int draw(SpriteFont font, int x, int y, int maxWidth, CharSequence text, int color) {
         use(font.texture());
 
         final float dy = font.fontHeight() + font.glyphYBorder();
