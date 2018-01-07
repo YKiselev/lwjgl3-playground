@@ -4,11 +4,13 @@ import com.github.ykiselev.io.FileSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
+import java.nio.file.Files;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -33,6 +35,8 @@ public final class AppFileSystem implements FileSystem {
         logger.info("Opening file {}...", path);
         try {
             return FileChannel.open(path, options);
+        } catch (FileNotFoundException e) {
+            return null;
         } catch (IOException e) {
             throw new UncheckedIOException("Unable to open " + path, e);
         }
@@ -51,5 +55,12 @@ public final class AppFileSystem implements FileSystem {
     @Override
     public ReadableByteChannel openForReading(String name) {
         return open(name, StandardOpenOption.READ);
+    }
+
+    @Override
+    public boolean exists(String name) {
+        return Files.exists(
+                home.resolve(name)
+        );
     }
 }

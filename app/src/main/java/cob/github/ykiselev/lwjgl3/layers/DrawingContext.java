@@ -1,4 +1,4 @@
-package cob.github.ykiselev.lwjgl3.layers.menu;
+package cob.github.ykiselev.lwjgl3.layers;
 
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
 import com.github.ykiselev.opengl.text.SpriteFont;
@@ -6,7 +6,7 @@ import com.github.ykiselev.opengl.text.SpriteFont;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public interface MenuDrawingContext {
+public interface DrawingContext {
 
     SpriteFont font();
 

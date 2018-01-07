@@ -11,4 +11,6 @@ public interface FileSystem {
     WritableByteChannel openForWriting(String name, boolean append);
 
     ReadableByteChannel openForReading(String name);
+
+    boolean exists(String name);
 }

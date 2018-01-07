@@ -1,5 +1,6 @@
 package cob.github.ykiselev.lwjgl3.sound;
 
+import cob.github.ykiselev.lwjgl3.config.PersistedConfiguration;
 import cob.github.ykiselev.lwjgl3.host.Host;
 import cob.github.ykiselev.lwjgl3.services.SoundEffects;
 import com.typesafe.config.Config;
@@ -50,7 +51,8 @@ public final class AppSoundEffects implements SoundEffects, AutoCloseable {
         this.host = requireNonNull(host);
 
         final Config config = host.services()
-                .resolve(Config.class)
+                .resolve(PersistedConfiguration.class)
+                .root()
                 .getConfig("sound");
 
         device = alcOpenDevice(config.getString("device"));

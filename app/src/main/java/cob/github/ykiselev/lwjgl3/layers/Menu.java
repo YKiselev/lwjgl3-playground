@@ -1,20 +1,22 @@
 package cob.github.ykiselev.lwjgl3.layers;
 
+import cob.github.ykiselev.lwjgl3.config.PersistedConfiguration;
 import cob.github.ykiselev.lwjgl3.events.SubscriberGroup;
 import cob.github.ykiselev.lwjgl3.events.SubscriberGroupBuilder;
 import cob.github.ykiselev.lwjgl3.events.game.NewGameEvent;
 import cob.github.ykiselev.lwjgl3.events.game.QuitGameEvent;
 import cob.github.ykiselev.lwjgl3.host.Host;
-import cob.github.ykiselev.lwjgl3.layers.menu.Link;
-import cob.github.ykiselev.lwjgl3.layers.menu.MenuDrawingContext;
-import cob.github.ykiselev.lwjgl3.layers.menu.MenuItem;
-import cob.github.ykiselev.lwjgl3.layers.menu.Slider;
+import cob.github.ykiselev.lwjgl3.layers.ui.UiElement;
+import cob.github.ykiselev.lwjgl3.layers.ui.elements.Link;
+import cob.github.ykiselev.lwjgl3.layers.ui.elements.Slider;
+import cob.github.ykiselev.lwjgl3.layers.ui.models.SliderModel;
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.opengl.shaders.ProgramObject;
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
 import com.github.ykiselev.opengl.text.Glyph;
 import com.github.ykiselev.opengl.text.SpriteFont;
 import com.github.ykiselev.opengl.textures.Texture2d;
+import com.typesafe.config.Config;
 
 import java.util.Arrays;
 import java.util.List;
@@ -40,9 +42,9 @@ public final class Menu implements UiLayer, AutoCloseable {
 
     private final SpriteFont font;
 
-    private final List<MenuItem> items;
+    private final List<UiElement> items;
 
-    private final MenuDrawingContext context;
+    private final DrawingContext context;
 
     private int selected = 0;
 
@@ -55,19 +57,25 @@ public final class Menu implements UiLayer, AutoCloseable {
         );
         white = assets.load("images/white.png", Texture2d.class);
         font = assets.load("fonts/Liberation Mono 22.sf", SpriteFont.class);
+        final SliderModel effectsModel = new SliderModel(0, 100, 10, (model, old) -> {
+            host.services().resolve(PersistedConfiguration.class).set("sound.effects-level", model.value());
+        });
+        final Config config = host.services().resolve(PersistedConfiguration.class).root();
+        effectsModel.value(config.getInt("sound.effects-level"));
         items = Arrays.asList(
                 new Link(
                         "New",
                         () -> host.events().send(new NewGameEvent())
                 ),
-                new Slider("Effects", 0, 100, 10),
-                new Slider("Music", 0, 100, 10),
+                new Slider(effectsModel),
+                new Slider(new SliderModel(0, 100, 5, (model, old) -> {
+                })),
                 new Link(
                         "Exit",
                         () -> host.events().send(new QuitGameEvent())
                 )
         );
-        context = new MenuDrawingContext() {
+        context = new DrawingContext() {
             @Override
             public SpriteFont font() {
                 return font;
@@ -91,7 +99,7 @@ public final class Menu implements UiLayer, AutoCloseable {
         group.close();
     }
 
-    private MenuItem selectedItem() {
+    private UiElement selectedItem() {
         return items.get(selected);
     }
 
@@ -128,7 +136,7 @@ public final class Menu implements UiLayer, AutoCloseable {
 
     @Override
     public void cursorEvent(double x, double y) {
-        for (MenuItem item : items) {
+        for (UiElement item : items) {
             item.cursorEvent(x, y);
         }
     }
@@ -171,7 +179,7 @@ public final class Menu implements UiLayer, AutoCloseable {
         final int maxWidth = width - x;
         int y = height / 2 + items.size() * font.fontHeight() / 2 - font.fontHeight();
         int i = 0;
-        for (MenuItem item : items) {
+        for (UiElement item : items) {
             int dx = 0;
             if (i == selected) {
                 spriteBatch.draw(font, x - cursorWidth, y, maxWidth, "\u23F5", 0xffffffff);

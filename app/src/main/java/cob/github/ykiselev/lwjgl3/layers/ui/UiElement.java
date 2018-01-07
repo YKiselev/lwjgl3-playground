@@ -1,13 +1,14 @@
-package cob.github.ykiselev.lwjgl3.layers.menu;
+package cob.github.ykiselev.lwjgl3.layers.ui;
 
+import cob.github.ykiselev.lwjgl3.layers.DrawingContext;
 import cob.github.ykiselev.lwjgl3.playground.WindowEvents;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public interface MenuItem extends WindowEvents {
+public interface UiElement extends WindowEvents {
 
-    int draw(int x, int y, int width, MenuDrawingContext ctx);
+    int draw(int x, int y, int width, DrawingContext ctx);
 
     @Override
     default boolean keyEvent(int key, int scanCode, int action, int mods) {

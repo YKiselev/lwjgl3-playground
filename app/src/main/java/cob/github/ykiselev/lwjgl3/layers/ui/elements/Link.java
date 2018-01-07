@@ -1,5 +1,8 @@
-package cob.github.ykiselev.lwjgl3.layers.menu;
+package cob.github.ykiselev.lwjgl3.layers.ui.elements;
 
+
+import cob.github.ykiselev.lwjgl3.layers.DrawingContext;
+import cob.github.ykiselev.lwjgl3.layers.ui.UiElement;
 
 import static java.util.Objects.requireNonNull;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_ENTER;
@@ -10,7 +13,7 @@ import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
  *
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class Link implements MenuItem {
+public final class Link implements UiElement {
 
     private final String name;
 
@@ -41,7 +44,7 @@ public final class Link implements MenuItem {
     }
 
     @Override
-    public int draw(int x, int y, int width, MenuDrawingContext ctx) {
+    public int draw(int x, int y, int width, DrawingContext ctx) {
         int color = 0xffffffff;
         if (cx > x && cx < x + width && cy > y && cy < y + ctx.font().fontHeight()) {
             color = 0xffff00ff;
