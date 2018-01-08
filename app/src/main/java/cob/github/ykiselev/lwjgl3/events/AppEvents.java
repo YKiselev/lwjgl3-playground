@@ -1,5 +1,8 @@
 package cob.github.ykiselev.lwjgl3.events;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -13,35 +16,37 @@ import static java.util.Objects.requireNonNull;
  */
 public final class AppEvents implements Events {
 
-    private final Map<Class, Collection<Consumer>> subscribers = new ConcurrentHashMap<>();
+    private final Logger logger = LoggerFactory.getLogger(getClass());
+
+    private final Map<Class, Collection<ClosableConsumer>> subscribers = new ConcurrentHashMap<>();
 
     private final Map<Class, Class> cache = new ConcurrentHashMap<>();
 
     @Override
-    public <T> void subscribe(Class<T> eventType, Consumer<T> handler) {
-        final Collection<Consumer> consumers = subscribers.computeIfAbsent(
-                eventType,
-                key -> new CopyOnWriteArrayList<>()
+    @SuppressWarnings("unchecked")
+    public <T> AutoCloseable subscribe(Class<T> eventClass, Consumer<T> handler) {
+        final Collection<ClosableConsumer> consumers = this.subscribers.computeIfAbsent(
+                eventClass,
+                k -> new CopyOnWriteArrayList<>()
         );
-        for (Consumer consumer : consumers) {
-            if (consumer == handler) {
-                return;
+        ClosableConsumer result = null;
+        for (ClosableConsumer consumer : consumers) {
+            if (consumer.delegatesTo(handler)) {
+                logger.warn("Already subscribed: {}", handler);
+                result = consumer;
+                break;
             }
         }
-        consumers.add(handler);
-        cache.clear();
+        if (result == null) {
+            result = new ClosableConsumer<>(handler);
+            consumers.add(result);
+            clearCache();
+        }
+        return result;
     }
 
-    @Override
-    public <T> void unsubscribe(Class<T> eventType, Consumer<T> handler) {
-        final Collection<Consumer> consumers = subscribers.get(eventType);
-        if (consumers != null) {
-            if (consumers.remove(handler)) {
-                cache.clear();
-                return;
-            }
-        }
-        throw new IllegalArgumentException("Handler " + handler + " is not registered for " + eventType);
+    private void clearCache() {
+        cache.clear();
     }
 
     private Class getOrRefine(Class eventType) {
@@ -67,7 +72,7 @@ public final class AppEvents implements Events {
         return null;
     }
 
-    private Collection<Consumer> find(Class eventType) {
+    private Collection<ClosableConsumer> find(Class eventType) {
         return subscribers.get(
                 getOrRefine(eventType)
         );
@@ -76,11 +81,34 @@ public final class AppEvents implements Events {
     @Override
     @SuppressWarnings("unchecked")
     public void send(Object message) {
-        final Collection<Consumer> consumers = find(message.getClass());
+        final Collection<ClosableConsumer> consumers = find(message.getClass());
         if (consumers != null) {
-            for (Consumer consumer : consumers) {
-                consumer.accept(message);
+            consumers.forEach(h -> h.accept(message));
+        }
+    }
+
+    private static final class ClosableConsumer<E> implements AutoCloseable {
+
+        private volatile Consumer<E> consumer;
+
+        ClosableConsumer(Consumer<E> consumer) {
+            this.consumer = requireNonNull(consumer);
+        }
+
+        void accept(E e) {
+            final Consumer<E> c = this.consumer;
+            if (c != null) {
+                c.accept(e);
             }
+        }
+
+        @Override
+        public void close() {
+            consumer = null;
+        }
+
+        boolean delegatesTo(Consumer c) {
+            return c == consumer;
         }
     }
 }

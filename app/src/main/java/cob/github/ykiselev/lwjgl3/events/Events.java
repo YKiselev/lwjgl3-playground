@@ -7,9 +7,7 @@ import java.util.function.Consumer;
  */
 public interface Events {
 
-    <T> void subscribe(Class<T> eventType, Consumer<T> handler);
-
-    <T> void unsubscribe(Class<T> eventType, Consumer<T> handler);
+    <T> AutoCloseable subscribe(Class<T> eventClass, Consumer<T> handler);
 
     void send(Object message);
 }

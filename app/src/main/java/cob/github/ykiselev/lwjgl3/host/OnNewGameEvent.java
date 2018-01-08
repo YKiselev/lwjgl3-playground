@@ -27,7 +27,11 @@ public final class OnNewGameEvent implements Consumer<NewGameEvent> {
         services.tryResolve(Game.class)
                 .ifPresent(g -> {
                     services.remove(Game.class, g);
-                    g.close();
+                    try {
+                        g.close();
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
                 });
         final Game game = new Game(
                 host,

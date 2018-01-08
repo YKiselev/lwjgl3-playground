@@ -1,7 +1,7 @@
 package cob.github.ykiselev.lwjgl3.config;
 
-import cob.github.ykiselev.lwjgl3.events.SubscriberGroup;
-import cob.github.ykiselev.lwjgl3.events.SubscriberGroupBuilder;
+import cob.github.ykiselev.lwjgl3.events.Subscriptions;
+import cob.github.ykiselev.lwjgl3.events.SubscriptionsBuilder;
 import cob.github.ykiselev.lwjgl3.events.config.ValueChangingEvent;
 import cob.github.ykiselev.lwjgl3.host.Host;
 import com.github.ykiselev.io.FileSystem;
@@ -33,12 +33,12 @@ public final class AppConfig implements PersistedConfiguration, AutoCloseable {
 
     private Config config;
 
-    private final SubscriberGroup group;
+    private final Subscriptions group;
 
     public AppConfig(Host host) throws IOException {
         this.host = requireNonNull(host);
         this.config = load();
-        group = new SubscriberGroupBuilder()
+        group = new SubscriptionsBuilder()
                 .add(ValueChangingEvent.class, this::onValueChangingEvent)
                 .build(host.events());
     }
@@ -70,7 +70,7 @@ public final class AppConfig implements PersistedConfiguration, AutoCloseable {
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() throws Exception {
         group.close();
         persist();
     }

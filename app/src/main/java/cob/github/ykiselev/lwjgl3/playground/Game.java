@@ -1,7 +1,7 @@
 package cob.github.ykiselev.lwjgl3.playground;
 
-import cob.github.ykiselev.lwjgl3.events.SubscriberGroup;
-import cob.github.ykiselev.lwjgl3.events.SubscriberGroupBuilder;
+import cob.github.ykiselev.lwjgl3.events.Subscriptions;
+import cob.github.ykiselev.lwjgl3.events.SubscriptionsBuilder;
 import cob.github.ykiselev.lwjgl3.events.layers.ShowMenuEvent;
 import cob.github.ykiselev.lwjgl3.host.Host;
 import cob.github.ykiselev.lwjgl3.layers.UiLayer;
@@ -70,7 +70,7 @@ public final class Game implements UiLayer, AutoCloseable {
 
     private final Host host;
 
-    private final SubscriberGroup group;
+    private final Subscriptions group;
 
     private final SpriteBatch spriteBatch;
 
@@ -110,7 +110,7 @@ public final class Game implements UiLayer, AutoCloseable {
 
     public Game(Host host, Assets assets) {
         this.host = host;
-        this.group = new SubscriberGroupBuilder()
+        this.group = new SubscriptionsBuilder()
                 .build(host.events());
         spriteBatch = new SpriteBatch(
                 assets.load("progs/sprite-batch.conf", ProgramObject.class)
@@ -231,7 +231,7 @@ public final class Game implements UiLayer, AutoCloseable {
     }
 
     @Override
-    public void close() {
+    public void close() throws Exception {
         spriteBatch.close();
         pyramid.close();
         cubes.close();

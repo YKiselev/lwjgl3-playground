@@ -21,8 +21,8 @@ import cob.github.ykiselev.lwjgl3.app.GlfwApp;
 import cob.github.ykiselev.lwjgl3.assets.GameAssets;
 import cob.github.ykiselev.lwjgl3.config.AppConfig;
 import cob.github.ykiselev.lwjgl3.config.PersistedConfiguration;
-import cob.github.ykiselev.lwjgl3.events.SubscriberGroup;
-import cob.github.ykiselev.lwjgl3.events.SubscriberGroupBuilder;
+import cob.github.ykiselev.lwjgl3.events.Subscriptions;
+import cob.github.ykiselev.lwjgl3.events.SubscriptionsBuilder;
 import cob.github.ykiselev.lwjgl3.events.game.NewGameEvent;
 import cob.github.ykiselev.lwjgl3.events.game.QuitGameEvent;
 import cob.github.ykiselev.lwjgl3.events.layers.ShowMenuEvent;
@@ -80,7 +80,7 @@ public final class Main implements Runnable {
             final AppUiLayers layers = new AppUiLayers();
             try (AppHost host = new AppHost()) {
                 createServices(host, assets, layers);
-                try (SubscriberGroup group = subscribe(host)) {
+                try (Subscriptions group = subscribe(host)) {
                     try (AppWindow window = new AppWindow(args.fullScreen())) {
                         GL.createCapabilities();
                         window.wireEvents(layers);
@@ -111,8 +111,8 @@ public final class Main implements Runnable {
         services.add(SoundEffects.class, new AppSoundEffects(host));
     }
 
-    private SubscriberGroup subscribe(Host host) {
-        return new SubscriberGroupBuilder()
+    private Subscriptions subscribe(Host host) {
+        return new SubscriptionsBuilder()
                 .add(QuitGameEvent.class, this::onQuitGame)
                 .add(NewGameEvent.class, new OnNewGameEvent(host))
                 .add(ShowMenuEvent.class, new OnShowMenuEvent(host))
