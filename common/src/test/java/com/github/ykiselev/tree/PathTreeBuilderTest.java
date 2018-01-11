@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import java.util.NoSuchElementException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
@@ -25,5 +26,6 @@ class PathTreeBuilderTest {
                 2,
                 (int) tree.find("a.2").orElseThrow(NoSuchElementException::new)
         );
+        assertFalse(tree.find("a.3").isPresent());
     }
 }

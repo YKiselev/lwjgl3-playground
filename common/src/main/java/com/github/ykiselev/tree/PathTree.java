@@ -1,7 +1,5 @@
 package com.github.ykiselev.tree;
 
-import java.util.Arrays;
-import java.util.Iterator;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
@@ -22,13 +20,18 @@ public final class PathTree<V> {
     }
 
     public Optional<V> find(String path) {
-        return find(
-                Arrays.asList(pattern.split(path)).iterator()
-        );
+        return find(pattern.split(path));
     }
 
-    public Optional<V> find(Iterator<String> parts) {
-        return Optional.ofNullable(root.find(parts))
-                .map(PathTreeNode::value);
+    public Optional<V> find(String[] parts) {
+        PathTreeLeaf<V> node = root;
+        for (String part : parts) {
+            node = node.find(part);
+            if (node == null) {
+                return Optional.empty();
+            }
+        }
+        return Optional.ofNullable(node)
+                .map(PathTreeLeaf::value);
     }
 }

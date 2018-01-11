@@ -1,7 +1,5 @@
 package com.github.ykiselev.tree;
 
-import java.util.Iterator;
-
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
@@ -15,18 +13,10 @@ final class PathTreeNode<V> extends PathTreeLeaf<V> {
         this.children = children.clone();
     }
 
-    PathTreeNode<V> find(Iterator<String> path) {
-        if (path == null || !path.hasNext()) {
-            return null;
-        }
-        final String first = path.next();
+    PathTreeNode<V> find(String path) {
         for (PathTreeNode<V> child : children) {
-            if (child.match(first)) {
-                if (path.hasNext()) {
-                    return child.find(path);
-                } else {
-                    return child;
-                }
+            if (child.match(path)) {
+                return child;
             }
         }
         return null;

@@ -1,6 +1,5 @@
 package com.github.ykiselev.tree;
 
-import java.util.Iterator;
 import java.util.Objects;
 
 /**
@@ -25,10 +24,7 @@ class PathTreeLeaf<V> {
         return Objects.equals(this.part, part);
     }
 
-    PathTreeLeaf<V> find(Iterator<String> path) {
-        if (path.hasNext()) {
-            return null;
-        }
-        return this;
+    PathTreeLeaf<V> find(String path) {
+        return null;
     }
 }
