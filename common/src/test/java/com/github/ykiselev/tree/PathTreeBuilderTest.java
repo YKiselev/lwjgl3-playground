@@ -2,7 +2,8 @@ package com.github.ykiselev.tree;
 
 import org.junit.jupiter.api.Test;
 
-import static java.util.Arrays.asList;
+import java.util.NoSuchElementException;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
@@ -12,21 +13,17 @@ class PathTreeBuilderTest {
 
     @Test
     void shouldBuild() {
-        final PathTreeNode<Integer> treeNode = new PathTreeBuilder<Integer>("\\.")
+        final PathTree<Integer> tree = new PathTreeBuilder<Integer>("\\.")
                 .add("a.1", 1)
                 .add("a.2", 2)
                 .build();
         assertEquals(
-                (Integer) 1,
-                treeNode.find(
-                        asList("a", "1").iterator()
-                ).value()
+                1,
+                (int) tree.find("a.1").orElseThrow(NoSuchElementException::new)
         );
         assertEquals(
-                (Integer) 2,
-                treeNode.find(
-                        asList("a", "2").iterator()
-                ).value()
+                2,
+                (int) tree.find("a.2").orElseThrow(NoSuchElementException::new)
         );
     }
 }

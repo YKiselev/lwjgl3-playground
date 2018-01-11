@@ -40,8 +40,8 @@ public final class PathTreeBuilder<V> {
         return this;
     }
 
-    public PathTreeNode<V> build() {
-        return root.emit();
+    public PathTree<V> build() {
+        return new PathTree<>(pattern, root.emit());
     }
 
     private static class MutableTreeNode<V> {
