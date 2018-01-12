@@ -5,9 +5,9 @@ import java.util.Objects;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-class PathTreeLeaf<V> {
+class TreeLeaf<K, V> {
 
-    private final String part;
+    private final K key;
 
     private final V value;
 
@@ -15,16 +15,16 @@ class PathTreeLeaf<V> {
         return value;
     }
 
-    PathTreeLeaf(String part, V value) {
-        this.part = part;
+    TreeLeaf(K key, V value) {
+        this.key = key;
         this.value = value;
     }
 
-    final boolean match(String part) {
-        return Objects.equals(this.part, part);
+    final boolean match(K key) {
+        return Objects.equals(this.key, key);
     }
 
-    PathTreeLeaf<V> find(String path) {
+    TreeLeaf<K, V> find(K key) {
         return null;
     }
 }

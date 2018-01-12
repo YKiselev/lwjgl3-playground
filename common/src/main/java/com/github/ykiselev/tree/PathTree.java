@@ -12,9 +12,9 @@ public final class PathTree<V> {
 
     private final Pattern pattern;
 
-    private final PathTreeNode<V> root;
+    private final TreeLeaf<String, V> root;
 
-    PathTree(Pattern pattern, PathTreeNode<V> root) {
+    PathTree(Pattern pattern, TreeLeaf<String, V> root) {
         this.pattern = requireNonNull(pattern);
         this.root = requireNonNull(root);
     }
@@ -24,7 +24,7 @@ public final class PathTree<V> {
     }
 
     public Optional<V> find(String[] parts) {
-        PathTreeLeaf<V> node = root;
+        TreeLeaf<String, V> node = root;
         for (String part : parts) {
             node = node.find(part);
             if (node == null) {
@@ -32,6 +32,6 @@ public final class PathTree<V> {
             }
         }
         return Optional.ofNullable(node)
-                .map(PathTreeLeaf::value);
+                .map(TreeLeaf::value);
     }
 }

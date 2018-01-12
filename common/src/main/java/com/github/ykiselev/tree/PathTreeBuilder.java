@@ -1,12 +1,8 @@
 package com.github.ykiselev.tree;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.IntFunction;
 import java.util.regex.Pattern;
@@ -31,12 +27,10 @@ public final class PathTreeBuilder<V> {
     }
 
     public PathTreeBuilder<V> add(String path, V value) {
-        root.add(
-                Arrays.asList(
-                        pattern.split(path)
-                ).iterator(),
-                value
-        );
+        MutableTreeNode<V> node = root;
+        for (String part : pattern.split(path)) {
+            node = node.add(part, value);
+        }
         return this;
     }
 
@@ -65,52 +59,35 @@ public final class PathTreeBuilder<V> {
             return Objects.equals(this.part, part);
         }
 
-        MutableTreeNode<V> add(Iterator<String> parts, V value) {
-            if (!parts.hasNext()) {
-                throw new IllegalArgumentException("Empty parts!");
-            }
-            final String first = parts.next();
-            MutableTreeNode<V> result = null;
+        MutableTreeNode<V> add(String part, V value) {
             if (children != null) {
                 for (MutableTreeNode<V> child : children) {
-                    if (child.match(first)) {
-                        result = child;
-                        if (parts.hasNext()) {
-                            child.add(parts, value);
-                        } else {
-                            throw new IllegalArgumentException("Duplicated path!");
-                        }
-                        break;
+                    if (child.match(part)) {
+                        return child;
                     }
                 }
             }
-            if (result == null) {
-                if (!parts.hasNext()) {
-                    result = new MutableTreeNode<>(first, value);
-                } else {
-                    result = new MutableTreeNode<>(first, null);
-                    result.add(parts, value);
-                }
-                if (children == null) {
-                    children = new ArrayList<>();
-                }
-                children.add(result);
+            final MutableTreeNode<V> result = new MutableTreeNode<>(part, value);
+            if (children == null) {
+                children = new ArrayList<>();
             }
+            children.add(result);
             return result;
         }
 
-        PathTreeNode<V> emit() {
-            final Function<MutableTreeNode<V>, PathTreeNode<V>> transformation = MutableTreeNode::emit;
-            final IntFunction<PathTreeNode<V>[]> generator = PathTreeNode[]::new;
-            return new PathTreeNode<V>(
-                    part,
-                    value,
-                    Optional.ofNullable(children)
-                            .orElse(Collections.emptyList())
-                            .stream()
-                            .map(transformation)
-                            .toArray(generator)
-            );
+        TreeLeaf<String, V> emit() {
+            if (children != null && !children.isEmpty()) {
+                final Function<MutableTreeNode<V>, TreeLeaf<String, V>> transformation = MutableTreeNode::emit;
+                final IntFunction<TreeLeaf<String, V>[]> generator = TreeLeaf[]::new;
+                return new TreeNode<>(
+                        part,
+                        value,
+                        children.stream()
+                                .map(transformation)
+                                .toArray(generator)
+                );
+            }
+            return new TreeLeaf<>(part, value);
         }
     }
 }
