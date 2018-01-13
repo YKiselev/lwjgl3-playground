@@ -102,14 +102,14 @@ public final class SpriteBatch implements AutoCloseable {
                 continue;
             }
             if (value == '\n') {
-                fx = x;
+                fx = lineStart.calculate(x, font, text, i + 1, maxWidth);
                 fy -= dy;
                 continue;
             }
 
             final Glyph glyph = font.glyphForCharacter(value);
             if (fx + glyph.width() > maxX) {
-                fx = x;
+                fx = lineStart.calculate(x, font, text, i, maxWidth);
                 fy -= dy;
             }
 
@@ -121,7 +121,7 @@ public final class SpriteBatch implements AutoCloseable {
 
             fx = x1;
         }
-        return fy - y + font.fontHeight();
+        return y - fy + dy;
     }
 
     /**

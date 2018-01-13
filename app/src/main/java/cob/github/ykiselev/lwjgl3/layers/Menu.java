@@ -213,9 +213,9 @@ public final class Menu implements UiLayer, AutoCloseable {
         }
 
         int h = 0;
-        h += spriteBatch.draw(font, 0, h, width, "Left Alignment", TextAlignment.LEFT, 0xffffffff);
-        h += spriteBatch.draw(font, 0, h, width, "Middle Alignment", TextAlignment.MIDDLE, 0xffffffff);
-        h += spriteBatch.draw(font, 0, h, width, "Right Alignment", TextAlignment.RIGHT, 0xffffffff);
+        h += spriteBatch.draw(font, 0, h, width, "Left\nAlignment", TextAlignment.LEFT, 0xffffffff);
+        h += spriteBatch.draw(font, 0, h, width, "Middle\nAlignment", TextAlignment.MIDDLE, 0xffffffff);
+        h += spriteBatch.draw(font, 0, h, width, "Right\nAlignment", TextAlignment.RIGHT, 0xffffffff);
         spriteBatch.end();
     }
 }
