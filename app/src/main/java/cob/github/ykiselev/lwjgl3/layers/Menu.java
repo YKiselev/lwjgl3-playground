@@ -10,7 +10,6 @@ import cob.github.ykiselev.lwjgl3.layers.ui.UiElement;
 import cob.github.ykiselev.lwjgl3.layers.ui.elements.Link;
 import cob.github.ykiselev.lwjgl3.layers.ui.elements.Slider;
 import cob.github.ykiselev.lwjgl3.layers.ui.models.ConfigurationBoundSliderModel;
-import cob.github.ykiselev.lwjgl3.layers.ui.models.ListenableSliderModel;
 import cob.github.ykiselev.lwjgl3.layers.ui.models.SliderDefinition;
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.opengl.shaders.ProgramObject;
@@ -66,13 +65,18 @@ public final class Menu implements UiLayer, AutoCloseable {
                 ),
                 new Slider(
                         new ConfigurationBoundSliderModel(
-                                new SliderDefinition(0, 100, 10),
+                                new SliderDefinition(0, 10, 1),
                                 configuration,
                                 "sound.effects.level"
                         )
                 ),
-                new Slider(new ListenableSliderModel(new SliderDefinition(0, 100, 5), (model, old) -> {
-                })),
+                new Slider(
+                        new ConfigurationBoundSliderModel(
+                                new SliderDefinition(0, 10, 1),
+                                configuration,
+                                "sound.music.level"
+                        )
+                ),
                 new Link(
                         "Exit",
                         () -> host.events().send(new QuitGameEvent())

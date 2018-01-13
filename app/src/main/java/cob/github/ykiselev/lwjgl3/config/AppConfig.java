@@ -2,6 +2,7 @@ package cob.github.ykiselev.lwjgl3.config;
 
 import cob.github.ykiselev.lwjgl3.events.Subscriptions;
 import cob.github.ykiselev.lwjgl3.events.SubscriptionsBuilder;
+import cob.github.ykiselev.lwjgl3.events.config.InvalidValueException;
 import cob.github.ykiselev.lwjgl3.events.config.ValueChangingEvent;
 import cob.github.ykiselev.lwjgl3.host.Host;
 import com.github.ykiselev.io.FileSystem;
@@ -59,9 +60,14 @@ public final class AppConfig implements PersistedConfiguration, AutoCloseable {
             logger.debug("Skipping setting \"{}\" to the same value \"{}\"...", path, value);
         } else {
             logger.debug("Setting \"{}\" to \"{}\"", path, value);
-            host.events().send(
-                    new ValueChangingEvent(path, oldValue, value)
-            );
+            try {
+                host.events().send(
+                        new ValueChangingEvent(path, oldValue, value)
+                );
+            } catch (InvalidValueException e) {
+                logger.error("Unable to set \"{}\" to supplied value \"{}\"", path, value, e);
+                return;
+            }
             config = config.withValue(
                     path,
                     ConfigValueFactory.fromAnyRef(value)

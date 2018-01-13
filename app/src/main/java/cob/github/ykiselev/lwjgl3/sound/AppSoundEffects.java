@@ -109,7 +109,7 @@ public final class AppSoundEffects implements SoundEffects, AutoCloseable {
     }
 
     private void onSoundEffectsLevelChanging(ValueChangingEvent event) {
-        // todo hange effects level
+        logger.info("Setting sound level to {}", event.newValue());
     }
 
     @Override
