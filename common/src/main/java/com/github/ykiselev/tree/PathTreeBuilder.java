@@ -75,10 +75,10 @@ public final class PathTreeBuilder<V> {
             return result;
         }
 
-        TreeLeaf<String, V> emit() {
+        TreeNode<String, V> emit() {
             if (children != null && !children.isEmpty()) {
-                final Function<MutableTreeNode<V>, TreeLeaf<String, V>> transformation = MutableTreeNode::emit;
-                final IntFunction<TreeLeaf<String, V>[]> generator = TreeLeaf[]::new;
+                final Function<MutableTreeNode<V>, TreeNode<String, V>> transformation = MutableTreeNode::emit;
+                final IntFunction<TreeNode<String, V>[]> generator = TreeNode[]::new;
                 return new TreeNode<>(
                         part,
                         value,
@@ -87,7 +87,7 @@ public final class PathTreeBuilder<V> {
                                 .toArray(generator)
                 );
             }
-            return new TreeLeaf<>(part, value);
+            return new TreeNode<>(part, value);
         }
     }
 }

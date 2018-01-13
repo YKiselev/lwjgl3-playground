@@ -9,14 +9,15 @@ import cob.github.ykiselev.lwjgl3.host.Host;
 import cob.github.ykiselev.lwjgl3.layers.ui.UiElement;
 import cob.github.ykiselev.lwjgl3.layers.ui.elements.Link;
 import cob.github.ykiselev.lwjgl3.layers.ui.elements.Slider;
-import cob.github.ykiselev.lwjgl3.layers.ui.models.SliderModel;
+import cob.github.ykiselev.lwjgl3.layers.ui.models.ConfigurationBoundSliderModel;
+import cob.github.ykiselev.lwjgl3.layers.ui.models.ListenableSliderModel;
+import cob.github.ykiselev.lwjgl3.layers.ui.models.SliderDefinition;
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.opengl.shaders.ProgramObject;
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
 import com.github.ykiselev.opengl.text.Glyph;
 import com.github.ykiselev.opengl.text.SpriteFont;
 import com.github.ykiselev.opengl.textures.Texture2d;
-import com.typesafe.config.Config;
 
 import java.util.Arrays;
 import java.util.List;
@@ -57,18 +58,20 @@ public final class Menu implements UiLayer, AutoCloseable {
         );
         white = assets.load("images/white.png", Texture2d.class);
         font = assets.load("fonts/Liberation Mono 22.sf", SpriteFont.class);
-        final SliderModel effectsModel = new SliderModel(0, 100, 10, (model, old) -> {
-            host.services().resolve(PersistedConfiguration.class).set("sound.effects-level", model.value());
-        });
-        final Config config = host.services().resolve(PersistedConfiguration.class).root();
-        effectsModel.value(config.getInt("sound.effects-level"));
+        final PersistedConfiguration configuration = host.services().resolve(PersistedConfiguration.class);
         items = Arrays.asList(
                 new Link(
                         "New",
                         () -> host.events().send(new NewGameEvent())
                 ),
-                new Slider(effectsModel),
-                new Slider(new SliderModel(0, 100, 5, (model, old) -> {
+                new Slider(
+                        new ConfigurationBoundSliderModel(
+                                new SliderDefinition(0, 100, 10),
+                                configuration,
+                                "sound.effects.level"
+                        )
+                ),
+                new Slider(new ListenableSliderModel(new SliderDefinition(0, 100, 5), (model, old) -> {
                 })),
                 new Link(
                         "Exit",

@@ -2,6 +2,7 @@ package cob.github.ykiselev.lwjgl3.layers.ui.elements;
 
 import cob.github.ykiselev.lwjgl3.layers.DrawingContext;
 import cob.github.ykiselev.lwjgl3.layers.ui.UiElement;
+import cob.github.ykiselev.lwjgl3.layers.ui.models.SliderDefinition;
 import cob.github.ykiselev.lwjgl3.layers.ui.models.SliderModel;
 
 import static java.util.Objects.requireNonNull;
@@ -41,7 +42,8 @@ public final class Slider implements UiElement {
         final StringBuilder sb = new StringBuilder();
         sb.append("[");
         final int value = model.value();
-        for (int k = model.minValue(); k <= model.maxValue(); k += model.step()) {
+        final SliderDefinition def = model.definition();
+        for (int k = def.minValue(); k <= def.maxValue(); k += def.step()) {
             if (k < value || k > value) {
                 sb.append('-');
             } else {
@@ -50,7 +52,7 @@ public final class Slider implements UiElement {
         }
         sb.append("]");
         final int start = sb.length();
-        sb.append(model.maxValue());
+        sb.append(def.maxValue());
         final int target = sb.length();
         sb.setLength(start);
         sb.append(value);

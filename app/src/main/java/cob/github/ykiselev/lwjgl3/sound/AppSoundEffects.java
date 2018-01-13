@@ -1,8 +1,13 @@
 package cob.github.ykiselev.lwjgl3.sound;
 
 import cob.github.ykiselev.lwjgl3.config.PersistedConfiguration;
+import cob.github.ykiselev.lwjgl3.events.Subscriptions;
+import cob.github.ykiselev.lwjgl3.events.SubscriptionsBuilder;
+import cob.github.ykiselev.lwjgl3.events.config.ValueChangingEvent;
 import cob.github.ykiselev.lwjgl3.host.Host;
 import cob.github.ykiselev.lwjgl3.services.SoundEffects;
+import com.github.ykiselev.tree.PathTree;
+import com.github.ykiselev.tree.PathTreeBuilder;
 import com.typesafe.config.Config;
 import org.lwjgl.openal.AL;
 import org.lwjgl.openal.ALC10;
@@ -14,6 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.IntBuffer;
 import java.util.List;
+import java.util.function.Consumer;
 
 import static com.github.ykiselev.openal.Errors.assertNoAlErrors;
 import static java.util.Objects.requireNonNull;
@@ -46,6 +52,8 @@ public final class AppSoundEffects implements SoundEffects, AutoCloseable {
     private final long device;
 
     private final long context;
+
+    private final Subscriptions subscriptions;
 
     public AppSoundEffects(Host host) {
         this.host = requireNonNull(host);
@@ -90,12 +98,25 @@ public final class AppSoundEffects implements SoundEffects, AutoCloseable {
                 alcGetInteger(device, ALC_MONO_SOURCES),
                 alcGetInteger(device, ALC_STEREO_SOURCES)
         );
+
+        final PathTree<Consumer<ValueChangingEvent>> tree = new PathTreeBuilder<Consumer<ValueChangingEvent>>("\\.")
+                .add("sound.effects.level", this::onSoundEffectsLevelChanging)
+                .build();
+
+        subscriptions = new SubscriptionsBuilder()
+                .add(ValueChangingEvent.class, event -> tree.find(event.path()).ifPresent(c -> c.accept(event)))
+                .build(host.events());
+    }
+
+    private void onSoundEffectsLevelChanging(ValueChangingEvent event) {
+        // todo hange effects level
     }
 
     @Override
-    public void close() {
+    public void close() throws Exception {
         alcMakeContextCurrent(NULL);
         alcDestroyContext(context);
         alcCloseDevice(device);
+        subscriptions.close();
     }
 }
