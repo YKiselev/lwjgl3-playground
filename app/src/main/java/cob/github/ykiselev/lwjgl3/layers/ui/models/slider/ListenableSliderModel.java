@@ -1,4 +1,4 @@
-package cob.github.ykiselev.lwjgl3.layers.ui.models;
+package cob.github.ykiselev.lwjgl3.layers.ui.models.slider;
 
 import static java.util.Objects.requireNonNull;
 

@@ -2,8 +2,8 @@ package cob.github.ykiselev.lwjgl3.layers.ui.elements;
 
 import cob.github.ykiselev.lwjgl3.layers.DrawingContext;
 import cob.github.ykiselev.lwjgl3.layers.ui.UiElement;
-import cob.github.ykiselev.lwjgl3.layers.ui.models.SliderDefinition;
-import cob.github.ykiselev.lwjgl3.layers.ui.models.SliderModel;
+import cob.github.ykiselev.lwjgl3.layers.ui.models.slider.SliderDefinition;
+import cob.github.ykiselev.lwjgl3.layers.ui.models.slider.SliderModel;
 
 import static java.util.Objects.requireNonNull;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT;

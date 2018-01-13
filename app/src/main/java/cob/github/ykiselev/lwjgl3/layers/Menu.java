@@ -7,10 +7,12 @@ import cob.github.ykiselev.lwjgl3.events.game.NewGameEvent;
 import cob.github.ykiselev.lwjgl3.events.game.QuitGameEvent;
 import cob.github.ykiselev.lwjgl3.host.Host;
 import cob.github.ykiselev.lwjgl3.layers.ui.UiElement;
+import cob.github.ykiselev.lwjgl3.layers.ui.elements.CheckBox;
 import cob.github.ykiselev.lwjgl3.layers.ui.elements.Link;
 import cob.github.ykiselev.lwjgl3.layers.ui.elements.Slider;
-import cob.github.ykiselev.lwjgl3.layers.ui.models.ConfigurationBoundSliderModel;
-import cob.github.ykiselev.lwjgl3.layers.ui.models.SliderDefinition;
+import cob.github.ykiselev.lwjgl3.layers.ui.models.checkbox.ConfigurationBoundCheckBoxModel;
+import cob.github.ykiselev.lwjgl3.layers.ui.models.slider.ConfigurationBoundSliderModel;
+import cob.github.ykiselev.lwjgl3.layers.ui.models.slider.SliderDefinition;
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.opengl.shaders.ProgramObject;
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
@@ -63,6 +65,7 @@ public final class Menu implements UiLayer, AutoCloseable {
                         "New",
                         () -> host.events().send(new NewGameEvent())
                 ),
+                new CheckBox(new ConfigurationBoundCheckBoxModel(configuration, "sound.flag1")),
                 new Slider(
                         new ConfigurationBoundSliderModel(
                                 new SliderDefinition(0, 10, 1),
@@ -190,7 +193,7 @@ public final class Menu implements UiLayer, AutoCloseable {
             int dx = 0;
             if (i == selected) {
                 spriteBatch.draw(font, x - cursorWidth, y, maxWidth, "\u23F5", 0xffffffff);
-                dx = 4;
+                //dx = 4;
             }
             y -= item.draw(x + dx, y, maxWidth, context);
             i++;
