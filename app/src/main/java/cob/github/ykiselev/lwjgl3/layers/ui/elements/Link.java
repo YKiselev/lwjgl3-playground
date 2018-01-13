@@ -46,7 +46,7 @@ public final class Link implements UiElement {
     @Override
     public int draw(int x, int y, int width, DrawingContext ctx) {
         int color = 0xffffffff;
-        if (cx > x && cx < x + width && cy > y && cy < y + ctx.font().fontHeight()) {
+        if (cx > x && cx < x + width && cy < y && cy > y - ctx.font().fontHeight()) {
             color = 0xffff00ff;
         }
         return ctx.draw(x, y, width, name, color);

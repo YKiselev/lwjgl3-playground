@@ -15,6 +15,7 @@ import cob.github.ykiselev.lwjgl3.layers.ui.models.slider.ConfigurationBoundSlid
 import cob.github.ykiselev.lwjgl3.layers.ui.models.slider.SliderDefinition;
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.opengl.shaders.ProgramObject;
+import com.github.ykiselev.opengl.sprites.Colors;
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
 import com.github.ykiselev.opengl.sprites.TextAlignment;
 import com.github.ykiselev.opengl.text.Glyph;
@@ -35,6 +36,22 @@ import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
  */
 public final class Menu implements UiLayer, AutoCloseable {
 
+    static class MenuItem {
+
+        private final String title;
+
+        private final UiElement element;
+
+        MenuItem(String title, UiElement element) {
+            this.title = title;
+            this.element = element;
+        }
+
+        MenuItem(UiElement element) {
+            this(null, element);
+        }
+    }
+
     private final Host host;
 
     private final Subscriptions group;
@@ -45,7 +62,7 @@ public final class Menu implements UiLayer, AutoCloseable {
 
     private final SpriteFont font;
 
-    private final List<UiElement> items;
+    private final List<MenuItem> items;
 
     private final DrawingContext context;
 
@@ -62,28 +79,41 @@ public final class Menu implements UiLayer, AutoCloseable {
         font = assets.load("fonts/Liberation Mono 22.sf", SpriteFont.class);
         final PersistedConfiguration configuration = host.services().resolve(PersistedConfiguration.class);
         items = Arrays.asList(
-                new Link(
-                        "New",
-                        () -> host.events().send(new NewGameEvent())
-                ),
-                new CheckBox(new ConfigurationBoundCheckBoxModel(configuration, "sound.flag1")),
-                new Slider(
-                        new ConfigurationBoundSliderModel(
-                                new SliderDefinition(0, 10, 1),
-                                configuration,
-                                "sound.effects.level"
+                new MenuItem(
+                        new Link(
+                                "New",
+                                () -> host.events().send(new NewGameEvent())
                         )
                 ),
-                new Slider(
-                        new ConfigurationBoundSliderModel(
-                                new SliderDefinition(0, 10, 1),
-                                configuration,
-                                "sound.music.level"
+                new MenuItem(
+                        "Flag1",
+                        new CheckBox(new ConfigurationBoundCheckBoxModel(configuration, "sound.flag1"))
+                ),
+                new MenuItem(
+                        "Effects",
+                        new Slider(
+                                new ConfigurationBoundSliderModel(
+                                        new SliderDefinition(0, 10, 1),
+                                        configuration,
+                                        "sound.effects.level"
+                                )
                         )
                 ),
-                new Link(
-                        "Exit",
-                        () -> host.events().send(new QuitGameEvent())
+                new MenuItem(
+                        "",
+                        new Slider(
+                                new ConfigurationBoundSliderModel(
+                                        new SliderDefinition(0, 10, 1),
+                                        configuration,
+                                        "sound.music.level"
+                                )
+                        )
+                ),
+                new MenuItem(
+                        new Link(
+                                "Exit",
+                                () -> host.events().send(new QuitGameEvent())
+                        )
                 )
         );
         context = new DrawingContext() {
@@ -111,7 +141,7 @@ public final class Menu implements UiLayer, AutoCloseable {
     }
 
     private UiElement selectedItem() {
-        return items.get(selected);
+        return items.get(selected).element;
     }
 
     @Override
@@ -155,8 +185,8 @@ public final class Menu implements UiLayer, AutoCloseable {
 
     @Override
     public void cursorEvent(double x, double y) {
-        for (UiElement item : items) {
-            item.cursorEvent(x, y);
+        for (MenuItem item : items) {
+            item.element.cursorEvent(x, y);
         }
     }
 
@@ -170,7 +200,9 @@ public final class Menu implements UiLayer, AutoCloseable {
 
     @Override
     public void frameBufferResized(int width, int height) {
-        items.forEach(item -> item.frameBufferResized(width, height));
+        items.forEach(
+                item -> item.element.frameBufferResized(width, height)
+        );
     }
 
     @Override
@@ -198,21 +230,25 @@ public final class Menu implements UiLayer, AutoCloseable {
             cursorWidth = 0;
         }
 
-        final int x = 10 + cursorWidth;
+        final int x = 150 + cursorWidth;
         final int maxWidth = width - x;
         int y = height / 2 + items.size() * font.fontHeight() / 2 - font.fontHeight();
         int i = 0;
-        for (UiElement item : items) {
-            int dx = 0;
-            if (i == selected) {
-                spriteBatch.draw(font, x - cursorWidth, y, maxWidth, "\u23F5", 0xffffffff);
-                //dx = 4;
+        for (MenuItem item : items) {
+            int dx = 0, th = 0;
+            if (item.title != null) {
+                th = spriteBatch.draw(font, x - (cursorWidth + 150), y, 150, item.title, TextAlignment.RIGHT, 0xffffffff);
             }
-            y -= item.draw(x + dx, y, maxWidth, context);
+            if (i == selected) {
+                final float brightness = (System.currentTimeMillis() % 255) / 255f;
+                spriteBatch.draw(font, x - cursorWidth, y, maxWidth, "\u23F5", Colors.fade(0xffffffff, brightness));
+            }
+            final int eh = item.element.draw(x + dx, y, maxWidth, context);
+            y -= Math.max(th, eh);
             i++;
         }
 
-        int h = 0;
+        int h = font.fontHeight() + font.glyphYBorder();
         h += spriteBatch.draw(font, 0, h, width, "Left\nAlignment", TextAlignment.LEFT, 0xffffffff);
         h += spriteBatch.draw(font, 0, h, width, "Middle\nAlignment", TextAlignment.MIDDLE, 0xffffffff);
         h += spriteBatch.draw(font, 0, h, width, "Right\nAlignment", TextAlignment.RIGHT, 0xffffffff);

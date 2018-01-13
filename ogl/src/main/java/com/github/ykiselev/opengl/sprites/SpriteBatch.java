@@ -64,7 +64,7 @@ public final class SpriteBatch implements AutoCloseable {
      *
      * @param font     the sprite font to use
      * @param x        the left coordinate of the origin of the text bounding rectangle
-     * @param y        the bottom coordinate of the origin of the text bounding rectangle
+     * @param y        the top coordinate of the origin of the text bounding rectangle
      * @param maxWidth the maximum width of bounding rectangle. When text width reaches this value next character is drawn as if there '\n' between next and previous characters.
      * @param text     the text to draw (possibly multi-line if there is '\n' characters in text or if maxWidth exceeded)
      * @param color    the RGBA color (0xff0000ff - red, 0x00ff00ff - green, 0x0000ffff - blue)
@@ -80,7 +80,7 @@ public final class SpriteBatch implements AutoCloseable {
      *
      * @param font      the sprite font to use
      * @param x         the left coordinate of the origin of the text bounding rectangle
-     * @param y         the bottom coordinate of the origin of the text bounding rectangle
+     * @param y         the top coordinate of the origin of the text bounding rectangle
      * @param maxWidth  the maximum width of bounding rectangle. When text width reaches this value next character is drawn as if there '\n' between next and previous characters.
      * @param text      the text to draw (possibly multi-line if there is '\n' characters in text or if maxWidth exceeded)
      * @param alignment the text alignment
@@ -94,7 +94,7 @@ public final class SpriteBatch implements AutoCloseable {
         final int dy = font.fontHeight() + font.glyphYBorder();
         final int maxX = x + maxWidth;
         int fx = lineStart.calculate(x, font, text, 0, maxWidth);
-        int fy = y;
+        int fy = y - dy;
         for (int i = 0; i < text.length(); i++) {
             final char value = text.charAt(i);
 
@@ -121,7 +121,7 @@ public final class SpriteBatch implements AutoCloseable {
 
             fx = x1;
         }
-        return y - fy + dy;
+        return y - fy;
     }
 
     /**

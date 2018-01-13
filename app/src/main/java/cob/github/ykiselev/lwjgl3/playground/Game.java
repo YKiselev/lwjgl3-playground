@@ -357,7 +357,7 @@ public final class Game implements UiLayer, AutoCloseable {
         spriteBatch.draw(
                 liberationMono,
                 0,
-                height - liberationMono.fontHeight(),
+                height,
                 width, String.format("avg. fps: %.2f, frame buffer mode: %s", fps, frameBufferMode),
                 0xffffffff
         );
