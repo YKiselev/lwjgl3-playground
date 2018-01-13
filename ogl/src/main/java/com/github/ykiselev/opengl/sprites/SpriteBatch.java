@@ -71,12 +71,30 @@ public final class SpriteBatch implements AutoCloseable {
      * @return actual height of text
      */
     public int draw(SpriteFont font, int x, int y, int maxWidth, CharSequence text, int color) {
+        return draw(font, x, y, maxWidth, text, TextAlignment.LEFT, color);
+    }
+
+    /**
+     * Draws text at specified location with specified sprite font, maximum width and color.
+     * </p>
+     *
+     * @param font      the sprite font to use
+     * @param x         the left coordinate of the origin of the text bounding rectangle
+     * @param y         the bottom coordinate of the origin of the text bounding rectangle
+     * @param maxWidth  the maximum width of bounding rectangle. When text width reaches this value next character is drawn as if there '\n' between next and previous characters.
+     * @param text      the text to draw (possibly multi-line if there is '\n' characters in text or if maxWidth exceeded)
+     * @param alignment the text alignment
+     * @param color     the RGBA color (0xff0000ff - red, 0x00ff00ff - green, 0x0000ffff - blue)
+     * @return actual height of text
+     */
+    public int draw(SpriteFont font, int x, int y, int maxWidth, CharSequence text, TextAlignment alignment, int color) {
         quads.use(font.texture());
 
-        final float dy = font.fontHeight() + font.glyphYBorder();
-        float maxX = x + maxWidth;
-        float fx = x;
-        float fy = y;
+        final LineStart lineStart = LineStart.from(alignment);
+        final int dy = font.fontHeight() + font.glyphYBorder();
+        final int maxX = x + maxWidth;
+        int fx = lineStart.calculate(x, font, text, 0, maxWidth);
+        int fy = y;
         for (int i = 0; i < text.length(); i++) {
             final char value = text.charAt(i);
 
@@ -90,22 +108,20 @@ public final class SpriteBatch implements AutoCloseable {
             }
 
             final Glyph glyph = font.glyphForCharacter(value);
-
             if (fx + glyph.width() > maxX) {
                 fx = x;
                 fy -= dy;
             }
 
-            final float x1 = fx + glyph.width();
-            final float y1 = fy + font.fontHeight();
-
+            final int x1 = fx + glyph.width();
+            final int y1 = fy + font.fontHeight();
             if (value != ' ') {
                 quads.addQuad(fx, fy, glyph.s0(), glyph.t0(), x1, y1, glyph.s1(), glyph.t1(), color);
             }
 
             fx = x1;
         }
-        return (int) (fy - y + font.fontHeight());
+        return fy - y + font.fontHeight();
     }
 
     /**

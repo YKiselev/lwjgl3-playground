@@ -16,6 +16,7 @@ import cob.github.ykiselev.lwjgl3.layers.ui.models.slider.SliderDefinition;
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.opengl.shaders.ProgramObject;
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
+import com.github.ykiselev.opengl.sprites.TextAlignment;
 import com.github.ykiselev.opengl.text.Glyph;
 import com.github.ykiselev.opengl.text.SpriteFont;
 import com.github.ykiselev.opengl.textures.Texture2d;
@@ -211,6 +212,10 @@ public final class Menu implements UiLayer, AutoCloseable {
             i++;
         }
 
+        int h = 0;
+        h += spriteBatch.draw(font, 0, h, width, "Left Alignment", TextAlignment.LEFT, 0xffffffff);
+        h += spriteBatch.draw(font, 0, h, width, "Middle Alignment", TextAlignment.MIDDLE, 0xffffffff);
+        h += spriteBatch.draw(font, 0, h, width, "Right Alignment", TextAlignment.RIGHT, 0xffffffff);
         spriteBatch.end();
     }
 }
