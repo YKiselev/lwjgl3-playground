@@ -10,7 +10,7 @@ public interface DrawingContext {
 
     SpriteFont font();
 
-    SpriteBatch spriteBatch();
+    SpriteBatch batch();
 
     int draw(int x, int y, int width, CharSequence text, int color);
 }

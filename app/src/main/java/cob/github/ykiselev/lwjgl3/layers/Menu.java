@@ -92,7 +92,7 @@ public final class Menu implements UiLayer, AutoCloseable {
             }
 
             @Override
-            public SpriteBatch spriteBatch() {
+            public SpriteBatch batch() {
                 return spriteBatch;
             }
 
@@ -125,23 +125,31 @@ public final class Menu implements UiLayer, AutoCloseable {
                         break;
 
                     case GLFW_KEY_UP:
-                        selected--;
-                        if (selected < 0) {
-                            selected = items.size() - 1;
-                        }
+                        selectPrevious();
                         break;
 
                     case GLFW_KEY_DOWN:
-                        selected++;
-                        if (selected >= items.size()) {
-                            selected = 0;
-                        }
+                        selectNext();
                         break;
                 }
                 return true;
             }
         }
         return true;
+    }
+
+    private void selectNext() {
+        selected++;
+        if (selected >= items.size()) {
+            selected = 0;
+        }
+    }
+
+    private void selectPrevious() {
+        selected--;
+        if (selected < 0) {
+            selected = items.size() - 1;
+        }
     }
 
     @Override
@@ -167,7 +175,11 @@ public final class Menu implements UiLayer, AutoCloseable {
     @Override
     public boolean scrollEvent(double dx, double dy) {
         if (!selectedItem().scrollEvent(dx, dy)) {
-            // todo
+            if (dy > 0) {
+                selectPrevious();
+            } else if (dy < 0) {
+                selectNext();
+            }
         }
         return true;
     }
