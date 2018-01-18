@@ -11,13 +11,13 @@ import static java.util.Objects.requireNonNull;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class ByteChannelAsMemoryUtilByteBuffer implements ReadableBytes {
+public final class ByteChannelAsByteBuffer implements ReadableBytes {
 
     private final ReadableByteChannel channel;
 
     private final int initialBufferSize;
 
-    public ByteChannelAsMemoryUtilByteBuffer(ReadableByteChannel channel, int initialBufferSize) {
+    public ByteChannelAsByteBuffer(ReadableByteChannel channel, int initialBufferSize) {
         this.channel = requireNonNull(channel);
         this.initialBufferSize = initialBufferSize;
     }

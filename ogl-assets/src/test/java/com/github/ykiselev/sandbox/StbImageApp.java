@@ -1,7 +1,7 @@
 package com.github.ykiselev.sandbox;
 
 import com.github.ykiselev.common.Wrap;
-import com.github.ykiselev.io.ByteChannelAsMemoryUtilByteBuffer;
+import com.github.ykiselev.io.ByteChannelAsByteBuffer;
 import org.lwjgl.stb.STBIEOFCallback;
 import org.lwjgl.stb.STBIIOCallbacks;
 import org.lwjgl.stb.STBIReadCallback;
@@ -102,7 +102,7 @@ public final class StbImageApp {
 
     private Wrap<ByteBuffer> loadImage(URI resource) throws Exception {
         try (ReadableByteChannel channel = FileChannel.open(Paths.get(resource))) {
-            return new ByteChannelAsMemoryUtilByteBuffer(
+            return new ByteChannelAsByteBuffer(
                     channel,
                     8 * 1024
             ).read();

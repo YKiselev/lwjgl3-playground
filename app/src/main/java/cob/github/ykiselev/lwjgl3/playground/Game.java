@@ -286,14 +286,14 @@ public final class Game implements UiLayer, AutoCloseable {
                 (float) Math.toRadians(90),
                 (float) width / height,
                 0.1f,
-                15,
+                150,
                 pv
         );
         if (radius < 1) {
             radius = 1;
         }
         if (rmbPressed) {
-            cameraZ = (float) Math.max(-4, Math.min(4, 0.1 * (cy - cy0)));
+            cameraZ = (float) Math.max(-radius, Math.min(radius, 0.1 * (cy - cy0)));
         }
         final double sec = System.currentTimeMillis() / 1000.0;
         try (MemoryStack ms = MemoryStack.stackPush()) {

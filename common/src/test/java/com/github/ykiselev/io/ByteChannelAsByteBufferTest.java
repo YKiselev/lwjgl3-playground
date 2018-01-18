@@ -16,13 +16,13 @@ import static org.mockito.Mockito.when;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-class ByteChannelAsMemoryUtilByteBufferTest {
+class ByteChannelAsByteBufferTest {
 
     private static final int CHANNEL_LENGTH = 8 * 4 * 1_000;
 
     private final ReadableByteChannel channel = mock(ReadableByteChannel.class);
 
-    private final ReadableBytes bc = new ByteChannelAsMemoryUtilByteBuffer(
+    private final ReadableBytes bc = new ByteChannelAsByteBuffer(
             channel, 256
     );
 

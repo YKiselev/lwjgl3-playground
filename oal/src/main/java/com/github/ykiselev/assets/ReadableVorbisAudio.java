@@ -2,7 +2,7 @@ package com.github.ykiselev.assets;
 
 import com.github.ykiselev.assets.vorbis.VorbisAudio;
 import com.github.ykiselev.common.Wrap;
-import com.github.ykiselev.io.ByteChannelAsMemoryUtilByteBuffer;
+import com.github.ykiselev.io.ByteChannelAsByteBuffer;
 import com.github.ykiselev.io.ReadableBytes;
 import com.github.ykiselev.memory.MemAllocShort;
 import com.github.ykiselev.openal.AudioSamples;
@@ -37,7 +37,7 @@ public final class ReadableVorbisAudio implements ReadableResource<AudioSamples>
     @Override
     public AudioSamples read(ReadableByteChannel channel, String resource, Assets assets) throws ResourceException {
         try (STBVorbisInfo info = STBVorbisInfo.malloc()) {
-            final ReadableBytes asBuffer = new ByteChannelAsMemoryUtilByteBuffer(
+            final ReadableBytes asBuffer = new ByteChannelAsByteBuffer(
                     channel, bufferSize
             );
             try (Wrap<ByteBuffer> vorbis = asBuffer.read()) {

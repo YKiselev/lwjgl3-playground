@@ -20,7 +20,7 @@ import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.assets.ReadableResource;
 import com.github.ykiselev.assets.ResourceException;
 import com.github.ykiselev.common.Wrap;
-import com.github.ykiselev.io.ByteChannelAsMemoryUtilByteBuffer;
+import com.github.ykiselev.io.ByteChannelAsByteBuffer;
 import com.github.ykiselev.opengl.textures.Texture2d;
 import org.lwjgl.system.MemoryStack;
 
@@ -131,7 +131,7 @@ public final class ReadableTexture2d implements ReadableResource<Texture2d> {
     }
 
     private Wrap<ByteBuffer> readResource(ReadableByteChannel channel) {
-        return new ByteChannelAsMemoryUtilByteBuffer(
+        return new ByteChannelAsByteBuffer(
                 channel,
                 8 * 1024
         ).read();
