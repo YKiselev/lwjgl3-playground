@@ -1,5 +1,6 @@
 package com.github.ykiselev.caching;
 
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.ToIntFunction;
 
 import static java.util.Objects.requireNonNull;
@@ -8,6 +9,10 @@ import static java.util.Objects.requireNonNull;
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
 public final class WeightingCachedReferences<V> implements CachedReferences<V> {
+
+    private final AtomicLong sequence = new AtomicLong();
+
+    private final AtomicLong lock = new AtomicLong();
 
     private final int maxTotalWeight;
 
@@ -26,34 +31,76 @@ public final class WeightingCachedReferences<V> implements CachedReferences<V> {
 
     @Override
     public Cached<V> put(V value) {
+        final int weight = scales.applyAsInt(
+                requireNonNull(value)
+        );
+        totalWeight += weight;
         return touch(
                 new Node(
                         value,
-                        scales.applyAsInt(
-                                requireNonNull(value)
-                        )
+                        weight
                 )
         );
     }
 
-    private synchronized Node touch(Node ref) {
-        if (null == ref.prev && null == ref.next) {
-            totalWeight += ref.weight;
-        } else {
-            detach(ref);
-        }
-        ref.next = head;
-        if (head != null) {
-            head.prev = ref;
-        }
-        head = ref;
-        if (tail == null) {
-            tail = ref;
-        } else {
-            while (tail != ref && totalWeight > maxTotalWeight) {
-                evict(tail);
+    private long nextSequence() {
+        for (; ; ) {
+            final long seq = sequence.incrementAndGet();
+            if (seq <= 0 || seq == Long.MAX_VALUE) {
+                sequence.compareAndSet(seq, 0);
+            } else {
+                return seq;
             }
         }
+    }
+
+    private long lock() {
+        final long seq = nextSequence();
+        int sleep = 0;
+        for (; ; ) {
+            if (lock.compareAndSet(0, seq)) {
+                break;
+            }
+            sleep++;
+            if (sleep > 150) {
+                Thread.yield();
+//                try {
+//                    Thread.sleep(0);
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                }
+            }
+        }
+        return seq;
+    }
+
+    private void unlock(long seq) {
+        if (!lock.compareAndSet(seq, 0)) {
+            throw new IllegalStateException("Lock is not held by owner of sequence value " + seq);
+        }
+    }
+
+    private synchronized Node touch(Node ref) {
+//        final long id = lock();
+//        try {
+            detach(ref);
+            ref.next = head;
+            if (head != null) {
+                head.prev = ref;
+            }
+            head = ref;
+            if (tail == null) {
+                tail = ref;
+            } else {
+                int k = 0;
+                while (tail != ref && totalWeight > maxTotalWeight) {
+                    evict(tail);
+                    k++;
+                }
+            }
+//        } finally {
+//            unlock(id);
+//        }
         return ref;
     }
 

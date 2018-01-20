@@ -49,40 +49,42 @@ class WeightingCachedReferencesTest {
     @Test
     void shouldBeThreadSafe() throws InterruptedException {
         ExecutorService service = Executors.newCachedThreadPool();
+        final long t0 = System.currentTimeMillis();
         try {
-            final List<Future> list = IntStream.range(0, 100)
-                    .mapToObj(v -> service.submit(
-                            () -> threadLoop(v)
-                    )).collect(Collectors.toList());
-
-            list.forEach(f -> {
-                try {
-                    f.get();
-                } catch (InterruptedException | ExecutionException e) {
-                    throw new RuntimeException(e);
-                }
-            });
+            for (int k = 0; k < 1500; k++) {
+                iteration(service, k);
+            }
         } finally {
             service.shutdown();
             service.awaitTermination(10, TimeUnit.SECONDS);
         }
+        System.out.println("Total time (ms): " + (System.currentTimeMillis() - t0));
+    }
+
+    private void iteration(ExecutorService service, int iter) {
+        final List<Future> list = IntStream.range(iter, iter + 16)
+                .mapToObj(v -> service.submit(
+                        () -> threadLoop(v)
+                )).collect(Collectors.toList());
+
+        list.forEach(f -> {
+            try {
+                f.get();
+            } catch (InterruptedException | ExecutionException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     private void threadLoop(int value) {
         final Cached<Integer> v = cache.put(value);
-        for (int i = 0; i < 25; i++) {
+        for (int i = 0; i < 500; i++) {
             final Integer integer = v.get();
             if (integer == null) {
                 System.out.println("[" + value + "] Got null on iteration " + i);
                 break;
             } else if (integer != value) {
                 throw new IllegalStateException("Expected " + value + " got " + integer);
-            }
-            try {
-                Thread.sleep(5);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                break;
             }
         }
     }
