@@ -2,6 +2,7 @@ package com.github.ykiselev.caching;
 
 import com.github.ykiselev.collections.NodeList;
 
+import java.util.function.Consumer;
 import java.util.function.ToIntFunction;
 
 import static java.util.Objects.requireNonNull;
@@ -15,13 +16,16 @@ public final class WeightingCachedReferences<V> implements CachedReferences<V> {
 
     private final ToIntFunction<V> scales;
 
+    private final Consumer<V> evictionConsumer;
+
     private final NodeList<WeightedReference> list = new NodeList<>();
 
     private int totalWeight;
 
-    public WeightingCachedReferences(int maxTotalWeight, ToIntFunction<V> scales) {
+    public WeightingCachedReferences(int maxTotalWeight, ToIntFunction<V> scales, Consumer<V> evictionConsumer) {
         this.maxTotalWeight = maxTotalWeight;
         this.scales = requireNonNull(scales);
+        this.evictionConsumer = requireNonNull(evictionConsumer);
     }
 
     @Override
@@ -38,6 +42,15 @@ public final class WeightingCachedReferences<V> implements CachedReferences<V> {
         );
     }
 
+    @Override
+    public synchronized void clear() {
+        while (list.tail() != null) {
+            evictionConsumer.accept(
+                    list.remove(list.tail()).value
+            );
+        }
+    }
+
     private synchronized WeightedReference touch(WeightedReference ref) {
         list.remove(ref);
         list.addFirst(ref);
@@ -47,8 +60,9 @@ public final class WeightingCachedReferences<V> implements CachedReferences<V> {
         return ref;
     }
 
-    private void evict(WeightedReference ref) {
+    private synchronized void evict(WeightedReference ref) {
         list.remove(ref);
+        evictionConsumer.accept(ref.value);
         ref.value = null;
         totalWeight -= ref.weight;
     }
@@ -70,6 +84,11 @@ public final class WeightingCachedReferences<V> implements CachedReferences<V> {
                 touch(this);
             }
             return value;
+        }
+
+        @Override
+        public void free() {
+            evict(this);
         }
     }
 }

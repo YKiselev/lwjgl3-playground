@@ -64,4 +64,15 @@ class NodeListTest {
         assertNull(ints.tail());
     }
 
+    @Test
+    void shouldClear() {
+        final ImmutableNode<Integer> n1 = ints.addLast(node(1));
+        final ImmutableNode<Integer> n2 = ints.addLast(node(2));
+        final ImmutableNode<Integer> n3 = ints.addLast(node(3));
+        assertListEquals(ints, 1, 2, 3);
+        ints.clear();
+        assertNull(ints.head());
+        assertNull(ints.tail());
+    }
+
 }

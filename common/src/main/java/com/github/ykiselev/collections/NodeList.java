@@ -62,6 +62,12 @@ public final class NodeList<N extends NodeList.Node<N>> {
         return ref;
     }
 
+    public void clear() {
+        while (tail != null) {
+            remove(tail);
+        }
+    }
+
     /**
      * Base node class without actual payload.
      *

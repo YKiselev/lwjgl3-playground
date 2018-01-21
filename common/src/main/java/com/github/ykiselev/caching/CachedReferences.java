@@ -7,4 +7,5 @@ public interface CachedReferences<V> {
 
     Cached<V> put(V value);
 
+    void clear();
 }

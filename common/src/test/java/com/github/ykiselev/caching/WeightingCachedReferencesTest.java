@@ -19,7 +19,12 @@ import static org.junit.jupiter.api.Assertions.assertNull;
  */
 class WeightingCachedReferencesTest {
 
-    private final CachedReferences<Integer> cache = new WeightingCachedReferences<>(10, v -> v);
+    private final CachedReferences<Integer> cache = new WeightingCachedReferences<>(
+            10,
+            v -> v,
+            v -> {
+            }
+    );
 
     @Test
     void shouldEvict() {
@@ -44,6 +49,19 @@ class WeightingCachedReferencesTest {
         assertNull(r4.get());
         assertNull(r5.get());
         assertEquals((Integer) 10, r6.get());
+    }
+
+    @Test
+    void shouldFree() {
+        Cached<Integer> r1 = cache.put(1);
+        Cached<Integer> r2 = cache.put(2);
+        assertEquals(1, (int)r1.get());
+        assertEquals(2, (int)r2.get());
+        r1.free();
+        assertNull(r1.get());
+        assertEquals(2, (int)r2.get());
+        r2.free();
+        assertNull(r2.get());
     }
 
     @Test

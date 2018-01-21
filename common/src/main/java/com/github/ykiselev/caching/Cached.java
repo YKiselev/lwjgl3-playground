@@ -15,4 +15,9 @@ public interface Cached<V> {
      * @return the value reference or {@code null}
      */
     V get();
+
+    /**
+     * Evicts this item from cache and releases system resources.
+     */
+    void free();
 }
