@@ -1,5 +1,7 @@
 package com.github.ykiselev.caching;
 
+import com.github.ykiselev.collections.NodeList;
+
 import java.util.function.ToIntFunction;
 
 import static java.util.Objects.requireNonNull;
@@ -13,9 +15,7 @@ public final class WeightingCachedReferences<V> implements CachedReferences<V> {
 
     private final ToIntFunction<V> scales;
 
-    private Node head;
-
-    private Node tail;
+    private final NodeList<WeightedReference> list = new NodeList<>();
 
     private int totalWeight;
 
@@ -31,65 +31,35 @@ public final class WeightingCachedReferences<V> implements CachedReferences<V> {
         );
         totalWeight += weight;
         return touch(
-                new Node(
+                new WeightedReference(
                         value,
                         weight
                 )
         );
     }
 
-    private synchronized Node touch(Node ref) {
-        detach(ref);
-        ref.next = head;
-        if (head != null) {
-            head.prev = ref;
-        }
-        head = ref;
-        if (tail == null) {
-            tail = ref;
-        } else {
-            while (tail != ref && totalWeight > maxTotalWeight) {
-                evict(tail);
-            }
+    private synchronized WeightedReference touch(WeightedReference ref) {
+        list.remove(ref);
+        list.addFirst(ref);
+        while (list.tail() != ref && totalWeight > maxTotalWeight) {
+            evict(list.tail());
         }
         return ref;
     }
 
-    private void evict(Node ref) {
-        detach(ref).value = null;
+    private void evict(WeightedReference ref) {
+        list.remove(ref);
+        ref.value = null;
         totalWeight -= ref.weight;
     }
 
-    private Node detach(Node ref) {
-        final Node next = ref.next;
-        final Node prev = ref.prev;
-        if (next != null) {
-            next.prev = prev;
-        }
-        if (prev != null) {
-            prev.next = next;
-        }
-        if (ref == head) {
-            head = next;
-        }
-        if (ref == tail) {
-            tail = prev;
-        }
-        ref.prev = ref.next = null;
-        return ref;
-    }
-
-    private class Node extends Cached<V> {
+    private class WeightedReference extends NodeList.Node<WeightedReference> implements Cached<V> {
 
         int weight;
 
-        Node next;
-
-        Node prev;
-
         V value;
 
-        Node(V referent, int weight) {
+        WeightedReference(V referent, int weight) {
             this.value = referent;
             this.weight = weight;
         }

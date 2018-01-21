@@ -7,12 +7,12 @@ package com.github.ykiselev.caching;
  *
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public abstract class Cached<V> {
+public interface Cached<V> {
 
     /**
      * Returns the reference to the underlying object.
      *
      * @return the value reference or {@code null}
      */
-    public abstract V get();
+    V get();
 }
