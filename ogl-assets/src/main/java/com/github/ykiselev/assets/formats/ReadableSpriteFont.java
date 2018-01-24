@@ -85,12 +85,9 @@ public final class ReadableSpriteFont implements ReadableResource<SpriteFont> {
             for (com.github.ykiselev.gfx.font.Glyph src : srcGlyphs) {
                 final int glyphWidth = characterWidth > 0 ? characterWidth : src.width();
                 float s0 = (float) (cs * src.x());
-                //float t0 = (float) (1.0 - ct * src.y());
                 float t0 = (float) (ct * src.y());
                 float s1 = (float) (cs * (src.x() + glyphWidth));
-                //float t1 = (float) (1.0 - ct * (src.y() + fontHeight));
                 float t1 = (float) (ct * (src.y() + fontHeight));
-                //glyphs[g] = new Glyph(s0, t1, s1, t0, glyphWidth);
                 glyphs[g] = new Glyph(s0, t0, s1, t1, glyphWidth);
                 g++;
             }
@@ -133,7 +130,7 @@ public final class ReadableSpriteFont implements ReadableResource<SpriteFont> {
         final Texture2d texture;
         try (ReadableByteChannel bc = Channels.newChannel(new ByteArrayInputStream(spriteFont.image()))) {
             texture = assets.resolve(Texture2d.class)
-                    .read(bc, "texture.png", assets);
+                    .read(bc, null, assets);
         } catch (IOException e) {
             throw new ResourceException(e);
         }

@@ -31,7 +31,7 @@ public final class CachingReadableAudio implements ReadableResource<AudioSamples
 
     @Override
     public AudioSamples read(ReadableByteChannel channel, String resource, Assets assets) throws ResourceException {
-        throw new UnsupportedOperationException("not implemented");
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -43,7 +43,7 @@ public final class CachingReadableAudio implements ReadableResource<AudioSamples
 
         private final Supplier<AudioSamples> supplier;
 
-        private Cached<AudioSamples> cached;
+        private volatile Cached<AudioSamples> cached;
 
         public CachedAudioSamples(Supplier<AudioSamples> supplier, CachedReferences<AudioSamples> cache) {
             this.cache = requireNonNull(cache);
@@ -81,7 +81,7 @@ public final class CachingReadableAudio implements ReadableResource<AudioSamples
         }
 
         @Override
-        public void close() throws Exception {
+        public void close() {
             // no-op here, cache manages this for us
         }
     }
