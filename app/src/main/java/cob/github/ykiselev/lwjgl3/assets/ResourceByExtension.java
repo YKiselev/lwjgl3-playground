@@ -1,19 +1,20 @@
 package cob.github.ykiselev.lwjgl3.assets;
 
 import com.github.ykiselev.assets.ReadableResource;
+import com.github.ykiselev.assets.ReadableResources;
 import com.github.ykiselev.assets.ReadableVorbisAudio;
+import com.github.ykiselev.assets.ResourceException;
 import com.github.ykiselev.assets.formats.ReadableConfig;
 import com.github.ykiselev.assets.formats.ReadableShaderObject;
 import com.github.ykiselev.assets.formats.ReadableTexture2d;
 import com.google.common.collect.ImmutableMap;
 
 import java.util.Map;
-import java.util.function.Function;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class ResourceByExtension implements Function<String, ReadableResource> {
+public final class ResourceByExtension implements ReadableResources {
 
     private final Map<String, ReadableResource> map;
 
@@ -35,7 +36,20 @@ public final class ResourceByExtension implements Function<String, ReadableResou
     }
 
     @Override
-    public ReadableResource apply(String resource) {
-        return map.get(resource);
+    @SuppressWarnings("unchecked")
+    public <T> ReadableResource<T> resolve(String resource, Class<T> clazz) throws ResourceException {
+        return map.get(extension(resource));
     }
+
+    private String extension(String resource) {
+        if (resource == null) {
+            return null;
+        }
+        final int i = resource.lastIndexOf('.');
+        if (i == -1) {
+            return null;
+        }
+        return resource.substring(i + 1);
+    }
+
 }

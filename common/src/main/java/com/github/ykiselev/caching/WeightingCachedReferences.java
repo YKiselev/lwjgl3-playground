@@ -22,10 +22,28 @@ public final class WeightingCachedReferences<V> implements CachedReferences<V> {
 
     private int totalWeight;
 
+    /**
+     * Primary ctor.
+     *
+     * @param maxTotalWeight   the maximum total weight of items in cache
+     * @param scales           the scaling function to assign weight to new item
+     * @param evictionConsumer the consumer to be called when item is evicted from cache
+     */
     public WeightingCachedReferences(int maxTotalWeight, ToIntFunction<V> scales, Consumer<V> evictionConsumer) {
         this.maxTotalWeight = maxTotalWeight;
         this.scales = requireNonNull(scales);
         this.evictionConsumer = requireNonNull(evictionConsumer);
+    }
+
+    /**
+     * Constructor which uses {@link ClosingConsumer} to process evicted items.
+     *
+     * @param maxTotalWeight the maximum total weight of items in cache
+     * @param scales         the consumer to be called when item is evicted from cache
+     */
+
+    public WeightingCachedReferences(int maxTotalWeight, ToIntFunction<V> scales) {
+        this(maxTotalWeight, scales, new ClosingConsumer<>());
     }
 
     @Override

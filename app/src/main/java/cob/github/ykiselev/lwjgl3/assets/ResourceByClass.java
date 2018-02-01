@@ -1,6 +1,8 @@
 package cob.github.ykiselev.lwjgl3.assets;
 
 import com.github.ykiselev.assets.ReadableResource;
+import com.github.ykiselev.assets.ReadableResources;
+import com.github.ykiselev.assets.ResourceException;
 import com.github.ykiselev.assets.formats.ReadableConfig;
 import com.github.ykiselev.assets.formats.ReadableObjModel;
 import com.github.ykiselev.assets.formats.ReadableProgramObject;
@@ -16,12 +18,11 @@ import com.google.common.collect.ImmutableMap;
 import com.typesafe.config.Config;
 
 import java.util.Map;
-import java.util.function.Function;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class ResourceByClass implements Function<Class, ReadableResource> {
+public final class ResourceByClass implements ReadableResources {
 
     private final Map<Class, ReadableResource> map;
 
@@ -43,7 +44,8 @@ public final class ResourceByClass implements Function<Class, ReadableResource> 
     }
 
     @Override
-    public ReadableResource apply(Class clazz) {
+    @SuppressWarnings("unchecked")
+    public <T> ReadableResource<T> resolve(String resource, Class<T> clazz) throws ResourceException {
         return map.get(clazz);
     }
 }

@@ -34,6 +34,10 @@ public final class ReadableVorbisAudio implements ReadableResource<AudioSamples>
         this.bufferSize = bufferSize;
     }
 
+    public ReadableVorbisAudio() {
+        this(256 * 1024);
+    }
+
     @Override
     public AudioSamples read(ReadableByteChannel channel, String resource, Assets assets) throws ResourceException {
         try (STBVorbisInfo info = STBVorbisInfo.malloc()) {
