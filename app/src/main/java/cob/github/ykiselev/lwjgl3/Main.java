@@ -76,17 +76,20 @@ public final class Main implements Runnable {
     @Override
     public void run() {
         try {
-            final GameAssets assets = new GameAssets(args.assetPaths());
             final AppUiLayers layers = new AppUiLayers();
             try (AppHost host = new AppHost()) {
-                createServices(host, assets, layers);
+                createServices(
+                        host,
+                        GameAssets.create(args.assetPaths()),
+                        layers
+                );
                 try (Subscriptions group = subscribe(host)) {
                     try (AppWindow window = new AppWindow(args.fullScreen())) {
                         GL.createCapabilities();
                         window.wireEvents(layers);
                         window.show();
                         host.events().send(new NewGameEvent());
-                        glfwSwapInterval(1);
+                        glfwSwapInterval(args.swapInterval());
                         logger.info("Entering main loop...");
                         while (!window.shouldClose() && !exitFlag) {
                             window.checkEvents();

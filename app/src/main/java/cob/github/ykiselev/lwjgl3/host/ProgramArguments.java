@@ -70,6 +70,13 @@ public final class ProgramArguments {
         return hasSwitch("-fullscreen");
     }
 
+    public int swapInterval() {
+        return Integer.valueOf(
+                value("swap.interval")
+                        .orElse("1")
+        );
+    }
+
     public Path home() {
         final Path path = value("app.home")
                 .map(Paths::get)
