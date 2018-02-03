@@ -1,7 +1,7 @@
 package cob.github.ykiselev.lwjgl3.assets;
 
-import com.github.ykiselev.assets.ReadableResource;
-import com.github.ykiselev.assets.ReadableResources;
+import com.github.ykiselev.assets.ReadableAsset;
+import com.github.ykiselev.assets.ReadableAssets;
 import com.github.ykiselev.assets.ReadableVorbisAudio;
 import com.github.ykiselev.assets.ResourceException;
 import com.github.ykiselev.assets.formats.ReadableConfig;
@@ -14,17 +14,17 @@ import java.util.Map;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class ResourceByExtension implements ReadableResources {
+public final class ResourceByExtension implements ReadableAssets {
 
-    private final Map<String, ReadableResource> map;
+    private final Map<String, ReadableAsset> map;
 
-    public ResourceByExtension(Map<String, ReadableResource> map) {
+    public ResourceByExtension(Map<String, ReadableAsset> map) {
         this.map = map;
     }
 
     public ResourceByExtension() {
         this(
-                ImmutableMap.<String, ReadableResource>builder()
+                ImmutableMap.<String, ReadableAsset>builder()
                         .put("vs", new ReadableShaderObject())
                         .put("fs", new ReadableShaderObject())
                         .put("png", new ReadableTexture2d())
@@ -37,7 +37,7 @@ public final class ResourceByExtension implements ReadableResources {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T> ReadableResource<T> resolve(String resource, Class<T> clazz) throws ResourceException {
+    public <T> ReadableAsset<T> resolve(String resource, Class<T> clazz) throws ResourceException {
         return map.get(extension(resource));
     }
 

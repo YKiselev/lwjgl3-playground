@@ -17,7 +17,7 @@
 package com.github.ykiselev.assets.formats;
 
 import com.github.ykiselev.assets.Assets;
-import com.github.ykiselev.assets.ReadableResource;
+import com.github.ykiselev.assets.ReadableAsset;
 import com.github.ykiselev.assets.ResourceException;
 import com.github.ykiselev.io.ByteChannelAsString;
 import com.github.ykiselev.opengl.shaders.ShaderObject;
@@ -40,7 +40,7 @@ import static org.lwjgl.opengl.GL20.glShaderSource;
 /**
  * Created by Y.Kiselev on 15.05.2016.
  */
-public final class ReadableShaderObject implements ReadableResource<ShaderObject> {
+public final class ReadableShaderObject implements ReadableAsset<ShaderObject> {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 

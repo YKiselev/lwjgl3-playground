@@ -17,7 +17,7 @@
 package com.github.ykiselev.assets.formats;
 
 import com.github.ykiselev.assets.Assets;
-import com.github.ykiselev.assets.ReadableResource;
+import com.github.ykiselev.assets.ReadableAsset;
 import com.github.ykiselev.assets.ResourceException;
 import com.github.ykiselev.opengl.shaders.ProgramObject;
 import com.github.ykiselev.opengl.shaders.ShaderObject;
@@ -44,12 +44,12 @@ import static org.lwjgl.opengl.GL20.glUniform1i;
 /**
  * Created by Y.Kiselev on 15.05.2016.
  */
-public final class ReadableProgramObject implements ReadableResource {
+public final class ReadableProgramObject implements ReadableAsset<ProgramObject> {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Override
-    public Object read(ReadableByteChannel channel, String resource, Assets assets) throws ResourceException {
+    public ProgramObject read(ReadableByteChannel channel, String resource, Assets assets) throws ResourceException {
         final Config config = readConfig(channel, resource, assets);
         final int id = glCreateProgram();
         final ShaderObject[] shaders = readShaders(assets, config);

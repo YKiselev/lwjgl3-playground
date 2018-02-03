@@ -1,7 +1,7 @@
 package com.github.ykiselev.assets.formats;
 
 import com.github.ykiselev.assets.Assets;
-import com.github.ykiselev.assets.ReadableResource;
+import com.github.ykiselev.assets.ReadableAsset;
 import com.github.ykiselev.assets.ResourceException;
 import com.github.ykiselev.assets.formats.obj.ObjModel;
 import com.github.ykiselev.assets.formats.obj.ObjModelBuilder;
@@ -15,7 +15,7 @@ import java.nio.charset.StandardCharsets;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class ReadableObjModel implements ReadableResource<ObjModel> {
+public final class ReadableObjModel implements ReadableAsset<ObjModel> {
 
     @Override
     public ObjModel read(ReadableByteChannel channel, String resource, Assets assets) throws ResourceException {

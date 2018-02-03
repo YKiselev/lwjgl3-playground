@@ -50,7 +50,7 @@
             <dependency>
                 <groupId>com.github.ykiselev</groupId>
                 <artifactId>assets</artifactId>
-                <version>1.8-SNAPSHOT</version>
+                <version>1.8</version>
             </dependency>
             <dependency>
                 <groupId>org.lwjgl</groupId>

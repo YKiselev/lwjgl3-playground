@@ -13,7 +13,7 @@ import static org.mockito.Mockito.mock;
  */
 class ReadableVorbisAudioTest {
 
-    private final ReadableResource<AudioSamples> readableResource = new ReadableVorbisAudio(32 * 1024);
+    private final ReadableAsset<AudioSamples> readableResource = new ReadableVorbisAudio(32 * 1024);
 
     private final Assets assets = mock(Assets.class);
 

@@ -1,7 +1,7 @@
 package cob.github.ykiselev.lwjgl3.assets;
 
-import com.github.ykiselev.assets.ReadableResource;
-import com.github.ykiselev.assets.ReadableResources;
+import com.github.ykiselev.assets.ReadableAsset;
+import com.github.ykiselev.assets.ReadableAssets;
 import com.github.ykiselev.assets.ResourceException;
 import com.github.ykiselev.assets.formats.ReadableConfig;
 import com.github.ykiselev.assets.formats.ReadableObjModel;
@@ -22,17 +22,17 @@ import java.util.Map;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class ResourceByClass implements ReadableResources {
+public final class ResourceByClass implements ReadableAssets {
 
-    private final Map<Class, ReadableResource> map;
+    private final Map<Class, ReadableAsset> map;
 
-    public ResourceByClass(Map<Class, ReadableResource> map) {
+    public ResourceByClass(Map<Class, ReadableAsset> map) {
         this.map = map;
     }
 
     public ResourceByClass() {
         this(
-                ImmutableMap.<Class, ReadableResource>builder()
+                ImmutableMap.<Class, ReadableAsset>builder()
                         .put(Config.class, new ReadableConfig())
                         .put(ProgramObject.class, new ReadableProgramObject())
                         .put(ShaderObject.class, new ReadableShaderObject())
@@ -45,7 +45,7 @@ public final class ResourceByClass implements ReadableResources {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T> ReadableResource<T> resolve(String resource, Class<T> clazz) throws ResourceException {
+    public <T> ReadableAsset<T> resolve(String resource, Class<T> clazz) throws ResourceException {
         return map.get(clazz);
     }
 }

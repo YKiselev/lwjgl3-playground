@@ -1,9 +1,9 @@
 package cob.github.ykiselev.lwjgl3.assets;
 
 import com.github.ykiselev.assets.Assets;
-import com.github.ykiselev.assets.CompositeReadableResources;
+import com.github.ykiselev.assets.CompositeReadableAssets;
 import com.github.ykiselev.assets.ManagedAssets;
-import com.github.ykiselev.assets.ReadableResource;
+import com.github.ykiselev.assets.ReadableAsset;
 import com.github.ykiselev.assets.ResourceException;
 import com.github.ykiselev.assets.SimpleAssets;
 
@@ -17,10 +17,10 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class GameAssets implements Assets, AutoCloseable {
 
-    private final Assets assets;
+    private final Assets delegate;
 
-    private GameAssets(Assets assets) {
-        this.assets = assets;
+    private GameAssets(Assets delegate) {
+        this.delegate = delegate;
     }
 
     public GameAssets(Collection<Path> paths) {
@@ -28,7 +28,7 @@ public final class GameAssets implements Assets, AutoCloseable {
                 new ManagedAssets(
                         new SimpleAssets(
                                 new GameResources(paths),
-                                new CompositeReadableResources(
+                                new CompositeReadableAssets(
                                         new ResourceByClass(),
                                         new ResourceByExtension()
                                 )
@@ -39,19 +39,19 @@ public final class GameAssets implements Assets, AutoCloseable {
     }
 
     @Override
-    public <T> ReadableResource<T> resolve(String resource, Class<T> clazz) throws ResourceException {
-        return assets.resolve(resource, clazz);
+    public <T> ReadableAsset<T> resolve(String resource, Class<T> clazz) throws ResourceException {
+        return delegate.resolve(resource, clazz);
     }
 
     @Override
-    public <T> Optional<T> tryLoad(String resource, Class<T> clazz) throws ResourceException {
-        return assets.tryLoad(resource, clazz);
+    public <T> Optional<T> tryLoad(String resource, Class<T> clazz, Assets assets) throws ResourceException {
+        return delegate.tryLoad(resource, clazz, assets);
     }
 
     @Override
     public void close() throws Exception {
-        if (assets instanceof AutoCloseable) {
-            ((AutoCloseable) assets).close();
+        if (delegate instanceof AutoCloseable) {
+            ((AutoCloseable) delegate).close();
         }
     }
 }

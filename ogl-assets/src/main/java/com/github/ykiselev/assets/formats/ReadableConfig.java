@@ -17,7 +17,7 @@
 package com.github.ykiselev.assets.formats;
 
 import com.github.ykiselev.assets.Assets;
-import com.github.ykiselev.assets.ReadableResource;
+import com.github.ykiselev.assets.ReadableAsset;
 import com.github.ykiselev.assets.ResourceException;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
@@ -32,7 +32,7 @@ import java.nio.charset.StandardCharsets;
 /**
  * Created by Y.Kiselev on 14.06.2016.
  */
-public final class ReadableConfig implements ReadableResource<Config> {
+public final class ReadableConfig implements ReadableAsset<Config> {
 
     @Override
     public Config read(ReadableByteChannel channel, String resource, Assets assets) throws ResourceException {

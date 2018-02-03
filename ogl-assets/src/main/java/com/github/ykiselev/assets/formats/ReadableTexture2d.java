@@ -17,7 +17,7 @@
 package com.github.ykiselev.assets.formats;
 
 import com.github.ykiselev.assets.Assets;
-import com.github.ykiselev.assets.ReadableResource;
+import com.github.ykiselev.assets.ReadableAsset;
 import com.github.ykiselev.assets.ResourceException;
 import com.github.ykiselev.common.Wrap;
 import com.github.ykiselev.io.ByteChannelAsByteBuffer;
@@ -52,7 +52,7 @@ import static org.lwjgl.system.MemoryStack.stackPush;
 /**
  * Created by Y.Kiselev on 05.06.2016.
  */
-public final class ReadableTexture2d implements ReadableResource<Texture2d> {
+public final class ReadableTexture2d implements ReadableAsset<Texture2d> {
 
     @Override
     public Texture2d read(ReadableByteChannel channel, String resource, Assets assets) throws ResourceException {

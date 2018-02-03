@@ -1,7 +1,7 @@
 package com.github.ykiselev.oal;
 
 import com.github.ykiselev.assets.Assets;
-import com.github.ykiselev.assets.ReadableResource;
+import com.github.ykiselev.assets.ReadableAsset;
 import com.github.ykiselev.assets.ReadableVorbisAudio;
 import com.github.ykiselev.openal.AudioSamples;
 import org.junit.jupiter.api.Assertions;
@@ -56,7 +56,7 @@ import static org.mockito.Mockito.mock;
  */
 public final class OpenAlApp {
 
-    private final ReadableResource<AudioSamples> readableResource = new ReadableVorbisAudio(32 * 1024);
+    private final ReadableAsset<AudioSamples> readableResource = new ReadableVorbisAudio(32 * 1024);
 
     private final Assets assets = mock(Assets.class);
 

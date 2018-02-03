@@ -17,14 +17,12 @@
 package com.github.ykiselev.assets.formats;
 
 import com.github.ykiselev.assets.Assets;
-import com.github.ykiselev.assets.ReadableResource;
+import com.github.ykiselev.assets.ReadableAsset;
 import com.github.ykiselev.assets.ResourceException;
 import com.github.ykiselev.gfx.font.GlyphRange;
 import com.github.ykiselev.opengl.text.Glyph;
 import com.github.ykiselev.opengl.text.SpriteFont;
 import com.github.ykiselev.opengl.textures.Texture2d;
-import org.lwjgl.opengl.GL12;
-import org.lwjgl.opengl.GL13;
 import org.lwjgl.system.MemoryStack;
 
 import java.io.ByteArrayInputStream;
@@ -34,7 +32,6 @@ import java.nio.IntBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 
-import static org.lwjgl.opengl.GL11.GL_LINEAR;
 import static org.lwjgl.opengl.GL11.GL_NEAREST;
 import static org.lwjgl.opengl.GL11.GL_ONE;
 import static org.lwjgl.opengl.GL11.GL_RED;
@@ -55,7 +52,7 @@ import static org.lwjgl.opengl.GL33.GL_TEXTURE_SWIZZLE_RGBA;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class ReadableSpriteFont implements ReadableResource<SpriteFont> {
+public final class ReadableSpriteFont implements ReadableAsset<SpriteFont> {
 
     @Override
     public SpriteFont read(ReadableByteChannel channel, String resource, Assets assets) throws ResourceException {

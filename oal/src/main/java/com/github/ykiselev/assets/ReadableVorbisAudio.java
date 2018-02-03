@@ -26,7 +26,7 @@ import static org.lwjgl.system.MemoryUtil.NULL;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class ReadableVorbisAudio implements ReadableResource<AudioSamples> {
+public final class ReadableVorbisAudio implements ReadableAsset<AudioSamples> {
 
     private final int bufferSize;
 
