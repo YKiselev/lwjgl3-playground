@@ -27,6 +27,8 @@ import cob.github.ykiselev.lwjgl3.events.game.NewGameEvent;
 import cob.github.ykiselev.lwjgl3.events.game.QuitGameEvent;
 import cob.github.ykiselev.lwjgl3.events.layers.ShowMenuEvent;
 import cob.github.ykiselev.lwjgl3.fs.AppFileSystem;
+import cob.github.ykiselev.lwjgl3.fs.ClassPathResources;
+import cob.github.ykiselev.lwjgl3.fs.DiskResources;
 import cob.github.ykiselev.lwjgl3.host.AppHost;
 import cob.github.ykiselev.lwjgl3.host.Host;
 import cob.github.ykiselev.lwjgl3.host.OnNewGameEvent;
@@ -45,6 +47,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 import static org.lwjgl.glfw.GLFW.glfwSwapInterval;
 
@@ -78,11 +81,7 @@ public final class Main implements Runnable {
         try {
             final AppUiLayers layers = new AppUiLayers();
             try (AppHost host = new AppHost()) {
-                createServices(
-                        host,
-                        GameAssets.create(args.assetPaths()),
-                        layers
-                );
+                createServices(host, layers);
                 try (Subscriptions group = subscribe(host)) {
                     try (AppWindow window = new AppWindow(args.fullScreen())) {
                         GL.createCapabilities();
@@ -104,12 +103,19 @@ public final class Main implements Runnable {
         }
     }
 
-    private void createServices(AppHost host, Assets assets, UiLayers layers) throws IOException {
+    private void createServices(AppHost host, UiLayers layers) throws IOException {
         logger.info("Creating services...");
         final Services services = host.services();
-        services.add(Assets.class, assets);
+        final FileSystem fileSystem = new AppFileSystem(
+                args.home(),
+                Arrays.asList(
+                        new DiskResources(args.assetPaths()),
+                        new ClassPathResources(getClass().getClassLoader())
+                )
+        );
+        services.add(Assets.class, GameAssets.create(fileSystem));
         services.add(UiLayers.class, layers);
-        services.add(FileSystem.class, new AppFileSystem(args.home()));
+        services.add(FileSystem.class, fileSystem);
         services.add(PersistedConfiguration.class, new AppConfig(host));
         services.add(SoundEffects.class, new AppSoundEffects(host));
     }

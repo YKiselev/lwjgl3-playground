@@ -5,6 +5,7 @@ import com.github.ykiselev.assets.CompositeReadableAssets;
 import com.github.ykiselev.assets.ManagedAssets;
 import com.github.ykiselev.assets.ReadableAsset;
 import com.github.ykiselev.assets.ReadableVorbisAudio;
+import com.github.ykiselev.assets.Resources;
 import com.github.ykiselev.assets.SimpleAssets;
 import com.github.ykiselev.assets.formats.ReadableConfig;
 import com.github.ykiselev.assets.formats.ReadableObjModel;
@@ -20,8 +21,6 @@ import com.github.ykiselev.opengl.textures.Texture2d;
 import com.google.common.collect.ImmutableMap;
 import com.typesafe.config.Config;
 
-import java.nio.file.Path;
-import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -30,7 +29,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class GameAssets {
 
-    public static Assets create(Collection<Path> paths) {
+    public static Assets create(Resources resources) {
         final ReadableConfig readableConfig = new ReadableConfig();
         final ReadableShaderObject readableShaderObject = new ReadableShaderObject();
         final ReadableTexture2d readableTexture2d = new ReadableTexture2d();
@@ -52,7 +51,7 @@ public final class GameAssets {
                 .build();
         return new ManagedAssets(
                 new SimpleAssets(
-                        new GameResources(paths),
+                        resources,
                         new CompositeReadableAssets(
                                 new ResourceByClass(byClass),
                                 new ResourceByExtension(byExtension)

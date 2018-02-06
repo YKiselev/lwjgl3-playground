@@ -51,40 +51,53 @@ public final class WeightingCachedReferences<V> implements CachedReferences<V> {
         final int weight = scales.applyAsInt(
                 requireNonNull(value)
         );
-        totalWeight += weight;
-        return touch(
-                new WeightedReference(
-                        value,
-                        weight
-                )
-        );
-    }
-
-    @Override
-    public synchronized void clear() {
-        while (list.tail() != null) {
-            evictionConsumer.accept(
-                    list.remove(list.tail()).value
+        synchronized (list) {
+            totalWeight += weight;
+            return touch(
+                    new WeightedReference(
+                            value,
+                            weight
+                    )
             );
         }
     }
 
-    private synchronized WeightedReference touch(WeightedReference ref) {
-        list.remove(ref);
-        list.addFirst(ref);
-        while (list.tail() != ref && totalWeight > maxTotalWeight) {
-            evict(list.tail());
+    @Override
+    public void clear() {
+        synchronized (list) {
+            while (list.tail() != null) {
+                evictionConsumer.accept(
+                        list.remove(list.tail()).value
+                );
+            }
+        }
+    }
+
+    private WeightedReference touch(WeightedReference ref) {
+        synchronized (list) {
+            list.remove(ref);
+            list.addFirst(ref);
+            while (list.tail() != ref && totalWeight > maxTotalWeight) {
+                evict(list.tail());
+            }
         }
         return ref;
     }
 
-    private synchronized void evict(WeightedReference ref) {
-        list.remove(ref);
-        evictionConsumer.accept(ref.value);
-        ref.value = null;
-        totalWeight -= ref.weight;
+    private void evict(WeightedReference ref) {
+        final V value;
+        synchronized (list) {
+            list.remove(ref);
+            value = ref.value;
+            ref.value = null;
+            totalWeight -= ref.weight;
+        }
+        evictionConsumer.accept(value);
     }
 
+    /**
+     * Custom list node
+     */
     private class WeightedReference extends NodeList.Node<WeightedReference> implements Cached<V> {
 
         int weight;
@@ -105,8 +118,8 @@ public final class WeightingCachedReferences<V> implements CachedReferences<V> {
         }
 
         @Override
-        public void free() {
-            evict(this);
+        public void evict() {
+            WeightingCachedReferences.this.evict(this);
         }
     }
 }

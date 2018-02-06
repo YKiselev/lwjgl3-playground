@@ -28,7 +28,7 @@
         <Logger name="com.github.ykiselev" level="info" additivity="false">
             <AppenderRef ref="Console"/>
         </Logger>
-        <Logger name="cob.github.ykiselev.lwjgl3.assets.GameResources" level="debug" additivity="false">
+        <Logger name="cob.github.ykiselev.lwjgl3.fs.AppFileSystem" level="debug" additivity="false">
             <AppenderRef ref="Console"/>
         </Logger>
     </Loggers>

@@ -19,5 +19,5 @@ public interface Cached<V> {
     /**
      * Evicts this item from cache and releases system resources.
      */
-    void free();
+    void evict();
 }

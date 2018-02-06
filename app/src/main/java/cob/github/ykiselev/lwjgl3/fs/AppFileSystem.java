@@ -1,5 +1,6 @@
 package cob.github.ykiselev.lwjgl3.fs;
 
+import com.github.ykiselev.assets.ResourceException;
 import com.github.ykiselev.io.FileSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -7,13 +8,16 @@ import org.slf4j.LoggerFactory;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.net.URL;
+import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
-import java.nio.file.Files;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.Collection;
+import java.util.Optional;
 
 import static java.util.Objects.requireNonNull;
 
@@ -26,8 +30,11 @@ public final class AppFileSystem implements FileSystem {
 
     private final Path home;
 
-    public AppFileSystem(Path home) {
+    private final Collection<ResourceFolder> folders;
+
+    public AppFileSystem(Path home, Collection<ResourceFolder> folders) {
         this.home = requireNonNull(home);
+        this.folders = requireNonNull(folders);
     }
 
     private FileChannel open(String name, OpenOption... options) {
@@ -53,14 +60,26 @@ public final class AppFileSystem implements FileSystem {
     }
 
     @Override
-    public ReadableByteChannel openForReading(String name) {
-        return open(name, StandardOpenOption.READ);
+    public Optional<ReadableByteChannel> open(String resource) throws ResourceException {
+        if (resource == null) {
+            return Optional.empty();
+        }
+        return folders.stream()
+                .map(f -> f.resolve(resource))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .map(url -> channel(resource, url))
+                .findFirst();
     }
 
-    @Override
-    public boolean exists(String name) {
-        return Files.exists(
-                home.resolve(name)
-        );
+    private ReadableByteChannel channel(String resource, URL url) {
+        logger.debug("Resource {} resolved into {}", resource, url);
+        try {
+            return Channels.newChannel(
+                    url.openStream()
+            );
+        } catch (IOException e) {
+            throw new ResourceException(e);
+        }
     }
 }

@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.io.UncheckedIOException;
 import java.io.Writer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
@@ -85,22 +86,27 @@ public final class AppConfig implements PersistedConfiguration, AutoCloseable {
         return config.hasPath(path) ? config.getValue(path).unwrapped() : null;
     }
 
-    private Config readFromFile() throws IOException {
-        final FileSystem fs = host.services().resolve(FileSystem.class);
-        final Config cfg;
-        if (fs.exists("app.conf")) {
-            try (ReadableByteChannel channel = fs.openForReading("app.conf")) {
-                try (Reader reader = Channels.newReader(channel, "utf-8")) {
-                    cfg = ConfigFactory.parseReader(reader);
-                }
-            }
-        } else {
-            cfg = ConfigFactory.empty();
-        }
-        return cfg;
+    private Config readFromFile() {
+        return host.services()
+                .resolve(FileSystem.class)
+                .open("app.conf")
+                .map(this::readFromFile)
+                .orElse(ConfigFactory.empty());
     }
 
-    private Config load() throws IOException {
+    private Config readFromFile(ReadableByteChannel channel) {
+        try {
+            try (Reader reader = Channels.newReader(channel, "utf-8")) {
+                return ConfigFactory.parseReader(reader);
+            } finally {
+                channel.close();
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    private Config load() {
         logger.info("Loading config...");
         return readFromFile()
                 .withFallback(ConfigFactory.parseResources("fallback/app.conf"))

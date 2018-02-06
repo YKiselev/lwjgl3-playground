@@ -57,10 +57,10 @@ class WeightingCachedReferencesTest {
         Cached<Integer> r2 = cache.put(2);
         assertEquals(1, (int)r1.get());
         assertEquals(2, (int)r2.get());
-        r1.free();
+        r1.evict();
         assertNull(r1.get());
         assertEquals(2, (int)r2.get());
-        r2.free();
+        r2.evict();
         assertNull(r2.get());
     }
 

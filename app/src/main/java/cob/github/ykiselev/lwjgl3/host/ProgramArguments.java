@@ -1,6 +1,5 @@
 package cob.github.ykiselev.lwjgl3.host;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
@@ -10,6 +9,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
@@ -54,16 +54,13 @@ public final class ProgramArguments {
     }
 
     public Collection<Path> assetPaths() {
-        return value("asset.paths").stream()
-                .flatMap(v -> Arrays.stream(v.split(",")))
-                .map(Paths::get)
-                .filter(this::exists)
+        return Stream.concat(
+                Stream.of(home()),
+                value("asset.paths").stream()
+                        .flatMap(v -> Arrays.stream(v.split(",")))
+                        .map(Paths::get)
+        ).filter(p -> Files.exists(p) && Files.isDirectory(p))
                 .collect(Collectors.toList());
-    }
-
-    private boolean exists(Path path) {
-        final File file = path.toFile();
-        return file.exists() && file.isDirectory();
     }
 
     public boolean fullScreen() {
