@@ -35,7 +35,7 @@ import java.nio.charset.StandardCharsets;
 public final class ReadableConfig implements ReadableAsset<Config> {
 
     @Override
-    public Config read(ReadableByteChannel channel, String resource, Assets assets) throws ResourceException {
+    public Config read(ReadableByteChannel channel, Assets assets) throws ResourceException {
         try (Reader reader = new BufferedReader(Channels.newReader(channel, StandardCharsets.UTF_8.newDecoder(), -1))) {
             return ConfigFactory.parseReader(reader);
         } catch (IOException e) {

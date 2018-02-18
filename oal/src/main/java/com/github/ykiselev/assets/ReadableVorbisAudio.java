@@ -39,7 +39,7 @@ public final class ReadableVorbisAudio implements ReadableAsset<AudioSamples> {
     }
 
     @Override
-    public AudioSamples read(ReadableByteChannel channel, String resource, Assets assets) throws ResourceException {
+    public AudioSamples read(ReadableByteChannel channel, Assets assets) throws ResourceException {
         try (STBVorbisInfo info = STBVorbisInfo.malloc()) {
             final ReadableBytes asBuffer = new ByteChannelAsByteBuffer(
                     channel, bufferSize
@@ -49,12 +49,12 @@ public final class ReadableVorbisAudio implements ReadableAsset<AudioSamples> {
                     final IntBuffer error = ms.ints(0);
                     final long decoder = stb_vorbis_open_memory(vorbis.value(), error, null);
                     if (decoder == NULL) {
-                        throw new ResourceException("Failed to open " + resource + ": Error code " + error.get(0));
+                        throw new ResourceException("Failed to open resource: Error code " + error.get(0));
                     }
                     stb_vorbis_get_info(decoder, info);
                     final int channels = info.channels();
                     if (channels < 1 || channels > 2) {
-                        throw new ResourceException("Failed to open " + resource + ": Unsupported number of channels - " + channels);
+                        throw new ResourceException("Failed to open resource: Unsupported number of channels - " + channels);
                     }
                     final MemAllocShort wrap = new MemAllocShort(
                             stb_vorbis_stream_length_in_samples(decoder)

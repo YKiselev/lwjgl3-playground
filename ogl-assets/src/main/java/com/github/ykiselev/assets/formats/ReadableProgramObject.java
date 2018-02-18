@@ -49,8 +49,8 @@ public final class ReadableProgramObject implements ReadableAsset<ProgramObject>
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Override
-    public ProgramObject read(ReadableByteChannel channel, String resource, Assets assets) throws ResourceException {
-        final Config config = readConfig(channel, resource, assets);
+    public ProgramObject read(ReadableByteChannel channel, Assets assets) throws ResourceException {
+        final Config config = readConfig(channel, assets);
         final int id = glCreateProgram();
         final ShaderObject[] shaders = readShaders(assets, config);
         for (ShaderObject s : shaders) {
@@ -96,9 +96,9 @@ public final class ReadableProgramObject implements ReadableAsset<ProgramObject>
                 .toArray(ShaderObject[]::new);
     }
 
-    private Config readConfig(ReadableByteChannel channel, String resource, Assets assets) {
+    private Config readConfig(ReadableByteChannel channel, Assets assets) {
         return assets.resolve(Config.class)
-                .read(channel, resource, assets)
+                .read(channel, assets)
                 .withFallback(
                         assets.load("fallback/program-object.conf")
                 );

@@ -18,11 +18,11 @@ import java.nio.charset.StandardCharsets;
 public final class ReadableObjModel implements ReadableAsset<ObjModel> {
 
     @Override
-    public ObjModel read(ReadableByteChannel channel, String resource, Assets assets) throws ResourceException {
+    public ObjModel read(ReadableByteChannel channel, Assets assets) throws ResourceException {
         try (BufferedReader reader = reader(channel)) {
             return parse(reader);
         } catch (Exception e) {
-            throw new ResourceException("Unable to load " + resource, e);
+            throw new ResourceException(e);
         }
     }
 

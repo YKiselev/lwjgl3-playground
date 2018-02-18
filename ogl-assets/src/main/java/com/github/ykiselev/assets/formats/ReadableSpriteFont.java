@@ -55,7 +55,7 @@ import static org.lwjgl.opengl.GL33.GL_TEXTURE_SWIZZLE_RGBA;
 public final class ReadableSpriteFont implements ReadableAsset<SpriteFont> {
 
     @Override
-    public SpriteFont read(ReadableByteChannel channel, String resource, Assets assets) throws ResourceException {
+    public SpriteFont read(ReadableByteChannel channel, Assets assets) throws ResourceException {
         final com.github.ykiselev.gfx.font.SpriteFont spriteFont = readSpriteFont(channel);
         final Texture2d texture = readSpriteFontTexture(assets, spriteFont);
         texture.bind();
@@ -127,7 +127,7 @@ public final class ReadableSpriteFont implements ReadableAsset<SpriteFont> {
         final Texture2d texture;
         try (ReadableByteChannel bc = Channels.newChannel(new ByteArrayInputStream(spriteFont.image()))) {
             texture = assets.resolve(Texture2d.class)
-                    .read(bc, null, assets);
+                    .read(bc, assets);
         } catch (IOException e) {
             throw new ResourceException(e);
         }

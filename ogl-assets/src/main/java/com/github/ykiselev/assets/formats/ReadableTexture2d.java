@@ -55,7 +55,7 @@ import static org.lwjgl.system.MemoryStack.stackPush;
 public final class ReadableTexture2d implements ReadableAsset<Texture2d> {
 
     @Override
-    public Texture2d read(ReadableByteChannel channel, String resource, Assets assets) throws ResourceException {
+    public Texture2d read(ReadableByteChannel channel, Assets assets) throws ResourceException {
         final ByteBuffer image;
         final int width, height, components;
         try (Wrap<ByteBuffer> wrap = readResource(channel)) {

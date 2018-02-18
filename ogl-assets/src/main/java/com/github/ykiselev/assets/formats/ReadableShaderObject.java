@@ -44,11 +44,15 @@ public final class ReadableShaderObject implements ReadableAsset<ShaderObject> {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
+    private final int type;
+
+    public ReadableShaderObject(int type) {
+        this.type = type;
+    }
+
     @Override
-    public ShaderObject read(ReadableByteChannel channel, String resource, Assets assets) throws ResourceException {
-        final int id = glCreateShader(
-                resolveType(resource)
-        );
+    public ShaderObject read(ReadableByteChannel channel, Assets assets) throws ResourceException {
+        final int id = glCreateShader(type);
         glShaderSource(
                 id,
                 new ByteChannelAsString(channel, StandardCharsets.UTF_8).read()
@@ -57,7 +61,7 @@ public final class ReadableShaderObject implements ReadableAsset<ShaderObject> {
         final int status = glGetShaderi(id, GL_COMPILE_STATUS);
         final String log = glGetShaderInfoLog(id, 8 * 1024);
         if (status != GL_TRUE) {
-            throw new ResourceException(resource + ":" + log);
+            throw new ResourceException(log);
         } else {
             if (StringUtils.isNotEmpty(log)) {
                 logger.warn("Shader log: {}", log);
