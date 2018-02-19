@@ -2,9 +2,9 @@ package cob.github.ykiselev.lwjgl3.assets;
 
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.assets.CompositeReadableAssets;
-import com.github.ykiselev.assets.ManagedAssets;
 import com.github.ykiselev.assets.ReadableAsset;
 import com.github.ykiselev.assets.ReadableVorbisAudio;
+import com.github.ykiselev.assets.ResourceException;
 import com.github.ykiselev.assets.Resources;
 import com.github.ykiselev.assets.SimpleAssets;
 import com.github.ykiselev.assets.formats.ReadableConfig;
@@ -22,12 +22,31 @@ import com.typesafe.config.Config;
 import org.lwjgl.opengl.GL20;
 
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Optional;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class GameAssets {
+public final class GameAssets implements Assets {
+
+    private final Assets delegate;
+
+    public GameAssets(Assets delegate) {
+        this.delegate = requireNonNull(delegate);
+    }
+
+    @Override
+    public <T> Optional<T> tryLoad(String resource, Class<T> clazz, Assets assets) throws ResourceException {
+        // todo - add caching
+        return delegate.tryLoad(resource, clazz, assets);
+    }
+
+    @Override
+    public <T> ReadableAsset<T> resolve(String resource, Class<T> clazz) throws ResourceException {
+        return delegate.resolve(resource, clazz);
+    }
 
     public static Assets create(Resources resources) {
         final ReadableConfig readableConfig = new ReadableConfig();
@@ -47,15 +66,14 @@ public final class GameAssets {
                 .put("conf", readableConfig)
                 .put("ogg", new ReadableVorbisAudio())
                 .build();
-        return new ManagedAssets(
+        return new GameAssets(
                 new SimpleAssets(
                         resources,
                         new CompositeReadableAssets(
                                 new ResourceByClass(byClass),
                                 new ResourceByExtension(byExtension)
                         )
-                ),
-                new ConcurrentHashMap<>()
+                )
         );
     }
 }

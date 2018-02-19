@@ -21,7 +21,6 @@ class ReadableVorbisAudioTest {
     void shouldRead() {
         final AudioSamples samples = readableResource.read(
                 Channels.newChannel(getClass().getResourceAsStream("/sample.ogg")),
-                "sample.ogg",
                 assets
         );
         assertNotNull(samples);

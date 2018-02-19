@@ -29,7 +29,6 @@ public class ReadableObjModelTest {
                 Channels.newChannel(
                         url.openStream()
                 ),
-                url.toString(),
                 assets
         );
         assertNotNull(model);

@@ -125,7 +125,6 @@ public final class OpenAlApp {
 
         final AudioSamples samples = readableResource.read(
                 Channels.newChannel(getClass().getResourceAsStream("/sample.ogg")),
-                "sample.ogg",
                 assets
         );
         try {

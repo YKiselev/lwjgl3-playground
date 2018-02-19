@@ -24,6 +24,7 @@ import static java.util.Objects.requireNonNull;
 /**
  * Created by Y.Kiselev on 16.05.2016.
  */
+@Deprecated
 public final class ManagedAssets implements Assets, AutoCloseable {
 
     private final Assets delegate;
