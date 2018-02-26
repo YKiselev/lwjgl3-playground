@@ -12,21 +12,21 @@ import static java.util.Objects.requireNonNull;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class PathTreeBuilder<V> {
+public final class PrefixTreeBuilder<V> {
 
     private final Pattern pattern;
 
     private final MutableTreeNode<V> root = new MutableTreeNode<>();
 
-    public PathTreeBuilder(Pattern pattern) {
+    public PrefixTreeBuilder(Pattern pattern) {
         this.pattern = requireNonNull(pattern);
     }
 
-    public PathTreeBuilder(String separator) {
+    public PrefixTreeBuilder(String separator) {
         this(Pattern.compile(separator));
     }
 
-    public PathTreeBuilder<V> add(String path, V value) {
+    public PrefixTreeBuilder<V> add(String path, V value) {
         MutableTreeNode<V> node = root;
         for (String part : pattern.split(path)) {
             node = node.add(part, value);
@@ -34,8 +34,8 @@ public final class PathTreeBuilder<V> {
         return this;
     }
 
-    public PathTree<V> build() {
-        return new PathTree<>(pattern, root.emit());
+    public PrefixTree<V> build() {
+        return new PrefixTree<>(pattern, root.emit());
     }
 
     private static class MutableTreeNode<V> {

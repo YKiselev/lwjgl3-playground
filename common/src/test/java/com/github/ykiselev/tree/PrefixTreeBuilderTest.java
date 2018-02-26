@@ -10,11 +10,11 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-class PathTreeBuilderTest {
+class PrefixTreeBuilderTest {
 
     @Test
     void shouldBuild() {
-        final PathTree<Integer> tree = new PathTreeBuilder<Integer>("\\.")
+        final PrefixTree<Integer> tree = new PrefixTreeBuilder<Integer>("\\.")
                 .add("a.b.1", 1)
                 .add("a.b.2", 2)
                 .build();

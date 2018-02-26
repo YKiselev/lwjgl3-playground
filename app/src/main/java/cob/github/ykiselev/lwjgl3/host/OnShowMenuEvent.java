@@ -1,8 +1,10 @@
 package cob.github.ykiselev.lwjgl3.host;
 
+import cob.github.ykiselev.lwjgl3.events.Events;
 import cob.github.ykiselev.lwjgl3.events.layers.ShowMenuEvent;
-import cob.github.ykiselev.lwjgl3.layers.Menu;
+import cob.github.ykiselev.lwjgl3.layers.UiLayer;
 import cob.github.ykiselev.lwjgl3.layers.UiLayers;
+import cob.github.ykiselev.lwjgl3.layers.menu.Menu;
 import cob.github.ykiselev.lwjgl3.services.Services;
 import com.github.ykiselev.assets.Assets;
 
@@ -24,9 +26,13 @@ public final class OnShowMenuEvent implements Consumer<ShowMenuEvent> {
     @Override
     public void accept(ShowMenuEvent showMenuEvent) {
         final Services services = host.services();
-        final Menu menu = services.tryResolve(Menu.class)
+        final UiLayer menu = services.tryResolve(Menu.class)
                 .orElseGet(() -> {
-                    final Menu m = new Menu(host, services.resolve(Assets.class));
+                    final Menu m = new Menu(
+                            services,
+                            services.resolve(Events.class),
+                            services.resolve(Assets.class)
+                    );
                     services.add(Menu.class, m);
                     return m;
                 });

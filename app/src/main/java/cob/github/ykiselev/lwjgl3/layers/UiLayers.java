@@ -5,7 +5,9 @@ import cob.github.ykiselev.lwjgl3.playground.WindowEvents;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public interface UiLayers extends WindowEvents {
+public interface UiLayers {
+
+    WindowEvents events();
 
     void replace(UiLayer layer);
 

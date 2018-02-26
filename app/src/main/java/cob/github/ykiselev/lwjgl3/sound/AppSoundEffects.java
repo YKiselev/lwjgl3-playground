@@ -6,8 +6,8 @@ import cob.github.ykiselev.lwjgl3.events.SubscriptionsBuilder;
 import cob.github.ykiselev.lwjgl3.events.config.ValueChangingEvent;
 import cob.github.ykiselev.lwjgl3.host.Host;
 import cob.github.ykiselev.lwjgl3.services.SoundEffects;
-import com.github.ykiselev.tree.PathTree;
-import com.github.ykiselev.tree.PathTreeBuilder;
+import com.github.ykiselev.tree.PrefixTree;
+import com.github.ykiselev.tree.PrefixTreeBuilder;
 import com.typesafe.config.Config;
 import org.lwjgl.openal.AL;
 import org.lwjgl.openal.ALC10;
@@ -99,7 +99,7 @@ public final class AppSoundEffects implements SoundEffects, AutoCloseable {
                 alcGetInteger(device, ALC_STEREO_SOURCES)
         );
 
-        final PathTree<Consumer<ValueChangingEvent>> tree = new PathTreeBuilder<Consumer<ValueChangingEvent>>("\\.")
+        final PrefixTree<Consumer<ValueChangingEvent>> tree = new PrefixTreeBuilder<Consumer<ValueChangingEvent>>("\\.")
                 .add("sound.effects.level", this::onSoundEffectsLevelChanging)
                 .build();
 

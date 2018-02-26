@@ -60,7 +60,7 @@ import static org.lwjgl.opengl.GL11.glViewport;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class Game implements UiLayer, AutoCloseable {
+public final class Game implements UiLayer, WindowEvents, AutoCloseable {
 
     enum FrameBufferMode {
         COLOR, DEPTH
@@ -141,6 +141,10 @@ public final class Game implements UiLayer, AutoCloseable {
         frameBuffer = new FrameBuffer();
     }
 
+    @Override
+    public WindowEvents events() {
+        return this;
+    }
 
     @Override
     public boolean keyEvent(int key, int scanCode, int action, int mods) {

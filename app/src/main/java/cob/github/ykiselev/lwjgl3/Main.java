@@ -85,7 +85,7 @@ public final class Main implements Runnable {
                 try (Subscriptions group = subscribe(host)) {
                     try (AppWindow window = new AppWindow(args.fullScreen())) {
                         GL.createCapabilities();
-                        window.wireEvents(layers);
+                        window.wireEvents(layers.events());
                         window.show();
                         host.events().send(new NewGameEvent());
                         glfwSwapInterval(args.swapInterval());

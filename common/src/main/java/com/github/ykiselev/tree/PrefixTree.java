@@ -8,13 +8,13 @@ import static java.util.Objects.requireNonNull;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class PathTree<V> {
+public final class PrefixTree<V> {
 
     private final Pattern pattern;
 
     private final TreeNode<String, V> root;
 
-    PathTree(Pattern pattern, TreeNode<String, V> root) {
+    PrefixTree(Pattern pattern, TreeNode<String, V> root) {
         this.pattern = requireNonNull(pattern);
         this.root = requireNonNull(root);
     }

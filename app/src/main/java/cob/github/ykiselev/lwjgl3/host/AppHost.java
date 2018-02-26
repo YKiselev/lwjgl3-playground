@@ -14,6 +14,10 @@ public final class AppHost implements Host, AutoCloseable {
 
     private final Services services = new MapBasedServices();
 
+    public AppHost() {
+        services.add(Events.class, events);
+    }
+
     @Override
     public Events events() {
         return events;
