@@ -1,10 +1,11 @@
 package cob.github.ykiselev.lwjgl3.playground;
 
+import cob.github.ykiselev.lwjgl3.events.Events;
 import cob.github.ykiselev.lwjgl3.events.Subscriptions;
 import cob.github.ykiselev.lwjgl3.events.SubscriptionsBuilder;
 import cob.github.ykiselev.lwjgl3.events.layers.ShowMenuEvent;
-import cob.github.ykiselev.lwjgl3.host.Host;
 import cob.github.ykiselev.lwjgl3.layers.UiLayer;
+import cob.github.ykiselev.lwjgl3.services.Services;
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.assets.formats.obj.ObjModel;
 import com.github.ykiselev.io.FileSystem;
@@ -30,6 +31,7 @@ import java.io.UncheckedIOException;
 import java.nio.FloatBuffer;
 import java.nio.channels.WritableByteChannel;
 
+import static java.util.Objects.requireNonNull;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_F1;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_PRINT_SCREEN;
@@ -68,7 +70,7 @@ public final class Game implements UiLayer, WindowEvents, AutoCloseable {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final Host host;
+    private final Services services;
 
     private final Subscriptions group;
 
@@ -108,10 +110,10 @@ public final class Game implements UiLayer, WindowEvents, AutoCloseable {
 
     private FrameBufferMode frameBufferMode = FrameBufferMode.COLOR;
 
-    public Game(Host host, Assets assets) {
-        this.host = host;
+    public Game(Services services, Assets assets) {
+        this.services = requireNonNull(services);
         this.group = new SubscriptionsBuilder()
-                .build(host.events());
+                .build(services.resolve(Events.class));
         spriteBatch = new SpriteBatch(
                 assets.load("progs/sprite-batch.conf", ProgramObject.class)
         );
@@ -151,7 +153,7 @@ public final class Game implements UiLayer, WindowEvents, AutoCloseable {
         if (action == GLFW_PRESS) {
             switch (key) {
                 case GLFW_KEY_ESCAPE:
-                    host.events()
+                    services.resolve(Events.class)
                             .send(new ShowMenuEvent());
                     break;
 
@@ -187,7 +189,7 @@ public final class Game implements UiLayer, WindowEvents, AutoCloseable {
     private void dumpToFile(Texture2d texture, String name) throws IOException {
         texture.bind();
         try {
-            final FileSystem fs = host.services().resolve(FileSystem.class);
+            final FileSystem fs = services.resolve(FileSystem.class);
             try (WritableByteChannel channel = fs.openForWriting(name, false)) {
                 new CurrentTexture2dAsBytes().write(bb -> {
                     try {

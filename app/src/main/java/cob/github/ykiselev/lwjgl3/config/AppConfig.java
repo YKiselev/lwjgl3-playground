@@ -1,10 +1,11 @@
 package cob.github.ykiselev.lwjgl3.config;
 
+import cob.github.ykiselev.lwjgl3.events.Events;
 import cob.github.ykiselev.lwjgl3.events.Subscriptions;
 import cob.github.ykiselev.lwjgl3.events.SubscriptionsBuilder;
 import cob.github.ykiselev.lwjgl3.events.config.InvalidValueException;
 import cob.github.ykiselev.lwjgl3.events.config.ValueChangingEvent;
-import cob.github.ykiselev.lwjgl3.host.Host;
+import cob.github.ykiselev.lwjgl3.services.Services;
 import com.github.ykiselev.io.FileSystem;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
@@ -31,18 +32,18 @@ public final class AppConfig implements PersistedConfiguration, AutoCloseable {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final Host host;
+    private final Services services;
 
     private Config config;
 
     private final Subscriptions group;
 
-    public AppConfig(Host host) throws IOException {
-        this.host = requireNonNull(host);
+    public AppConfig(Services services) throws IOException {
+        this.services = requireNonNull(services);
         this.config = load();
         group = new SubscriptionsBuilder()
                 .add(ValueChangingEvent.class, this::onValueChangingEvent)
-                .build(host.events());
+                .build(services.resolve(Events.class));
     }
 
     private void onValueChangingEvent(ValueChangingEvent event) {
@@ -62,7 +63,7 @@ public final class AppConfig implements PersistedConfiguration, AutoCloseable {
         } else {
             logger.debug("Setting \"{}\" to \"{}\"", path, value);
             try {
-                host.events().send(
+                services.resolve(Events.class).send(
                         new ValueChangingEvent(path, oldValue, value)
                 );
             } catch (InvalidValueException e) {
@@ -87,8 +88,7 @@ public final class AppConfig implements PersistedConfiguration, AutoCloseable {
     }
 
     private Config readFromFile() {
-        return host.services()
-                .resolve(FileSystem.class)
+        return services.resolve(FileSystem.class)
                 .open("app.conf")
                 .map(this::readFromFile)
                 .orElse(ConfigFactory.empty());
@@ -124,7 +124,7 @@ public final class AppConfig implements PersistedConfiguration, AutoCloseable {
 
     private void persist() throws IOException {
         logger.info("Saving config...");
-        final FileSystem fs = host.services().resolve(FileSystem.class);
+        final FileSystem fs = services.resolve(FileSystem.class);
         try (WritableByteChannel channel = fs.openForWriting("app.conf", false)) {
             try (Writer writer = Channels.newWriter(channel, "utf-8")) {
                 writer.write(asString());

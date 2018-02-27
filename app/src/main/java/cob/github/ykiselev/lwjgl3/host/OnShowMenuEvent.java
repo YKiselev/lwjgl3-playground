@@ -17,15 +17,14 @@ import static java.util.Objects.requireNonNull;
  */
 public final class OnShowMenuEvent implements Consumer<ShowMenuEvent> {
 
-    private final Host host;
+    private final Services services;
 
-    public OnShowMenuEvent(Host host) {
-        this.host = requireNonNull(host);
+    public OnShowMenuEvent(Services services) {
+        this.services = requireNonNull(services);
     }
 
     @Override
     public void accept(ShowMenuEvent showMenuEvent) {
-        final Services services = host.services();
         final UiLayer menu = services.tryResolve(Menu.class)
                 .orElseGet(() -> {
                     final Menu m = new Menu(

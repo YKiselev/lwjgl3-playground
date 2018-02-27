@@ -1,10 +1,11 @@
 package cob.github.ykiselev.lwjgl3.sound;
 
 import cob.github.ykiselev.lwjgl3.config.PersistedConfiguration;
+import cob.github.ykiselev.lwjgl3.events.Events;
 import cob.github.ykiselev.lwjgl3.events.Subscriptions;
 import cob.github.ykiselev.lwjgl3.events.SubscriptionsBuilder;
 import cob.github.ykiselev.lwjgl3.events.config.ValueChangingEvent;
-import cob.github.ykiselev.lwjgl3.host.Host;
+import cob.github.ykiselev.lwjgl3.services.Services;
 import cob.github.ykiselev.lwjgl3.services.SoundEffects;
 import com.github.ykiselev.tree.PrefixTree;
 import com.github.ykiselev.tree.PrefixTreeBuilder;
@@ -47,7 +48,7 @@ public final class AppSoundEffects implements SoundEffects, AutoCloseable {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final Host host;
+    private final Services services;
 
     private final long device;
 
@@ -55,11 +56,9 @@ public final class AppSoundEffects implements SoundEffects, AutoCloseable {
 
     private final Subscriptions subscriptions;
 
-    public AppSoundEffects(Host host) {
-        this.host = requireNonNull(host);
-
-        final Config config = host.services()
-                .resolve(PersistedConfiguration.class)
+    public AppSoundEffects(Services services) {
+        this.services = requireNonNull(services);
+        final Config config = services.resolve(PersistedConfiguration.class)
                 .root()
                 .getConfig("sound");
 
@@ -105,7 +104,7 @@ public final class AppSoundEffects implements SoundEffects, AutoCloseable {
 
         subscriptions = new SubscriptionsBuilder()
                 .add(ValueChangingEvent.class, event -> tree.find(event.path()).ifPresent(c -> c.accept(event)))
-                .build(host.events());
+                .build(services.resolve(Events.class));
     }
 
     private void onSoundEffectsLevelChanging(ValueChangingEvent event) {

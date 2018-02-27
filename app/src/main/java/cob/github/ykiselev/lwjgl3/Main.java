@@ -21,6 +21,8 @@ import cob.github.ykiselev.lwjgl3.app.GlfwApp;
 import cob.github.ykiselev.lwjgl3.assets.GameAssets;
 import cob.github.ykiselev.lwjgl3.config.AppConfig;
 import cob.github.ykiselev.lwjgl3.config.PersistedConfiguration;
+import cob.github.ykiselev.lwjgl3.events.AppEvents;
+import cob.github.ykiselev.lwjgl3.events.Events;
 import cob.github.ykiselev.lwjgl3.events.Subscriptions;
 import cob.github.ykiselev.lwjgl3.events.SubscriptionsBuilder;
 import cob.github.ykiselev.lwjgl3.events.game.NewGameEvent;
@@ -29,13 +31,12 @@ import cob.github.ykiselev.lwjgl3.events.layers.ShowMenuEvent;
 import cob.github.ykiselev.lwjgl3.fs.AppFileSystem;
 import cob.github.ykiselev.lwjgl3.fs.ClassPathResources;
 import cob.github.ykiselev.lwjgl3.fs.DiskResources;
-import cob.github.ykiselev.lwjgl3.host.AppHost;
-import cob.github.ykiselev.lwjgl3.host.Host;
 import cob.github.ykiselev.lwjgl3.host.OnNewGameEvent;
 import cob.github.ykiselev.lwjgl3.host.OnShowMenuEvent;
 import cob.github.ykiselev.lwjgl3.host.ProgramArguments;
 import cob.github.ykiselev.lwjgl3.layers.AppUiLayers;
 import cob.github.ykiselev.lwjgl3.layers.UiLayers;
+import cob.github.ykiselev.lwjgl3.services.MapBasedServices;
 import cob.github.ykiselev.lwjgl3.services.Services;
 import cob.github.ykiselev.lwjgl3.services.SoundEffects;
 import cob.github.ykiselev.lwjgl3.sound.AppSoundEffects;
@@ -80,14 +81,15 @@ public final class Main implements Runnable {
     public void run() {
         try {
             final AppUiLayers layers = new AppUiLayers();
-            try (AppHost host = new AppHost()) {
-                createServices(host, layers);
-                try (Subscriptions group = subscribe(host)) {
+            try (Services services = new MapBasedServices()) {
+                createServices(services, layers);
+                try (Subscriptions group = subscribe(services)) {
                     try (AppWindow window = new AppWindow(args.fullScreen())) {
                         GL.createCapabilities();
                         window.wireEvents(layers.events());
                         window.show();
-                        host.events().send(new NewGameEvent());
+                        services.resolve(Events.class)
+                                .send(new NewGameEvent());
                         glfwSwapInterval(args.swapInterval());
                         logger.info("Entering main loop...");
                         while (!window.shouldClose() && !exitFlag) {
@@ -103,9 +105,9 @@ public final class Main implements Runnable {
         }
     }
 
-    private void createServices(AppHost host, UiLayers layers) throws IOException {
+    private void createServices(Services services, UiLayers layers) throws IOException {
         logger.info("Creating services...");
-        final Services services = host.services();
+        services.add(Events.class, new AppEvents());
         final FileSystem fileSystem = new AppFileSystem(
                 args.home(),
                 Arrays.asList(
@@ -116,16 +118,16 @@ public final class Main implements Runnable {
         services.add(Assets.class, GameAssets.create(fileSystem));
         services.add(UiLayers.class, layers);
         services.add(FileSystem.class, fileSystem);
-        services.add(PersistedConfiguration.class, new AppConfig(host));
-        services.add(SoundEffects.class, new AppSoundEffects(host));
+        services.add(PersistedConfiguration.class, new AppConfig(services));
+        services.add(SoundEffects.class, new AppSoundEffects(services));
     }
 
-    private Subscriptions subscribe(Host host) {
+    private Subscriptions subscribe(Services services) {
         return new SubscriptionsBuilder()
                 .add(QuitGameEvent.class, this::onQuitGame)
-                .add(NewGameEvent.class, new OnNewGameEvent(host))
-                .add(ShowMenuEvent.class, new OnShowMenuEvent(host))
-                .build(host.events());
+                .add(NewGameEvent.class, new OnNewGameEvent(services))
+                .add(ShowMenuEvent.class, new OnShowMenuEvent(services))
+                .build(services.resolve(Events.class));
     }
 
     private void onQuitGame(QuitGameEvent event) {

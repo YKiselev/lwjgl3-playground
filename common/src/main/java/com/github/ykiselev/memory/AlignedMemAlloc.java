@@ -1,6 +1,6 @@
 package com.github.ykiselev.memory;
 
-import com.github.ykiselev.common.Wrap;
+import com.github.ykiselev.common.AbstractWrap;
 import org.lwjgl.system.MemoryUtil;
 
 import java.nio.ByteBuffer;
@@ -8,7 +8,7 @@ import java.nio.ByteBuffer;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class AlignedMemAlloc extends Wrap<ByteBuffer> {
+public final class AlignedMemAlloc extends AbstractWrap<ByteBuffer> {
 
     public static final int DEFAULT_ALIGNMENT = 8;
 

@@ -15,15 +15,14 @@ import static java.util.Objects.requireNonNull;
  */
 public final class OnNewGameEvent implements Consumer<NewGameEvent> {
 
-    private final Host host;
+    private final Services services;
 
-    public OnNewGameEvent(Host host) {
-        this.host = requireNonNull(host);
+    public OnNewGameEvent(Services services) {
+        this.services = requireNonNull(services);
     }
 
     @Override
     public void accept(NewGameEvent event) {
-        final Services services = host.services();
         services.tryResolve(Game.class)
                 .ifPresent(g -> {
                     services.remove(Game.class, g);
@@ -34,7 +33,7 @@ public final class OnNewGameEvent implements Consumer<NewGameEvent> {
                     }
                 });
         final Game game = new Game(
-                host,
+                services,
                 services.resolve(Assets.class)
         );
         services.add(Game.class, game);

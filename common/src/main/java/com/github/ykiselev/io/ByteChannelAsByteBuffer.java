@@ -1,5 +1,6 @@
 package com.github.ykiselev.io;
 
+import com.github.ykiselev.common.AbstractWrap;
 import com.github.ykiselev.common.Wrap;
 import org.lwjgl.system.MemoryUtil;
 
@@ -43,7 +44,7 @@ public final class ByteChannelAsByteBuffer implements ReadableBytes {
         }
     }
 
-    private static final class MemoryUtilWrap extends Wrap<ByteBuffer> {
+    private static final class MemoryUtilWrap extends AbstractWrap<ByteBuffer> {
 
         MemoryUtilWrap(ByteBuffer value) {
             super(value);
