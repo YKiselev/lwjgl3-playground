@@ -25,7 +25,9 @@ public final class Menu implements UiLayer, AutoCloseable {
 
     private boolean pushed = false;
 
-    public Menu(Services services, Events events, Assets assets) {
+    public Menu(Services services) {
+        final Events events = services.resolve(Events.class);
+        final Assets assets = services.resolve(Assets.class);
         final PersistedConfiguration configuration = services.resolve(PersistedConfiguration.class);
         this.listMenu = new ListMenu(
                 services,
