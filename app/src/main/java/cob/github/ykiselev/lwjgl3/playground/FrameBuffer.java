@@ -1,26 +1,19 @@
 package cob.github.ykiselev.lwjgl3.playground;
 
 import com.github.ykiselev.opengl.buffers.FrameBufferObject;
+import com.github.ykiselev.opengl.textures.SimpleTexture2d;
 import com.github.ykiselev.opengl.textures.Texture2d;
-import org.lwjgl.opengl.GL14;
 
-import static org.lwjgl.opengl.GL11.GL_DEPTH_COMPONENT;
-import static org.lwjgl.opengl.GL11.GL_FLOAT;
 import static org.lwjgl.opengl.GL11.GL_NEAREST;
-import static org.lwjgl.opengl.GL11.GL_RGB;
 import static org.lwjgl.opengl.GL11.GL_RGBA;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_MAG_FILTER;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_MIN_FILTER;
 import static org.lwjgl.opengl.GL11.GL_UNSIGNED_BYTE;
-import static org.lwjgl.opengl.GL11.GL_UNSIGNED_INT;
 import static org.lwjgl.opengl.GL11.glTexImage2D;
 import static org.lwjgl.opengl.GL11.glTexParameteri;
-import static org.lwjgl.opengl.GL14.GL_DEPTH_COMPONENT24;
 import static org.lwjgl.opengl.GL30.GL_COLOR_ATTACHMENT0;
 import static org.lwjgl.opengl.GL30.GL_DEPTH24_STENCIL8;
-import static org.lwjgl.opengl.GL30.GL_DEPTH_ATTACHMENT;
-import static org.lwjgl.opengl.GL30.GL_DEPTH_COMPONENT32F;
 import static org.lwjgl.opengl.GL30.GL_DEPTH_STENCIL;
 import static org.lwjgl.opengl.GL30.GL_DEPTH_STENCIL_ATTACHMENT;
 import static org.lwjgl.opengl.GL30.GL_FRAMEBUFFER;
@@ -52,8 +45,9 @@ public final class FrameBuffer implements AutoCloseable {
 
     public FrameBuffer() {
         fbo = new FrameBufferObject();
-        color = new Texture2d(false);
-        depth = new Texture2d(false);
+        // todo - they will be shown upside-down now?
+        color = new SimpleTexture2d();
+        depth = new SimpleTexture2d();
     }
 
     /**

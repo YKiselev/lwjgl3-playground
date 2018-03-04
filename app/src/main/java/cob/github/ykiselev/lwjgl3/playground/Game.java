@@ -18,6 +18,7 @@ import com.github.ykiselev.opengl.shaders.uniforms.UniformVariable;
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
 import com.github.ykiselev.opengl.text.SpriteFont;
 import com.github.ykiselev.opengl.textures.CurrentTexture2dAsBytes;
+import com.github.ykiselev.opengl.textures.SimpleTexture2d;
 import com.github.ykiselev.opengl.textures.Texture2d;
 import com.github.ykiselev.opengl.vertices.VertexDefinitions;
 import com.github.ykiselev.trigger.Trigger;
@@ -117,7 +118,7 @@ public final class Game implements UiLayer, WindowEvents, AutoCloseable {
         spriteBatch = new SpriteBatch(
                 assets.load("progs/sprite-batch.conf", ProgramObject.class)
         );
-        cuddles = assets.load("images/htf-cuddles.jpg", Texture2d.class);
+        cuddles = assets.load("images/htf-cuddles.jpg", SimpleTexture2d.class);
         liberationMono = assets.load("fonts/Liberation Mono.sf", SpriteFont.class);
 
         final ProgramObject generic = assets.load("progs/generic.conf", ProgramObject.class);

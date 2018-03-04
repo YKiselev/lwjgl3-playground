@@ -269,7 +269,7 @@ public final class TexturedQuads implements AutoCloseable {
     }
 
     private boolean flipVertically() {
-        return currentTexture != null && currentTexture.needFlipping();
+        return true; // todo - do we need this?
     }
 
     public void use(Texture2d texture) {

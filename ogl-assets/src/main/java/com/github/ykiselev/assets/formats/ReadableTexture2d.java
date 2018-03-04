@@ -27,7 +27,9 @@ import org.lwjgl.system.MemoryStack;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.nio.channels.ReadableByteChannel;
+import java.util.function.Supplier;
 
+import static java.util.Objects.requireNonNull;
 import static org.lwjgl.opengl.GL11.GL_LINEAR;
 import static org.lwjgl.opengl.GL11.GL_RED;
 import static org.lwjgl.opengl.GL11.GL_REPEAT;
@@ -53,6 +55,15 @@ import static org.lwjgl.system.MemoryStack.stackPush;
  * Created by Y.Kiselev on 05.06.2016.
  */
 public final class ReadableTexture2d implements ReadableAsset<Texture2d> {
+
+    private final Supplier<Texture2d> supplier;
+
+    private final boolean mipMapped;
+
+    public ReadableTexture2d(Supplier<Texture2d> supplier, boolean mipMapped) {
+        this.supplier = requireNonNull(supplier);
+        this.mipMapped = mipMapped;
+    }
 
     @Override
     public Texture2d read(ReadableByteChannel channel, Assets assets) throws ResourceException {
@@ -85,7 +96,7 @@ public final class ReadableTexture2d implements ReadableAsset<Texture2d> {
     }
 
     private Texture2d loadTexture(ByteBuffer image, int width, int height, int components) {
-        final Texture2d texture = new Texture2d(true);
+        final Texture2d texture = supplier.get();
         texture.bind();
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -107,8 +118,7 @@ public final class ReadableTexture2d implements ReadableAsset<Texture2d> {
         }
         glPixelStorei(GL_UNPACK_ALIGNMENT, alignment(width * components));
         glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, image);
-        // todo - how to pass flags?
-        if (false) {
+        if (mipMapped) {
             glGenerateMipmap(GL_TEXTURE_2D);
         }
         texture.unbind();

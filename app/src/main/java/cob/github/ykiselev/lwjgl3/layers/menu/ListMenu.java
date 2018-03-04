@@ -13,6 +13,7 @@ import com.github.ykiselev.opengl.sprites.SpriteBatch;
 import com.github.ykiselev.opengl.sprites.TextAlignment;
 import com.github.ykiselev.opengl.text.Glyph;
 import com.github.ykiselev.opengl.text.SpriteFont;
+import com.github.ykiselev.opengl.textures.SimpleTexture2d;
 import com.github.ykiselev.opengl.textures.Texture2d;
 
 import java.util.Arrays;
@@ -141,7 +142,7 @@ public final class ListMenu implements UiLayer, AutoCloseable {
         spriteBatch = new SpriteBatch(
                 assets.load("progs/sprite-batch.conf", ProgramObject.class)
         );
-        white = assets.load("images/white.png", Texture2d.class);
+        white = assets.load("images/white.png", SimpleTexture2d.class);
         font = assets.load("fonts/Liberation Mono 22.sf", SpriteFont.class);
         this.items = Arrays.asList(items);
     }

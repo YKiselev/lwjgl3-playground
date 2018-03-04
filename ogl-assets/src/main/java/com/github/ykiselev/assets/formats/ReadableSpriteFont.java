@@ -22,6 +22,7 @@ import com.github.ykiselev.assets.ResourceException;
 import com.github.ykiselev.gfx.font.GlyphRange;
 import com.github.ykiselev.opengl.text.Glyph;
 import com.github.ykiselev.opengl.text.SpriteFont;
+import com.github.ykiselev.opengl.textures.SimpleTexture2d;
 import com.github.ykiselev.opengl.textures.Texture2d;
 import org.lwjgl.system.MemoryStack;
 
@@ -126,7 +127,7 @@ public final class ReadableSpriteFont implements ReadableAsset<SpriteFont> {
     private Texture2d readSpriteFontTexture(Assets assets, com.github.ykiselev.gfx.font.SpriteFont spriteFont) {
         final Texture2d texture;
         try (ReadableByteChannel bc = Channels.newChannel(new ByteArrayInputStream(spriteFont.image()))) {
-            texture = assets.resolve(Texture2d.class)
+            texture = assets.resolve(SimpleTexture2d.class)
                     .read(bc, assets);
         } catch (IOException e) {
             throw new ResourceException(e);

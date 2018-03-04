@@ -16,7 +16,8 @@ import com.github.ykiselev.assets.formats.ReadableTexture2d;
 import com.github.ykiselev.assets.formats.obj.ObjModel;
 import com.github.ykiselev.opengl.shaders.ProgramObject;
 import com.github.ykiselev.opengl.text.SpriteFont;
-import com.github.ykiselev.opengl.textures.Texture2d;
+import com.github.ykiselev.opengl.textures.MipMappedTexture2d;
+import com.github.ykiselev.opengl.textures.SimpleTexture2d;
 import com.google.common.collect.ImmutableMap;
 import com.typesafe.config.Config;
 import org.lwjgl.opengl.GL20;
@@ -50,19 +51,25 @@ public final class GameAssets implements Assets {
 
     public static Assets create(Resources resources) {
         final ReadableConfig readableConfig = new ReadableConfig();
-        final ReadableTexture2d readableTexture2d = new ReadableTexture2d();
+        final ReadableTexture2d simpleReadableTexture2d = new ReadableTexture2d(
+                SimpleTexture2d::new, false
+        );
+        final ReadableTexture2d mipMappedReadableTexture2d = new ReadableTexture2d(
+                MipMappedTexture2d::new, true
+        );
         final Map<Class, ReadableAsset> byClass = ImmutableMap.<Class, ReadableAsset>builder()
                 .put(Config.class, readableConfig)
                 .put(ProgramObject.class, new ReadableProgramObject())
                 .put(SpriteFont.class, new ReadableSpriteFont())
-                .put(Texture2d.class, readableTexture2d)
+                .put(SimpleTexture2d.class, simpleReadableTexture2d)
+                .put(MipMappedTexture2d.class, mipMappedReadableTexture2d)
                 .put(ObjModel.class, new ReadableObjModel())
                 .build();
         final Map<String, ReadableAsset> byExtension = ImmutableMap.<String, ReadableAsset>builder()
                 .put("vs", new ReadableShaderObject(GL20.GL_VERTEX_SHADER))
                 .put("fs", new ReadableShaderObject(GL20.GL_FRAGMENT_SHADER))
-                .put("png", readableTexture2d)
-                .put("jpg", readableTexture2d)
+                .put("png", simpleReadableTexture2d)
+                .put("jpg", simpleReadableTexture2d)
                 .put("conf", readableConfig)
                 .put("ogg", new ReadableVorbisAudio())
                 .build();
