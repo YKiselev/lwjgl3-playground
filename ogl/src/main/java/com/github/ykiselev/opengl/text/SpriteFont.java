@@ -16,14 +16,17 @@
 
 package com.github.ykiselev.opengl.text;
 
+import com.github.ykiselev.lifetime.Manageable;
 import com.github.ykiselev.opengl.textures.Texture2d;
+
+import java.util.function.Consumer;
 
 import static java.util.Objects.requireNonNull;
 
 /**
  * Created by Uze on 14.01.2015.
  */
-public final class SpriteFont {
+public final class SpriteFont implements AutoCloseable, Manageable<SpriteFont> {
 
     private final Texture2d texture;
 
@@ -36,6 +39,8 @@ public final class SpriteFont {
     private final GlyphRange[] ranges;
 
     private final Glyph defaultGlyph;
+
+    private final Consumer<SpriteFont> onClose;
 
     public Texture2d texture() {
         return texture;
@@ -53,14 +58,30 @@ public final class SpriteFont {
         return glyphYBorder;
     }
 
-    public SpriteFont(Texture2d texture, int fontHeight, int glyphXBorder, int glyphYBorder, GlyphRange[] ranges, char defaultCharacter) {
+    public SpriteFont(Texture2d texture, int fontHeight, int glyphXBorder, int glyphYBorder, GlyphRange[] ranges,
+                      Glyph defaultGlyph, Consumer<SpriteFont> onClose) {
         this.texture = requireNonNull(texture, "texture");
         this.fontHeight = fontHeight;
         this.glyphXBorder = glyphXBorder;
         this.glyphYBorder = glyphYBorder;
         this.ranges = ranges.clone();
-        this.defaultGlyph = requireNonNull(glyphForCharacter(defaultCharacter),
-                "No glyph for default character \"" + defaultCharacter + "\"");
+        this.defaultGlyph = requireNonNull(defaultGlyph);
+        this.onClose = requireNonNull(onClose);
+    }
+
+    public SpriteFont(Texture2d texture, int fontHeight, int glyphXBorder, int glyphYBorder, GlyphRange[] ranges,
+                      Glyph defaultGlyph) {
+        this(texture, fontHeight, glyphXBorder, glyphYBorder, ranges, defaultGlyph, c -> c.texture.close());
+    }
+
+    @Override
+    public SpriteFont manage(Consumer<SpriteFont> onClose) {
+        return new SpriteFont(texture, fontHeight, glyphXBorder, glyphYBorder, ranges, defaultGlyph, onClose);
+    }
+
+    @Override
+    public void close() {
+        onClose.accept(this);
     }
 
     public Glyph glyphForCharacter(char ch) {

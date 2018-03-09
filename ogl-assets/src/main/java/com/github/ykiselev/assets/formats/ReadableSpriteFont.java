@@ -72,6 +72,7 @@ public final class ReadableSpriteFont implements ReadableAsset<SpriteFont> {
         final double ct = 1.0 / (double) height;
         final int fontHeight = spriteFont.fontHeight();
         final com.github.ykiselev.opengl.text.GlyphRange[] ranges = new com.github.ykiselev.opengl.text.GlyphRange[spriteFont.glyphs().length];
+        Glyph defaultGlyph = null;
         int r = 0;
         for (GlyphRange range : spriteFont.glyphs()) {
             final com.github.ykiselev.gfx.font.Glyph[] srcGlyphs = range.glyphs();
@@ -87,6 +88,9 @@ public final class ReadableSpriteFont implements ReadableAsset<SpriteFont> {
                 float s1 = (float) (cs * (src.x() + glyphWidth));
                 float t1 = (float) (ct * (src.y() + fontHeight));
                 glyphs[g] = new Glyph(s0, t0, s1, t1, glyphWidth);
+                if (src.character() == defaultCharacter) {
+                    defaultGlyph = glyphs[g];
+                }
                 g++;
             }
             ranges[r] = new com.github.ykiselev.opengl.text.GlyphRange(
@@ -101,7 +105,7 @@ public final class ReadableSpriteFont implements ReadableAsset<SpriteFont> {
                 spriteFont.glyphXBorder(),
                 spriteFont.glyphYBorder(),
                 ranges,
-                defaultCharacter
+                defaultGlyph
         );
     }
 

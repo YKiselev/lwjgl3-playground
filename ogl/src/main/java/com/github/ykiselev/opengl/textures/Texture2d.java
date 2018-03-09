@@ -22,4 +22,6 @@ public interface Texture2d extends Identified, Bindable, AutoCloseable, Manageab
         glBindTexture(GL_TEXTURE_2D, 0);
     }
 
+    @Override
+    void close();
 }
