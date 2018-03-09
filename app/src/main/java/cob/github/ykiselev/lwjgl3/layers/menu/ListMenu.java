@@ -56,6 +56,8 @@ public final class ListMenu implements UiLayer, AutoCloseable {
 
     private final List<MenuItem> items;
 
+    private final UiLayer owner;
+
     private final DrawingContext context = new DrawingContext() {
         @Override
         public SpriteFont font() {
@@ -81,7 +83,7 @@ public final class ListMenu implements UiLayer, AutoCloseable {
                     switch (key) {
                         case GLFW_KEY_ESCAPE:
                             services.resolve(UiLayers.class)
-                                    .pop(ListMenu.this);
+                                    .pop(owner);
                             break;
 
                         case GLFW_KEY_UP:
@@ -96,7 +98,6 @@ public final class ListMenu implements UiLayer, AutoCloseable {
                 }
             }
             return true;
-
         }
 
         @Override
@@ -137,8 +138,9 @@ public final class ListMenu implements UiLayer, AutoCloseable {
 
     private int selected = 0;
 
-    public ListMenu(Services services, Assets assets, MenuItem... items) {
+    public ListMenu(Services services, Assets assets, UiLayer owner, MenuItem... items) {
         this.services = requireNonNull(services);
+        this.owner = requireNonNull(owner);
         spriteBatch = new SpriteBatch(
                 assets.load("progs/sprite-batch.conf", ProgramObject.class)
         );

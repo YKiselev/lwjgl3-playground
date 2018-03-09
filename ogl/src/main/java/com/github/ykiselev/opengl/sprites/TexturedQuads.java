@@ -213,14 +213,12 @@ public final class TexturedQuads implements AutoCloseable {
      *  |                 |
      *  |                 |
      * (x0, y0) --- (x1, y0)
-     * </pre>
-     * <p>Here we assign texture coordinates as if texture were flipped during loading:
-     * </p>
-     * <pre>
-     * (0, 0) --- (1, 0)
-     *  |             |
-     *  |             |
-     * (0, 1) --- (1, 1)
+     *
+     * (s0, t1) --- (s1, t1)
+     *  |                 |
+     *  |                 |
+     * (s0, t0) --- (s1, t0)
+     *
      * </pre>
      * <p>Note that if you wish to draw quad with texture loaded from external resource then s, t must be assigned as such:</p>
      * <pre>
@@ -245,12 +243,6 @@ public final class TexturedQuads implements AutoCloseable {
             flush();
         }
 
-        if (flipVertically()) {
-            final float tmp = t0;
-            t0 = t1;
-            t1 = tmp;
-        }
-
         vertices.put(x0).put(y0).put(s0).put(t0);
         vertices.put(x1).put(y0).put(s1).put(t0);
         vertices.put(x0).put(y1).put(s0).put(t1);
@@ -266,10 +258,6 @@ public final class TexturedQuads implements AutoCloseable {
         colors.put(COLOR_COEFF * (0xff & color));
 
         quadCounter++;
-    }
-
-    private boolean flipVertically() {
-        return true; // todo - do we need this?
     }
 
     public void use(Texture2d texture) {

@@ -33,6 +33,7 @@ public final class Menu implements UiLayer, AutoCloseable {
         this.listMenu = new ListMenu(
                 services,
                 assets,
+                this,
                 new MenuItem(
                         new Link(
                                 "New",
@@ -41,7 +42,9 @@ public final class Menu implements UiLayer, AutoCloseable {
                 ),
                 new MenuItem(
                         "Flag1",
-                        new CheckBox(new ConfigurationBoundCheckBoxModel(configuration, "sound.flag1"))
+                        new CheckBox(
+                                new ConfigurationBoundCheckBoxModel(configuration, "sound.flag1")
+                        )
                 ),
                 new MenuItem(
                         "Effects",

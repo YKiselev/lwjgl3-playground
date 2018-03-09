@@ -116,7 +116,7 @@ public final class SpriteBatch implements AutoCloseable {
             final int x1 = fx + glyph.width();
             final int y1 = fy + font.fontHeight();
             if (value != ' ') {
-                quads.addQuad(fx, fy, glyph.s0(), glyph.t0(), x1, y1, glyph.s1(), glyph.t1(), color);
+                quads.addQuad(fx, fy, glyph.s0(), glyph.t1(), x1, y1, glyph.s1(), glyph.t0(), color);
             }
 
             fx = x1;
@@ -136,8 +136,7 @@ public final class SpriteBatch implements AutoCloseable {
      * @param color   the RGBA color (0xff0000ff - red, 0x00ff00ff - green, 0x0000ffff - blue)
      */
     public void draw(Texture2d texture, int x, int y, int width, int height, int color) {
-        quads.use(texture);
-        quads.addQuad(x, y, 0f, 0f, x + width, y + height, 1f, 1f, color);
+        draw(texture, x, y, width, height, 0f, 0f, 1f, 1f, color);
     }
 
     public void draw(Texture2d texture, int x, int y, int width, int height, float s0, float t0, float s1, float t1, int color) {

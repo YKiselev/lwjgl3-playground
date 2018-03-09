@@ -45,7 +45,6 @@ public final class FrameBuffer implements AutoCloseable {
 
     public FrameBuffer() {
         fbo = new FrameBufferObject();
-        // todo - they will be shown upside-down now?
         color = new SimpleTexture2d();
         depth = new SimpleTexture2d();
     }
