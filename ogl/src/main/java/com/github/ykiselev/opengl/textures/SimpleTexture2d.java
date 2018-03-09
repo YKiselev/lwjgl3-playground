@@ -43,7 +43,7 @@ public final class SimpleTexture2d implements Texture2d {
     }
 
     public SimpleTexture2d() {
-        this(Texture2d::delete);
+        this(t -> glDeleteTextures(t.id()));
     }
 
     @Override

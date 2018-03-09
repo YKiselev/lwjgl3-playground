@@ -96,7 +96,7 @@ public final class FrameBuffer implements AutoCloseable {
     }
 
     @Override
-    public void close() {
+    public void close() throws Exception {
         fbo.close();
         color.close();
         depth.close();

@@ -19,6 +19,7 @@ package com.github.ykiselev.opengl.textures;
 import java.util.function.Consumer;
 
 import static java.util.Objects.requireNonNull;
+import static org.lwjgl.opengl.GL11.glDeleteTextures;
 import static org.lwjgl.opengl.GL11.glGenTextures;
 
 /**
@@ -42,7 +43,7 @@ public final class MipMappedTexture2d implements Texture2d {
     }
 
     public MipMappedTexture2d() {
-        this(Texture2d::delete);
+        this(t -> glDeleteTextures(t.id()));
     }
 
     @Override
