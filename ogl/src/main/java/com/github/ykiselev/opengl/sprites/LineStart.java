@@ -4,7 +4,7 @@ import com.github.ykiselev.opengl.text.Glyph;
 import com.github.ykiselev.opengl.text.SpriteFont;
 
 /**
- * Calculates start (left) x coordinate of line of text for different horizontal alignment modes.
+ * Calculates start (left) x coordinate of the line of text with respect to different horizontal alignment modes.
  *
  * @author Yuriy Kiselev (uze@yandex.ru).
  */

@@ -16,8 +16,11 @@
 
 package com.github.ykiselev.opengl.shaders;
 
+import com.github.ykiselev.lifetime.Manageable;
 import com.github.ykiselev.opengl.Bindable;
 import com.github.ykiselev.opengl.shaders.uniforms.UniformVariable;
+
+import java.util.function.Consumer;
 
 import static java.util.Objects.requireNonNull;
 import static org.lwjgl.opengl.GL20.glDeleteProgram;
@@ -28,20 +31,34 @@ import static org.lwjgl.opengl.GL20.glUseProgram;
 /**
  * Created by Y.Kiselev on 08.05.2016.
  */
-public final class ProgramObject implements Bindable, AutoCloseable {
+public final class ProgramObject implements Bindable, AutoCloseable, Manageable<ProgramObject> {
 
     private final int id;
 
     private final ShaderObject[] shaders;
+
+    private final Consumer<ProgramObject> onClose;
 
     @Override
     public int id() {
         return id;
     }
 
-    public ProgramObject(int id, ShaderObject[] shaders) {
+    public ProgramObject(int id, ShaderObject[] shaders, Consumer<ProgramObject> onClose) {
         this.id = id;
         this.shaders = requireNonNull(shaders);
+        this.onClose = requireNonNull(onClose);
+    }
+
+    public ProgramObject(int id, ShaderObject[] shaders) {
+        this(id, shaders, ProgramObject::delete);
+    }
+
+    private void delete() {
+        for (ShaderObject shader : shaders) {
+            shader.close();
+        }
+        glDeleteProgram(id);
     }
 
     @Override
@@ -52,6 +69,11 @@ public final class ProgramObject implements Bindable, AutoCloseable {
     @Override
     public void unbind() {
         glUseProgram(0);
+    }
+
+    @Override
+    public ProgramObject manage(Consumer<ProgramObject> onClose) {
+        return new ProgramObject(id, shaders, onClose);
     }
 
     public int uniformLocation(String uniform) throws ProgramException {
@@ -82,9 +104,6 @@ public final class ProgramObject implements Bindable, AutoCloseable {
 
     @Override
     public void close() {
-        for (ShaderObject shader : shaders) {
-            shader.close();
-        }
-        glDeleteProgram(id);
+        onClose.accept(this);
     }
 }

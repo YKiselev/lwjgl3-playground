@@ -22,7 +22,6 @@ import com.github.ykiselev.assets.ResourceException;
 import com.github.ykiselev.io.ByteChannelAsString;
 import com.github.ykiselev.opengl.shaders.ShaderObject;
 import org.apache.commons.lang3.StringUtils;
-import org.lwjgl.opengl.GL20;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,6 +41,8 @@ import static org.lwjgl.opengl.GL20.glShaderSource;
  */
 public final class ReadableShaderObject implements ReadableAsset<ShaderObject> {
 
+    private static final int MAX_SHADER_LOG_LENGTH = 8 * 1024;
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final int type;
@@ -59,7 +60,7 @@ public final class ReadableShaderObject implements ReadableAsset<ShaderObject> {
         );
         glCompileShader(id);
         final int status = glGetShaderi(id, GL_COMPILE_STATUS);
-        final String log = glGetShaderInfoLog(id, 8 * 1024);
+        final String log = glGetShaderInfoLog(id, MAX_SHADER_LOG_LENGTH);
         if (status != GL_TRUE) {
             throw new ResourceException(log);
         } else {
@@ -68,14 +69,5 @@ public final class ReadableShaderObject implements ReadableAsset<ShaderObject> {
             }
         }
         return new ShaderObject(id);
-    }
-
-    private int resolveType(String path) {
-        if (StringUtils.endsWithIgnoreCase(path, ".fs")) {
-            return GL20.GL_FRAGMENT_SHADER;
-        } else if (StringUtils.endsWithIgnoreCase(path, ".vs")) {
-            return GL20.GL_VERTEX_SHADER;
-        }
-        throw new IllegalArgumentException("Unknown shader type: " + path);
     }
 }

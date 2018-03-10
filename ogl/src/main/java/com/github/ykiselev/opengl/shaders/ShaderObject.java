@@ -16,31 +16,47 @@
 
 package com.github.ykiselev.opengl.shaders;
 
+import com.github.ykiselev.lifetime.Manageable;
 import com.github.ykiselev.opengl.Identified;
 
+import java.util.function.Consumer;
+
+import static java.util.Objects.requireNonNull;
 import static org.lwjgl.opengl.GL20.glDeleteShader;
 
 /**
  * Created by Y.Kiselev on 08.05.2016.
  */
-public final class ShaderObject implements Identified, AutoCloseable {
+public final class ShaderObject implements Identified, AutoCloseable, Manageable<ShaderObject> {
 
     private final int id;
+
+    private final Consumer<ShaderObject> onClose;
 
     @Override
     public int id() {
         return id;
     }
 
-    public ShaderObject(int id) {
+    public ShaderObject(int id, Consumer<ShaderObject> onClose) {
         if (id == 0) {
             throw new IllegalArgumentException("Zero is not a valid shader id!");
         }
         this.id = id;
+        this.onClose = requireNonNull(onClose);
+    }
+
+    public ShaderObject(int id) {
+        this(id, so -> glDeleteShader(so.id()));
+    }
+
+    @Override
+    public ShaderObject manage(Consumer<ShaderObject> onClose) {
+        return new ShaderObject(id, onClose);
     }
 
     @Override
     public void close() {
-        glDeleteShader(id);
+        onClose.accept(this);
     }
 }

@@ -46,6 +46,8 @@ import static org.lwjgl.opengl.GL20.glUniform1i;
  */
 public final class ReadableProgramObject implements ReadableAsset<ProgramObject> {
 
+    private static final int MAX_PROGRAM_LOG_LENGTH = 8 * 1024;
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Override
@@ -63,7 +65,7 @@ public final class ReadableProgramObject implements ReadableAsset<ProgramObject>
             i++;
         }
         glLinkProgram(id);
-        final String log = glGetProgramInfoLog(id, 8 * 1024);
+        final String log = glGetProgramInfoLog(id, MAX_PROGRAM_LOG_LENGTH);
         final int status = glGetProgrami(id, GL_LINK_STATUS);
         if (status != GL_TRUE) {
             throw new ResourceException(log);

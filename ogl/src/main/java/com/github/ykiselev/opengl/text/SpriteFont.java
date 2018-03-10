@@ -76,7 +76,15 @@ public final class SpriteFont implements AutoCloseable, Manageable<SpriteFont> {
 
     @Override
     public SpriteFont manage(Consumer<SpriteFont> onClose) {
-        return new SpriteFont(texture, fontHeight, glyphXBorder, glyphYBorder, ranges, defaultGlyph, onClose);
+        return new SpriteFont(
+                texture,
+                fontHeight,
+                glyphXBorder,
+                glyphYBorder,
+                ranges,
+                defaultGlyph,
+                onClose
+        );
     }
 
     @Override
