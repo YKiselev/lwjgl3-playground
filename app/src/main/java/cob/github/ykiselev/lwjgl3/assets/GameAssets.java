@@ -34,6 +34,7 @@ public final class GameAssets implements Assets {
 
     private final Assets delegate;
 
+    //private final Map<String,>
     public GameAssets(Assets delegate) {
         this.delegate = requireNonNull(delegate);
     }

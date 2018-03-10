@@ -15,6 +15,10 @@ public final class ManagedRef<T extends Manageable<T> & AutoCloseable> implement
         this.reference = requireNonNull(reference);
     }
 
+    public boolean isAlive() {
+        return reference != null;
+    }
+
     public synchronized T newRef() {
         if (reference == null) {
             throw new IllegalStateException("Null reference!");
