@@ -28,63 +28,41 @@ import static java.util.Objects.requireNonNull;
  */
 public final class SpriteFont implements AutoCloseable, Manageable<SpriteFont> {
 
-    private final Texture2d texture;
-
-    private final int fontHeight;
-
-    private final int glyphXBorder;
-
-    private final int glyphYBorder;
-
-    private final GlyphRange[] ranges;
-
-    private final Glyph defaultGlyph;
+    private final Description description;
 
     private final Consumer<SpriteFont> onClose;
 
     public Texture2d texture() {
-        return texture;
+        return description.texture;
     }
 
     public int fontHeight() {
-        return fontHeight;
+        return description.fontHeight;
     }
 
     public int glyphXBorder() {
-        return glyphXBorder;
+        return description.glyphXBorder;
     }
 
     public int glyphYBorder() {
-        return glyphYBorder;
+        return description.glyphYBorder;
     }
 
-    public SpriteFont(Texture2d texture, int fontHeight, int glyphXBorder, int glyphYBorder, GlyphRange[] ranges,
-                      Glyph defaultGlyph, Consumer<SpriteFont> onClose) {
-        this.texture = requireNonNull(texture, "texture");
-        this.fontHeight = fontHeight;
-        this.glyphXBorder = glyphXBorder;
-        this.glyphYBorder = glyphYBorder;
-        this.ranges = ranges.clone();
-        this.defaultGlyph = requireNonNull(defaultGlyph);
+    private SpriteFont(Description description, Consumer<SpriteFont> onClose) {
+        this.description = requireNonNull(description);
         this.onClose = requireNonNull(onClose);
     }
 
-    public SpriteFont(Texture2d texture, int fontHeight, int glyphXBorder, int glyphYBorder, GlyphRange[] ranges,
-                      Glyph defaultGlyph) {
-        this(texture, fontHeight, glyphXBorder, glyphYBorder, ranges, defaultGlyph, c -> c.texture.close());
+    public SpriteFont(Texture2d texture, int fontHeight, int glyphXBorder, int glyphYBorder, GlyphRange[] ranges, Glyph defaultGlyph) {
+        this(
+                new Description(texture, fontHeight, glyphXBorder, glyphYBorder, ranges, defaultGlyph),
+                c -> c.description.delete()
+        );
     }
 
     @Override
     public SpriteFont manage(Consumer<SpriteFont> onClose) {
-        return new SpriteFont(
-                texture,
-                fontHeight,
-                glyphXBorder,
-                glyphYBorder,
-                ranges,
-                defaultGlyph,
-                onClose
-        );
+        return new SpriteFont(description, onClose);
     }
 
     @Override
@@ -94,11 +72,11 @@ public final class SpriteFont implements AutoCloseable, Manageable<SpriteFont> {
 
     public Glyph glyphForCharacter(char ch) {
         final Glyph g = findGlyph(ch);
-        return g != null ? g : defaultGlyph;
+        return g != null ? g : description.defaultGlyph;
     }
 
     public Glyph findGlyph(char ch) {
-        for (GlyphRange range : ranges) {
+        for (GlyphRange range : description.ranges) {
             final Glyph glyph = range.glyphForCharacter(ch);
             if (glyph != null) {
                 return glyph;
@@ -143,7 +121,7 @@ public final class SpriteFont implements AutoCloseable, Manageable<SpriteFont> {
      * @return the height of text
      */
     public int height(CharSequence text, int width) {
-        final int dy = fontHeight + glyphYBorder;
+        final int dy = description.fontHeight + description.glyphYBorder;
         int lines = 0;
         int w = 0;
         for (int i = 0; i < text.length(); i++) {
@@ -175,4 +153,32 @@ public final class SpriteFont implements AutoCloseable, Manageable<SpriteFont> {
         return lines * dy;
     }
 
+    private static final class Description {
+
+        private final Texture2d texture;
+
+        private final int fontHeight;
+
+        private final int glyphXBorder;
+
+        private final int glyphYBorder;
+
+        private final GlyphRange[] ranges;
+
+        private final Glyph defaultGlyph;
+
+        Description(Texture2d texture, int fontHeight, int glyphXBorder, int glyphYBorder, GlyphRange[] ranges, Glyph defaultGlyph) {
+            this.texture = texture;
+            this.fontHeight = fontHeight;
+            this.glyphXBorder = glyphXBorder;
+            this.glyphYBorder = glyphYBorder;
+            this.ranges = ranges;
+            this.defaultGlyph = defaultGlyph;
+        }
+
+        void delete() {
+            texture.close();
+        }
+
+    }
 }

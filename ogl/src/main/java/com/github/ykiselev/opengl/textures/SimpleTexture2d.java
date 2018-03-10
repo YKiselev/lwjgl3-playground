@@ -33,17 +33,17 @@ public final class SimpleTexture2d implements Texture2d {
 
     private final Consumer<Texture2d> onClose;
 
-    public SimpleTexture2d(int id, Consumer<Texture2d> onClose) {
+    private SimpleTexture2d(int id, Consumer<Texture2d> onClose) {
         this.id = id;
         this.onClose = requireNonNull(onClose);
     }
 
-    public SimpleTexture2d(Consumer<Texture2d> onClose) {
-        this(glGenTextures(), onClose);
+    public SimpleTexture2d(int id) {
+        this(id, t -> glDeleteTextures(t.id()));
     }
 
     public SimpleTexture2d() {
-        this(t -> glDeleteTextures(t.id()));
+        this(glGenTextures());
     }
 
     @Override

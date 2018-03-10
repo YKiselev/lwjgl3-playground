@@ -44,7 +44,7 @@ public final class ProgramObject implements Bindable, AutoCloseable, Manageable<
         return id;
     }
 
-    public ProgramObject(int id, ShaderObject[] shaders, Consumer<ProgramObject> onClose) {
+    private ProgramObject(int id, ShaderObject[] shaders, Consumer<ProgramObject> onClose) {
         this.id = id;
         this.shaders = requireNonNull(shaders);
         this.onClose = requireNonNull(onClose);

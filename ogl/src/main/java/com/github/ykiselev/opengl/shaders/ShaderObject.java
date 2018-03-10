@@ -38,7 +38,7 @@ public final class ShaderObject implements Identified, AutoCloseable, Manageable
         return id;
     }
 
-    public ShaderObject(int id, Consumer<ShaderObject> onClose) {
+    private ShaderObject(int id, Consumer<ShaderObject> onClose) {
         if (id == 0) {
             throw new IllegalArgumentException("Zero is not a valid shader id!");
         }

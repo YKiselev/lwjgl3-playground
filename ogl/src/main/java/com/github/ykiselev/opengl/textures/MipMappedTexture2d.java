@@ -33,17 +33,17 @@ public final class MipMappedTexture2d implements Texture2d {
 
     private final Consumer<Texture2d> onClose;
 
-    public MipMappedTexture2d(int id, Consumer<Texture2d> onClose) {
+    private MipMappedTexture2d(int id, Consumer<Texture2d> onClose) {
         this.id = id;
         this.onClose = requireNonNull(onClose);
     }
 
-    public MipMappedTexture2d(Consumer<Texture2d> onClose) {
-        this(glGenTextures(), onClose);
+    public MipMappedTexture2d(int id) {
+        this(id, t -> glDeleteTextures(t.id()));
     }
 
     public MipMappedTexture2d() {
-        this(t -> glDeleteTextures(t.id()));
+        this(glGenTextures());
     }
 
     @Override
