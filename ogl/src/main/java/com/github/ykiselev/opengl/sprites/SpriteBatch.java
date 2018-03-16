@@ -1,5 +1,6 @@
 package com.github.ykiselev.opengl.sprites;
 
+import com.github.ykiselev.opengl.shaders.DefaultProgramObject;
 import com.github.ykiselev.opengl.shaders.ProgramObject;
 import com.github.ykiselev.opengl.text.Glyph;
 import com.github.ykiselev.opengl.text.SpriteFont;
@@ -34,7 +35,7 @@ public final class SpriteBatch implements AutoCloseable {
     }
 
     /**
-     * Note that this class doesn't take ownership over supplied program and hence won't call {@link ProgramObject#close()} method on close!
+     * Note that this class doesn't take ownership over supplied program and hence won't call {@link DefaultProgramObject#close()} method on close!
      *
      * @param program the program to use
      */

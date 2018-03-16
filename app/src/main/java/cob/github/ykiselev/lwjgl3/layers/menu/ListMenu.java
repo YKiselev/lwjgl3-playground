@@ -7,10 +7,11 @@ import cob.github.ykiselev.lwjgl3.layers.ui.UiElement;
 import cob.github.ykiselev.lwjgl3.playground.WindowEvents;
 import cob.github.ykiselev.lwjgl3.services.Services;
 import com.github.ykiselev.assets.Assets;
-import com.github.ykiselev.opengl.shaders.ProgramObject;
+import com.github.ykiselev.opengl.shaders.DefaultProgramObject;
 import com.github.ykiselev.opengl.sprites.Colors;
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
 import com.github.ykiselev.opengl.sprites.TextAlignment;
+import com.github.ykiselev.opengl.text.DefaultSpriteFont;
 import com.github.ykiselev.opengl.text.Glyph;
 import com.github.ykiselev.opengl.text.SpriteFont;
 import com.github.ykiselev.opengl.textures.SimpleTexture2d;
@@ -142,10 +143,10 @@ public final class ListMenu implements UiLayer, AutoCloseable {
         this.services = requireNonNull(services);
         this.owner = requireNonNull(owner);
         spriteBatch = new SpriteBatch(
-                assets.load("progs/sprite-batch.conf", ProgramObject.class)
+                assets.load("progs/sprite-batch.conf", DefaultProgramObject.class)
         );
         white = assets.load("images/white.png", SimpleTexture2d.class);
-        font = assets.load("fonts/Liberation Mono 22.sf", SpriteFont.class);
+        font = assets.load("fonts/Liberation Mono 22.sf", DefaultSpriteFont.class);
         this.items = Arrays.asList(items);
     }
 

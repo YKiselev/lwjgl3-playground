@@ -14,8 +14,10 @@ import com.github.ykiselev.assets.formats.ReadableShaderObject;
 import com.github.ykiselev.assets.formats.ReadableSpriteFont;
 import com.github.ykiselev.assets.formats.ReadableTexture2d;
 import com.github.ykiselev.assets.formats.obj.ObjModel;
-import com.github.ykiselev.opengl.shaders.ProgramObject;
-import com.github.ykiselev.opengl.text.SpriteFont;
+import com.github.ykiselev.opengl.shaders.DefaultProgramObject;
+import com.github.ykiselev.opengl.text.DefaultSpriteFont;
+import com.github.ykiselev.opengl.textures.DefaultMipMappedTexture2d;
+import com.github.ykiselev.opengl.textures.DefaultSimpleTexture2d;
 import com.github.ykiselev.opengl.textures.MipMappedTexture2d;
 import com.github.ykiselev.opengl.textures.SimpleTexture2d;
 import com.google.common.collect.ImmutableMap;
@@ -34,14 +36,12 @@ public final class GameAssets implements Assets {
 
     private final Assets delegate;
 
-    //private final Map<String,>
     public GameAssets(Assets delegate) {
         this.delegate = requireNonNull(delegate);
     }
 
     @Override
     public <T> Optional<T> tryLoad(String resource, Class<T> clazz, Assets assets) throws ResourceException {
-        // todo - add caching
         return delegate.tryLoad(resource, clazz, assets);
     }
 
@@ -53,15 +53,15 @@ public final class GameAssets implements Assets {
     public static Assets create(Resources resources) {
         final ReadableConfig readableConfig = new ReadableConfig();
         final ReadableTexture2d simpleReadableTexture2d = new ReadableTexture2d(
-                SimpleTexture2d::new, false
+                DefaultSimpleTexture2d::new, false
         );
         final ReadableTexture2d mipMappedReadableTexture2d = new ReadableTexture2d(
-                MipMappedTexture2d::new, true
+                DefaultMipMappedTexture2d::new, true
         );
         final Map<Class, ReadableAsset> byClass = ImmutableMap.<Class, ReadableAsset>builder()
                 .put(Config.class, readableConfig)
-                .put(ProgramObject.class, new ReadableProgramObject())
-                .put(SpriteFont.class, new ReadableSpriteFont())
+                .put(DefaultProgramObject.class, new ReadableProgramObject())
+                .put(DefaultSpriteFont.class, new ReadableSpriteFont())
                 .put(SimpleTexture2d.class, simpleReadableTexture2d)
                 .put(MipMappedTexture2d.class, mipMappedReadableTexture2d)
                 .put(ObjModel.class, new ReadableObjModel())
@@ -75,11 +75,13 @@ public final class GameAssets implements Assets {
                 .put("ogg", new ReadableVorbisAudio())
                 .build();
         return new GameAssets(
-                new SimpleAssets(
-                        resources,
-                        new CompositeReadableAssets(
-                                new ResourceByClass(byClass),
-                                new ResourceByExtension(byExtension)
+                new ManagedAssets(
+                        new SimpleAssets(
+                                resources,
+                                new CompositeReadableAssets(
+                                        new ResourceByClass(byClass),
+                                        new ResourceByExtension(byExtension)
+                                )
                         )
                 )
         );

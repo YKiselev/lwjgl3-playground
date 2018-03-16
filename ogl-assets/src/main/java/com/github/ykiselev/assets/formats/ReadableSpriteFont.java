@@ -20,6 +20,7 @@ import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.assets.ReadableAsset;
 import com.github.ykiselev.assets.ResourceException;
 import com.github.ykiselev.gfx.font.GlyphRange;
+import com.github.ykiselev.opengl.text.DefaultSpriteFont;
 import com.github.ykiselev.opengl.text.Glyph;
 import com.github.ykiselev.opengl.text.SpriteFont;
 import com.github.ykiselev.opengl.textures.SimpleTexture2d;
@@ -99,7 +100,7 @@ public final class ReadableSpriteFont implements ReadableAsset<SpriteFont> {
             );
             r++;
         }
-        return new SpriteFont(
+        return new DefaultSpriteFont(
                 texture,
                 fontHeight,
                 spriteFont.glyphXBorder(),

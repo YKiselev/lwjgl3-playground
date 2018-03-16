@@ -14,13 +14,31 @@
  * limitations under the License.
  */
 
-package com.github.ykiselev.opengl.textures;
+package com.github.ykiselev.opengl.shaders;
+
+import static org.lwjgl.opengl.GL20.glDeleteShader;
 
 /**
- * Non mip-mapped texture
- * <p>
- * Created by Y.Kiselev on 05.06.2016.
+ * Created by Y.Kiselev on 08.05.2016.
  */
-public interface SimpleTexture2d extends Texture2d {
+public final class DefaultShaderObject implements ShaderObject {
 
+    private final int id;
+
+    @Override
+    public int id() {
+        return id;
+    }
+
+    public DefaultShaderObject(int id) {
+        if (id == 0) {
+            throw new IllegalArgumentException("Zero is not a valid shader id!");
+        }
+        this.id = id;
+    }
+
+    @Override
+    public void close() {
+        glDeleteShader(id);
+    }
 }

@@ -1,6 +1,7 @@
 package cob.github.ykiselev.lwjgl3.playground;
 
 import com.github.ykiselev.opengl.buffers.FrameBufferObject;
+import com.github.ykiselev.opengl.textures.DefaultSimpleTexture2d;
 import com.github.ykiselev.opengl.textures.SimpleTexture2d;
 import com.github.ykiselev.opengl.textures.Texture2d;
 
@@ -45,8 +46,8 @@ public final class FrameBuffer implements AutoCloseable {
 
     public FrameBuffer() {
         fbo = new FrameBufferObject();
-        color = new SimpleTexture2d();
-        depth = new SimpleTexture2d();
+        color = new DefaultSimpleTexture2d();
+        depth = new DefaultSimpleTexture2d();
     }
 
     /**

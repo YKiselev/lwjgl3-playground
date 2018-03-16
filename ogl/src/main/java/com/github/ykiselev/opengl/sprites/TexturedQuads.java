@@ -1,6 +1,7 @@
 package com.github.ykiselev.opengl.sprites;
 
 import com.github.ykiselev.opengl.matrices.Matrix;
+import com.github.ykiselev.opengl.shaders.DefaultProgramObject;
 import com.github.ykiselev.opengl.shaders.ProgramObject;
 import com.github.ykiselev.opengl.shaders.uniforms.UniformVariable;
 import com.github.ykiselev.opengl.textures.Texture2d;
@@ -102,7 +103,7 @@ public final class TexturedQuads implements AutoCloseable {
     }
 
     /**
-     * Note that this class doesn't take ownership over supplied program and hence won't call {@link ProgramObject#close()} method on close!
+     * Note that this class doesn't take ownership over supplied program and hence won't call {@link DefaultProgramObject#close()} method on close!
      *
      * @param program the program to use
      */

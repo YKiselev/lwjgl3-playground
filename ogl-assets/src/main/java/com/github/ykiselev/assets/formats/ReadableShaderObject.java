@@ -20,6 +20,7 @@ import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.assets.ReadableAsset;
 import com.github.ykiselev.assets.ResourceException;
 import com.github.ykiselev.io.ByteChannelAsString;
+import com.github.ykiselev.opengl.shaders.DefaultShaderObject;
 import com.github.ykiselev.opengl.shaders.ShaderObject;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -68,6 +69,6 @@ public final class ReadableShaderObject implements ReadableAsset<ShaderObject> {
                 logger.warn("Shader log: {}", log);
             }
         }
-        return new ShaderObject(id);
+        return new DefaultShaderObject(id);
     }
 }

@@ -19,6 +19,7 @@ package com.github.ykiselev.assets.formats;
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.assets.ReadableAsset;
 import com.github.ykiselev.assets.ResourceException;
+import com.github.ykiselev.opengl.shaders.DefaultProgramObject;
 import com.github.ykiselev.opengl.shaders.ProgramObject;
 import com.github.ykiselev.opengl.shaders.ShaderObject;
 import com.typesafe.config.Config;
@@ -72,7 +73,7 @@ public final class ReadableProgramObject implements ReadableAsset<ProgramObject>
         } else if (StringUtils.isNotEmpty(log)) {
             logger.warn("Program link log: {}", log);
         }
-        final ProgramObject program = new ProgramObject(id, shaders);
+        final ProgramObject program = new DefaultProgramObject(id, shaders);
         final List<String> samplers = config.getStringList("samplers");
         if (!samplers.isEmpty()) {
             program.bind();

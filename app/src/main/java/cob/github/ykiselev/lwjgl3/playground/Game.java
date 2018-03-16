@@ -13,9 +13,11 @@ import com.github.ykiselev.opengl.matrices.Matrix;
 import com.github.ykiselev.opengl.matrices.Vector3f;
 import com.github.ykiselev.opengl.models.GenericIndexedGeometry;
 import com.github.ykiselev.opengl.models.Pyramid;
+import com.github.ykiselev.opengl.shaders.DefaultProgramObject;
 import com.github.ykiselev.opengl.shaders.ProgramObject;
 import com.github.ykiselev.opengl.shaders.uniforms.UniformVariable;
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
+import com.github.ykiselev.opengl.text.DefaultSpriteFont;
 import com.github.ykiselev.opengl.text.SpriteFont;
 import com.github.ykiselev.opengl.textures.CurrentTexture2dAsBytes;
 import com.github.ykiselev.opengl.textures.SimpleTexture2d;
@@ -116,12 +118,12 @@ public final class Game implements UiLayer, WindowEvents, AutoCloseable {
         this.group = new SubscriptionsBuilder()
                 .build(services.resolve(Events.class));
         spriteBatch = new SpriteBatch(
-                assets.load("progs/sprite-batch.conf", ProgramObject.class)
+                assets.load("progs/sprite-batch.conf", DefaultProgramObject.class)
         );
         cuddles = assets.load("images/htf-cuddles.jpg", SimpleTexture2d.class);
-        liberationMono = assets.load("fonts/Liberation Mono.sf", SpriteFont.class);
+        liberationMono = assets.load("fonts/Liberation Mono.sf", DefaultSpriteFont.class);
 
-        final ProgramObject generic = assets.load("progs/generic.conf", ProgramObject.class);
+        final ProgramObject generic = assets.load("progs/generic.conf", DefaultProgramObject.class);
         final ObjModel model = assets.load("models/2cubes.obj", ObjModel.class);
         cubes = new GenericIndexedGeometry(
                 generic,
@@ -130,7 +132,7 @@ public final class Game implements UiLayer, WindowEvents, AutoCloseable {
         );
         texUniform = generic.lookup("tex");
 
-        final ProgramObject colored = assets.load("progs/colored.conf", ProgramObject.class);
+        final ProgramObject colored = assets.load("progs/colored.conf", DefaultProgramObject.class);
         try (Pyramid p = new Pyramid()) {
             pyramid = new GenericIndexedGeometry(
                     colored,
