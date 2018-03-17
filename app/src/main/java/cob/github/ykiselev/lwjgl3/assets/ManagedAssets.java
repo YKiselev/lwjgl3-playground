@@ -3,8 +3,7 @@ package cob.github.ykiselev.lwjgl3.assets;
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.assets.ReadableAsset;
 import com.github.ykiselev.assets.ResourceException;
-import com.github.ykiselev.lifetime.Manageable;
-import com.github.ykiselev.lifetime.ManagedRef;
+import com.github.ykiselev.lifetime.ProxiedRef;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -19,17 +18,11 @@ import static java.util.Objects.requireNonNull;
  */
 public final class ManagedAssets implements Assets {
 
-    private static final Asset MISSING_ASSET = new Asset() {
-        @Override
-        public boolean isAlive() {
-            return true;
-        }
+    private static final CachedValue MISSING_VALUE = new CachedValue(null, false);
 
-        @Override
-        public <T> T value(Class<T> clazz) {
-            return null;
-        }
-    };
+    private static final CachedValue NON_EXISTING_VALUE = new CachedValue(null, true);
+
+    private static final Asset NON_EXISTING_ASSET = () -> NON_EXISTING_VALUE;
 
     private final Assets delegate;
 
@@ -45,12 +38,10 @@ public final class ManagedAssets implements Assets {
     public <T> Optional<T> tryLoad(String resource, Class<T> clazz, Assets assets) throws ResourceException {
         lock.readLock().lock();
         try {
-            final Asset asset = cache.get(resource);
-            if (asset != null) {
-                final T value = asset.value(clazz);
-                if (asset.isAlive()) {
-                    return Optional.ofNullable(value);
-                }
+            final CachedValue cached = getCached(resource);
+            final Object value = cached.value();
+            if (value != null || cached.skipLoading()) {
+                return Optional.ofNullable(clazz.cast(value));
             }
             return doLoad(resource, clazz, assets);
         } finally {
@@ -58,30 +49,59 @@ public final class ManagedAssets implements Assets {
         }
     }
 
+    private CachedValue getCached(String resource) {
+        final Asset asset = cache.get(resource);
+        if (asset != null) {
+            return asset.value();
+        }
+        return MISSING_VALUE;
+    }
+
     private <T> Optional<T> doLoad(String resource, Class<T> clazz, Assets assets) {
         lock.readLock().unlock();
         lock.writeLock().lock();
-        final Optional<T> result;
         try {
-            result = delegate.tryLoad(resource, clazz, assets);
+            final CachedValue cached = getCached(resource);
+            final Object value = cached.value();
+            if (value != null || cached.skipLoading()) {
+                return Optional.ofNullable(clazz.cast(value));
+            }
+            final Optional<T> result = delegate.tryLoad(resource, clazz, assets);
             cache.put(
                     resource,
-                    result.map(this::asset)
-                            .orElse(MISSING_ASSET)
+                    result.map(v -> asset(v, clazz))
+                            .orElse(NON_EXISTING_ASSET)
             );
             lock.readLock().lock();
+            return result;
         } finally {
             lock.writeLock().unlock();
         }
-        return result;
     }
 
-    private <T> Asset asset(T value) {
-        throw new UnsupportedOperationException();
-//        if (value instanceof Manageable){
-//            return new ManagedAsset<>((Manageable<T>)value);
-//        }
-//        return null;// todo???????
+    private <T> Asset asset(T value, Class<T> clazz) {
+        return proxiedAsset(
+                (AutoCloseable) value,
+                clazz.asSubclass(AutoCloseable.class)
+        );
+    }
+
+    private <T extends AutoCloseable> Asset proxiedAsset(T value, Class<T> clazz) {
+        return new ProxiedAsset(
+                new ProxiedRef<>(
+                        value,
+                        clazz,
+                        this::dispose
+                )
+        );
+    }
+
+    private void dispose(AutoCloseable obj) {
+        try {
+            obj.close();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -91,28 +111,47 @@ public final class ManagedAssets implements Assets {
 
     private interface Asset {
 
-        boolean isAlive();
-
-        <T> T value(Class<T> clazz);
+        CachedValue value();
 
     }
 
-    private static final class ManagedAsset<V extends Manageable<V> & AutoCloseable> implements Asset {
+    private static final class CachedValue {
 
-        private final ManagedRef<V> ref;
+        private final Object value;
 
-        ManagedAsset(V value) {
-            this.ref = new ManagedRef<>(value);
+        private final boolean skipLoading;
+
+        boolean skipLoading() {
+            return skipLoading;
+        }
+
+        public Object value() {
+            return value;
+        }
+
+        CachedValue(Object value, boolean skipLoading) {
+            this.value = value;
+            this.skipLoading = skipLoading;
+        }
+
+        <T> Optional<T> value(Class<T> clazz) {
+            return Optional.ofNullable(
+                    clazz.cast(value)
+            );
+        }
+    }
+
+    private static final class ProxiedAsset implements Asset {
+
+        private final ProxiedRef<?> ref;
+
+        public ProxiedAsset(ProxiedRef<?> ref) {
+            this.ref = requireNonNull(ref);
         }
 
         @Override
-        public boolean isAlive() {
-            return ref.isAlive();
-        }
-
-        @Override
-        public <T> T value(Class<T> clazz) {
-            return clazz.cast(ref.newRef());
+        public CachedValue value() {
+            return new CachedValue(ref.newRef(), false);
         }
     }
 }

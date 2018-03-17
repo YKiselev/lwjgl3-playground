@@ -32,7 +32,7 @@ class ProxiedRefTest {
         copy2.close();
         verify(target, never()).close();
         verify(disposer, never()).accept(any(B.class));
-        ref.release();
+        ref.close();
         verify(disposer, only()).accept(target);
 
     }
