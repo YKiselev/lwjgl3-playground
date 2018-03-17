@@ -54,7 +54,7 @@ class AutoCloseableProxyTest {
     }
 
     @Test
-    void shouldProxy2() throws Exception {
+    void shouldProxy2() {
         final AtomicBoolean flag = new AtomicBoolean();
         final B proxy = AutoCloseableProxy.create(new C(), B.class, o -> flag.set(true));
         assertEquals(123, proxy.hashCode());

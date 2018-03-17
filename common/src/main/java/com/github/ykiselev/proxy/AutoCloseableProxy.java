@@ -10,20 +10,34 @@ import static java.util.Objects.requireNonNull;
  */
 public final class AutoCloseableProxy {
 
-    public static <T extends AutoCloseable> T create(T target, Class<T> clazz, Consumer<T> onClose) {
+    @SuppressWarnings("unchecked")
+    public static <T extends AutoCloseable> T create(T target, Class<?>[] interfaces, Consumer<T> onClose) {
         requireNonNull(onClose);
-        return clazz.cast(
-                Proxy.newProxyInstance(
-                        clazz.getClassLoader(),
-                        new Class[]{clazz},
-                        (proxy, method, args) -> {
-                            if (args == null && "close".equals(method.getName())) {
-                                onClose.accept(target);
-                                return null;
-                            }
-                            return method.invoke(target, args);
-                        }
-                )
+        return (T) Proxy.newProxyInstance(
+                target.getClass().getClassLoader(),
+                interfaces,
+                (proxy, method, args) -> {
+                    if (args == null && "close".equals(method.getName())) {
+                        onClose.accept(target);
+                        return null;
+                    }
+                    return method.invoke(target, args);
+                }
         );
+    }
+
+    public static <T extends AutoCloseable> T create(T target, Consumer<T> onClose) {
+        return create(
+                target,
+                target.getClass().getInterfaces(),
+                onClose
+        );
+    }
+
+    public static <T extends AutoCloseable> T create(T target, Class clazz, Consumer<T> onClose) {
+        if (clazz.isInterface()) {
+            return create(target, new Class[]{clazz}, onClose);
+        }
+        return create(target, onClose);
     }
 }

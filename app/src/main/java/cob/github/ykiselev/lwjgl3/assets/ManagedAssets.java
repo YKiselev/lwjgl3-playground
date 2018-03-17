@@ -41,7 +41,7 @@ public final class ManagedAssets implements Assets {
             final CachedValue cached = getCached(resource);
             final Object value = cached.value();
             if (value != null || cached.skipLoading()) {
-                return Optional.ofNullable(clazz.cast(value));
+                return Optional.ofNullable((T)value);
             }
             return doLoad(resource, clazz, assets);
         } finally {
@@ -61,10 +61,11 @@ public final class ManagedAssets implements Assets {
         lock.readLock().unlock();
         lock.writeLock().lock();
         try {
+            lock.readLock().lock();
             final CachedValue cached = getCached(resource);
             final Object value = cached.value();
             if (value != null || cached.skipLoading()) {
-                return Optional.ofNullable(clazz.cast(value));
+                return Optional.ofNullable((T)value);
             }
             final Optional<T> result = delegate.tryLoad(resource, clazz, assets);
             cache.put(
@@ -72,7 +73,6 @@ public final class ManagedAssets implements Assets {
                     result.map(v -> asset(v, clazz))
                             .orElse(NON_EXISTING_ASSET)
             );
-            lock.readLock().lock();
             return result;
         } finally {
             lock.writeLock().unlock();
@@ -80,10 +80,17 @@ public final class ManagedAssets implements Assets {
     }
 
     private <T> Asset asset(T value, Class<T> clazz) {
-        return proxiedAsset(
-                (AutoCloseable) value,
-                clazz.asSubclass(AutoCloseable.class)
-        );
+        Class<?> cls = clazz;
+        if (cls == null) {
+            cls = value.getClass();
+        }
+        if (AutoCloseable.class.isAssignableFrom(cls)) {
+            return proxiedAsset(
+                    (AutoCloseable) value,
+                    cls.asSubclass(AutoCloseable.class)
+            );
+        }
+        return new SimpleAsset(value);
     }
 
     private <T extends AutoCloseable> Asset proxiedAsset(T value, Class<T> clazz) {
@@ -125,7 +132,7 @@ public final class ManagedAssets implements Assets {
             return skipLoading;
         }
 
-        public Object value() {
+        Object value() {
             return value;
         }
 
@@ -133,25 +140,33 @@ public final class ManagedAssets implements Assets {
             this.value = value;
             this.skipLoading = skipLoading;
         }
-
-        <T> Optional<T> value(Class<T> clazz) {
-            return Optional.ofNullable(
-                    clazz.cast(value)
-            );
-        }
     }
 
     private static final class ProxiedAsset implements Asset {
 
         private final ProxiedRef<?> ref;
 
-        public ProxiedAsset(ProxiedRef<?> ref) {
+        ProxiedAsset(ProxiedRef<?> ref) {
             this.ref = requireNonNull(ref);
         }
 
         @Override
         public CachedValue value() {
             return new CachedValue(ref.newRef(), false);
+        }
+    }
+
+    private static final class SimpleAsset implements Asset {
+
+        private final Object value;
+
+        SimpleAsset(Object value) {
+            this.value = value;
+        }
+
+        @Override
+        public CachedValue value() {
+            return new CachedValue(value, true);
         }
     }
 }
