@@ -49,7 +49,7 @@ public final class ProxiedRef<T extends AutoCloseable> implements Ref<T> {
     public void close() {
         release();
         if (reference != null) {
-            throw new IllegalStateException("Non-null reference after closing!");
+            throw new IllegalStateException("Resource leakage detected: Non-null reference after closing: " + reference);
         }
     }
 }

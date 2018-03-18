@@ -118,12 +118,12 @@ public final class Game implements UiLayer, WindowEvents, AutoCloseable {
         this.group = new SubscriptionsBuilder()
                 .build(services.resolve(Events.class));
         spriteBatch = new SpriteBatch(
-                assets.load("progs/sprite-batch.conf", DefaultProgramObject.class)
+                assets.load("progs/sprite-batch.conf", ProgramObject.class)
         );
         cuddles = assets.load("images/htf-cuddles.jpg", SimpleTexture2d.class);
-        liberationMono = assets.load("fonts/Liberation Mono.sf", DefaultSpriteFont.class);
+        liberationMono = assets.load("fonts/Liberation Mono.sf", SpriteFont.class);
 
-        final ProgramObject generic = assets.load("progs/generic.conf", DefaultProgramObject.class);
+        final ProgramObject generic = assets.load("progs/generic.conf", ProgramObject.class);
         final ObjModel model = assets.load("models/2cubes.obj", ObjModel.class);
         cubes = new GenericIndexedGeometry(
                 generic,
@@ -132,7 +132,7 @@ public final class Game implements UiLayer, WindowEvents, AutoCloseable {
         );
         texUniform = generic.lookup("tex");
 
-        final ProgramObject colored = assets.load("progs/colored.conf", DefaultProgramObject.class);
+        final ProgramObject colored = assets.load("progs/colored.conf", ProgramObject.class);
         try (Pyramid p = new Pyramid()) {
             pyramid = new GenericIndexedGeometry(
                     colored,
@@ -242,6 +242,7 @@ public final class Game implements UiLayer, WindowEvents, AutoCloseable {
     @Override
     public void close() throws Exception {
         spriteBatch.close();
+        liberationMono.close();
         pyramid.close();
         cubes.close();
         MemoryUtil.memFree(pv);

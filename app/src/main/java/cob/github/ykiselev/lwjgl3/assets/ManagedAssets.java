@@ -1,5 +1,6 @@
 package cob.github.ykiselev.lwjgl3.assets;
 
+import com.github.ykiselev.Closeables;
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.assets.ReadableAsset;
 import com.github.ykiselev.assets.ResourceException;
@@ -16,7 +17,7 @@ import static java.util.Objects.requireNonNull;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class ManagedAssets implements Assets {
+public final class ManagedAssets implements Assets, AutoCloseable {
 
     private static final CachedValue MISSING_VALUE = new CachedValue(null, false);
 
@@ -38,15 +39,18 @@ public final class ManagedAssets implements Assets {
     public <T> Optional<T> tryLoad(String resource, Class<T> clazz, Assets assets) throws ResourceException {
         lock.readLock().lock();
         try {
-            final CachedValue cached = getCached(resource);
-            final Object value = cached.value();
-            if (value != null || cached.skipLoading()) {
-                return Optional.ofNullable((T)value);
+            for (int i = 0; i < 2; i++) {
+                final CachedValue cached = getCached(resource);
+                final Object value = cached.value();
+                if (value != null || cached.skipLoading()) {
+                    return Optional.ofNullable((T) value);
+                }
+                doLoad(resource, clazz, assets);
             }
-            return doLoad(resource, clazz, assets);
         } finally {
             lock.readLock().unlock();
         }
+        throw new IllegalStateException("Should not be here!");
     }
 
     private CachedValue getCached(String resource) {
@@ -57,23 +61,24 @@ public final class ManagedAssets implements Assets {
         return MISSING_VALUE;
     }
 
-    private <T> Optional<T> doLoad(String resource, Class<T> clazz, Assets assets) {
+    private <T> void doLoad(String resource, Class<T> clazz, Assets assets) {
         lock.readLock().unlock();
         lock.writeLock().lock();
         try {
             lock.readLock().lock();
+            // After write lock acquired we should check if resource was already loaded by another thread
             final CachedValue cached = getCached(resource);
             final Object value = cached.value();
             if (value != null || cached.skipLoading()) {
-                return Optional.ofNullable((T)value);
+                return;
             }
+            // Not loaded yet, proceed
             final Optional<T> result = delegate.tryLoad(resource, clazz, assets);
             cache.put(
                     resource,
                     result.map(v -> asset(v, clazz))
                             .orElse(NON_EXISTING_ASSET)
             );
-            return result;
         } finally {
             lock.writeLock().unlock();
         }
@@ -84,7 +89,7 @@ public final class ManagedAssets implements Assets {
         if (cls == null) {
             cls = value.getClass();
         }
-        if (AutoCloseable.class.isAssignableFrom(cls)) {
+        if (cls.isInterface() && AutoCloseable.class.isAssignableFrom(cls)) {
             return proxiedAsset(
                     (AutoCloseable) value,
                     cls.asSubclass(AutoCloseable.class)
@@ -116,6 +121,13 @@ public final class ManagedAssets implements Assets {
         return delegate.resolve(resource, clazz);
     }
 
+    @Override
+    public void close() {
+        Closeables.close(delegate);
+        cache.values().forEach(Closeables::close);
+        cache.clear();
+    }
+
     private interface Asset {
 
         CachedValue value();
@@ -142,7 +154,7 @@ public final class ManagedAssets implements Assets {
         }
     }
 
-    private static final class ProxiedAsset implements Asset {
+    private static final class ProxiedAsset implements Asset, AutoCloseable {
 
         private final ProxiedRef<?> ref;
 
@@ -153,6 +165,11 @@ public final class ManagedAssets implements Assets {
         @Override
         public CachedValue value() {
             return new CachedValue(ref.newRef(), false);
+        }
+
+        @Override
+        public void close() {
+            ref.close();
         }
     }
 

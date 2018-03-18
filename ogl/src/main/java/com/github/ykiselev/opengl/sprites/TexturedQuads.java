@@ -175,10 +175,11 @@ public final class TexturedQuads implements AutoCloseable {
     }
 
     @Override
-    public void close() {
+    public void close() throws Exception {
         vbo.close();
         ebo.close();
         vao.close();
+        program.close();
         MemoryUtil.memFree(matrix);
         MemoryUtil.memFree(colors);
     }

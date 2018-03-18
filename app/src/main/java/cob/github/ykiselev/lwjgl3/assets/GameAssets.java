@@ -1,5 +1,6 @@
 package cob.github.ykiselev.lwjgl3.assets;
 
+import com.github.ykiselev.Closeables;
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.assets.CompositeReadableAssets;
 import com.github.ykiselev.assets.ReadableAsset;
@@ -14,8 +15,8 @@ import com.github.ykiselev.assets.formats.ReadableShaderObject;
 import com.github.ykiselev.assets.formats.ReadableSpriteFont;
 import com.github.ykiselev.assets.formats.ReadableTexture2d;
 import com.github.ykiselev.assets.formats.obj.ObjModel;
-import com.github.ykiselev.opengl.shaders.DefaultProgramObject;
-import com.github.ykiselev.opengl.text.DefaultSpriteFont;
+import com.github.ykiselev.opengl.shaders.ProgramObject;
+import com.github.ykiselev.opengl.text.SpriteFont;
 import com.github.ykiselev.opengl.textures.DefaultMipMappedTexture2d;
 import com.github.ykiselev.opengl.textures.DefaultSimpleTexture2d;
 import com.github.ykiselev.opengl.textures.MipMappedTexture2d;
@@ -32,7 +33,7 @@ import static java.util.Objects.requireNonNull;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class GameAssets implements Assets {
+public final class GameAssets implements Assets, AutoCloseable {
 
     private final Assets delegate;
 
@@ -50,6 +51,11 @@ public final class GameAssets implements Assets {
         return delegate.resolve(resource, clazz);
     }
 
+    @Override
+    public void close() {
+        Closeables.close(delegate);
+    }
+
     public static Assets create(Resources resources) {
         final ReadableConfig readableConfig = new ReadableConfig();
         final ReadableTexture2d simpleReadableTexture2d = new ReadableTexture2d(
@@ -60,8 +66,8 @@ public final class GameAssets implements Assets {
         );
         final Map<Class, ReadableAsset> byClass = ImmutableMap.<Class, ReadableAsset>builder()
                 .put(Config.class, readableConfig)
-                .put(DefaultProgramObject.class, new ReadableProgramObject())
-                .put(DefaultSpriteFont.class, new ReadableSpriteFont())
+                .put(ProgramObject.class, new ReadableProgramObject())
+                .put(SpriteFont.class, new ReadableSpriteFont())
                 .put(SimpleTexture2d.class, simpleReadableTexture2d)
                 .put(MipMappedTexture2d.class, mipMappedReadableTexture2d)
                 .put(ObjModel.class, new ReadableObjModel())

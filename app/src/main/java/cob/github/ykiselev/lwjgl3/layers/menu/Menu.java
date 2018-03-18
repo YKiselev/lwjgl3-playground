@@ -91,7 +91,7 @@ public final class Menu implements UiLayer, AutoCloseable {
     }
 
     @Override
-    public void close() {
+    public void close() throws Exception {
         listMenu.close();
     }
 

@@ -22,4 +22,7 @@ public interface SpriteFont extends AutoCloseable {
     int width(CharSequence text);
 
     int height(CharSequence text, int width);
+
+    @Override
+    void close();
 }
