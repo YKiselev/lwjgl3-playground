@@ -1,6 +1,7 @@
 package cob.github.ykiselev.lwjgl3.layers;
 
 import cob.github.ykiselev.lwjgl3.playground.WindowEvents;
+import com.github.ykiselev.opengl.sprites.SpriteBatch;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -21,7 +22,7 @@ public final class AppUiLayers implements UiLayers {
         }
 
         /**
-         * Note: {@link com.github.ykiselev.opengl.sprites.SpriteBatch} uses left lower corner as an coordinate system origin (0,0)
+         * Note: {@link SpriteBatch} uses left lower corner as an coordinate system origin (0,0)
          * while GLFW passes cursor coordinates relative to upper-left corner of the window, so here we translate {@code y} coordinate
          * to be 0 at the bottom of a window and {@code height} at the top.
          *
