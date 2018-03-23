@@ -158,6 +158,7 @@ public final class ListMenu implements UiLayer, AutoCloseable {
     @Override
     public void close() throws Exception {
         spriteBatch.close();
+        white.close();
         font.close();
     }
 

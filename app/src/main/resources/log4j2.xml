@@ -31,5 +31,8 @@
         <Logger name="cob.github.ykiselev.lwjgl3.fs.AppFileSystem" level="debug" additivity="false">
             <AppenderRef ref="Console"/>
         </Logger>
+        <Logger name="cob.github.ykiselev.lwjgl3.assets.ManagedAssets" level="trace" additivity="false">
+            <AppenderRef ref="Console"/>
+        </Logger>
     </Loggers>
 </Configuration>

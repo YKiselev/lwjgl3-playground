@@ -30,7 +30,7 @@
     <dependencies>
         <dependency>
             <groupId>com.github.ykiselev</groupId>
-            <artifactId>ogl-assets</artifactId>
+            <artifactId>ogl</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

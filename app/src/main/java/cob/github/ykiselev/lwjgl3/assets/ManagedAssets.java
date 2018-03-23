@@ -5,12 +5,17 @@ import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.assets.ReadableAsset;
 import com.github.ykiselev.assets.ResourceException;
 import com.github.ykiselev.lifetime.ProxiedRef;
+import com.github.ykiselev.lifetime.Ref;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.stream.Collectors;
 
 import static java.util.Objects.requireNonNull;
 
@@ -18,6 +23,8 @@ import static java.util.Objects.requireNonNull;
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
 public final class ManagedAssets implements Assets, AutoCloseable {
+
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private static final CachedValue MISSING_VALUE = new CachedValue(null, false);
 
@@ -99,7 +106,7 @@ public final class ManagedAssets implements Assets, AutoCloseable {
     }
 
     private <T extends AutoCloseable> Asset proxiedAsset(T value, Class<T> clazz) {
-        return new ProxiedAsset(
+        return new RefAsset(
                 new ProxiedRef<>(
                         value,
                         clazz,
@@ -154,22 +161,42 @@ public final class ManagedAssets implements Assets, AutoCloseable {
         }
     }
 
-    private static final class ProxiedAsset implements Asset, AutoCloseable {
+    private final class RefAsset implements Asset, AutoCloseable {
 
-        private final ProxiedRef<?> ref;
+        private final Ref<?> ref;
 
-        ProxiedAsset(ProxiedRef<?> ref) {
+        RefAsset(Ref<?> ref) {
             this.ref = requireNonNull(ref);
         }
 
         @Override
         public CachedValue value() {
+            logNewRef();
             return new CachedValue(ref.newRef(), false);
         }
 
         @Override
         public void close() {
-            ref.close();
+            try {
+                ref.close();
+            } catch (Exception e) {
+                logger.error("Unable to close reference!", e);
+            }
+        }
+
+        private void logNewRef() {
+            if (!logger.isTraceEnabled()) {
+                return;
+            }
+            logger.trace(
+                    "{}:\n{}",
+                    ref,
+                    Arrays.stream(
+                            new RuntimeException("").getStackTrace()
+                    ).map(Object::toString)
+                            .map(s -> "  " + s)
+                            .collect(Collectors.joining("\n"))
+            );
         }
     }
 

@@ -52,4 +52,12 @@ public final class ProxiedRef<T extends AutoCloseable> implements Ref<T> {
             throw new IllegalStateException("Resource leakage detected: Non-null reference after closing: " + reference);
         }
     }
+
+    @Override
+    public String toString() {
+        return "ProxiedRef{" +
+                "reference=" + reference +
+                ", counter=" + counter +
+                '}';
+    }
 }

@@ -16,6 +16,9 @@
 
 package com.github.ykiselev.assets;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.Optional;
 
 import static java.util.Objects.requireNonNull;
@@ -26,6 +29,8 @@ import static java.util.Objects.requireNonNull;
  * Created by Y.Kiselev on 15.05.2016.
  */
 public final class SimpleAssets implements Assets {
+
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final Resources resources;
 
@@ -42,7 +47,15 @@ public final class SimpleAssets implements Assets {
                 .map(channel ->
                         readableAssets.resolve(resource, clazz)
                                 .read(channel, assets)
-                );
+                ).map(v ->
+                        logAsset(resource, v));
+    }
+
+    private <T> T logAsset(String resource, T object) {
+        if (resource != null) {
+            logger.debug("Loaded resource \"{}\" : \"{}\"", resource, object);
+        }
+        return object;
     }
 
     @Override

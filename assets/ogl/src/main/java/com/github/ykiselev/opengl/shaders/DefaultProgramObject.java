@@ -89,4 +89,11 @@ public final class DefaultProgramObject implements ProgramObject {
         }
         glDeleteProgram(id);
     }
+
+    @Override
+    public String toString() {
+        return "DefaultProgramObject{" +
+                "id=" + id +
+                '}';
+    }
 }

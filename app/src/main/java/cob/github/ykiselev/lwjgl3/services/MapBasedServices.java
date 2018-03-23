@@ -3,9 +3,11 @@ package cob.github.ykiselev.lwjgl3.services;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Comparator;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.util.Objects.requireNonNull;
 
@@ -16,9 +18,11 @@ public final class MapBasedServices implements Services {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final Map<Class, Object> services;
+    private final Map<Class, Service> services;
 
-    public MapBasedServices(Map<Class, Object> services) {
+    private final AtomicInteger order = new AtomicInteger();
+
+    public MapBasedServices(Map<Class, Service> services) {
         this.services = requireNonNull(services);
     }
 
@@ -26,9 +30,16 @@ public final class MapBasedServices implements Services {
         this(new ConcurrentHashMap<>());
     }
 
+    private Service wrap(Object instance) {
+        return new Service(instance, order.getAndIncrement());
+    }
+
     @Override
     public <T> void add(Class<T> clazz, T instance) {
-        final Object previous = services.putIfAbsent(clazz, instance);
+        final Object previous = services.putIfAbsent(
+                clazz,
+                wrap(instance)
+        );
         if (previous != null) {
             throw new IllegalArgumentException("Instance " + previous + " was already registered as a service type " + clazz);
         }
@@ -36,39 +47,59 @@ public final class MapBasedServices implements Services {
 
     @Override
     public <T> void remove(Class<T> clazz, Object instance) {
-        final Object service = services.remove(clazz);
-        if (service != instance) {
+        final Service service = services.remove(clazz);
+        if (service.instance != instance) {
             throw new IllegalArgumentException("Instance " + instance + " is not registered as a service of type " + clazz);
         }
     }
 
     @Override
-    public <T> T resolve(Class<T> clazz) {
-        return tryResolve(clazz)
-                .orElseThrow(
-                        () -> new IllegalArgumentException("Service not found: " + clazz)
-                );
-    }
-
-    @Override
     public <T> Optional<T> tryResolve(Class<T> clazz) {
-        return Optional.ofNullable(
-                clazz.cast(services.get(clazz))
-        );
+        return Optional.ofNullable(services.get(clazz))
+                .map(Service::instance)
+                .map(clazz::cast);
     }
 
     @Override
     public void close() {
         services.values()
                 .stream()
-                .filter(AutoCloseable.class::isInstance)
-                .forEach(c -> {
-                    try {
-                        ((AutoCloseable) c).close();
-                    } catch (Exception e) {
-                        logger.error("Failed to close service {}!", c, e);
-                    }
-                });
+                .sorted(Comparator.comparing(Service::order).reversed())
+                .forEach(Service::close);
         services.clear();
+    }
+
+    /**
+     * Service value class.
+     * Holds service instance alogn with order of registration.
+     */
+    private final class Service {
+
+        final Object instance;
+
+        final int order;
+
+        Object instance() {
+            return instance;
+        }
+
+        int order() {
+            return order;
+        }
+
+        Service(Object instance, int order) {
+            this.instance = requireNonNull(instance);
+            this.order = order;
+        }
+
+        void close() {
+            if (instance instanceof AutoCloseable) {
+                try {
+                    ((AutoCloseable) instance).close();
+                } catch (Exception e) {
+                    logger.error("Failed to close service {}!", instance, e);
+                }
+            }
+        }
     }
 }
