@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Supplier;
 
 import static java.util.Objects.requireNonNull;
 
@@ -21,6 +22,8 @@ public final class MapBasedServices implements Services {
     private final Map<Class, Service> services;
 
     private final AtomicLong order = new AtomicLong();
+
+    private final Object lock = new Object();
 
     public MapBasedServices(Map<Class, Service> services) {
         this.services = requireNonNull(services);
@@ -36,20 +39,25 @@ public final class MapBasedServices implements Services {
 
     @Override
     public <T> void add(Class<T> clazz, T instance) {
-        final Object previous = services.putIfAbsent(
-                clazz,
-                wrap(instance)
-        );
-        if (previous != null) {
-            throw new IllegalArgumentException("Instance " + previous + " was already registered as a service type " + clazz);
+        synchronized (lock) {
+            final Object previous = services.putIfAbsent(
+                    clazz,
+                    wrap(instance)
+            );
+            if (previous != null) {
+                throw new IllegalArgumentException("Instance " + previous + " was already registered as a service type " + clazz);
+            }
         }
     }
 
     @Override
     public <T> void remove(Class<T> clazz, Object instance) {
-        final Service service = services.remove(clazz);
-        if (service.instance != instance) {
-            throw new IllegalArgumentException("Instance " + instance + " is not registered as a service of type " + clazz);
+        synchronized (lock) {
+            final Service service = services.get(clazz);
+            if (service.instance != instance) {
+                throw new IllegalArgumentException("Instance " + instance + " is not registered as a service of type " + clazz);
+            }
+            services.remove(clazz);
         }
     }
 
@@ -58,6 +66,23 @@ public final class MapBasedServices implements Services {
         return Optional.ofNullable(services.get(clazz))
                 .map(Service::instance)
                 .map(clazz::cast);
+    }
+
+    @Override
+    public <T> T resolveOrAdd(Class<T> clazz, Supplier<T> supplier) {
+        return tryResolve(clazz).orElseGet(
+                () -> {
+                    synchronized (lock) {
+                        return tryResolve(clazz).orElseGet(
+                                () -> {
+                                    add(clazz, supplier.get());
+                                    return tryResolve(clazz)
+                                            .orElseThrow(IllegalStateException::new);
+                                }
+                        );
+                    }
+                }
+        );
     }
 
     @Override

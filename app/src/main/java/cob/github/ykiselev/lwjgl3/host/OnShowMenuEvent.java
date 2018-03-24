@@ -23,12 +23,10 @@ public final class OnShowMenuEvent implements Consumer<ShowMenuEvent> {
 
     @Override
     public void accept(ShowMenuEvent showMenuEvent) {
-        final UiLayer menu = services.tryResolve(Menu.class)
-                .orElseGet(() -> {
-                    final Menu m = new Menu(services);
-                    services.add(Menu.class, m);
-                    return m;
-                });
+        final UiLayer menu = services.resolveOrAdd(
+                Menu.class,
+                () -> new Menu(services)
+        );
         services.resolve(UiLayers.class)
                 .push(menu);
     }

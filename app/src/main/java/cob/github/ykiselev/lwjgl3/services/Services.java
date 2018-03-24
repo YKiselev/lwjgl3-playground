@@ -1,6 +1,7 @@
 package cob.github.ykiselev.lwjgl3.services;
 
 import java.util.Optional;
+import java.util.function.Supplier;
 
 /**
  * Service registry.
@@ -53,4 +54,14 @@ public interface Services extends AutoCloseable {
      * @return an {@code Optional} with service instance or empty {@code Optional} if service is not found
      */
     <T> Optional<T> tryResolve(Class<T> clazz);
+
+    /**
+     * Tries to resolve service instance by class. If there is no such service then value returned by supplier is registered as a service and returned.
+     * Implementation is expected to do this atomically so that two instances would never be created if multiple threads calls this method simultaneously.
+     *
+     * @param clazz the service class
+     * @param <T>   the service type
+     * @return service instance
+     */
+    <T> T resolveOrAdd(Class<T> clazz, Supplier<T> supplier);
 }
