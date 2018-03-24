@@ -7,7 +7,7 @@ import java.util.Comparator;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static java.util.Objects.requireNonNull;
 
@@ -20,7 +20,7 @@ public final class MapBasedServices implements Services {
 
     private final Map<Class, Service> services;
 
-    private final AtomicInteger order = new AtomicInteger();
+    private final AtomicLong order = new AtomicLong();
 
     public MapBasedServices(Map<Class, Service> services) {
         this.services = requireNonNull(services);
@@ -62,8 +62,7 @@ public final class MapBasedServices implements Services {
 
     @Override
     public void close() {
-        services.values()
-                .stream()
+        services.values().stream()
                 .sorted(Comparator.comparing(Service::order).reversed())
                 .forEach(Service::close);
         services.clear();
@@ -71,23 +70,23 @@ public final class MapBasedServices implements Services {
 
     /**
      * Service value class.
-     * Holds service instance alogn with order of registration.
+     * Holds service instance along with order of registration.
      */
     private final class Service {
 
         final Object instance;
 
-        final int order;
+        final long order;
 
         Object instance() {
             return instance;
         }
 
-        int order() {
+        long order() {
             return order;
         }
 
-        Service(Object instance, int order) {
+        Service(Object instance, long order) {
             this.instance = requireNonNull(instance);
             this.order = order;
         }

@@ -2,7 +2,7 @@ package cob.github.ykiselev.lwjgl3.sound;
 
 import cob.github.ykiselev.lwjgl3.config.PersistedConfiguration;
 import cob.github.ykiselev.lwjgl3.events.Events;
-import cob.github.ykiselev.lwjgl3.events.Subscriptions;
+import com.github.ykiselev.closeables.CompositeAutoCloseable;
 import cob.github.ykiselev.lwjgl3.events.SubscriptionsBuilder;
 import cob.github.ykiselev.lwjgl3.events.config.ValueChangingEvent;
 import cob.github.ykiselev.lwjgl3.services.Services;
@@ -54,7 +54,7 @@ public final class AppSoundEffects implements SoundEffects, AutoCloseable {
 
     private final long context;
 
-    private final Subscriptions subscriptions;
+    private final CompositeAutoCloseable subscriptions;
 
     public AppSoundEffects(Services services) {
         this.services = requireNonNull(services);
@@ -103,7 +103,7 @@ public final class AppSoundEffects implements SoundEffects, AutoCloseable {
                 .build();
 
         subscriptions = new SubscriptionsBuilder()
-                .add(ValueChangingEvent.class, event -> tree.find(event.path()).ifPresent(c -> c.accept(event)))
+                .with(ValueChangingEvent.class, event -> tree.find(event.path()).ifPresent(c -> c.accept(event)))
                 .build(services.resolve(Events.class));
     }
 

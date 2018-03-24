@@ -1,4 +1,4 @@
-package com.github.ykiselev;
+package com.github.ykiselev.closeables;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).

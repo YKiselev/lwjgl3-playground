@@ -1,6 +1,6 @@
 package cob.github.ykiselev.lwjgl3.assets;
 
-import com.github.ykiselev.Closeables;
+import com.github.ykiselev.closeables.Closeables;
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.assets.ReadableAsset;
 import com.github.ykiselev.assets.ResourceException;

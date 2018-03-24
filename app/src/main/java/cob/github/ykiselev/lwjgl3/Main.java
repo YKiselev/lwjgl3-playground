@@ -23,7 +23,7 @@ import cob.github.ykiselev.lwjgl3.config.AppConfig;
 import cob.github.ykiselev.lwjgl3.config.PersistedConfiguration;
 import cob.github.ykiselev.lwjgl3.events.AppEvents;
 import cob.github.ykiselev.lwjgl3.events.Events;
-import cob.github.ykiselev.lwjgl3.events.Subscriptions;
+import com.github.ykiselev.closeables.CompositeAutoCloseable;
 import cob.github.ykiselev.lwjgl3.events.SubscriptionsBuilder;
 import cob.github.ykiselev.lwjgl3.events.game.NewGameEvent;
 import cob.github.ykiselev.lwjgl3.events.game.QuitGameEvent;
@@ -83,7 +83,7 @@ public final class Main implements Runnable {
             final AppUiLayers layers = new AppUiLayers();
             try (Services services = new MapBasedServices()) {
                 createServices(services, layers);
-                try (Subscriptions group = subscribe(services)) {
+                try (CompositeAutoCloseable group = subscribe(services)) {
                     try (AppWindow window = new AppWindow(args.fullScreen())) {
                         GL.createCapabilities();
                         window.wireEvents(layers.events());
@@ -108,13 +108,7 @@ public final class Main implements Runnable {
     private void createServices(Services services, UiLayers layers) throws IOException {
         logger.info("Creating services...");
         services.add(Events.class, new AppEvents());
-        final FileSystem fileSystem = new AppFileSystem(
-                args.home(),
-                Arrays.asList(
-                        new DiskResources(args.assetPaths()),
-                        new ClassPathResources(getClass().getClassLoader())
-                )
-        );
+        final FileSystem fileSystem = createFileSystem();
         services.add(Assets.class, GameAssets.create(fileSystem));
         services.add(UiLayers.class, layers);
         services.add(FileSystem.class, fileSystem);
@@ -122,11 +116,21 @@ public final class Main implements Runnable {
         services.add(SoundEffects.class, new AppSoundEffects(services));
     }
 
-    private Subscriptions subscribe(Services services) {
+    private FileSystem createFileSystem() {
+        return new AppFileSystem(
+                args.home(),
+                Arrays.asList(
+                        new DiskResources(args.assetPaths()),
+                        new ClassPathResources(getClass().getClassLoader())
+                )
+        );
+    }
+
+    private CompositeAutoCloseable subscribe(Services services) {
         return new SubscriptionsBuilder()
-                .add(QuitGameEvent.class, this::onQuitGame)
-                .add(NewGameEvent.class, new OnNewGameEvent(services))
-                .add(ShowMenuEvent.class, new OnShowMenuEvent(services))
+                .with(QuitGameEvent.class, this::onQuitGame)
+                .with(NewGameEvent.class, new OnNewGameEvent(services))
+                .with(ShowMenuEvent.class, new OnShowMenuEvent(services))
                 .build(services.resolve(Events.class));
     }
 

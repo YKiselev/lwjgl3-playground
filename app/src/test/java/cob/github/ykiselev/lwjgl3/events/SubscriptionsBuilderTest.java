@@ -20,7 +20,7 @@ class SubscriptionsBuilderTest {
     @Test
     void shouldSubscribe() {
         new SubscriptionsBuilder()
-                .add(String.class, handler)
+                .with(String.class, handler)
                 .build(events);
         verify(events).subscribe(String.class, handler);
     }
@@ -28,7 +28,7 @@ class SubscriptionsBuilderTest {
     @Test
     void shouldSubscribeWithoutPredicate() {
         new SubscriptionsBuilder()
-                .add(String.class, handler)
+                .with(String.class, handler)
                 .build(events);
         verify(events).subscribe(String.class, handler);
     }
@@ -39,7 +39,7 @@ class SubscriptionsBuilderTest {
         when(events.subscribe(String.class, handler))
                 .thenReturn(ac);
         new SubscriptionsBuilder()
-                .add(String.class, handler)
+                .with(String.class, handler)
                 .build(events)
                 .close();
         verify(ac).close();

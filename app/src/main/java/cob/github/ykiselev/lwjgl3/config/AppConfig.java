@@ -1,7 +1,7 @@
 package cob.github.ykiselev.lwjgl3.config;
 
 import cob.github.ykiselev.lwjgl3.events.Events;
-import cob.github.ykiselev.lwjgl3.events.Subscriptions;
+import com.github.ykiselev.closeables.CompositeAutoCloseable;
 import cob.github.ykiselev.lwjgl3.events.SubscriptionsBuilder;
 import cob.github.ykiselev.lwjgl3.events.config.InvalidValueException;
 import cob.github.ykiselev.lwjgl3.events.config.ValueChangingEvent;
@@ -36,13 +36,13 @@ public final class AppConfig implements PersistedConfiguration, AutoCloseable {
 
     private Config config;
 
-    private final Subscriptions group;
+    private final CompositeAutoCloseable group;
 
     public AppConfig(Services services) throws IOException {
         this.services = requireNonNull(services);
         this.config = load();
         group = new SubscriptionsBuilder()
-                .add(ValueChangingEvent.class, this::onValueChangingEvent)
+                .with(ValueChangingEvent.class, this::onValueChangingEvent)
                 .build(services.resolve(Events.class));
     }
 

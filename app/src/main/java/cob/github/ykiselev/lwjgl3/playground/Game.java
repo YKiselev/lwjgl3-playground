@@ -1,7 +1,7 @@
 package cob.github.ykiselev.lwjgl3.playground;
 
 import cob.github.ykiselev.lwjgl3.events.Events;
-import cob.github.ykiselev.lwjgl3.events.Subscriptions;
+import com.github.ykiselev.closeables.CompositeAutoCloseable;
 import cob.github.ykiselev.lwjgl3.events.SubscriptionsBuilder;
 import cob.github.ykiselev.lwjgl3.events.layers.ShowMenuEvent;
 import cob.github.ykiselev.lwjgl3.layers.UiLayer;
@@ -74,7 +74,7 @@ public final class Game implements UiLayer, WindowEvents, AutoCloseable {
 
     private final Services services;
 
-    private final Subscriptions group;
+    private final CompositeAutoCloseable group;
 
     private final SpriteBatch spriteBatch;
 
