@@ -23,7 +23,6 @@ import cob.github.ykiselev.lwjgl3.config.AppConfig;
 import cob.github.ykiselev.lwjgl3.config.PersistedConfiguration;
 import cob.github.ykiselev.lwjgl3.events.AppEvents;
 import cob.github.ykiselev.lwjgl3.events.Events;
-import com.github.ykiselev.closeables.CompositeAutoCloseable;
 import cob.github.ykiselev.lwjgl3.events.SubscriptionsBuilder;
 import cob.github.ykiselev.lwjgl3.events.game.NewGameEvent;
 import cob.github.ykiselev.lwjgl3.events.game.QuitGameEvent;
@@ -36,12 +35,15 @@ import cob.github.ykiselev.lwjgl3.host.OnShowMenuEvent;
 import cob.github.ykiselev.lwjgl3.host.ProgramArguments;
 import cob.github.ykiselev.lwjgl3.layers.AppUiLayers;
 import cob.github.ykiselev.lwjgl3.layers.UiLayers;
+import cob.github.ykiselev.lwjgl3.services.AppSchedule;
 import cob.github.ykiselev.lwjgl3.services.MapBasedServices;
+import cob.github.ykiselev.lwjgl3.services.Schedule;
 import cob.github.ykiselev.lwjgl3.services.Services;
 import cob.github.ykiselev.lwjgl3.services.SoundEffects;
 import cob.github.ykiselev.lwjgl3.sound.AppSoundEffects;
 import cob.github.ykiselev.lwjgl3.window.AppWindow;
 import com.github.ykiselev.assets.Assets;
+import com.github.ykiselev.closeables.CompositeAutoCloseable;
 import com.github.ykiselev.io.FileSystem;
 import org.lwjgl.opengl.GL;
 import org.slf4j.Logger;
@@ -92,10 +94,12 @@ public final class Main implements Runnable {
                                 .send(new NewGameEvent());
                         glfwSwapInterval(args.swapInterval());
                         logger.info("Entering main loop...");
+                        final Schedule schedule = services.resolve(Schedule.class);
                         while (!window.shouldClose() && !exitFlag) {
                             window.checkEvents();
                             layers.draw();
                             window.swapBuffers();
+                            schedule.processPendingTasks(2);
                         }
                     }
                 }
@@ -108,6 +112,7 @@ public final class Main implements Runnable {
     private void createServices(Services services, UiLayers layers) throws IOException {
         logger.info("Creating services...");
         services.add(Events.class, new AppEvents());
+        services.add(Schedule.class, new AppSchedule());
         final FileSystem fileSystem = createFileSystem();
         services.add(Assets.class, GameAssets.create(fileSystem));
         services.add(UiLayers.class, layers);
