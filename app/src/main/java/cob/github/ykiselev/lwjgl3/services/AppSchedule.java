@@ -2,6 +2,7 @@ package cob.github.ykiselev.lwjgl3.services;
 
 import java.util.PriorityQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.function.LongSupplier;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
@@ -10,10 +11,20 @@ public final class AppSchedule implements Schedule {
 
     private final PriorityQueue<Task> tasks = new PriorityQueue<>();
 
+    private final LongSupplier clock;
+
+    public AppSchedule(LongSupplier clock) {
+        this.clock = clock;
+    }
+
+    public AppSchedule() {
+        this(System::currentTimeMillis);
+    }
+
     @Override
     public void schedule(long interval, TimeUnit unit, Runnable task) {
         final Task t = new Task(
-                System.currentTimeMillis() + unit.toMillis(interval),
+                time() + unit.toMillis(interval),
                 task
         );
         synchronized (tasks) {
@@ -21,12 +32,31 @@ public final class AppSchedule implements Schedule {
         }
     }
 
-    @Override
-    public void processPendingTasks(long quota) {
-        throw new UnsupportedOperationException("not implemented");
+    private long time() {
+        return clock.getAsLong();
     }
 
-    private static final class Task implements Comparable<Task> {
+    @Override
+    public void processPendingTasks(long quota) {
+        final long t0 = time();
+        for (; ; ) {
+            final long time = time();
+            final long timeLeft = t0 + quota - time;
+            if (timeLeft <= 0) {
+                break;
+            }
+            synchronized (tasks) {
+                final Task task = tasks.peek();
+                if (task == null || task.targetTime > time + timeLeft) {
+                    break;
+                }
+                tasks.poll();
+                task.run();
+            }
+        }
+    }
+
+    private static final class Task implements Comparable<Task>, Runnable {
 
         private final long targetTime;
 
@@ -39,7 +69,12 @@ public final class AppSchedule implements Schedule {
 
         @Override
         public int compareTo(Task o) {
-            throw new UnsupportedOperationException("not implemented");
+            return Long.compare(targetTime, o.targetTime);
+        }
+
+        @Override
+        public void run() {
+            task.run();
         }
     }
 }
