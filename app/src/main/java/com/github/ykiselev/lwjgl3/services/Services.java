@@ -41,9 +41,7 @@ public interface Services extends AutoCloseable {
      */
     default <T> T resolve(Class<T> clazz) throws ServiceNotFoundException {
         return tryResolve(clazz)
-                .orElseThrow(
-                        () -> new ServiceNotFoundException(clazz.toString())
-                );
+                .orElseThrow(() -> new ServiceNotFoundException(clazz));
     }
 
     /**
