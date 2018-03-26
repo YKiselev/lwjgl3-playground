@@ -25,14 +25,14 @@
         <Root level="info">
             <AppenderRef ref="Console"/>
         </Root>
-        <Logger name="com.github.ykiselev" level="info" additivity="false">
+        <Logger name="com.github.ykiselev" level="debug" additivity="false">
             <AppenderRef ref="Console"/>
         </Logger>
-        <Logger name="cob.github.ykiselev.lwjgl3.fs.AppFileSystem" level="debug" additivity="false">
+        <Logger name="com.github.ykiselev.lwjgl3.fs.AppFileSystem" level="debug" additivity="false">
             <AppenderRef ref="Console"/>
         </Logger>
         <!-- Set to trace level to see new reference allocations -->
-        <Logger name="cob.github.ykiselev.lwjgl3.assets.ManagedAssets" level="info" additivity="false">
+        <Logger name="com.github.ykiselev.lwjgl3.assets.ManagedAssets" level="info" additivity="false">
             <AppenderRef ref="Console"/>
         </Logger>
     </Loggers>
