@@ -25,7 +25,7 @@ class ManagedAssetsTest {
     @Test
     void shouldLoadOnce() {
         when(delegate.tryLoad(eq("a"), eq(String.class), eq(assets)))
-                .thenReturn(Optional.of("A"));
+                .thenReturn("A");
         assertSame(
                 assets.load("a", String.class),
                 assets.load("a", String.class)
@@ -36,7 +36,7 @@ class ManagedAssetsTest {
     void shouldCloseAutoCloseables() throws Exception {
         final AutoCloseable a = mock(AutoCloseable.class);
         when(delegate.tryLoad(eq("ac"), eq(AutoCloseable.class), eq(assets)))
-                .thenReturn(Optional.of(a));
+                .thenReturn(a);
         assets.load("ac", AutoCloseable.class).close();
         assets.close();
         verify(a, atLeast(1)).close();
@@ -46,7 +46,7 @@ class ManagedAssetsTest {
     void shouldCloseCloseables() throws Exception {
         final Closeable c = mock(Closeable.class);
         when(delegate.tryLoad(eq("c"), eq(Closeable.class), eq(assets)))
-                .thenReturn(Optional.of(c));
+                .thenReturn(c);
         assets.load("c", Closeable.class).close();
         assets.close();
         verify(c, atLeast(1)).close();

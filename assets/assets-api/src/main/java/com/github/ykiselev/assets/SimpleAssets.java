@@ -19,8 +19,6 @@ package com.github.ykiselev.assets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Optional;
-
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -42,13 +40,13 @@ public final class SimpleAssets implements Assets {
     }
 
     @Override
-    public <T> Optional<T> tryLoad(String resource, Class<T> clazz, Assets assets) throws ResourceException {
+    public <T> T tryLoad(String resource, Class<T> clazz, Assets assets) throws ResourceException {
         return resources.open(resource)
                 .map(channel ->
                         readableAssets.resolve(resource, clazz)
                                 .read(channel, assets)
-                ).map(v ->
-                        logAsset(resource, v));
+                ).map(v -> logAsset(resource, v))
+                .orElse(null);
     }
 
     private <T> T logAsset(String resource, T object) {

@@ -42,7 +42,7 @@ public final class GameAssets implements Assets, AutoCloseable {
     }
 
     @Override
-    public <T> Optional<T> tryLoad(String resource, Class<T> clazz, Assets assets) throws ResourceException {
+    public <T> T tryLoad(String resource, Class<T> clazz, Assets assets) throws ResourceException {
         return delegate.tryLoad(resource, clazz, assets);
     }
 

@@ -16,8 +16,6 @@
 
 package com.github.ykiselev.assets;
 
-import java.util.Optional;
-
 /**
  * Asset manager. Implementations expected to delegate actual work of loading asset to appropriate instance of class implementing {@link ReadableAsset}.
  * <p>
@@ -35,8 +33,11 @@ public interface Assets extends ReadableAssets {
      * @throws ResourceException if resource not found or something goes wrong during the resource loading process.
      */
     default <T> T load(String resource, Class<T> clazz) throws ResourceException {
-        return tryLoad(resource, clazz)
-                .orElseThrow(() -> new ResourceException("Unable to load " + resource));
+        final T result = tryLoad(resource, clazz);
+        if (result == null) {
+            throw new ResourceException("Unable to load " + resource);
+        }
+        return result;
     }
 
     /**
@@ -45,10 +46,10 @@ public interface Assets extends ReadableAssets {
      * @param resource the resource name
      * @param clazz    the class of resource or {@code null} if not known
      * @param <T>      the type of resource
-     * @return the requested resource or nothing
+     * @return the requested resource or {@code null}
      * @throws ResourceException if something goes wrong during the resource loading process.
      */
-    default <T> Optional<T> tryLoad(String resource, Class<T> clazz) throws ResourceException {
+    default <T> T tryLoad(String resource, Class<T> clazz) throws ResourceException {
         return tryLoad(resource, clazz, this);
     }
 
@@ -59,10 +60,10 @@ public interface Assets extends ReadableAssets {
      * @param clazz    the class of resource or {@code null} if not known
      * @param assets   the asset manager to pass to {@link ReadableAsset#read(java.nio.channels.ReadableByteChannel, Assets)} to load sub-assets
      * @param <T>      the type of resource
-     * @return the requested resource or nothing
+     * @return the requested resource or {@code null}
      * @throws ResourceException if something goes wrong during the resource loading process.
      */
-    <T> Optional<T> tryLoad(String resource, Class<T> clazz, Assets assets) throws ResourceException;
+    <T> T tryLoad(String resource, Class<T> clazz, Assets assets) throws ResourceException;
 
     /**
      * Convenient method taking only one string argument as a resource name.
@@ -81,10 +82,10 @@ public interface Assets extends ReadableAssets {
      *
      * @param resource the resource name
      * @param <T>      the type of resource
-     * @return the requested resource or nothing
+     * @return the requested resource or {@code null}
      * @throws ResourceException if something goes wrong during the resource loading process.
      */
-    default <T> Optional<T> tryLoad(String resource) throws ResourceException {
+    default <T> T tryLoad(String resource) throws ResourceException {
         return tryLoad(resource, null);
     }
 
