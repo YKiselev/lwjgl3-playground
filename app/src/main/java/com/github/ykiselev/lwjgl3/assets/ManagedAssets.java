@@ -23,48 +23,39 @@ public final class ManagedAssets implements Assets, AutoCloseable {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private static final Asset NON_EXISTING_ASSET = () -> null;
-
     private final Assets delegate;
 
     private final Map<String, Asset> cache = new ConcurrentHashMap<>();
+
+    private final Object loadLock = new Object();
 
     public ManagedAssets(Assets delegate) {
         this.delegate = requireNonNull(delegate);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T> T tryLoad(String resource, Class<T> clazz, Assets assets) throws ResourceException {
-        final Asset cached = getCached(resource);
-        if (cached != null) {
-            return (T) cached.value();
+        final Asset asset = cache.get(resource);
+        if (asset != null) {
+            return (T) asset.value();
         }
-        return doLoad(resource, clazz, assets);
+        return (T) load(resource, clazz, assets);
     }
 
-    private Asset getCached(String resource) {
-        return cache.get(resource);
-    }
-
-    private <T> T getCachedValue(String resource) {
-        final Asset loaded = getCached(resource);
-        return loaded != null ? (T) loaded.value() : null;
-    }
-
-    private synchronized <T> T doLoad(String resource, Class<T> clazz, Assets assets) {
-        // After write lock acquired we should check if resource was already loaded by another thread
-        final Asset cached = getCached(resource);
-        if (cached != null) {
-            return (T) cached.value();
+    private <T> Object load(String resource, Class<T> clazz, Assets assets) {
+        synchronized (loadLock) {
+            final Asset asset = cache.get(resource);
+            if (asset != null) {
+                return asset.value();
+            }
+            final Asset loaded = asset(
+                    delegate.tryLoad(resource, clazz, assets),
+                    clazz
+            );
+            cache.put(resource, loaded);
+            return loaded.value();
         }
-        // Not loaded yet, proceed
-        final T result = delegate.tryLoad(resource, clazz, assets);
-        if (result != null) {
-            cache.put(resource, asset(result, clazz));
-        } else {
-            cache.put(resource, NON_EXISTING_ASSET);
-        }
-        return getCachedValue(resource);
     }
 
     private <T> Asset asset(T value, Class<T> clazz) {
