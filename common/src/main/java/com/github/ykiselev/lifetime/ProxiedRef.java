@@ -17,7 +17,7 @@ public final class ProxiedRef<T extends AutoCloseable> implements Ref<T> {
 
     private volatile T reference;
 
-    private volatile long counter = 1;
+    private volatile long counter = 0;
 
     public ProxiedRef(T reference, Class<T> clazz, Consumer<T> disposer) {
         this.reference = requireNonNull(reference);
@@ -36,7 +36,7 @@ public final class ProxiedRef<T extends AutoCloseable> implements Ref<T> {
 
     private synchronized void release() {
         final long value = --counter;
-        if (value == 0) {
+        if (value <= 0 && reference != null) {
             try {
                 disposer.accept(reference);
             } finally {

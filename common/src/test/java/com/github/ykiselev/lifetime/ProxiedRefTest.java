@@ -9,6 +9,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.only;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -30,11 +31,9 @@ class ProxiedRefTest {
         assertEquals("xyz", copy2.name());
         copy1.close();
         copy2.close();
-        verify(target, never()).close();
-        verify(disposer, never()).accept(any(B.class));
         ref.close();
-        verify(disposer, only()).accept(target);
-
+        verify(target, never()).close();
+        verify(disposer, times(1)).accept(target);
     }
 
     public interface B extends AutoCloseable {

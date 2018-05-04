@@ -36,53 +36,55 @@ public final class ManagedAssets implements Assets, AutoCloseable {
     @Override
     @SuppressWarnings("unchecked")
     public <T> T tryLoad(String resource, Class<T> clazz, Assets assets) throws ResourceException {
-        final Asset asset = cache.get(resource);
-        if (asset != null) {
-            return (T) asset.value();
-        }
-        return (T) load(resource, clazz, assets);
-    }
-
-    private <T> Object load(String resource, Class<T> clazz, Assets assets) {
-        synchronized (loadLock) {
+        for (; ; ) {
             final Asset asset = cache.get(resource);
             if (asset != null) {
-                return asset.value();
+                return (T) asset.value();
             }
-            final Asset loaded = asset(
-                    delegate.tryLoad(resource, clazz, assets),
-                    clazz
-            );
-            cache.put(resource, loaded);
-            return loaded.value();
+            synchronized (loadLock) {
+                if (!cache.containsKey(resource)) {
+                    cache.put(
+                            resource,
+                            asset(
+                                    resource,
+                                    delegate.tryLoad(resource, clazz, assets),
+                                    clazz
+                            )
+                    );
+                }
+            }
         }
     }
 
-    private <T> Asset asset(T value, Class<T> clazz) {
+    private <T> Asset asset(String resource, T value, Class<T> clazz) {
         Class<?> cls = clazz;
         if (cls == null) {
             cls = value.getClass();
         }
         if (cls.isInterface() && AutoCloseable.class.isAssignableFrom(cls)) {
-            return proxiedAsset(
+            return new RefAsset<>(
+                    resource,
                     (AutoCloseable) value,
                     cls.asSubclass(AutoCloseable.class)
             );
         }
-        return new SimpleAsset(value);
+        return new SimpleAsset(resource, value);
     }
 
-    private <T extends AutoCloseable> Asset proxiedAsset(T value, Class<T> clazz) {
-        return new RefAsset(
-                new ProxiedRef<>(
-                        value,
-                        clazz,
-                        this::dispose
-                )
-        );
+    private void remove(String resource, Asset asset, AutoCloseable object) {
+        logger.trace("Removing \"{}\"", resource);
+        final Asset removed;
+        synchronized (loadLock) {
+            removed = cache.remove(resource);
+        }
+        if (asset != removed) {
+            logger.error("Expected {} but removed {}!", asset, removed);
+        }
+        dispose(object);
     }
 
     private void dispose(AutoCloseable obj) {
+        logger.trace("Disposing {}", obj);
         try {
             obj.close();
         } catch (Exception e) {
@@ -107,6 +109,8 @@ public final class ManagedAssets implements Assets, AutoCloseable {
      */
     private interface Asset {
 
+        String resource();
+
         Object value();
 
     }
@@ -114,12 +118,24 @@ public final class ManagedAssets implements Assets, AutoCloseable {
     /**
      *
      */
-    private final class RefAsset implements Asset, AutoCloseable {
+    private final class RefAsset<T extends AutoCloseable> implements Asset, AutoCloseable {
 
-        private final Ref<?> ref;
+        private final String resource;
 
-        RefAsset(Ref<?> ref) {
-            this.ref = requireNonNull(ref);
+        private final Ref<T> ref;
+
+        RefAsset(String resource, T value, Class<T> clazz) {
+            this.resource = requireNonNull(resource);
+            this.ref = new ProxiedRef<>(value, clazz, this::dispose);
+        }
+
+        private void dispose(T value) {
+            remove(resource, this, value);
+        }
+
+        @Override
+        public String resource() {
+            return resource;
         }
 
         @Override
@@ -158,10 +174,18 @@ public final class ManagedAssets implements Assets, AutoCloseable {
      */
     private static final class SimpleAsset implements Asset {
 
+        private final String resource;
+
         private final Object value;
 
-        SimpleAsset(Object value) {
+        SimpleAsset(String resource, Object value) {
+            this.resource = resource;
             this.value = value;
+        }
+
+        @Override
+        public String resource() {
+            return resource;
         }
 
         @Override
