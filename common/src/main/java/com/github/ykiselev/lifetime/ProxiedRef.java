@@ -9,7 +9,7 @@ import static java.util.Objects.requireNonNull;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class ProxiedRef<T extends AutoCloseable> implements Ref<T> {
+public final class ProxiedRef<T> implements Ref<T> {
 
     private final Class<T> clazz;
 

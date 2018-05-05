@@ -57,21 +57,17 @@ public final class ManagedAssets implements Assets, AutoCloseable {
     }
 
     private <T> Asset asset(String resource, T value, Class<T> clazz) {
-        Class<?> cls = clazz;
+        Class<T> cls = clazz;
         if (cls == null) {
-            cls = value.getClass();
+            cls = (Class<T>) value.getClass();
         }
-        if (cls.isInterface() && AutoCloseable.class.isAssignableFrom(cls)) {
-            return new RefAsset<>(
-                    resource,
-                    (AutoCloseable) value,
-                    cls.asSubclass(AutoCloseable.class)
-            );
+        if (cls.isInterface()) {
+            return new RefAsset<>(resource, value, cls);
         }
-        return new SimpleAsset(resource, value);
+        return new SimpleAsset(value);
     }
 
-    private void remove(String resource, Asset asset, AutoCloseable object) {
+    private void remove(String resource, Asset asset, Object object) {
         logger.trace("Removing \"{}\"", resource);
         final Asset removed;
         synchronized (loadLock) {
@@ -80,7 +76,9 @@ public final class ManagedAssets implements Assets, AutoCloseable {
         if (asset != removed) {
             logger.error("Expected {} but removed {}!", asset, removed);
         }
-        dispose(object);
+        if (object instanceof AutoCloseable) {
+            dispose((AutoCloseable) object);
+        }
     }
 
     private void dispose(AutoCloseable obj) {
@@ -109,8 +107,6 @@ public final class ManagedAssets implements Assets, AutoCloseable {
      */
     private interface Asset {
 
-        String resource();
-
         Object value();
 
     }
@@ -118,7 +114,7 @@ public final class ManagedAssets implements Assets, AutoCloseable {
     /**
      *
      */
-    private final class RefAsset<T extends AutoCloseable> implements Asset, AutoCloseable {
+    private final class RefAsset<T> implements Asset, AutoCloseable {
 
         private final String resource;
 
@@ -131,11 +127,6 @@ public final class ManagedAssets implements Assets, AutoCloseable {
 
         private void dispose(T value) {
             remove(resource, this, value);
-        }
-
-        @Override
-        public String resource() {
-            return resource;
         }
 
         @Override
@@ -174,18 +165,10 @@ public final class ManagedAssets implements Assets, AutoCloseable {
      */
     private static final class SimpleAsset implements Asset {
 
-        private final String resource;
-
         private final Object value;
 
-        SimpleAsset(String resource, Object value) {
-            this.resource = resource;
+        SimpleAsset(Object value) {
             this.value = value;
-        }
-
-        @Override
-        public String resource() {
-            return resource;
         }
 
         @Override
