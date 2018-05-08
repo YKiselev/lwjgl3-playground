@@ -1,7 +1,5 @@
 package com.github.ykiselev.lifetime;
 
-import com.github.ykiselev.proxy.AutoCloseableProxy;
-
 import java.util.function.Consumer;
 
 import static java.util.Objects.requireNonNull;
@@ -9,9 +7,7 @@ import static java.util.Objects.requireNonNull;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class ProxiedRef<T> implements Ref<T> {
-
-    private final Class<T> clazz;
+public final class CountedRef<T> implements Ref<T> {
 
     private final Consumer<T> disposer;
 
@@ -19,9 +15,8 @@ public final class ProxiedRef<T> implements Ref<T> {
 
     private volatile long counter = 0;
 
-    public ProxiedRef(T reference, Class<T> clazz, Consumer<T> disposer) {
+    public CountedRef(T reference, Consumer<T> disposer) {
         this.reference = requireNonNull(reference);
-        this.clazz = requireNonNull(clazz);
         this.disposer = requireNonNull(disposer);
     }
 
@@ -32,7 +27,7 @@ public final class ProxiedRef<T> implements Ref<T> {
             return null;
         }
         ++counter;
-        return AutoCloseableProxy.create(ref, clazz, v -> release());
+        return ref;
     }
 
     @Override
@@ -58,7 +53,7 @@ public final class ProxiedRef<T> implements Ref<T> {
 
     @Override
     public String toString() {
-        return "ProxiedRef{" +
+        return "CountedRef{" +
                 "reference=" + reference +
                 ", counter=" + counter +
                 '}';

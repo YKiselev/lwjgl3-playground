@@ -4,15 +4,14 @@ import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.assets.ReadableAsset;
 import com.github.ykiselev.assets.ResourceException;
 import com.github.ykiselev.closeables.Closeables;
-import com.github.ykiselev.lifetime.ProxiedRef;
+import com.github.ykiselev.lifetime.CountedRef;
 import com.github.ykiselev.lifetime.Ref;
+import com.github.ykiselev.proxy.AutoCloseableProxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 import static java.util.Objects.requireNonNull;
 
@@ -56,13 +55,13 @@ public final class ManagedAssets implements Assets, AutoCloseable {
         }
     }
 
-    private <T> Asset asset(String resource, T value, Class<T> clazz) {
-        Class<T> cls = clazz;
+    private Asset asset(String resource, Object value, Class<?> clazz) {
+        Class<?> cls = clazz;
         if (cls == null) {
-            cls = (Class<T>) value.getClass();
+            cls = value.getClass();
         }
-        if (cls.isInterface()) {
-            return new RefAsset<>(resource, value, cls);
+        if (cls.isInterface() && AutoCloseable.class.isAssignableFrom(cls)) {
+            return new RefAsset(resource, value, cls);
         }
         return new SimpleAsset(value);
     }
@@ -114,49 +113,33 @@ public final class ManagedAssets implements Assets, AutoCloseable {
     /**
      *
      */
-    private final class RefAsset<T> implements Asset, AutoCloseable {
+    private final class RefAsset implements Asset, AutoCloseable {
 
-        private final String resource;
+        private final Class<?> clazz;
 
-        private final Ref<T> ref;
+        private final Ref ref;
 
-        RefAsset(String resource, T value, Class<T> clazz) {
-            this.resource = requireNonNull(resource);
-            this.ref = new ProxiedRef<>(value, clazz, this::dispose);
-        }
-
-        private void dispose(T value) {
-            remove(resource, this, value);
+        @SuppressWarnings("unchecked")
+        RefAsset(String resource, Object value, Class<?> clazz) {
+            this.clazz = requireNonNull(clazz);
+            this.ref = new CountedRef(
+                    value,
+                    v -> remove(resource, this, value)
+            );
         }
 
         @Override
         public Object value() {
-            logNewRef();
-            return ref.newRef();
+            final Object ref = this.ref.newRef();
+            if (ref != null) {
+                return AutoCloseableProxy.create(ref, clazz, v -> this.ref.release());
+            }
+            return null;
         }
 
         @Override
         public void close() {
-            try {
-                ref.close();
-            } catch (Exception e) {
-                logger.error("Unable to close reference!", e);
-            }
-        }
-
-        private void logNewRef() {
-            if (!logger.isTraceEnabled()) {
-                return;
-            }
-            logger.trace(
-                    "{}:\n{}",
-                    ref,
-                    Arrays.stream(
-                            new RuntimeException("").getStackTrace()
-                    ).map(Object::toString)
-                            .map(s -> "  " + s)
-                            .collect(Collectors.joining("\n"))
-            );
+            ref.close();
         }
     }
 

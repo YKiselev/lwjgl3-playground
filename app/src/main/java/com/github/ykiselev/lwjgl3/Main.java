@@ -16,6 +16,9 @@
 
 package com.github.ykiselev.lwjgl3;
 
+import com.github.ykiselev.assets.Assets;
+import com.github.ykiselev.closeables.CompositeAutoCloseable;
+import com.github.ykiselev.io.FileSystem;
 import com.github.ykiselev.lwjgl3.app.ErrorCallbackApp;
 import com.github.ykiselev.lwjgl3.app.GlfwApp;
 import com.github.ykiselev.lwjgl3.assets.GameAssets;
@@ -42,9 +45,6 @@ import com.github.ykiselev.lwjgl3.services.Services;
 import com.github.ykiselev.lwjgl3.services.SoundEffects;
 import com.github.ykiselev.lwjgl3.sound.AppSoundEffects;
 import com.github.ykiselev.lwjgl3.window.AppWindow;
-import com.github.ykiselev.assets.Assets;
-import com.github.ykiselev.closeables.CompositeAutoCloseable;
-import com.github.ykiselev.io.FileSystem;
 import org.lwjgl.opengl.GL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

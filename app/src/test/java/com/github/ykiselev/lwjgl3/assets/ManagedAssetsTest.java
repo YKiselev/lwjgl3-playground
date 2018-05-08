@@ -1,15 +1,17 @@
 package com.github.ykiselev.lwjgl3.assets;
 
 import com.github.ykiselev.assets.Assets;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.io.Closeable;
-import java.util.Optional;
 
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -37,9 +39,9 @@ class ManagedAssetsTest {
         final AutoCloseable a = mock(AutoCloseable.class);
         when(delegate.tryLoad(eq("ac"), eq(AutoCloseable.class), eq(assets)))
                 .thenReturn(a);
-        assets.load("ac", AutoCloseable.class).close();
+        assertNotNull(assets.load("ac", AutoCloseable.class));
         assets.close();
-        verify(a, atLeast(1)).close();
+        verify(a, times(1)).close();
     }
 
     @Test
@@ -47,9 +49,27 @@ class ManagedAssetsTest {
         final Closeable c = mock(Closeable.class);
         when(delegate.tryLoad(eq("c"), eq(Closeable.class), eq(assets)))
                 .thenReturn(c);
-        assets.load("c", Closeable.class).close();
+        assertNotNull(assets.load("c", Closeable.class));
         assets.close();
-        verify(c, atLeast(1)).close();
+        verify(c, times(1)).close();
     }
 
+    @Test
+    void shouldRemoveUnused() throws Exception {
+        final AutoCloseable a = mock(AutoCloseable.class);
+        when(delegate.tryLoad(eq("ac"), eq(AutoCloseable.class), eq(assets)))
+                .thenReturn(a);
+        assets.load("ac", AutoCloseable.class).close();
+        verify(a, times(1)).close();
+    }
+
+    @Test
+    void shouldReportLeaks() {
+        final AutoCloseable a = mock(AutoCloseable.class);
+        when(delegate.tryLoad(eq("ac"), eq(AutoCloseable.class), eq(assets)))
+                .thenReturn(a);
+        assertNotNull(assets.load("ac", AutoCloseable.class));
+        assertNotNull(assets.load("ac", AutoCloseable.class));
+        assertThrows(RuntimeException.class, assets::close);
+    }
 }

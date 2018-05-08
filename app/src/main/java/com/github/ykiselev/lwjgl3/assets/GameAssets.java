@@ -1,6 +1,5 @@
 package com.github.ykiselev.lwjgl3.assets;
 
-import com.github.ykiselev.closeables.Closeables;
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.assets.CompositeReadableAssets;
 import com.github.ykiselev.assets.ReadableAsset;
@@ -15,6 +14,7 @@ import com.github.ykiselev.assets.formats.ReadableShaderObject;
 import com.github.ykiselev.assets.formats.ReadableSpriteFont;
 import com.github.ykiselev.assets.formats.ReadableTexture2d;
 import com.github.ykiselev.assets.formats.obj.ObjModel;
+import com.github.ykiselev.closeables.Closeables;
 import com.github.ykiselev.opengl.shaders.ProgramObject;
 import com.github.ykiselev.opengl.text.SpriteFont;
 import com.github.ykiselev.opengl.textures.DefaultMipMappedTexture2d;
@@ -26,7 +26,6 @@ import com.typesafe.config.Config;
 import org.lwjgl.opengl.GL20;
 
 import java.util.Map;
-import java.util.Optional;
 
 import static java.util.Objects.requireNonNull;
 

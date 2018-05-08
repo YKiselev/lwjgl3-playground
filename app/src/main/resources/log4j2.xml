@@ -32,7 +32,7 @@
             <AppenderRef ref="Console"/>
         </Logger>
         <!-- Set to trace level to see new reference allocations -->
-        <Logger name="com.github.ykiselev.lwjgl3.assets.ManagedAssets" level="warn" additivity="false">
+        <Logger name="com.github.ykiselev.lwjgl3.assets.RefCountedAssets" level="warn" additivity="false">
             <AppenderRef ref="Console"/>
         </Logger>
     </Loggers>

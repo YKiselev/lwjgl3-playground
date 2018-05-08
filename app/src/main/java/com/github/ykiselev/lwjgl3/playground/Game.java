@@ -1,14 +1,14 @@
 package com.github.ykiselev.lwjgl3.playground;
 
-import com.github.ykiselev.lwjgl3.events.Events;
+import com.github.ykiselev.assets.Assets;
+import com.github.ykiselev.assets.formats.obj.ObjModel;
 import com.github.ykiselev.closeables.CompositeAutoCloseable;
+import com.github.ykiselev.io.FileSystem;
+import com.github.ykiselev.lwjgl3.events.Events;
 import com.github.ykiselev.lwjgl3.events.SubscriptionsBuilder;
 import com.github.ykiselev.lwjgl3.events.layers.ShowMenuEvent;
 import com.github.ykiselev.lwjgl3.layers.UiLayer;
 import com.github.ykiselev.lwjgl3.services.Services;
-import com.github.ykiselev.assets.Assets;
-import com.github.ykiselev.assets.formats.obj.ObjModel;
-import com.github.ykiselev.io.FileSystem;
 import com.github.ykiselev.opengl.matrices.Matrix;
 import com.github.ykiselev.opengl.matrices.Vector3f;
 import com.github.ykiselev.opengl.models.GenericIndexedGeometry;
@@ -112,8 +112,9 @@ public final class Game implements UiLayer, WindowEvents, AutoCloseable {
 
     private FrameBufferMode frameBufferMode = FrameBufferMode.COLOR;
 
-    public Game(Services services, Assets assets) {
+    public Game(Services services) {
         this.services = requireNonNull(services);
+        final Assets assets = services.resolve(Assets.class);
         this.group = new SubscriptionsBuilder()
                 .build(services.resolve(Events.class));
         spriteBatch = new DefaultSpriteBatch(
@@ -121,7 +122,6 @@ public final class Game implements UiLayer, WindowEvents, AutoCloseable {
         );
         cuddles = assets.load("images/htf-cuddles.jpg", SimpleTexture2d.class);
         liberationMono = assets.load("fonts/Liberation Mono.sf", SpriteFont.class);
-
         final ProgramObject generic = assets.load("progs/generic.conf", ProgramObject.class);
         final ObjModel model = assets.load("models/2cubes.obj", ObjModel.class);
         cubes = new GenericIndexedGeometry(
@@ -130,7 +130,6 @@ public final class Game implements UiLayer, WindowEvents, AutoCloseable {
                 model.toIndexedTriangles()
         );
         texUniform = generic.lookup("tex");
-
         final ProgramObject colored = assets.load("progs/colored.conf", ProgramObject.class);
         try (Pyramid p = new Pyramid()) {
             pyramid = new GenericIndexedGeometry(
@@ -139,9 +138,7 @@ public final class Game implements UiLayer, WindowEvents, AutoCloseable {
                     p
             );
         }
-
         pv = MemoryUtil.memAllocFloat(16);
-
         frameBuffer = new FrameBuffer();
     }
 

@@ -16,7 +16,7 @@ public final class AutoCloseableProxy {
 
     /**
      * @param target     the target instance to proxify.
-     * @param interfaces the interafces to implement by proxy.
+     * @param interfaces the interfaces to implement by proxy.
      * @param onClose    the consumer to call upon proxy closing.
      * @param <T>        the type parameter
      * @return the proxy of specified type (implementing {@link AutoCloseable} interface).

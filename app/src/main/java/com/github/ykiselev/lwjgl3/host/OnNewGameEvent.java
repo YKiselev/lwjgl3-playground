@@ -4,7 +4,6 @@ import com.github.ykiselev.lwjgl3.events.game.NewGameEvent;
 import com.github.ykiselev.lwjgl3.layers.UiLayers;
 import com.github.ykiselev.lwjgl3.playground.Game;
 import com.github.ykiselev.lwjgl3.services.Services;
-import com.github.ykiselev.assets.Assets;
 
 import java.util.function.Consumer;
 
@@ -32,10 +31,7 @@ public final class OnNewGameEvent implements Consumer<NewGameEvent> {
                         throw new RuntimeException(e);
                     }
                 });
-        final Game game = new Game(
-                services,
-                services.resolve(Assets.class)
-        );
+        final Game game = new Game(services);
         services.add(Game.class, game);
         services.resolve(UiLayers.class)
                 .replace(game);

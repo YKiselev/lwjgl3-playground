@@ -7,6 +7,8 @@ public interface Ref<T> extends AutoCloseable {
 
     T newRef();
 
+    long release();
+
     @Override
-    void close();
+    void close() throws IllegalStateException;
 }

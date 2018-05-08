@@ -88,5 +88,4 @@ public interface Assets extends ReadableAssets {
     default <T> T tryLoad(String resource) throws ResourceException {
         return tryLoad(resource, null);
     }
-
 }
