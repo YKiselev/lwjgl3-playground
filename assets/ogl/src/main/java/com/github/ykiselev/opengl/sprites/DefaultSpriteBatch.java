@@ -4,6 +4,7 @@ import com.github.ykiselev.opengl.shaders.ProgramObject;
 import com.github.ykiselev.opengl.text.Glyph;
 import com.github.ykiselev.opengl.text.SpriteFont;
 import com.github.ykiselev.opengl.textures.Texture2d;
+import com.github.ykiselev.wrap.Wrap;
 
 import static java.util.Objects.requireNonNull;
 
@@ -39,7 +40,7 @@ public final class DefaultSpriteBatch implements SpriteBatch {
     /**
      * @param program the program to use
      */
-    public DefaultSpriteBatch(ProgramObject program) {
+    public DefaultSpriteBatch(Wrap<ProgramObject> program) {
         this(new TexturedQuads(program));
     }
 

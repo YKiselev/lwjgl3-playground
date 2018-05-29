@@ -22,6 +22,8 @@ import com.github.ykiselev.assets.ResourceException;
 import com.github.ykiselev.io.ByteChannelAsString;
 import com.github.ykiselev.opengl.shaders.DefaultShaderObject;
 import com.github.ykiselev.opengl.shaders.ShaderObject;
+import com.github.ykiselev.wrap.Wrap;
+import com.github.ykiselev.wrap.Wraps;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,7 +55,7 @@ public final class ReadableShaderObject implements ReadableAsset<ShaderObject> {
     }
 
     @Override
-    public ShaderObject read(ReadableByteChannel channel, Assets assets) throws ResourceException {
+    public Wrap<ShaderObject> read(ReadableByteChannel channel, Assets assets) throws ResourceException {
         final int id = glCreateShader(type);
         glShaderSource(
                 id,
@@ -69,6 +71,8 @@ public final class ReadableShaderObject implements ReadableAsset<ShaderObject> {
                 logger.warn("Shader log: {}", log);
             }
         }
-        return new DefaultShaderObject(id);
+        return Wraps.of(
+                new DefaultShaderObject(id)
+        );
     }
 }

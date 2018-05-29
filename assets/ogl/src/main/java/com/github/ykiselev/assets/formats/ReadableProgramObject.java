@@ -22,6 +22,8 @@ import com.github.ykiselev.assets.ResourceException;
 import com.github.ykiselev.opengl.shaders.DefaultProgramObject;
 import com.github.ykiselev.opengl.shaders.ProgramObject;
 import com.github.ykiselev.opengl.shaders.ShaderObject;
+import com.github.ykiselev.wrap.Wrap;
+import com.github.ykiselev.wrap.Wraps;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigValue;
 import org.apache.commons.lang3.StringUtils;
@@ -52,7 +54,7 @@ public final class ReadableProgramObject implements ReadableAsset<ProgramObject>
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Override
-    public ProgramObject read(ReadableByteChannel channel, Assets assets) throws ResourceException {
+    public Wrap<ProgramObject> read(ReadableByteChannel channel, Assets assets) throws ResourceException {
         final Config config = readConfig(channel, assets);
         final int id = glCreateProgram();
         final ShaderObject[] shaders = readShaders(assets, config);
@@ -84,7 +86,7 @@ public final class ReadableProgramObject implements ReadableAsset<ProgramObject>
             }
             program.unbind();
         }
-        return program;
+        return Wraps.of(program);
     }
 
     private ShaderObject[] readShaders(Assets assets, Config config) {
@@ -100,10 +102,12 @@ public final class ReadableProgramObject implements ReadableAsset<ProgramObject>
     }
 
     private Config readConfig(ReadableByteChannel channel, Assets assets) {
-        return assets.resolve(Config.class)
-                .read(channel, assets)
-                .withFallback(
-                        assets.load("fallback/program-object.conf")
-                );
+        final ReadableAsset<Config> readableConfig = assets.resolve(Config.class);
+        try (Wrap<Config> fallback = assets.load("fallback/program-object.conf", Config.class)) {
+            try (Wrap<Config> config = readableConfig.read(channel, assets)) {
+                return config.value()
+                        .withFallback(fallback.value());
+            }
+        }
     }
 }

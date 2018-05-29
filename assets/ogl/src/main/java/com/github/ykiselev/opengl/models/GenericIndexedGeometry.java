@@ -7,6 +7,7 @@ import com.github.ykiselev.opengl.vbo.IndexBufferObject;
 import com.github.ykiselev.opengl.vbo.VertexArrayObject;
 import com.github.ykiselev.opengl.vbo.VertexBufferObject;
 import com.github.ykiselev.opengl.vertices.VertexDefinition;
+import com.github.ykiselev.wrap.Wrap;
 
 import java.nio.FloatBuffer;
 
@@ -20,7 +21,7 @@ import static org.lwjgl.opengl.GL15.GL_STATIC_DRAW;
  */
 public final class GenericIndexedGeometry implements AutoCloseable {
 
-    private final ProgramObject program;
+    private final Wrap<ProgramObject> program;
 
     private final VertexArrayObject vao;
 
@@ -34,14 +35,15 @@ public final class GenericIndexedGeometry implements AutoCloseable {
 
     private final int count;
 
-    public GenericIndexedGeometry(ProgramObject program, VertexDefinition vertexDefinition, IndexedGeometrySource geometrySource) {
+    public GenericIndexedGeometry(Wrap<ProgramObject> program, VertexDefinition vertexDefinition, IndexedGeometrySource geometrySource) {
         this.program = requireNonNull(program);
         this.mode = geometrySource.mode();
         this.count = geometrySource.indices().remaining() / Integer.BYTES;
 
-        program.bind();
-        mvpUniform = program.lookup("mvp");
-        //texUniform = program.lookup("tex");
+        final ProgramObject prg = program.value();
+        prg.bind();
+        mvpUniform = prg.lookup("mvp");
+        //texUniform = prg.lookup("tex");
 
         vao = new VertexArrayObject();
         vao.bind();
@@ -58,11 +60,11 @@ public final class GenericIndexedGeometry implements AutoCloseable {
         vao.unbind();
         vbo.unbind();
         ebo.unbind();
-        program.unbind();
+        prg.unbind();
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         vbo.close();
         ebo.close();
         vao.close();
@@ -71,7 +73,7 @@ public final class GenericIndexedGeometry implements AutoCloseable {
 
     public void draw(FloatBuffer mvp) {
         vao.bind();
-        program.bind();
+        program.value().bind();
 
         mvpUniform.matrix4(false, mvp);
         //texUniform.value(0);
@@ -82,6 +84,6 @@ public final class GenericIndexedGeometry implements AutoCloseable {
         vao.unbind();
         vbo.unbind();
         ebo.unbind();
-        program.unbind();
+        program.value().unbind();
     }
 }

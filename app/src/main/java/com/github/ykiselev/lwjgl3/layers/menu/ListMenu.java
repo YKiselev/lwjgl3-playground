@@ -1,12 +1,12 @@
 package com.github.ykiselev.lwjgl3.layers.menu;
 
+import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.lwjgl3.layers.DrawingContext;
 import com.github.ykiselev.lwjgl3.layers.UiLayer;
 import com.github.ykiselev.lwjgl3.layers.UiLayers;
 import com.github.ykiselev.lwjgl3.layers.ui.UiElement;
 import com.github.ykiselev.lwjgl3.playground.WindowEvents;
 import com.github.ykiselev.lwjgl3.services.Services;
-import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.opengl.shaders.ProgramObject;
 import com.github.ykiselev.opengl.sprites.Colors;
 import com.github.ykiselev.opengl.sprites.DefaultSpriteBatch;
@@ -16,6 +16,7 @@ import com.github.ykiselev.opengl.text.Glyph;
 import com.github.ykiselev.opengl.text.SpriteFont;
 import com.github.ykiselev.opengl.textures.SimpleTexture2d;
 import com.github.ykiselev.opengl.textures.Texture2d;
+import com.github.ykiselev.wrap.Wrap;
 
 import java.util.Arrays;
 import java.util.List;
@@ -51,9 +52,9 @@ public final class ListMenu implements UiLayer, AutoCloseable {
 
     private final SpriteBatch spriteBatch;
 
-    private final Texture2d white;
+    private final Wrap<? extends Texture2d> white;
 
-    private final SpriteFont font;
+    private final Wrap<SpriteFont> font;
 
     private final List<MenuItem> items;
 
@@ -62,7 +63,7 @@ public final class ListMenu implements UiLayer, AutoCloseable {
     private final DrawingContext context = new DrawingContext() {
         @Override
         public SpriteFont font() {
-            return font;
+            return font.value();
         }
 
         @Override
@@ -72,7 +73,7 @@ public final class ListMenu implements UiLayer, AutoCloseable {
 
         @Override
         public int draw(int x, int y, int width, CharSequence text, int color) {
-            return spriteBatch.draw(font, x, y, width, text, color);
+            return spriteBatch.draw(font.value(), x, y, width, text, color);
         }
     };
 
@@ -183,10 +184,10 @@ public final class ListMenu implements UiLayer, AutoCloseable {
     @Override
     public void draw(int width, int height) {
         spriteBatch.begin(0, 0, width, height, true);
-        spriteBatch.draw(white, 0, 0, width, height, 0x000030df);
+        spriteBatch.draw(white.value(), 0, 0, width, height, 0x000030df);
 
         final int cursorWidth;
-        final Glyph glyph = font.findGlyph((char) 0x23f5);
+        final Glyph glyph = font.value().findGlyph((char) 0x23f5);
         if (glyph != null) {
             cursorWidth = glyph.width();
         } else {
@@ -195,16 +196,16 @@ public final class ListMenu implements UiLayer, AutoCloseable {
 
         final int x = 150 + cursorWidth;
         final int maxWidth = width - x;
-        int y = height / 2 + items.size() * font.fontHeight() / 2 - font.fontHeight();
+        int y = height / 2 + items.size() * font.value().fontHeight() / 2 - font.value().fontHeight();
         int i = 0;
         for (MenuItem item : items) {
             int dx = 0, th = 0;
             if (item.title != null) {
-                th = spriteBatch.draw(font, x - (cursorWidth + 150), y, 150, item.title, TextAlignment.RIGHT, 0xffffffff);
+                th = spriteBatch.draw(font.value(), x - (cursorWidth + 150), y, 150, item.title, TextAlignment.RIGHT, 0xffffffff);
             }
             if (i == selected) {
                 final float brightness = (System.currentTimeMillis() % 255) / 255f;
-                spriteBatch.draw(font, x - cursorWidth, y, maxWidth, "\u23F5", Colors.fade(0xffffffff, brightness));
+                spriteBatch.draw(font.value(), x - cursorWidth, y, maxWidth, "\u23F5", Colors.fade(0xffffffff, brightness));
             }
             final int eh = item.element.draw(x + dx, y, maxWidth, context);
             y -= Math.max(th, eh);

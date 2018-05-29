@@ -1,7 +1,7 @@
 package com.github.ykiselev.lwjgl3.assets;
 
 import com.github.ykiselev.assets.Assets;
-import org.junit.jupiter.api.Assertions;
+import com.github.ykiselev.wrap.Wraps;
 import org.junit.jupiter.api.Test;
 
 import java.io.Closeable;
@@ -27,10 +27,10 @@ class ManagedAssetsTest {
     @Test
     void shouldLoadOnce() {
         when(delegate.tryLoad(eq("a"), eq(String.class), eq(assets)))
-                .thenReturn("A");
+                .thenReturn(Wraps.simple("A"));
         assertSame(
-                assets.load("a", String.class),
-                assets.load("a", String.class)
+                assets.load("a", String.class).value(),
+                assets.load("a", String.class).value()
         );
     }
 
@@ -38,7 +38,7 @@ class ManagedAssetsTest {
     void shouldCloseAutoCloseables() throws Exception {
         final AutoCloseable a = mock(AutoCloseable.class);
         when(delegate.tryLoad(eq("ac"), eq(AutoCloseable.class), eq(assets)))
-                .thenReturn(a);
+                .thenReturn(Wraps.of(a));
         assertNotNull(assets.load("ac", AutoCloseable.class));
         assets.close();
         verify(a, times(1)).close();
@@ -48,7 +48,7 @@ class ManagedAssetsTest {
     void shouldCloseCloseables() throws Exception {
         final Closeable c = mock(Closeable.class);
         when(delegate.tryLoad(eq("c"), eq(Closeable.class), eq(assets)))
-                .thenReturn(c);
+                .thenReturn(Wraps.of(c));
         assertNotNull(assets.load("c", Closeable.class));
         assets.close();
         verify(c, times(1)).close();
@@ -58,7 +58,7 @@ class ManagedAssetsTest {
     void shouldRemoveUnused() throws Exception {
         final AutoCloseable a = mock(AutoCloseable.class);
         when(delegate.tryLoad(eq("ac"), eq(AutoCloseable.class), eq(assets)))
-                .thenReturn(a);
+                .thenReturn(Wraps.of(a));
         assets.load("ac", AutoCloseable.class).close();
         verify(a, times(1)).close();
     }
@@ -67,7 +67,7 @@ class ManagedAssetsTest {
     void shouldReportLeaks() {
         final AutoCloseable a = mock(AutoCloseable.class);
         when(delegate.tryLoad(eq("ac"), eq(AutoCloseable.class), eq(assets)))
-                .thenReturn(a);
+                .thenReturn(Wraps.of(a));
         assertNotNull(assets.load("ac", AutoCloseable.class));
         assertNotNull(assets.load("ac", AutoCloseable.class));
         assertThrows(RuntimeException.class, assets::close);

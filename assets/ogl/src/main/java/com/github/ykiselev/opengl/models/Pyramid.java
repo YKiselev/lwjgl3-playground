@@ -1,8 +1,8 @@
 package com.github.ykiselev.opengl.models;
 
-import com.github.ykiselev.common.Wrap;
 import com.github.ykiselev.memory.MemAlloc;
 import com.github.ykiselev.opengl.IndexedGeometrySource;
+import com.github.ykiselev.wrap.Wrap;
 import org.lwjgl.opengl.GL11;
 
 import java.nio.ByteBuffer;

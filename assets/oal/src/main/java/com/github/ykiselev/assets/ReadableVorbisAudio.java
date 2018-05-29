@@ -1,11 +1,12 @@
 package com.github.ykiselev.assets;
 
 import com.github.ykiselev.assets.vorbis.VorbisAudio;
-import com.github.ykiselev.common.Wrap;
 import com.github.ykiselev.io.ByteChannelAsByteBuffer;
 import com.github.ykiselev.io.ReadableBytes;
 import com.github.ykiselev.memory.MemAllocShort;
 import com.github.ykiselev.openal.AudioSamples;
+import com.github.ykiselev.wrap.Wrap;
+import com.github.ykiselev.wrap.Wraps;
 import org.lwjgl.stb.STBVorbisInfo;
 import org.lwjgl.system.MemoryStack;
 
@@ -39,7 +40,7 @@ public final class ReadableVorbisAudio implements ReadableAsset<AudioSamples> {
     }
 
     @Override
-    public AudioSamples read(ReadableByteChannel channel, Assets assets) throws ResourceException {
+    public Wrap<AudioSamples> read(ReadableByteChannel channel, Assets assets) throws ResourceException {
         try (STBVorbisInfo info = STBVorbisInfo.malloc()) {
             final ReadableBytes asBuffer = new ByteChannelAsByteBuffer(
                     channel, bufferSize
@@ -63,11 +64,13 @@ public final class ReadableVorbisAudio implements ReadableAsset<AudioSamples> {
                     final int samples = stb_vorbis_get_samples_short_interleaved(decoder, channels, pcm);
                     pcm.limit(samples * channels);
                     stb_vorbis_close(decoder);
-                    return new VorbisAudio(
-                            channels == 1 ? AL_FORMAT_MONO16 : AL_FORMAT_STEREO16,
-                            info.sample_rate(),
-                            samples,
-                            wrap
+                    return Wraps.of(
+                            new VorbisAudio(
+                                    channels == 1 ? AL_FORMAT_MONO16 : AL_FORMAT_STEREO16,
+                                    info.sample_rate(),
+                                    samples,
+                                    wrap
+                            )
                     );
                 }
             }

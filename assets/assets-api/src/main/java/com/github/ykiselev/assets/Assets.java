@@ -16,6 +16,8 @@
 
 package com.github.ykiselev.assets;
 
+import com.github.ykiselev.wrap.Wrap;
+
 /**
  * Asset manager. Implementations expected to delegate actual work of loading asset to appropriate instance of class implementing {@link ReadableAsset}.
  * <p>
@@ -26,14 +28,14 @@ public interface Assets extends ReadableAssets {
     /**
      * Loads asset using one of registered {@link ReadableAsset}'s
      *
+     * @param <T>      the type of resource
      * @param resource the resource name
      * @param clazz    the class of resource or {@code null} if not known
-     * @param <T>      the type of resource
      * @return the requested resource
      * @throws ResourceException if resource not found or something goes wrong during the resource loading process.
      */
-    default <T> T load(String resource, Class<T> clazz) throws ResourceException {
-        final T result = tryLoad(resource, clazz);
+    default <T> Wrap<T> load(String resource, Class<T> clazz) throws ResourceException {
+        final Wrap<T> result = tryLoad(resource, clazz);
         if (result == null) {
             throw new ResourceException("Unable to load " + resource);
         }
@@ -43,49 +45,49 @@ public interface Assets extends ReadableAssets {
     /**
      * Loads asset using one of registered {@link ReadableAsset}'s
      *
+     * @param <T>      the type of resource
      * @param resource the resource name
      * @param clazz    the class of resource or {@code null} if not known
-     * @param <T>      the type of resource
      * @return the requested resource or {@code null}
      * @throws ResourceException if something goes wrong during the resource loading process.
      */
-    default <T> T tryLoad(String resource, Class<T> clazz) throws ResourceException {
+    default <T> Wrap<T> tryLoad(String resource, Class<T> clazz) throws ResourceException {
         return tryLoad(resource, clazz, this);
     }
 
     /**
      * Loads asset using one of registered {@link ReadableAsset}'s
      *
+     * @param <T>      the type of resource
      * @param resource the resource name
      * @param clazz    the class of resource or {@code null} if not known
      * @param assets   the asset manager to pass to {@link ReadableAsset#read(java.nio.channels.ReadableByteChannel, Assets)} to load sub-assets
-     * @param <T>      the type of resource
      * @return the requested resource or {@code null}
      * @throws ResourceException if something goes wrong during the resource loading process.
      */
-    <T> T tryLoad(String resource, Class<T> clazz, Assets assets) throws ResourceException;
+    <T> Wrap<T> tryLoad(String resource, Class<T> clazz, Assets assets) throws ResourceException;
 
     /**
      * Convenient method taking only one string argument as a resource name.
      *
-     * @param resource the resource name.
      * @param <T>      the type of resource
+     * @param resource the resource name.
      * @return the requested resource
      * @throws ResourceException if something goes wrong during the resource loading process.
      */
-    default <T> T load(String resource) throws ResourceException {
+    default <T> Wrap<T> load(String resource) throws ResourceException {
         return load(resource, null);
     }
 
     /**
      * Convenient method taking only one string argument as a resource name.
      *
-     * @param resource the resource name
      * @param <T>      the type of resource
+     * @param resource the resource name
      * @return the requested resource or {@code null}
      * @throws ResourceException if something goes wrong during the resource loading process.
      */
-    default <T> T tryLoad(String resource) throws ResourceException {
+    default <T> Wrap<T> tryLoad(String resource) throws ResourceException {
         return tryLoad(resource, null);
     }
 }

@@ -6,7 +6,7 @@ import com.github.ykiselev.assets.ResourceException;
 import com.github.ykiselev.closeables.Closeables;
 import com.github.ykiselev.lifetime.CountedRef;
 import com.github.ykiselev.lifetime.Ref;
-import com.github.ykiselev.proxy.AutoCloseableProxy;
+import com.github.ykiselev.wrap.Wrap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,11 +34,11 @@ public final class ManagedAssets implements Assets, AutoCloseable {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T> T tryLoad(String resource, Class<T> clazz, Assets assets) throws ResourceException {
+    public <T> Wrap<T> tryLoad(String resource, Class<T> clazz, Assets assets) throws ResourceException {
         for (; ; ) {
             final Asset asset = cache.get(resource);
             if (asset != null) {
-                return (T) asset.value();
+                return (Wrap<T>) asset.value();
             }
             synchronized (loadLock) {
                 if (!cache.containsKey(resource)) {
@@ -55,7 +55,7 @@ public final class ManagedAssets implements Assets, AutoCloseable {
         }
     }
 
-    private Asset asset(String resource, Object value, Class<?> clazz) {
+    private Asset asset(String resource, Wrap<?> value, Class<?> clazz) {
         Class<?> cls = clazz;
         if (cls == null) {
             cls = value.getClass();
@@ -106,7 +106,7 @@ public final class ManagedAssets implements Assets, AutoCloseable {
      */
     private interface Asset {
 
-        Object value();
+        Wrap<?> value();
 
     }
 
@@ -117,22 +117,26 @@ public final class ManagedAssets implements Assets, AutoCloseable {
 
         private final Class<?> clazz;
 
-        private final Ref ref;
+        private final Ref<Wrap<?>> ref;
 
-        @SuppressWarnings("unchecked")
-        RefAsset(String resource, Object value, Class<?> clazz) {
+        RefAsset(String resource, Wrap<?> value, Class<?> clazz) {
             this.clazz = requireNonNull(clazz);
-            this.ref = new CountedRef(
+            this.ref = new CountedRef<>(
                     value,
                     v -> remove(resource, this, value)
             );
         }
 
         @Override
-        public Object value() {
-            final Object ref = this.ref.newRef();
-            if (ref != null) {
-                return AutoCloseableProxy.create(ref, clazz, v -> this.ref.release());
+        public Wrap<?> value() {
+            final Wrap<?> wrap = ref.newRef();
+            if (wrap != null) {
+                return new Wrap<Object>(wrap.value()) {
+                    @Override
+                    public void close() {
+                        ref.release();
+                    }
+                };
             }
             return null;
         }
@@ -148,14 +152,14 @@ public final class ManagedAssets implements Assets, AutoCloseable {
      */
     private static final class SimpleAsset implements Asset {
 
-        private final Object value;
+        private final Wrap<?> value;
 
-        SimpleAsset(Object value) {
+        SimpleAsset(Wrap<?> value) {
             this.value = value;
         }
 
         @Override
-        public Object value() {
+        public Wrap<?> value() {
             return value;
         }
     }

@@ -19,6 +19,8 @@ package com.github.ykiselev.assets.formats;
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.assets.ReadableAsset;
 import com.github.ykiselev.assets.ResourceException;
+import com.github.ykiselev.wrap.Wrap;
+import com.github.ykiselev.wrap.Wraps;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
@@ -35,9 +37,11 @@ import java.nio.charset.StandardCharsets;
 public final class ReadableConfig implements ReadableAsset<Config> {
 
     @Override
-    public Config read(ReadableByteChannel channel, Assets assets) throws ResourceException {
+    public Wrap<Config> read(ReadableByteChannel channel, Assets assets) throws ResourceException {
         try (Reader reader = new BufferedReader(Channels.newReader(channel, StandardCharsets.UTF_8.newDecoder(), -1))) {
-            return ConfigFactory.parseReader(reader);
+            return Wraps.simple(
+                    ConfigFactory.parseReader(reader)
+            );
         } catch (IOException e) {
             throw new ResourceException(e);
         }

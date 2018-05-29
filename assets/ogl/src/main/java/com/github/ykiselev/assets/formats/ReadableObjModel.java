@@ -5,6 +5,8 @@ import com.github.ykiselev.assets.ReadableAsset;
 import com.github.ykiselev.assets.ResourceException;
 import com.github.ykiselev.assets.formats.obj.ObjModel;
 import com.github.ykiselev.assets.formats.obj.ObjModelBuilder;
+import com.github.ykiselev.wrap.Wrap;
+import com.github.ykiselev.wrap.Wraps;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -18,9 +20,11 @@ import java.nio.charset.StandardCharsets;
 public final class ReadableObjModel implements ReadableAsset<ObjModel> {
 
     @Override
-    public ObjModel read(ReadableByteChannel channel, Assets assets) throws ResourceException {
+    public Wrap<ObjModel> read(ReadableByteChannel channel, Assets assets) throws ResourceException {
         try (BufferedReader reader = reader(channel)) {
-            return parse(reader);
+            return Wraps.simple(
+                    parse(reader)
+            );
         } catch (Exception e) {
             throw new ResourceException(e);
         }

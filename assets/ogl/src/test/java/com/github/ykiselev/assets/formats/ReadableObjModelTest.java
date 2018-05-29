@@ -3,6 +3,7 @@ package com.github.ykiselev.assets.formats;
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.assets.ReadableAsset;
 import com.github.ykiselev.assets.formats.obj.ObjModel;
+import com.github.ykiselev.wrap.Wrap;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -25,7 +26,7 @@ public class ReadableObjModelTest {
 
     @Test
     public void shouldRead() throws IOException {
-        final ObjModel model = resource.read(
+        final Wrap<ObjModel> model = resource.read(
                 Channels.newChannel(
                         url.openStream()
                 ),

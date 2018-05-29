@@ -1,8 +1,8 @@
 package com.github.ykiselev.assets.vorbis;
 
-import com.github.ykiselev.common.Wrap;
 import com.github.ykiselev.openal.AudioSamples;
 import com.github.ykiselev.openal.Errors;
+import com.github.ykiselev.wrap.Wrap;
 
 import java.nio.ShortBuffer;
 

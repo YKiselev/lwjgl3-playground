@@ -21,6 +21,7 @@ import com.github.ykiselev.opengl.textures.DefaultMipMappedTexture2d;
 import com.github.ykiselev.opengl.textures.DefaultSimpleTexture2d;
 import com.github.ykiselev.opengl.textures.MipMappedTexture2d;
 import com.github.ykiselev.opengl.textures.SimpleTexture2d;
+import com.github.ykiselev.wrap.Wrap;
 import com.google.common.collect.ImmutableMap;
 import com.typesafe.config.Config;
 import org.lwjgl.opengl.GL20;
@@ -41,7 +42,7 @@ public final class GameAssets implements Assets, AutoCloseable {
     }
 
     @Override
-    public <T> T tryLoad(String resource, Class<T> clazz, Assets assets) throws ResourceException {
+    public <T> Wrap<T> tryLoad(String resource, Class<T> clazz, Assets assets) throws ResourceException {
         return delegate.tryLoad(resource, clazz, assets);
     }
 

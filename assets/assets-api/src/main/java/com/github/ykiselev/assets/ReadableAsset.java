@@ -16,6 +16,8 @@
 
 package com.github.ykiselev.assets;
 
+import com.github.ykiselev.wrap.Wrap;
+
 import java.nio.channels.ReadableByteChannel;
 
 /**
@@ -28,11 +30,11 @@ public interface ReadableAsset<T> {
     /**
      * Reads resource from channel.
      *
-     * @param channel  the binary stream to read resource from.
-     * @param assets   the instance of asset manager. At first glance {@link Resources} would suffice but {@link Assets}
-     *                 may be required in the case when compound asset consisting of different assets is read.
-     * @return de-serialized resource.
+     * @param channel the binary stream to read resource from.
+     * @param assets  the instance of asset manager. At first glance {@link Resources} would suffice but {@link Assets}
+     *                may be required in the case when compound asset consisting of different assets is read.
+     * @return wrapped de-serialized resource.
      * @throws ResourceException if something goes wrong during de-serialization of resource.
      */
-    T read(ReadableByteChannel channel, Assets assets) throws ResourceException;
+    Wrap<T> read(ReadableByteChannel channel, Assets assets) throws ResourceException;
 }

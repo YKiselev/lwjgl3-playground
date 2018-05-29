@@ -19,9 +19,10 @@ package com.github.ykiselev.assets.formats;
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.assets.ReadableAsset;
 import com.github.ykiselev.assets.ResourceException;
-import com.github.ykiselev.common.Wrap;
 import com.github.ykiselev.io.ByteChannelAsByteBuffer;
 import com.github.ykiselev.opengl.textures.Texture2d;
+import com.github.ykiselev.wrap.Wrap;
+import com.github.ykiselev.wrap.Wraps;
 import org.lwjgl.system.MemoryStack;
 
 import java.nio.ByteBuffer;
@@ -66,7 +67,7 @@ public final class ReadableTexture2d implements ReadableAsset<Texture2d> {
     }
 
     @Override
-    public Texture2d read(ReadableByteChannel channel, Assets assets) throws ResourceException {
+    public Wrap<Texture2d> read(ReadableByteChannel channel, Assets assets) throws ResourceException {
         final ByteBuffer image;
         final int width, height, components;
         try (Wrap<ByteBuffer> wrap = readResource(channel)) {
@@ -84,11 +85,13 @@ public final class ReadableTexture2d implements ReadableAsset<Texture2d> {
             }
         }
         try {
-            return loadTexture(
-                    image,
-                    width,
-                    height,
-                    components
+            return Wraps.of(
+                    loadTexture(
+                            image,
+                            width,
+                            height,
+                            components
+                    )
             );
         } finally {
             stbi_image_free(image);

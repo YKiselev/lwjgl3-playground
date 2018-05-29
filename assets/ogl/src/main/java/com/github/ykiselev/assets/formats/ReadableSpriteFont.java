@@ -25,6 +25,8 @@ import com.github.ykiselev.opengl.text.Glyph;
 import com.github.ykiselev.opengl.text.SpriteFont;
 import com.github.ykiselev.opengl.textures.SimpleTexture2d;
 import com.github.ykiselev.opengl.textures.Texture2d;
+import com.github.ykiselev.wrap.Wrap;
+import com.github.ykiselev.wrap.Wraps;
 import org.lwjgl.system.MemoryStack;
 
 import java.io.ByteArrayInputStream;
@@ -57,10 +59,10 @@ import static org.lwjgl.opengl.GL33.GL_TEXTURE_SWIZZLE_RGBA;
 public final class ReadableSpriteFont implements ReadableAsset<SpriteFont> {
 
     @Override
-    public SpriteFont read(ReadableByteChannel channel, Assets assets) throws ResourceException {
+    public Wrap<SpriteFont> read(ReadableByteChannel channel, Assets assets) throws ResourceException {
         final com.github.ykiselev.gfx.font.SpriteFont spriteFont = readSpriteFont(channel);
-        final Texture2d texture = readSpriteFontTexture(assets, spriteFont);
-        texture.bind();
+        final Wrap<? extends Texture2d> texture = readSpriteFontTexture(assets, spriteFont);
+        texture.value().bind();
         final int width = glGetTexLevelParameteri(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH);
         final int height = glGetTexLevelParameteri(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT);
         setupTextureParameters();
@@ -100,13 +102,15 @@ public final class ReadableSpriteFont implements ReadableAsset<SpriteFont> {
             );
             r++;
         }
-        return new DefaultSpriteFont(
-                texture,
-                fontHeight,
-                spriteFont.glyphXBorder(),
-                spriteFont.glyphYBorder(),
-                ranges,
-                defaultGlyph
+        return Wraps.of(
+                new DefaultSpriteFont(
+                        texture,
+                        fontHeight,
+                        spriteFont.glyphXBorder(),
+                        spriteFont.glyphYBorder(),
+                        ranges,
+                        defaultGlyph
+                )
         );
     }
 
@@ -129,15 +133,13 @@ public final class ReadableSpriteFont implements ReadableAsset<SpriteFont> {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     }
 
-    private Texture2d readSpriteFontTexture(Assets assets, com.github.ykiselev.gfx.font.SpriteFont spriteFont) {
-        final Texture2d texture;
+    private Wrap<? extends Texture2d> readSpriteFontTexture(Assets assets, com.github.ykiselev.gfx.font.SpriteFont spriteFont) {
         try (ReadableByteChannel bc = Channels.newChannel(new ByteArrayInputStream(spriteFont.image()))) {
-            texture = assets.resolve(SimpleTexture2d.class)
+            return assets.resolve(SimpleTexture2d.class)
                     .read(bc, assets);
         } catch (IOException e) {
             throw new ResourceException(e);
         }
-        return texture;
     }
 
     private com.github.ykiselev.gfx.font.SpriteFont readSpriteFont(ReadableByteChannel channel) {

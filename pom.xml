@@ -42,6 +42,7 @@
         <module>app</module>
         <module>common</module>
         <module>assets</module>
+        <module>wrap</module>
     </modules>
 
     <dependencyManagement>

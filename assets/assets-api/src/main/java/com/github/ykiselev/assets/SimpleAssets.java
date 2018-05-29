@@ -16,6 +16,7 @@
 
 package com.github.ykiselev.assets;
 
+import com.github.ykiselev.wrap.Wrap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +41,7 @@ public final class SimpleAssets implements Assets {
     }
 
     @Override
-    public <T> T tryLoad(String resource, Class<T> clazz, Assets assets) throws ResourceException {
+    public <T> Wrap<T> tryLoad(String resource, Class<T> clazz, Assets assets) throws ResourceException {
         return resources.open(resource)
                 .map(channel ->
                         readableAssets.resolve(resource, clazz)

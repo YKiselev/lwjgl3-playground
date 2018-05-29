@@ -1,20 +1,22 @@
-package com.github.ykiselev.common;
+package com.github.ykiselev.wrap;
 
 import static java.util.Objects.requireNonNull;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public abstract class AbstractWrap<T> implements Wrap<T> {
+public abstract class Wrap<T> implements AutoCloseable {
 
     private final T value;
 
-    public AbstractWrap(T value) {
+    public Wrap(T value) {
         this.value = requireNonNull(value);
     }
 
-    @Override
     public final T value() {
         return value;
     }
+
+    @Override
+    public abstract void close();
 }

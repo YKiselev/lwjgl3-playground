@@ -4,6 +4,7 @@ import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.assets.ReadableAsset;
 import com.github.ykiselev.assets.ReadableVorbisAudio;
 import com.github.ykiselev.openal.AudioSamples;
+import com.github.ykiselev.wrap.Wrap;
 import org.junit.jupiter.api.Assertions;
 import org.lwjgl.openal.AL;
 import org.lwjgl.openal.ALC10;
@@ -123,12 +124,11 @@ public final class OpenAlApp {
         final int source = alGenSources();
         assertNoAlErrors();
 
-        final AudioSamples samples = readableResource.read(
+        try (Wrap<AudioSamples> samples = readableResource.read(
                 Channels.newChannel(getClass().getResourceAsStream("/sample.ogg")),
                 assets
-        );
-        try {
-            samples.buffer(buffer);
+        )) {
+            samples.value().buffer(buffer);
 
             //lets loop the sound
             alSourcei(source, AL_LOOPING, AL_FALSE);
@@ -172,7 +172,7 @@ public final class OpenAlApp {
                     System.out.println("Processed " + processed);
                     for (int k = 0; k < processed; k++) {
                         final int b = alSourceUnqueueBuffers(source);
-                        samples.buffer(b);
+                        samples.value().buffer(b);
                         //bufferData(buffer, info, wrap.value());
                         alSourceQueueBuffers(source, b);
                         assertNoAlErrors();
@@ -200,8 +200,6 @@ public final class OpenAlApp {
 
             alDeleteBuffers(buffer);
             assertNoAlErrors();
-        } finally {
-            samples.close();
         }
     }
 }

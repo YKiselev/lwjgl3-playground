@@ -1,7 +1,7 @@
 package com.github.ykiselev.opengl.textures;
 
-import com.github.ykiselev.common.Wrap;
 import com.github.ykiselev.memory.MemAlloc;
+import com.github.ykiselev.wrap.Wrap;
 import org.lwjgl.stb.STBIWriteCallback;
 
 import java.nio.ByteBuffer;

@@ -17,6 +17,7 @@
 package com.github.ykiselev.opengl.text;
 
 import com.github.ykiselev.opengl.textures.Texture2d;
+import com.github.ykiselev.wrap.Wrap;
 
 import static java.util.Objects.requireNonNull;
 
@@ -25,7 +26,7 @@ import static java.util.Objects.requireNonNull;
  */
 public final class DefaultSpriteFont implements SpriteFont {
 
-    private final Texture2d texture;
+    private final Wrap<? extends Texture2d> texture;
 
     private final int fontHeight;
 
@@ -39,7 +40,7 @@ public final class DefaultSpriteFont implements SpriteFont {
 
     @Override
     public Texture2d texture() {
-        return texture;
+        return texture.value();
     }
 
     @Override
@@ -57,7 +58,7 @@ public final class DefaultSpriteFont implements SpriteFont {
         return glyphYBorder;
     }
 
-    public DefaultSpriteFont(Texture2d texture, int fontHeight, int glyphXBorder, int glyphYBorder, GlyphRange[] ranges, Glyph defaultGlyph) {
+    public DefaultSpriteFont(Wrap<? extends Texture2d> texture, int fontHeight, int glyphXBorder, int glyphYBorder, GlyphRange[] ranges, Glyph defaultGlyph) {
         this.texture = requireNonNull(texture, "texture");
         this.fontHeight = fontHeight;
         this.glyphXBorder = glyphXBorder;

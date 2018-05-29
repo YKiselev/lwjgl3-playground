@@ -8,6 +8,7 @@ import com.github.ykiselev.opengl.vbo.IndexBufferObject;
 import com.github.ykiselev.opengl.vbo.VertexArrayObject;
 import com.github.ykiselev.opengl.vbo.VertexBufferObject;
 import com.github.ykiselev.opengl.vertices.VertexDefinitions;
+import com.github.ykiselev.wrap.Wrap;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
@@ -59,7 +60,7 @@ public final class TexturedQuads implements AutoCloseable {
             ? GL_UNSIGNED_BYTE
             : (MAX_INDICES < 0xffff ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT);
 
-    private final ProgramObject program;
+    private final Wrap<ProgramObject> program;
 
     private final FloatBuffer vertices;
 
@@ -104,15 +105,16 @@ public final class TexturedQuads implements AutoCloseable {
     /**
      * @param program the program to use
      */
-    public TexturedQuads(ProgramObject program) {
+    public TexturedQuads(Wrap<ProgramObject> program) {
         this.program = requireNonNull(program);
 
         vertices = BufferUtils.createFloatBuffer(MAX_VERTICES);
 
-        program.bind();
-        mvpUniform = program.lookup("mvp");
-        colorsUniform = program.lookup("colors");
-        texUniform = program.lookup("tex");
+        final ProgramObject prg = program.value();
+        prg.bind();
+        mvpUniform = prg.lookup("mvp");
+        colorsUniform = prg.lookup("colors");
+        texUniform = prg.lookup("tex");
 
         vao = new VertexArrayObject();
         vao.bind();
@@ -135,7 +137,7 @@ public final class TexturedQuads implements AutoCloseable {
         vao.unbind();
         vbo.unbind();
         ebo.unbind();
-        program.unbind();
+        prg.unbind();
 
         matrix = MemoryUtil.memAllocFloat(16);
         colors = MemoryUtil.memAllocFloat(MAX_QUADS * 4);
@@ -172,7 +174,7 @@ public final class TexturedQuads implements AutoCloseable {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         vbo.close();
         ebo.close();
         vao.close();
@@ -285,7 +287,7 @@ public final class TexturedQuads implements AutoCloseable {
         glViewport(x, y, width, height);
 
         vao.bind();
-        program.bind();
+        program.value().bind();
         use(null);
 
         if (enableAlphaBlending) {
@@ -309,7 +311,7 @@ public final class TexturedQuads implements AutoCloseable {
         vao.unbind();
         vbo.unbind();
         ebo.unbind();
-        program.unbind();
+        program.value().unbind();
         glDisable(GL_BLEND);
     }
 }

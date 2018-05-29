@@ -23,6 +23,7 @@ import com.github.ykiselev.opengl.textures.SimpleTexture2d;
 import com.github.ykiselev.opengl.textures.Texture2d;
 import com.github.ykiselev.opengl.vertices.VertexDefinitions;
 import com.github.ykiselev.trigger.Trigger;
+import com.github.ykiselev.wrap.Wrap;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 import org.slf4j.Logger;
@@ -78,9 +79,9 @@ public final class Game implements UiLayer, WindowEvents, AutoCloseable {
 
     private final SpriteBatch spriteBatch;
 
-    private final Texture2d cuddles;
+    private final Wrap<? extends Texture2d> cuddles;
 
-    private final SpriteFont liberationMono;
+    private final Wrap<SpriteFont> liberationMono;
 
     private final FloatBuffer pv;
 
@@ -122,15 +123,16 @@ public final class Game implements UiLayer, WindowEvents, AutoCloseable {
         );
         cuddles = assets.load("images/htf-cuddles.jpg", SimpleTexture2d.class);
         liberationMono = assets.load("fonts/Liberation Mono.sf", SpriteFont.class);
-        final ProgramObject generic = assets.load("progs/generic.conf", ProgramObject.class);
-        final ObjModel model = assets.load("models/2cubes.obj", ObjModel.class);
-        cubes = new GenericIndexedGeometry(
-                generic,
-                VertexDefinitions.POSITION_TEXTURE_NORMAL,
-                model.toIndexedTriangles()
-        );
-        texUniform = generic.lookup("tex");
-        final ProgramObject colored = assets.load("progs/colored.conf", ProgramObject.class);
+        final Wrap<ProgramObject> generic = assets.load("progs/generic.conf", ProgramObject.class);
+        try (Wrap<ObjModel> model = assets.load("models/2cubes.obj", ObjModel.class)) {
+            cubes = new GenericIndexedGeometry(
+                    generic,
+                    VertexDefinitions.POSITION_TEXTURE_NORMAL,
+                    model.value().toIndexedTriangles()
+            );
+        }
+        texUniform = generic.value().lookup("tex");
+        final Wrap<ProgramObject> colored = assets.load("progs/colored.conf", ProgramObject.class);
         try (Pyramid p = new Pyramid()) {
             pyramid = new GenericIndexedGeometry(
                     colored,
@@ -275,7 +277,7 @@ public final class Game implements UiLayer, WindowEvents, AutoCloseable {
     private void drawModel(FloatBuffer vp) {
         final double sec = System.currentTimeMillis() / 1000.0;
         texUniform.value(0);
-        cuddles.bind();
+        cuddles.value().bind();
         try (MemoryStack ms = MemoryStack.stackPush()) {
             final FloatBuffer rm = ms.mallocFloat(16);
             Matrix.rotation(0, 0, Math.toRadians(25 * sec % 360), rm);
@@ -285,7 +287,7 @@ public final class Game implements UiLayer, WindowEvents, AutoCloseable {
 
             cubes.draw(mvp);
         }
-        cuddles.unbind();
+        cuddles.value().unbind();
     }
 
     private void setupProjectionViewMatrix(int width, int height) {
@@ -362,7 +364,7 @@ public final class Game implements UiLayer, WindowEvents, AutoCloseable {
                 break;
         }
         spriteBatch.draw(
-                liberationMono,
+                liberationMono.value(),
                 0,
                 height,
                 width, String.format("avg. fps: %.2f, frame buffer mode: %s", fps, frameBufferMode),

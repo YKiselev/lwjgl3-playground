@@ -84,8 +84,7 @@ class AutoCloseableProxyTest {
         E e = new E();
         final D proxy = AutoCloseableProxy.create(e, D.class, consumer);
         assertEquals(3, proxy.hashCode());
-        ((AutoCloseable)proxy).close();
+        ((AutoCloseable) proxy).close();
         verify(consumer, times(1)).accept(e);
     }
-
 }

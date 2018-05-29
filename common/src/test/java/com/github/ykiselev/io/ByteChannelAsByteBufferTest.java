@@ -1,6 +1,6 @@
 package com.github.ykiselev.io;
 
-import com.github.ykiselev.common.Wrap;
+import com.github.ykiselev.wrap.Wrap;
 import org.junit.jupiter.api.Test;
 import org.mockito.stubbing.Answer;
 

@@ -16,13 +16,14 @@
 
 package com.github.ykiselev.assets;
 
-import org.junit.Before;
-import org.junit.Test;
+import com.github.ykiselev.wrap.Wraps;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.nio.channels.ReadableByteChannel;
 import java.util.Optional;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -31,7 +32,7 @@ import static org.mockito.Mockito.when;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public class SimpleAssetsTest {
+class SimpleAssetsTest {
 
     private final Resources resources = mock(Resources.class);
 
@@ -42,22 +43,22 @@ public class SimpleAssetsTest {
 
     private final Assets assets = new SimpleAssets(resources, readableAssets);
 
-    @Before
-    public void setUp() {
+    @BeforeEach
+    void setUp() {
         when(resources.open(any(String.class)))
                 .thenReturn(
                         Optional.of(mock(ReadableByteChannel.class))
                 );
         when(readableAsset.read(any(ReadableByteChannel.class), any()))
-                .thenReturn(Math.PI);
+                .thenReturn(Wraps.simple(Math.PI));
     }
 
     @Test
-    public void shouldLoad() {
+    void shouldLoad() {
         when(readableAssets.resolve(any(String.class), eq(Double.class)))
                 .thenReturn(readableAsset);
         when(readableAsset.read(any(ReadableByteChannel.class), eq(assets)))
-                .thenReturn(Math.PI);
-        assertEquals(Math.PI, assets.load("x", Double.class), 0.00001);
+                .thenReturn(Wraps.simple(Math.PI));
+        assertEquals(Math.PI, assets.load("x", Double.class).value(), 0.00001);
     }
 }

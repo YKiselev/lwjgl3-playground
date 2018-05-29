@@ -1,6 +1,7 @@
 package com.github.ykiselev.assets;
 
 import com.github.ykiselev.openal.AudioSamples;
+import com.github.ykiselev.wrap.Wrap;
 import org.junit.jupiter.api.Test;
 
 import java.nio.channels.Channels;
@@ -19,7 +20,7 @@ class ReadableVorbisAudioTest {
 
     @Test
     void shouldRead() {
-        final AudioSamples samples = readableResource.read(
+        final Wrap<AudioSamples> samples = readableResource.read(
                 Channels.newChannel(getClass().getResourceAsStream("/sample.ogg")),
                 assets
         );
