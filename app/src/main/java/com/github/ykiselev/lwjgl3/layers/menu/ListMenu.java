@@ -3,7 +3,6 @@ package com.github.ykiselev.lwjgl3.layers.menu;
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.lwjgl3.layers.DrawingContext;
 import com.github.ykiselev.lwjgl3.layers.UiLayer;
-import com.github.ykiselev.lwjgl3.layers.UiLayers;
 import com.github.ykiselev.lwjgl3.layers.ui.UiElement;
 import com.github.ykiselev.lwjgl3.playground.WindowEvents;
 import com.github.ykiselev.lwjgl3.services.Services;
@@ -23,7 +22,6 @@ import java.util.List;
 
 import static java.util.Objects.requireNonNull;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_DOWN;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_UP;
 import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
 
@@ -48,8 +46,6 @@ public final class ListMenu implements UiLayer, AutoCloseable {
         }
     }
 
-    private final Services services;
-
     private final SpriteBatch spriteBatch;
 
     private final Wrap<? extends Texture2d> white;
@@ -57,8 +53,6 @@ public final class ListMenu implements UiLayer, AutoCloseable {
     private final Wrap<SpriteFont> font;
 
     private final List<MenuItem> items;
-
-    private final UiLayer owner;
 
     private final DrawingContext context = new DrawingContext() {
         @Override
@@ -80,26 +74,21 @@ public final class ListMenu implements UiLayer, AutoCloseable {
     private final WindowEvents events = new WindowEvents() {
         @Override
         public boolean keyEvent(int key, int scanCode, int action, int mods) {
-            if (!selectedItem().keyEvent(key, scanCode, action, mods)) {
-                if (action == GLFW_PRESS) {
-                    switch (key) {
-                        case GLFW_KEY_ESCAPE:
-                            services.resolve(UiLayers.class)
-                                    .pop(owner);
-                            break;
+            if (selectedItem().keyEvent(key, scanCode, action, mods)) {
+                return true;
+            }
+            if (action == GLFW_PRESS) {
+                switch (key) {
+                    case GLFW_KEY_UP:
+                        selectPrevious();
+                        return true;
 
-                        case GLFW_KEY_UP:
-                            selectPrevious();
-                            break;
-
-                        case GLFW_KEY_DOWN:
-                            selectNext();
-                            break;
-                    }
-                    return true;
+                    case GLFW_KEY_DOWN:
+                        selectNext();
+                        return true;
                 }
             }
-            return true;
+            return false;
         }
 
         @Override
@@ -140,9 +129,7 @@ public final class ListMenu implements UiLayer, AutoCloseable {
 
     private int selected = 0;
 
-    public ListMenu(Services services, Assets assets, UiLayer owner, MenuItem... items) {
-        this.services = requireNonNull(services);
-        this.owner = requireNonNull(owner);
+    public ListMenu(Assets assets, MenuItem... items) {
         spriteBatch = new DefaultSpriteBatch(
                 assets.load("progs/sprite-batch.conf", ProgramObject.class)
         );

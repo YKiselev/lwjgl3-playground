@@ -17,6 +17,7 @@
 package com.github.ykiselev.opengl.shaders;
 
 import com.github.ykiselev.opengl.shaders.uniforms.UniformVariable;
+import com.github.ykiselev.wrap.Wrap;
 
 import static java.util.Objects.requireNonNull;
 import static org.lwjgl.opengl.GL20.glDeleteProgram;
@@ -31,14 +32,14 @@ public final class DefaultProgramObject implements ProgramObject {
 
     private final int id;
 
-    private final ShaderObject[] shaders;
+    private final Wrap<ShaderObject>[] shaders;
 
     @Override
     public int id() {
         return id;
     }
 
-    public DefaultProgramObject(int id, ShaderObject[] shaders) {
+    public DefaultProgramObject(int id, Wrap<ShaderObject>[] shaders) {
         this.id = id;
         this.shaders = requireNonNull(shaders);
     }
@@ -83,8 +84,8 @@ public final class DefaultProgramObject implements ProgramObject {
     }
 
     @Override
-    public void close() throws Exception {
-        for (ShaderObject shader : shaders) {
+    public void close() {
+        for (Wrap<?> shader : shaders) {
             shader.close();
         }
         glDeleteProgram(id);

@@ -57,9 +57,9 @@ public final class ReadableProgramObject implements ReadableAsset<ProgramObject>
     public Wrap<ProgramObject> read(ReadableByteChannel channel, Assets assets) throws ResourceException {
         final Config config = readConfig(channel, assets);
         final int id = glCreateProgram();
-        final ShaderObject[] shaders = readShaders(assets, config);
-        for (ShaderObject s : shaders) {
-            glAttachShader(id, s.id());
+        final Wrap<ShaderObject>[] shaders = readShaders(assets, config);
+        for (Wrap<ShaderObject> w : shaders) {
+            glAttachShader(id, w.value().id());
         }
         final List<String> locations = config.getStringList("vertex-attribute-locations");
         int i = 0;
@@ -89,7 +89,8 @@ public final class ReadableProgramObject implements ReadableAsset<ProgramObject>
         return Wraps.of(program);
     }
 
-    private ShaderObject[] readShaders(Assets assets, Config config) {
+    @SuppressWarnings("unchecked")
+    private Wrap<ShaderObject>[] readShaders(Assets assets, Config config) {
         return config.getConfig("shaders").root()
                 .entrySet()
                 .stream()
@@ -98,7 +99,7 @@ public final class ReadableProgramObject implements ReadableAsset<ProgramObject>
                 .map(String.class::cast)
                 .filter(v -> !v.isEmpty())
                 .map(uri -> assets.load(uri, null))
-                .toArray(ShaderObject[]::new);
+                .toArray(Wrap[]::new);
     }
 
     private Config readConfig(ReadableByteChannel channel, Assets assets) {
