@@ -1,114 +1,102 @@
 package com.github.ykiselev.lwjgl3.events;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.Collection;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 import java.util.function.Consumer;
-
-import static java.util.Objects.requireNonNull;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
 public final class AppEvents implements Events {
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
-
-    private final Map<Class, Collection<ClosableConsumer>> subscribers = new ConcurrentHashMap<>();
-
-    private final Map<Class, Class> cache = new ConcurrentHashMap<>();
+    private final Map<Class, Subscribers> subscribers = new ConcurrentHashMap<>();
 
     @Override
-    @SuppressWarnings("unchecked")
     public <T> AutoCloseable subscribe(Class<T> eventClass, Consumer<T> handler) {
-        final Collection<ClosableConsumer> consumers = this.subscribers.computeIfAbsent(
+        return subscribers.computeIfAbsent(
                 eventClass,
-                k -> new CopyOnWriteArrayList<>()
-        );
-        ClosableConsumer result = null;
-        for (ClosableConsumer consumer : consumers) {
-            if (consumer.delegatesTo(handler)) {
-                logger.warn("Already subscribed: {}", handler);
-                result = consumer;
-                break;
-            }
+                k -> new Subscribers()
+        ).subscribe(handler);
+    }
+
+    @Override
+    public void fire(Object event) {
+        final Subscribers s = this.subscribers.get(event.getClass());
+        if (s == null) {
+            throw new IllegalStateException("No subscribers for " + event);
         }
-        if (result == null) {
-            result = new ClosableConsumer<>(handler);
-            consumers.add(result);
-            clearCache();
-        }
-        return result;
+        s.fire(event);
     }
 
-    private void clearCache() {
-        cache.clear();
-    }
+    /**
+     *
+     */
+    private static final class Subscribers {
 
-    private Class getOrRefine(Class eventType) {
-        return requireNonNull(
-                cache.computeIfAbsent(eventType, this::refine),
-                "No subscribers for " + eventType
+        private static final AtomicReferenceFieldUpdater<Subscribers, Consumer[]> UPDATER = AtomicReferenceFieldUpdater.newUpdater(
+                Subscribers.class,
+                Consumer[].class,
+                "handlers"
         );
-    }
 
-    private Class refine(Class eventType) {
-        Class clazz = eventType;
-        while (clazz != Object.class) {
-            if (subscribers.containsKey(clazz)) {
-                return clazz;
-            }
-            for (Class iface : clazz.getInterfaces()) {
-                if (subscribers.containsKey(iface)) {
-                    return iface;
+        private volatile Consumer[] handlers = new Consumer[0];
+
+        private static <T> int indexOf(T[] array, T value) {
+            for (int i = 0; i < array.length; i++) {
+                if (array[i] == value) {
+                    return i;
                 }
             }
-            clazz = clazz.getSuperclass();
-        }
-        return null;
-    }
-
-    private Collection<ClosableConsumer> find(Class eventType) {
-        return subscribers.get(
-                getOrRefine(eventType)
-        );
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public void send(Object message) {
-        final Collection<ClosableConsumer> consumers = find(message.getClass());
-        if (consumers != null) {
-            consumers.forEach(h -> h.accept(message));
-        }
-    }
-
-    private static final class ClosableConsumer<E> implements AutoCloseable {
-
-        private volatile Consumer<E> consumer;
-
-        ClosableConsumer(Consumer<E> consumer) {
-            this.consumer = requireNonNull(consumer);
+            return -1;
         }
 
-        void accept(E e) {
-            final Consumer<E> c = this.consumer;
-            if (c != null) {
-                c.accept(e);
+        AutoCloseable subscribe(Consumer<?> handler) {
+            for (; ; ) {
+                final Consumer[] prevArray = this.handlers;
+                final int existing = indexOf(prevArray, handler);
+                if (existing >= 0) {
+                    return newSubscription(handler);
+                }
+                final Consumer[] newArray = Arrays.copyOf(prevArray, prevArray.length + 1);
+                newArray[prevArray.length] = handler;
+                if (UPDATER.compareAndSet(this, prevArray, newArray)) {
+                    return newSubscription(handler);
+                }
             }
         }
 
-        @Override
-        public void close() {
-            consumer = null;
+        private AutoCloseable newSubscription(Consumer<?> handler) {
+            return () -> {
+                for (; ; ) {
+                    final Consumer[] prevArray = Subscribers.this.handlers;
+                    final int idx = indexOf(prevArray, handler);
+                    if (idx < 0) {
+                        break;
+                    }
+                    final Consumer[] newArray = new Consumer[prevArray.length - 1];
+                    if (idx > 0) {
+                        System.arraycopy(prevArray, 0, newArray, 0, idx);
+                    }
+                    if (idx < newArray.length) {
+                        System.arraycopy(prevArray, idx + 1, newArray, idx, newArray.length - idx);
+                    }
+                    if (UPDATER.compareAndSet(Subscribers.this, prevArray, newArray)) {
+                        break;
+                    }
+                }
+            };
         }
 
-        boolean delegatesTo(Consumer c) {
-            return c == consumer;
+        @SuppressWarnings("unchecked")
+        void fire(Object event) {
+            if (handlers.length == 0) {
+                throw new IllegalStateException("No subscribers for event " + event);
+            }
+            for (Consumer handler : handlers) {
+                handler.accept(event);
+            }
         }
     }
 }

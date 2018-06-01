@@ -91,7 +91,7 @@ public final class Main implements Runnable {
                         window.wireEvents(layers.events());
                         window.show();
                         services.resolve(Events.class)
-                                .send(new NewGameEvent());
+                                .fire(new NewGameEvent());
                         glfwSwapInterval(args.swapInterval());
                         logger.info("Entering main loop...");
                         final Schedule schedule = services.resolve(Schedule.class);

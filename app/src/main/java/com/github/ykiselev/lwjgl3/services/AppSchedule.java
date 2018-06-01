@@ -45,14 +45,15 @@ public final class AppSchedule implements Schedule {
             if (timeLeft <= 0) {
                 break;
             }
+            final Task task;
             synchronized (tasks) {
-                final Task task = tasks.peek();
+                task = tasks.peek();
                 if (task == null || task.targetTime > time + timeLeft) {
                     break;
                 }
                 tasks.poll();
-                task.run();
             }
+            task.run();
         }
     }
 

@@ -45,7 +45,7 @@ public final class DefaultSpriteBatch implements SpriteBatch {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         quads.close();
     }
 

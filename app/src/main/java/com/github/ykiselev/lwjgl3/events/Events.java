@@ -7,7 +7,21 @@ import java.util.function.Consumer;
  */
 public interface Events {
 
+    /**
+     * Subscribes to specified event class
+     *
+     * @param eventClass the event class to subscribe to
+     * @param handler    the handler that will be called on event of specified class
+     * @param <T>        the type parameter
+     * @return the subscription object. To unsubscribe call it's {@link AutoCloseable#close()} method.
+     */
     <T> AutoCloseable subscribe(Class<T> eventClass, Consumer<T> handler);
 
-    void send(Object message);
+    /**
+     * Passes supplied event to all subscribers synchronously (this method will return control to calling code only after
+     * all subscribers handlers return control).
+     *
+     * @param event the event to raise
+     */
+    void fire(Object event);
 }

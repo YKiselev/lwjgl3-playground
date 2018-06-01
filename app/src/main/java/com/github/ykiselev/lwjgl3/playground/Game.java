@@ -155,7 +155,7 @@ public final class Game implements UiLayer, WindowEvents, AutoCloseable {
             switch (key) {
                 case GLFW_KEY_ESCAPE:
                     services.resolve(Events.class)
-                            .send(new ShowMenuEvent());
+                            .fire(new ShowMenuEvent());
                     break;
 
                 case GLFW_KEY_PRINT_SCREEN:

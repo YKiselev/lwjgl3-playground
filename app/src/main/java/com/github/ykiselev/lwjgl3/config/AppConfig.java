@@ -63,7 +63,7 @@ public final class AppConfig implements PersistedConfiguration, AutoCloseable {
         } else {
             logger.debug("Setting \"{}\" to \"{}\"", path, value);
             try {
-                services.resolve(Events.class).send(
+                services.resolve(Events.class).fire(
                         new ValueChangingEvent(path, oldValue, value)
                 );
             } catch (InvalidValueException e) {
