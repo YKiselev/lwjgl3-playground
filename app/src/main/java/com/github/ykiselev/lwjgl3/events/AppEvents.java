@@ -1,12 +1,15 @@
 package com.github.ykiselev.lwjgl3.events;
 
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 import java.util.function.Consumer;
 
 /**
+ * Note to subscribers: Only exact event type match is supported.
+ *
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
 public final class AppEvents implements Events {
@@ -23,7 +26,7 @@ public final class AppEvents implements Events {
 
     @Override
     public void fire(Object event) {
-        final Subscribers s = this.subscribers.get(event.getClass());
+        final Subscribers s = subscribers.get(event.getClass());
         if (s == null) {
             throw new IllegalStateException("No subscribers for " + event);
         }
@@ -35,13 +38,18 @@ public final class AppEvents implements Events {
      */
     private static final class Subscribers {
 
-        private static final AtomicReferenceFieldUpdater<Subscribers, Consumer[]> UPDATER = AtomicReferenceFieldUpdater.newUpdater(
-                Subscribers.class,
-                Consumer[].class,
-                "handlers"
-        );
+        private static final VarHandle VH;
 
         private volatile Consumer[] handlers = new Consumer[0];
+
+        static {
+            try {
+                VH = MethodHandles.lookup()
+                        .findVarHandle(Subscribers.class, "handlers", Consumer[].class);
+            } catch (NoSuchFieldException | IllegalAccessException e) {
+                throw new Error(e);
+            }
+        }
 
         private static <T> int indexOf(T[] array, T value) {
             for (int i = 0; i < array.length; i++) {
@@ -61,7 +69,7 @@ public final class AppEvents implements Events {
                 }
                 final Consumer[] newArray = Arrays.copyOf(prevArray, prevArray.length + 1);
                 newArray[prevArray.length] = handler;
-                if (UPDATER.compareAndSet(this, prevArray, newArray)) {
+                if (VH.compareAndSet(this, prevArray, newArray)) {
                     return newSubscription(handler);
                 }
             }
@@ -82,7 +90,7 @@ public final class AppEvents implements Events {
                     if (idx < newArray.length) {
                         System.arraycopy(prevArray, idx + 1, newArray, idx, newArray.length - idx);
                     }
-                    if (UPDATER.compareAndSet(Subscribers.this, prevArray, newArray)) {
+                    if (VH.compareAndSet(Subscribers.this, prevArray, newArray)) {
                         break;
                     }
                 }
@@ -91,10 +99,11 @@ public final class AppEvents implements Events {
 
         @SuppressWarnings("unchecked")
         void fire(Object event) {
-            if (handlers.length == 0) {
+            final Consumer[] h = handlers;
+            if (h.length == 0) {
                 throw new IllegalStateException("No subscribers for event " + event);
             }
-            for (Consumer handler : handlers) {
+            for (Consumer handler : h) {
                 handler.accept(event);
             }
         }
