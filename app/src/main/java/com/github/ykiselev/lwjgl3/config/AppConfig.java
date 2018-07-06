@@ -10,6 +10,7 @@ import com.github.ykiselev.lwjgl3.services.Services;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigRenderOptions;
+import com.typesafe.config.ConfigValue;
 import com.typesafe.config.ConfigValueFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +19,8 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.UncheckedIOException;
 import java.io.Writer;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
@@ -34,9 +37,21 @@ public final class AppConfig implements PersistedConfiguration, AutoCloseable {
 
     private final Services services;
 
-    private Config config;
+    private volatile Config config;
 
     private final CompositeAutoCloseable group;
+
+    private static final VarHandle CH;
+
+    static {
+        try {
+            CH = MethodHandles.lookup()
+                    .in(AppConfig.class)
+                    .findVarHandle(AppConfig.class, "config", Config.class);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            throw new Error(e);
+        }
+    }
 
     public AppConfig(Services services) {
         this.services = requireNonNull(services);
@@ -70,10 +85,17 @@ public final class AppConfig implements PersistedConfiguration, AutoCloseable {
                 logger.error("Unable to set \"{}\" to supplied value \"{}\"", path, value, e);
                 return;
             }
-            config = config.withValue(
-                    path,
-                    ConfigValueFactory.fromAnyRef(value)
-            );
+            updateConfig(path, ConfigValueFactory.fromAnyRef(value));
+        }
+    }
+
+    private void updateConfig(String path, ConfigValue value) {
+        for (; ; ) {
+            final Config before = this.config;
+            final Config after = before.withValue(path, value);
+            if (CH.compareAndSet(this, before, after)) {
+                break;
+            }
         }
     }
 
@@ -98,8 +120,6 @@ public final class AppConfig implements PersistedConfiguration, AutoCloseable {
         try {
             try (Reader reader = Channels.newReader(channel, "utf-8")) {
                 return ConfigFactory.parseReader(reader);
-            } finally {
-                channel.close();
             }
         } catch (IOException e) {
             throw new UncheckedIOException(e);

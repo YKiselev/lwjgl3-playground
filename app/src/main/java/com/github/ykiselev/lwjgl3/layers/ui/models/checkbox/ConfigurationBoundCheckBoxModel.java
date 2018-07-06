@@ -11,28 +11,18 @@ public final class ConfigurationBoundCheckBoxModel implements CheckBoxModel {
 
     private final String key;
 
-    private final ListenableCheckBoxModel delegate;
-
     public ConfigurationBoundCheckBoxModel(PersistedConfiguration configuration, String key) {
         this.configuration = configuration;
         this.key = key;
-        this.delegate = new ListenableCheckBoxModel(this::onCheckBoxChanged);
-        delegate.checked(
-                configuration.root().getBoolean(key)
-        );
-    }
-
-    private void onCheckBoxChanged(CheckBoxModel model) {
-        configuration.set(key, model.checked());
     }
 
     @Override
     public boolean checked() {
-        return delegate.checked();
+        return configuration.root().getBoolean(key);
     }
 
     @Override
     public void checked(boolean value) {
-        delegate.checked(value);
+        configuration.set(key, value);
     }
 }
