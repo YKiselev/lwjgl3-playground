@@ -44,26 +44,14 @@ public final class ManagedAssets implements Assets, AutoCloseable {
                 if (!cache.containsKey(resource)) {
                     cache.put(
                             resource,
-                            asset(
+                            new RefAsset(
                                     resource,
-                                    delegate.tryLoad(resource, clazz, assets),
-                                    clazz
+                                    delegate.tryLoad(resource, clazz, assets)
                             )
                     );
                 }
             }
         }
-    }
-
-    private Asset asset(String resource, Wrap<?> value, Class<?> clazz) {
-        Class<?> cls = clazz;
-        if (cls == null) {
-            cls = value.getClass();
-        }
-        if (cls.isInterface() && AutoCloseable.class.isAssignableFrom(cls)) {
-            return new RefAsset(resource, value, cls);
-        }
-        return new SimpleAsset(value);
     }
 
     private void remove(String resource, Asset asset, Object object) {
@@ -115,12 +103,9 @@ public final class ManagedAssets implements Assets, AutoCloseable {
      */
     private final class RefAsset implements Asset, AutoCloseable {
 
-        private final Class<?> clazz;
-
         private final Ref<Wrap<?>> ref;
 
-        RefAsset(String resource, Wrap<?> value, Class<?> clazz) {
-            this.clazz = requireNonNull(clazz);
+        RefAsset(String resource, Wrap<?> value) {
             this.ref = new CountedRef<>(
                     value,
                     v -> remove(resource, this, value)

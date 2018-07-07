@@ -21,6 +21,7 @@ import com.github.ykiselev.wrap.Wrap;
 
 import static java.util.Objects.requireNonNull;
 import static org.lwjgl.opengl.GL20.glDeleteProgram;
+import static org.lwjgl.opengl.GL20.glDetachShader;
 import static org.lwjgl.opengl.GL20.glGetAttribLocation;
 import static org.lwjgl.opengl.GL20.glGetUniformLocation;
 import static org.lwjgl.opengl.GL20.glUseProgram;
@@ -85,7 +86,8 @@ public final class DefaultProgramObject implements ProgramObject {
 
     @Override
     public void close() {
-        for (Wrap<?> shader : shaders) {
+        for (Wrap<ShaderObject> shader : shaders) {
+            glDetachShader(id, shader.value().id());
             shader.close();
         }
         glDeleteProgram(id);

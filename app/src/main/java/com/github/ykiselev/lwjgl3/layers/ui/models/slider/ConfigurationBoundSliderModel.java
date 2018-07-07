@@ -13,43 +13,36 @@ public final class ConfigurationBoundSliderModel implements SliderModel {
 
     private final PersistedConfiguration configuration;
 
-    private final ListenableSliderModel delegate;
-
-    private void listener(SliderModel model, int oldValue) {
-        configuration.set(key, model.value());
-    }
+    private final SliderDefinition definition;
 
     public ConfigurationBoundSliderModel(SliderDefinition definition, PersistedConfiguration configuration, String key) {
         this.key = requireNonNull(key);
         this.configuration = requireNonNull(configuration);
-        this.delegate = new ListenableSliderModel(definition, this::listener);
-        delegate.value(
-                configuration.root().getInt(key)
-        );
+        this.definition = requireNonNull(definition);
     }
 
     @Override
     public SliderDefinition definition() {
-        return delegate.definition();
+        return definition;
     }
 
     @Override
     public int value() {
-        return delegate.value();
+        return configuration.root().getInt(key);
     }
 
     @Override
     public void value(int value) {
-        delegate.value(value);
+        configuration.set(key, value);
     }
 
     @Override
     public void increase() {
-        delegate.increase();
+        value(definition.increase(value()));
     }
 
     @Override
     public void decrease() {
-        delegate.decrease();
+        value(definition.decrease(value()));
     }
 }

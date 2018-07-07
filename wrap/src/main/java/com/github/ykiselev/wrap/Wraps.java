@@ -15,7 +15,7 @@ public final class Wraps {
     }
 
     public static <T extends AutoCloseable> Wrap<T> of(T value) {
-        return new Wrap<T>(value) {
+        return new Wrap<>(value) {
             @Override
             public void close() {
                 try {
