@@ -8,27 +8,20 @@ import com.github.ykiselev.lwjgl3.playground.WindowEvents;
  */
 public interface UiElement extends WindowEvents {
 
+    /**
+     * @param x     the x coordinate to start drawing at
+     * @param y     the y coordinate to start drawing at
+     * @param width the width of drawing area
+     * @param ctx   the drawing context to use
+     * @return the actual height of area occupied by ui element
+     */
     int draw(int x, int y, int width, DrawingContext ctx);
 
-    @Override
-    default boolean keyEvent(int key, int scanCode, int action, int mods) {
-        return false;
-    }
+    boolean isEnabled();
 
-    @Override
-    default void cursorEvent(double x, double y) {
-    }
+    void enable(boolean value);
 
-    @Override
-    default boolean mouseButtonEvent(int button, int action, int mods) {
-        return false;
-    }
+    boolean isVisible();
 
-    @Override
-    default boolean scrollEvent(double dx, double dy) {
-        return false;
-    }
-
-    default void frameBufferResized(int width, int height) {
-    }
+    void visible(boolean value);
 }

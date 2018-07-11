@@ -1,7 +1,7 @@
 package com.github.ykiselev.lwjgl3.layers.ui.elements;
 
 import com.github.ykiselev.lwjgl3.layers.DrawingContext;
-import com.github.ykiselev.lwjgl3.layers.ui.UiElement;
+import com.github.ykiselev.lwjgl3.layers.ui.AbstractUiElement;
 import com.github.ykiselev.lwjgl3.layers.ui.models.checkbox.CheckBoxModel;
 
 import static java.util.Objects.requireNonNull;
@@ -13,7 +13,7 @@ import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class CheckBox implements UiElement {
+public final class CheckBox extends AbstractUiElement {
 
     private final CheckBoxModel model;
 
@@ -22,7 +22,7 @@ public final class CheckBox implements UiElement {
     }
 
     @Override
-    public boolean keyEvent(int key, int scanCode, int action, int mods) {
+    protected boolean onKey(int key, int scanCode, int action, int mods) {
         if (action == GLFW_PRESS) {
             switch (key) {
                 case GLFW_KEY_LEFT:

@@ -1,7 +1,7 @@
 package com.github.ykiselev.lwjgl3.layers.ui.elements;
 
 import com.github.ykiselev.lwjgl3.layers.DrawingContext;
-import com.github.ykiselev.lwjgl3.layers.ui.UiElement;
+import com.github.ykiselev.lwjgl3.layers.ui.AbstractUiElement;
 import com.github.ykiselev.lwjgl3.layers.ui.models.slider.SliderDefinition;
 import com.github.ykiselev.lwjgl3.layers.ui.models.slider.SliderModel;
 
@@ -13,7 +13,7 @@ import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class Slider implements UiElement {
+public final class Slider extends AbstractUiElement {
 
     private final SliderModel model;
 
@@ -22,7 +22,7 @@ public final class Slider implements UiElement {
     }
 
     @Override
-    public boolean keyEvent(int key, int scanCode, int action, int mods) {
+    protected boolean onKey(int key, int scanCode, int action, int mods) {
         if (action == GLFW_PRESS) {
             switch (key) {
                 case GLFW_KEY_LEFT:

@@ -2,7 +2,7 @@ package com.github.ykiselev.lwjgl3.layers.ui.elements;
 
 
 import com.github.ykiselev.lwjgl3.layers.DrawingContext;
-import com.github.ykiselev.lwjgl3.layers.ui.UiElement;
+import com.github.ykiselev.lwjgl3.layers.ui.AbstractUiElement;
 
 import static java.util.Objects.requireNonNull;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_ENTER;
@@ -13,7 +13,7 @@ import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
  *
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class Link implements UiElement {
+public final class Link extends AbstractUiElement {
 
     private final String name;
 
@@ -27,13 +27,13 @@ public final class Link implements UiElement {
     }
 
     @Override
-    public void cursorEvent(double x, double y) {
+    protected void onCursor(double x, double y) {
         cx = x;
         cy = y;
     }
 
     @Override
-    public boolean keyEvent(int key, int scanCode, int action, int mods) {
+    protected boolean onKey(int key, int scanCode, int action, int mods) {
         if (action == GLFW_PRESS) {
             if (key == GLFW_KEY_ENTER) {
                 this.action.run();
