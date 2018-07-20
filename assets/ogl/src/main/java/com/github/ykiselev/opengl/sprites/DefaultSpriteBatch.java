@@ -80,7 +80,7 @@ public final class DefaultSpriteBatch implements SpriteBatch {
                 continue;
             }
 
-            final Glyph glyph = font.glyphForCharacter(value);
+            final Glyph glyph = font.glyphOrDefault(value);
             if (fx + glyph.width() > maxX) {
                 fx = lineStart.calculate(x, font, text, i, maxWidth);
                 fy -= dy;

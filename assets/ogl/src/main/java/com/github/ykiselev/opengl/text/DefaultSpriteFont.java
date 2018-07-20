@@ -34,9 +34,7 @@ public final class DefaultSpriteFont implements SpriteFont {
 
     private final int glyphYBorder;
 
-    private final GlyphRange[] ranges;
-
-    private final Glyph defaultGlyph;
+    private final GlyphRanges ranges;
 
     @Override
     public Texture2d texture() {
@@ -58,30 +56,22 @@ public final class DefaultSpriteFont implements SpriteFont {
         return glyphYBorder;
     }
 
-    public DefaultSpriteFont(Wrap<? extends Texture2d> texture, int fontHeight, int glyphXBorder, int glyphYBorder, GlyphRange[] ranges, Glyph defaultGlyph) {
+    public DefaultSpriteFont(Wrap<? extends Texture2d> texture, int fontHeight, int glyphXBorder, int glyphYBorder, GlyphRanges ranges) {
         this.texture = requireNonNull(texture, "texture");
         this.fontHeight = fontHeight;
         this.glyphXBorder = glyphXBorder;
         this.glyphYBorder = glyphYBorder;
-        this.ranges = ranges.clone();
-        this.defaultGlyph = requireNonNull(defaultGlyph);
+        this.ranges = requireNonNull(ranges);
     }
 
     @Override
-    public Glyph glyphForCharacter(char ch) {
-        final Glyph g = findGlyph(ch);
-        return g != null ? g : defaultGlyph;
+    public Glyph glyphOrDefault(char ch) {
+        return ranges.glyphOrDefault(ch);
     }
 
     @Override
-    public Glyph findGlyph(char ch) {
-        for (GlyphRange range : ranges) {
-            final Glyph glyph = range.glyphForCharacter(ch);
-            if (glyph != null) {
-                return glyph;
-            }
-        }
-        return null;
+    public Glyph glyph(char ch) {
+        return ranges.glyph(ch);
     }
 
     /**
@@ -105,7 +95,7 @@ public final class DefaultSpriteFont implements SpriteFont {
                 w = 0;
                 continue;
             }
-            w += glyphForCharacter(value).width();
+            w += glyphOrDefault(value).width();
         }
         if (w > maxWidth) {
             maxWidth = w;
@@ -137,7 +127,7 @@ public final class DefaultSpriteFont implements SpriteFont {
                 continue;
             }
 
-            final Glyph glyph = glyphForCharacter(value);
+            final Glyph glyph = glyphOrDefault(value);
 
             if (w + glyph.width() > width) {
                 lines++;

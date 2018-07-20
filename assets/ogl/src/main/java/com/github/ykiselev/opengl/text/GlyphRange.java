@@ -30,11 +30,23 @@ public final class GlyphRange {
         this.glyphs = glyphs.clone();
     }
 
-    public Glyph glyphForCharacter(char ch) {
-        final int index = (int) ch - start;
-        if (index >= 0 && index < glyphs.length) {
-            return glyphs[index];
+    public int classify(char ch) {
+        if (ch < start) {
+            return -1;
+        } else if (ch >= start + glyphs.length) {
+            return 1;
         }
-        return null;
+        return 0;
+    }
+
+    public Glyph glyph(char ch) {
+        return glyphs[ch - start];
+    }
+
+    @Override
+    public String toString() {
+        return "GlyphRange{" +
+                "start=" + start +
+                '}';
     }
 }

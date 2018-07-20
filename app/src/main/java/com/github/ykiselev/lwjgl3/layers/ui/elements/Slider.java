@@ -39,18 +39,28 @@ public final class Slider extends AbstractUiElement {
 
     @Override
     public int draw(int x, int y, int width, DrawingContext ctx) {
-        final StringBuilder sb = new StringBuilder();
-        sb.append("[");
+        final int color = 0xffffffff;
+        final StringBuilder sb = ctx.stringBuilder();
+        sb.setLength(0);
+
+        //sb.append("[");
         final int value = model.value();
         final SliderDefinition def = model.definition();
-        for (int k = def.minValue(); k <= def.maxValue(); k += def.step()) {
-            if (k < value || k > value) {
-                sb.append('-');
-            } else {
-                sb.append('|');
-            }
+        final int range = def.range();
+        for (int i = 0; i < range; i++) {
+            sb.append('-');
         }
-        sb.append("]");
+//        for (int k = def.minValue(); k <= def.maxValue(); k += def.step()) {
+//            if (k < value || k > value) {
+//                sb.append('-');
+//            } else {
+//                sb.append('|');
+//            }
+//        }
+        //sb.append("]");
+        final int offset = def.range() > 0
+                ? (int) (ctx.font().width(sb) * (value - def.minValue()) / (double) def.range())
+                : 0;
         final int start = sb.length();
         sb.append(def.maxValue());
         final int target = sb.length();
@@ -59,6 +69,8 @@ public final class Slider extends AbstractUiElement {
         while (sb.length() < target) {
             sb.insert(start, ' ');
         }
-        return ctx.draw(x, y, width, sb, 0xffffffff);
+        int height = ctx.draw(x, y, width, sb, 0xffffffff);
+        return ctx.draw(x + offset, y, width, "|", 0xffffffff);
+        //return ctx.draw(x, y, width, sb, 0xffffffff);
     }
 }

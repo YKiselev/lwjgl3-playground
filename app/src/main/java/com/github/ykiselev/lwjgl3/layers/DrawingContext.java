@@ -12,5 +12,7 @@ public interface DrawingContext {
 
     SpriteBatch batch();
 
+    StringBuilder stringBuilder();
+
     int draw(int x, int y, int width, CharSequence text, int color);
 }

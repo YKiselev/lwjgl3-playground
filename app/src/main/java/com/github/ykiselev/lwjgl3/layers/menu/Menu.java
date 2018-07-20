@@ -12,7 +12,7 @@ import com.github.ykiselev.lwjgl3.layers.menu.ListMenu.MenuItem;
 import com.github.ykiselev.lwjgl3.layers.ui.elements.CheckBox;
 import com.github.ykiselev.lwjgl3.layers.ui.elements.Link;
 import com.github.ykiselev.lwjgl3.layers.ui.elements.Slider;
-import com.github.ykiselev.lwjgl3.layers.ui.models.checkbox.ConfigurationBoundCheckBoxModel;
+import com.github.ykiselev.lwjgl3.layers.ui.models.checkbox.SimpleCheckBoxModel;
 import com.github.ykiselev.lwjgl3.layers.ui.models.slider.ConfigurationBoundSliderModel;
 import com.github.ykiselev.lwjgl3.layers.ui.models.slider.SliderDefinition;
 import com.github.ykiselev.lwjgl3.playground.DelegatingWindowEvents;
@@ -49,6 +49,13 @@ public final class Menu implements UiLayer, AutoCloseable, Removable {
         final Events events = services.resolve(Events.class);
         final Assets assets = services.resolve(Assets.class);
         final PersistedConfiguration configuration = services.resolve(PersistedConfiguration.class);
+        final Slider effectsSlider = new Slider(
+                new ConfigurationBoundSliderModel(
+                        new SliderDefinition(0, 10, 1),
+                        configuration,
+                        "sound.effects.level"
+                )
+        );
         this.listMenu = new ListMenu(
                 assets,
                 new MenuItem(
@@ -60,19 +67,11 @@ public final class Menu implements UiLayer, AutoCloseable, Removable {
                 new MenuItem(
                         "Flag1",
                         new CheckBox(
-                                new ConfigurationBoundCheckBoxModel(configuration, "sound.flag1")
+                                new SimpleCheckBoxModel(m -> effectsSlider.enable(m.checked()))
+                                //new ConfigurationBoundCheckBoxModel(configuration, "sound.flag1"),
                         )
                 ),
-                new MenuItem(
-                        "Effects",
-                        new Slider(
-                                new ConfigurationBoundSliderModel(
-                                        new SliderDefinition(0, 10, 1),
-                                        configuration,
-                                        "sound.effects.level"
-                                )
-                        )
-                ),
+                new MenuItem("Effects", effectsSlider),
                 new MenuItem(
                         "",
                         new Slider(

@@ -23,13 +23,17 @@ public final class SliderDefinition {
         return step;
     }
 
+    public int range() {
+        return (maxValue - minValue) / step;
+    }
+
     public SliderDefinition(int minValue, int maxValue, int step) {
         this.minValue = minValue;
         this.maxValue = maxValue;
         this.step = step;
     }
 
-    public int refine(int value) {
+    private int refine(int value) {
         final int rem = value % step;
         if (rem != 0) {
             value -= rem;
@@ -44,11 +48,11 @@ public final class SliderDefinition {
     }
 
     public int increase(int value) {
-        return value + step;
+        return refine(value + step);
     }
 
     public int decrease(int value) {
-        return value - step;
+        return refine(value - step);
     }
 
 }

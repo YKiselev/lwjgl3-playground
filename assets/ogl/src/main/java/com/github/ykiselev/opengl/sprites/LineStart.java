@@ -53,7 +53,7 @@ enum LineStart {
             if (value == '\n') {
                 break;
             }
-            final Glyph glyph = font.glyphForCharacter(value);
+            final Glyph glyph = font.glyphOrDefault(value);
             if (result + glyph.width() > maxWidth) {
                 break;
             }

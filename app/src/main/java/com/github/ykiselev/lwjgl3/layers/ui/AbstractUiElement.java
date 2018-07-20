@@ -7,9 +7,9 @@ package com.github.ykiselev.lwjgl3.layers.ui;
  */
 public abstract class AbstractUiElement implements UiElement {
 
-    private boolean enabled;
+    private boolean enabled = true;
 
-    private boolean visible;
+    private boolean visible = true;
 
     @Override
     public boolean keyEvent(int key, int scanCode, int action, int mods) {

@@ -15,9 +15,21 @@ public interface SpriteFont extends AutoCloseable {
 
     int glyphYBorder();
 
-    Glyph glyphForCharacter(char ch);
+    /**
+     * Returns character's glyph or default character glyph
+     *
+     * @param ch character to search glyph for
+     * @return character glyph if found, default character glyph otherwise
+     */
+    Glyph glyphOrDefault(char ch);
 
-    Glyph findGlyph(char ch);
+    /**
+     * Searches for character glyph.
+     *
+     * @param ch character to search glyph for
+     * @return character glyph if found {@code null} otherwise
+     */
+    Glyph glyph(char ch);
 
     int width(CharSequence text);
 

@@ -5,7 +5,6 @@ import com.github.ykiselev.lwjgl3.layers.DrawingContext;
 import com.github.ykiselev.lwjgl3.layers.UiLayer;
 import com.github.ykiselev.lwjgl3.layers.ui.UiElement;
 import com.github.ykiselev.lwjgl3.playground.WindowEvents;
-import com.github.ykiselev.lwjgl3.services.Services;
 import com.github.ykiselev.opengl.shaders.ProgramObject;
 import com.github.ykiselev.opengl.sprites.Colors;
 import com.github.ykiselev.opengl.sprites.DefaultSpriteBatch;
@@ -20,7 +19,6 @@ import com.github.ykiselev.wrap.Wrap;
 import java.util.Arrays;
 import java.util.List;
 
-import static java.util.Objects.requireNonNull;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_DOWN;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_UP;
 import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
@@ -55,6 +53,9 @@ public final class ListMenu implements UiLayer, AutoCloseable {
     private final List<MenuItem> items;
 
     private final DrawingContext context = new DrawingContext() {
+
+        private final StringBuilder sb = new StringBuilder();
+
         @Override
         public SpriteFont font() {
             return font.value();
@@ -68,6 +69,11 @@ public final class ListMenu implements UiLayer, AutoCloseable {
         @Override
         public int draw(int x, int y, int width, CharSequence text, int color) {
             return spriteBatch.draw(font.value(), x, y, width, text, color);
+        }
+
+        @Override
+        public StringBuilder stringBuilder() {
+            return sb;
         }
     };
 
@@ -174,7 +180,7 @@ public final class ListMenu implements UiLayer, AutoCloseable {
         spriteBatch.draw(white.value(), 0, 0, width, height, 0x000030df);
 
         final int cursorWidth;
-        final Glyph glyph = font.value().findGlyph((char) 0x23f5);
+        final Glyph glyph = font.value().glyph((char) 0x23f5);
         if (glyph != null) {
             cursorWidth = glyph.width();
         } else {

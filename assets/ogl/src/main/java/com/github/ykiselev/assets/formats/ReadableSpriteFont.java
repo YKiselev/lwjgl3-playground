@@ -22,6 +22,7 @@ import com.github.ykiselev.assets.ResourceException;
 import com.github.ykiselev.gfx.font.GlyphRange;
 import com.github.ykiselev.opengl.text.DefaultSpriteFont;
 import com.github.ykiselev.opengl.text.Glyph;
+import com.github.ykiselev.opengl.text.GlyphRanges;
 import com.github.ykiselev.opengl.text.SpriteFont;
 import com.github.ykiselev.opengl.textures.SimpleTexture2d;
 import com.github.ykiselev.opengl.textures.Texture2d;
@@ -108,8 +109,10 @@ public final class ReadableSpriteFont implements ReadableAsset<SpriteFont> {
                         fontHeight,
                         spriteFont.glyphXBorder(),
                         spriteFont.glyphYBorder(),
-                        ranges,
-                        defaultGlyph
+                        new GlyphRanges(
+                                ranges,
+                                defaultGlyph
+                        )
                 )
         );
     }
