@@ -67,7 +67,7 @@ public final class Menu implements UiLayer, AutoCloseable, Removable {
                 new MenuItem(
                         "Flag1",
                         new CheckBox(
-                                new SimpleCheckBoxModel(m -> effectsSlider.enable(m.checked()))
+                                new SimpleCheckBoxModel(m -> effectsSlider.enable(m.checked()), true)
                                 //new ConfigurationBoundCheckBoxModel(configuration, "sound.flag1"),
                         )
                 ),

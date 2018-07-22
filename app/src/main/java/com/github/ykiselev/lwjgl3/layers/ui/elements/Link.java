@@ -9,7 +9,7 @@ import static org.lwjgl.glfw.GLFW.GLFW_KEY_ENTER;
 import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
 
 /**
- * Menu item which is represented on UI as text. When "activated" executes some action (usually shows sub-menu).
+ * Menu item which is represented on UI as text. When "activated" executes provided action.
  *
  * @author Yuriy Kiselev (uze@yandex.ru).
  */

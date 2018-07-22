@@ -1,16 +1,30 @@
 package com.github.ykiselev.lwjgl3.events.config;
 
+import com.github.ykiselev.lwjgl3.config.PersistedConfiguration;
+
 import static java.util.Objects.requireNonNull;
 
 /**
+ * Event is fired by {@link PersistedConfiguration#set(String, Object)}.
+ * Subscribers can review new value and prevent it from being applied by throwing {@link InvalidValueException}.
+ *
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
 public final class ValueChangingEvent {
 
+    /**
+     * Configuration element path, for example "sound.effects.volume"
+     */
     private final String path;
 
+    /**
+     * Current value of configuration element
+     */
     private final Object oldValue;
 
+    /**
+     * New value of configuration element
+     */
     private final Object newValue;
 
     public String path() {

@@ -13,8 +13,9 @@ public final class SimpleCheckBoxModel implements CheckBoxModel {
 
     private boolean checked;
 
-    public SimpleCheckBoxModel(Consumer<CheckBoxModel> onChange) {
+    public SimpleCheckBoxModel(Consumer<CheckBoxModel> onChange, boolean checked) {
         this.onChange = requireNonNull(onChange);
+        this.checked = checked;
     }
 
     @Override
