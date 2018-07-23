@@ -4,7 +4,6 @@ import com.github.ykiselev.closeables.CompositeAutoCloseable;
 import com.github.ykiselev.io.FileSystem;
 import com.github.ykiselev.lwjgl3.events.Events;
 import com.github.ykiselev.lwjgl3.events.SubscriptionsBuilder;
-import com.github.ykiselev.lwjgl3.events.config.InvalidValueException;
 import com.github.ykiselev.lwjgl3.events.config.ValueChangingEvent;
 import com.github.ykiselev.lwjgl3.services.Services;
 import com.typesafe.config.Config;
@@ -61,8 +60,9 @@ public final class AppConfig implements PersistedConfiguration, AutoCloseable {
                 .build(services.resolve(Events.class));
     }
 
-    private void onValueChangingEvent(ValueChangingEvent event) {
+    private ValueChangingEvent onValueChangingEvent(ValueChangingEvent event) {
         // we don't need this event but there should be at least one subscriber or exception will be thrown
+        return event;
     }
 
     @Override
@@ -77,15 +77,12 @@ public final class AppConfig implements PersistedConfiguration, AutoCloseable {
             logger.debug("Skipping setting \"{}\" to the same value \"{}\"...", path, value);
         } else {
             logger.debug("Setting \"{}\" to \"{}\"", path, value);
-            try {
-                services.resolve(Events.class).fire(
-                        new ValueChangingEvent(path, oldValue, value)
-                );
-            } catch (InvalidValueException e) {
-                logger.error("Unable to set \"{}\" to supplied value \"{}\"", path, value, e);
-                return;
+            final ValueChangingEvent result = services.resolve(Events.class).fire(
+                    new ValueChangingEvent(path, oldValue, value)
+            );
+            if (result != null) {
+                updateConfig(path, ConfigValueFactory.fromAnyRef(value));
             }
-            updateConfig(path, ConfigValueFactory.fromAnyRef(value));
         }
     }
 

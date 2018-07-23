@@ -1,5 +1,6 @@
 package com.github.ykiselev.lwjgl3.events;
 
+import com.github.ykiselev.lwjgl3.events.layers.EventHandler;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -8,9 +9,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -49,14 +50,14 @@ class AppEventsTest {
 
     private final Events bus = new AppEvents();
 
-    private <V> Consumer<V> fail() {
+    private <V> EventHandler<V> fail() {
         return c -> Assertions.fail("Should not be called!");
     }
 
     @Test
     void shouldSubscribe() throws Exception {
         final List<String> journal = new ArrayList<>();
-        final Consumer<String> handler = journal::add;
+        final EventHandler<String> handler = EventHandlers.of(journal::add);
         AutoCloseable s1 = bus.subscribe(String.class, handler);
         bus.fire("1");
         bus.fire("2");
@@ -71,7 +72,7 @@ class AppEventsTest {
         bus.subscribe(A.class, fail());
         bus.subscribe(B.class, fail());
         bus.subscribe(C.class, fail());
-        bus.subscribe(D.class, c -> flag.set(true));
+        bus.subscribe(D.class, EventHandlers.of(c -> flag.set(true)));
         bus.fire(new D());
         assertTrue(flag.get());
     }
@@ -82,7 +83,7 @@ class AppEventsTest {
         final AtomicBoolean flag = new AtomicBoolean(false);
         bus.subscribe(A.class, fail());
         bus.subscribe(B.class, fail());
-        bus.subscribe(C.class, c -> flag.set(true));
+        bus.subscribe(C.class, EventHandlers.of(c -> flag.set(true)));
         bus.fire(new D());
         assertTrue(flag.get());
     }
@@ -92,7 +93,7 @@ class AppEventsTest {
     void shouldFindSuperclassEventType() {
         final AtomicBoolean flag = new AtomicBoolean(false);
         bus.subscribe(A.class, fail());
-        bus.subscribe(B.class, c -> flag.set(true));
+        bus.subscribe(B.class, EventHandlers.of(c -> flag.set(true)));
         bus.fire(new D());
         assertTrue(flag.get());
     }
@@ -101,7 +102,7 @@ class AppEventsTest {
     @Disabled
     void shouldFindSuperclassInterfaceEventType() {
         final AtomicBoolean flag = new AtomicBoolean(false);
-        bus.subscribe(A.class, c -> flag.set(true));
+        bus.subscribe(A.class, EventHandlers.of(c -> flag.set(true)));
         bus.fire(new D());
         assertTrue(flag.get());
     }
@@ -111,10 +112,10 @@ class AppEventsTest {
         final AtomicBoolean f = new AtomicBoolean(false);
         final AtomicBoolean e = new AtomicBoolean(false);
         bus.subscribe(E.class, fail());
-        bus.subscribe(F.class, c -> f.set(true));
-        bus.subscribe(G.class, c -> e.set(true));
-        bus.fire(new F());
-        bus.fire(new G());
+        bus.subscribe(F.class, EventHandlers.of(c -> f.set(true)));
+        bus.subscribe(G.class, EventHandlers.of(c -> e.set(true)));
+        assertNotNull(bus.fire(new F()));
+        assertNotNull(bus.fire(new G()));
         assertTrue(f.get());
         assertTrue(e.get());
     }
@@ -122,7 +123,7 @@ class AppEventsTest {
     @Test
     void shouldUnsubscribe() throws Exception {
         final AtomicBoolean f = new AtomicBoolean(false);
-        AutoCloseable s2 = bus.subscribe(F.class, c -> f.set(true));
+        AutoCloseable s2 = bus.subscribe(F.class, EventHandlers.of(c -> f.set(true)));
         bus.fire(new F());
         assertTrue(f.get());
         s2.close();

@@ -6,7 +6,7 @@ import static java.util.Objects.requireNonNull;
 
 /**
  * Event is fired by {@link PersistedConfiguration#set(String, Object)}.
- * Subscribers can review new value and prevent it from being applied by throwing {@link InvalidValueException}.
+ * Subscribers can review new value and prevent it from being applied by returning new event or {@code null}.
  *
  * @author Yuriy Kiselev (uze@yandex.ru).
  */

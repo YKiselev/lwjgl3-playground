@@ -1,8 +1,7 @@
 package com.github.ykiselev.lwjgl3.events;
 
+import com.github.ykiselev.lwjgl3.events.layers.EventHandler;
 import org.junit.jupiter.api.Test;
-
-import java.util.function.Consumer;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -15,7 +14,7 @@ class SubscriptionsBuilderTest {
 
     private final Events events = mock(Events.class);
 
-    private final Consumer<String> handler = mock(Consumer.class);
+    private final EventHandler<String> handler = mock(EventHandler.class);
 
     @Test
     void shouldSubscribe() {

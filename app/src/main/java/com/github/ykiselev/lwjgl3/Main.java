@@ -139,7 +139,8 @@ public final class Main implements Runnable {
                 .build(services.resolve(Events.class));
     }
 
-    private void onQuitGame(QuitGameEvent event) {
+    private QuitGameEvent onQuitGame(QuitGameEvent event) {
         exitFlag = true;
+        return null;
     }
 }

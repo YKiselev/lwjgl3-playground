@@ -1,10 +1,11 @@
 package com.github.ykiselev.lwjgl3.sound;
 
+import com.github.ykiselev.closeables.CompositeAutoCloseable;
 import com.github.ykiselev.lwjgl3.config.PersistedConfiguration;
 import com.github.ykiselev.lwjgl3.events.Events;
-import com.github.ykiselev.closeables.CompositeAutoCloseable;
 import com.github.ykiselev.lwjgl3.events.SubscriptionsBuilder;
 import com.github.ykiselev.lwjgl3.events.config.ValueChangingEvent;
+import com.github.ykiselev.lwjgl3.events.layers.EventHandler;
 import com.github.ykiselev.lwjgl3.services.Services;
 import com.github.ykiselev.lwjgl3.services.SoundEffects;
 import com.github.ykiselev.tree.PrefixTree;
@@ -20,7 +21,6 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.IntBuffer;
 import java.util.List;
-import java.util.function.Consumer;
 
 import static com.github.ykiselev.openal.Errors.assertNoAlErrors;
 import static java.util.Objects.requireNonNull;
@@ -98,17 +98,22 @@ public final class AppSoundEffects implements SoundEffects, AutoCloseable {
                 alcGetInteger(device, ALC_STEREO_SOURCES)
         );
 
-        final PrefixTree<Consumer<ValueChangingEvent>> tree = new PrefixTreeBuilder<Consumer<ValueChangingEvent>>("\\.")
+        final PrefixTree<EventHandler<ValueChangingEvent>> tree = new PrefixTreeBuilder<EventHandler<ValueChangingEvent>>("\\.")
                 .add("sound.effects.level", this::onSoundEffectsLevelChanging)
                 .build();
+        final EventHandler<ValueChangingEvent> handler = event ->
+                tree.find(event.path())
+                        .map(h -> h.handle(event))
+                        .orElse(event);
 
         subscriptions = new SubscriptionsBuilder()
-                .with(ValueChangingEvent.class, event -> tree.find(event.path()).ifPresent(c -> c.accept(event)))
+                .with(ValueChangingEvent.class, handler)
                 .build(services.resolve(Events.class));
     }
 
-    private void onSoundEffectsLevelChanging(ValueChangingEvent event) {
+    private ValueChangingEvent onSoundEffectsLevelChanging(ValueChangingEvent event) {
         logger.info("Setting sound level to {}", event.newValue());
+        return event;
     }
 
     @Override

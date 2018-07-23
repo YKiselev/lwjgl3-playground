@@ -1,19 +1,19 @@
 package com.github.ykiselev.lwjgl3.events;
 
 import com.github.ykiselev.closeables.CompositeAutoCloseable;
+import com.github.ykiselev.lwjgl3.events.layers.EventHandler;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Consumer;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
 public final class SubscriptionsBuilder {
 
-    private final Map<Class, Consumer> handlers = new HashMap<>();
+    private final Map<Class, EventHandler> handlers = new HashMap<>();
 
-    public <T> SubscriptionsBuilder with(Class<T> eventType, Consumer<T> handler) {
+    public <T> SubscriptionsBuilder with(Class<T> eventType, EventHandler<T> handler) {
         handlers.putIfAbsent(eventType, handler);
         return this;
     }
