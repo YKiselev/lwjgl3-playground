@@ -12,6 +12,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
@@ -58,6 +59,8 @@ class AppScheduleTest {
         clock = 0;
         final Repeatable r1 = mock(Repeatable.class);
         final Repeatable r2 = mock(Repeatable.class);
+        when(r1.run()).thenReturn(true);
+        when(r2.run()).thenReturn(true);
         schedule.schedule(5, TimeUnit.MILLISECONDS, r1);
         schedule.schedule(25, TimeUnit.MILLISECONDS, r2);
         schedule.processPendingTasks(2);
@@ -75,9 +78,9 @@ class AppScheduleTest {
         schedule.processPendingTasks(2);
         verify(r1, times(3)).run();
         verify(r2, never()).run();
-        clock = 20;
+        clock = 25;
         schedule.processPendingTasks(2);
-        verify(r1, times(3)).run();
+        verify(r1, times(4)).run();
         verify(r2, times(1)).run();
     }
 

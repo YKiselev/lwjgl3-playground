@@ -34,8 +34,8 @@ public final class AppSchedule implements Schedule {
         add(
                 new Task(
                         time() + unit.toMillis(interval),
-                        task
-                )
+                        task,
+                        interval)
         );
     }
 
@@ -44,7 +44,7 @@ public final class AppSchedule implements Schedule {
         add(
                 new Task(
                         time() + unit.toMillis(interval),
-                        task
+                        interval, task
                 )
         );
     }
@@ -53,11 +53,7 @@ public final class AppSchedule implements Schedule {
         return clock.getAsLong();
     }
 
-    /**
-     * Runs scheduled tasks if current time >= task run time
-     *
-     * @param quota the maximum number of tasks to run
-     */
+    @Override
     public void processPendingTasks(long quota) {
         final long t0 = time();
         for (; ; ) {
@@ -74,26 +70,36 @@ public final class AppSchedule implements Schedule {
                 }
                 tasks.poll();
             }
-            task.run();
+            if (task.run()) {
+                task.reset(time());
+                add(task);
+            }
         }
     }
 
     private static final class Task implements Comparable<Task>, Repeatable {
 
-        private final long targetTime;
+        private long targetTime;
+
+        private final long interval;
 
         private final Repeatable repeatable;
 
-        Task(long targetTime, Repeatable repeatable) {
+        Task(long targetTime, long interval, Repeatable repeatable) {
             this.targetTime = targetTime;
+            this.interval = interval;
             this.repeatable = requireNonNull(repeatable);
         }
 
-        Task(long targetTime, Runnable runnable) {
-            this(targetTime, () -> {
+        Task(long targetTime, Runnable runnable, long interval) {
+            this(targetTime, interval, () -> {
                 runnable.run();
                 return false;
             });
+        }
+
+        void reset(long time) {
+            targetTime = interval + time;
         }
 
         @Override
