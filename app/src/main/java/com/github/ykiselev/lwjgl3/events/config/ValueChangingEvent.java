@@ -53,4 +53,9 @@ public final class ValueChangingEvent {
                 ", newValue=" + newValue +
                 '}';
     }
+
+    public ValueChangingEvent with(Object value) {
+        return new ValueChangingEvent(path, oldValue, value);
+    }
+
 }

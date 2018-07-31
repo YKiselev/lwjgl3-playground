@@ -1,7 +1,6 @@
 package com.github.ykiselev.lwjgl3.layers.menu;
 
 import com.github.ykiselev.assets.Assets;
-import com.github.ykiselev.closeables.Closeables;
 import com.github.ykiselev.lwjgl3.config.PersistedConfiguration;
 import com.github.ykiselev.lwjgl3.events.Events;
 import com.github.ykiselev.lwjgl3.events.game.NewGameEvent;
@@ -18,10 +17,7 @@ import com.github.ykiselev.lwjgl3.layers.ui.models.slider.SliderDefinition;
 import com.github.ykiselev.lwjgl3.playground.DelegatingWindowEvents;
 import com.github.ykiselev.lwjgl3.playground.WindowEvents;
 import com.github.ykiselev.lwjgl3.services.Removable;
-import com.github.ykiselev.lwjgl3.services.Schedule;
 import com.github.ykiselev.lwjgl3.services.Services;
-
-import java.util.concurrent.TimeUnit;
 
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
 import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
@@ -118,13 +114,6 @@ public final class Menu implements UiLayer, AutoCloseable, Removable {
     @Override
     public void onPop() {
         pushed = false;
-        services.resolve(Schedule.class)
-                .schedule(
-                        10,
-                        TimeUnit.SECONDS,
-                        () -> services.tryRemove(Menu.class)
-                                .ifPresent(Closeables::close)
-                );
     }
 
     @Override

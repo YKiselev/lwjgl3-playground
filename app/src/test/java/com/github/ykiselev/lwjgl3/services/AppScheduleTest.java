@@ -1,5 +1,7 @@
 package com.github.ykiselev.lwjgl3.services;
 
+import com.github.ykiselev.lwjgl3.services.schedule.AppSchedule;
+import com.github.ykiselev.lwjgl3.services.schedule.Repeatable;
 import org.junit.jupiter.api.Test;
 import org.mockito.stubbing.Answer;
 
@@ -18,7 +20,7 @@ class AppScheduleTest {
 
     private long clock;
 
-    private final Schedule schedule = new AppSchedule(() -> clock);
+    private final AppSchedule schedule = new AppSchedule(() -> clock);
 
     private Answer<Void> advanceTime(long millis) {
         return inv -> {
@@ -50,4 +52,33 @@ class AppScheduleTest {
         schedule.processPendingTasks(2);
         verify(t4, times(1)).run();
     }
+
+    @Test
+    void shouldScheduleRepeatable() {
+        clock = 0;
+        final Repeatable r1 = mock(Repeatable.class);
+        final Repeatable r2 = mock(Repeatable.class);
+        schedule.schedule(5, TimeUnit.MILLISECONDS, r1);
+        schedule.schedule(25, TimeUnit.MILLISECONDS, r2);
+        schedule.processPendingTasks(2);
+        verify(r1, never()).run();
+        verify(r2, never()).run();
+        clock = 5;
+        schedule.processPendingTasks(2);
+        verify(r1, times(1)).run();
+        verify(r2, never()).run();
+        clock = 10;
+        schedule.processPendingTasks(2);
+        verify(r1, times(2)).run();
+        verify(r2, never()).run();
+        clock = 17;
+        schedule.processPendingTasks(2);
+        verify(r1, times(3)).run();
+        verify(r2, never()).run();
+        clock = 20;
+        schedule.processPendingTasks(2);
+        verify(r1, times(3)).run();
+        verify(r2, times(1)).run();
+    }
+
 }

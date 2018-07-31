@@ -1,8 +1,10 @@
-package com.github.ykiselev.lwjgl3.services;
+package com.github.ykiselev.lwjgl3.services.schedule;
 
 import java.util.PriorityQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.function.LongSupplier;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
@@ -21,22 +23,41 @@ public final class AppSchedule implements Schedule {
         this(System::currentTimeMillis);
     }
 
-    @Override
-    public void schedule(long interval, TimeUnit unit, Runnable task) {
-        final Task t = new Task(
-                time() + unit.toMillis(interval),
-                task
-        );
+    private void add(Task t) {
         synchronized (tasks) {
             tasks.add(t);
         }
+    }
+
+    @Override
+    public void schedule(long interval, TimeUnit unit, Runnable task) {
+        add(
+                new Task(
+                        time() + unit.toMillis(interval),
+                        task
+                )
+        );
+    }
+
+    @Override
+    public void schedule(long interval, TimeUnit unit, Repeatable task) {
+        add(
+                new Task(
+                        time() + unit.toMillis(interval),
+                        task
+                )
+        );
     }
 
     private long time() {
         return clock.getAsLong();
     }
 
-    @Override
+    /**
+     * Runs scheduled tasks if current time >= task run time
+     *
+     * @param quota the maximum number of tasks to run
+     */
     public void processPendingTasks(long quota) {
         final long t0 = time();
         for (; ; ) {
@@ -57,15 +78,22 @@ public final class AppSchedule implements Schedule {
         }
     }
 
-    private static final class Task implements Comparable<Task>, Runnable {
+    private static final class Task implements Comparable<Task>, Repeatable {
 
         private final long targetTime;
 
-        private final Runnable task;
+        private final Repeatable repeatable;
 
-        Task(long targetTime, Runnable task) {
+        Task(long targetTime, Repeatable repeatable) {
             this.targetTime = targetTime;
-            this.task = task;
+            this.repeatable = requireNonNull(repeatable);
+        }
+
+        Task(long targetTime, Runnable runnable) {
+            this(targetTime, () -> {
+                runnable.run();
+                return false;
+            });
         }
 
         @Override
@@ -74,8 +102,8 @@ public final class AppSchedule implements Schedule {
         }
 
         @Override
-        public void run() {
-            task.run();
+        public boolean run() {
+            return repeatable.run();
         }
     }
 }

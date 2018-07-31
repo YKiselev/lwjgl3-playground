@@ -1,6 +1,5 @@
 package com.github.ykiselev.lwjgl3.config;
 
-import com.github.ykiselev.closeables.CompositeAutoCloseable;
 import com.github.ykiselev.io.FileSystem;
 import com.github.ykiselev.lwjgl3.events.Events;
 import com.github.ykiselev.lwjgl3.events.SubscriptionsBuilder;
@@ -38,7 +37,7 @@ public final class AppConfig implements PersistedConfiguration, AutoCloseable {
 
     private volatile Config config;
 
-    private final CompositeAutoCloseable group;
+    private final AutoCloseable group;
 
     private static final VarHandle CH;
 
@@ -55,9 +54,9 @@ public final class AppConfig implements PersistedConfiguration, AutoCloseable {
     public AppConfig(Services services) {
         this.services = requireNonNull(services);
         this.config = load();
-        group = new SubscriptionsBuilder()
+        group = new SubscriptionsBuilder(services.resolve(Events.class))
                 .with(ValueChangingEvent.class, this::onValueChangingEvent)
-                .build(services.resolve(Events.class));
+                .build();
     }
 
     private ValueChangingEvent onValueChangingEvent(ValueChangingEvent event) {

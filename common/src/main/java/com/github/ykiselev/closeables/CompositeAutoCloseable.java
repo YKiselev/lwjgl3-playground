@@ -1,5 +1,7 @@
 package com.github.ykiselev.closeables;
 
+import java.util.Arrays;
+
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
@@ -17,4 +19,11 @@ public final class CompositeAutoCloseable implements AutoCloseable {
             subscription.close();
         }
     }
+
+    public CompositeAutoCloseable and(AutoCloseable value) {
+        final AutoCloseable[] array = Arrays.copyOf(closeables, closeables.length + 1);
+        array[closeables.length] = value;
+        return new CompositeAutoCloseable(array);
+    }
+
 }

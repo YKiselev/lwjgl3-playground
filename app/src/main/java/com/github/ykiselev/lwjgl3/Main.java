@@ -17,7 +17,6 @@
 package com.github.ykiselev.lwjgl3;
 
 import com.github.ykiselev.assets.Assets;
-import com.github.ykiselev.closeables.CompositeAutoCloseable;
 import com.github.ykiselev.io.FileSystem;
 import com.github.ykiselev.lwjgl3.app.ErrorCallbackApp;
 import com.github.ykiselev.lwjgl3.app.GlfwApp;
@@ -33,92 +32,96 @@ import com.github.ykiselev.lwjgl3.events.layers.ShowMenuEvent;
 import com.github.ykiselev.lwjgl3.fs.AppFileSystem;
 import com.github.ykiselev.lwjgl3.fs.ClassPathResources;
 import com.github.ykiselev.lwjgl3.fs.DiskResources;
-import com.github.ykiselev.lwjgl3.host.OnNewGameEvent;
-import com.github.ykiselev.lwjgl3.host.OnShowMenuEvent;
+import com.github.ykiselev.lwjgl3.host.GameEvents;
+import com.github.ykiselev.lwjgl3.host.MenuEvents;
 import com.github.ykiselev.lwjgl3.host.ProgramArguments;
 import com.github.ykiselev.lwjgl3.layers.AppUiLayers;
 import com.github.ykiselev.lwjgl3.layers.UiLayers;
-import com.github.ykiselev.lwjgl3.services.AppSchedule;
 import com.github.ykiselev.lwjgl3.services.MapBasedServices;
-import com.github.ykiselev.lwjgl3.services.Schedule;
+import com.github.ykiselev.lwjgl3.services.ServiceGroupBuilder;
 import com.github.ykiselev.lwjgl3.services.Services;
 import com.github.ykiselev.lwjgl3.services.SoundEffects;
+import com.github.ykiselev.lwjgl3.services.schedule.AppSchedule;
+import com.github.ykiselev.lwjgl3.services.schedule.Schedule;
 import com.github.ykiselev.lwjgl3.sound.AppSoundEffects;
 import com.github.ykiselev.lwjgl3.window.AppWindow;
 import org.lwjgl.opengl.GL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.Arrays;
 
+import static java.util.Objects.requireNonNull;
 import static org.lwjgl.glfw.GLFW.glfwSwapInterval;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class Main implements Runnable {
+public final class Main {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final ProgramArguments args;
 
-    private boolean exitFlag;
+    private volatile boolean exitFlag;
 
     private Main(ProgramArguments args) {
-        this.args = args;
+        this.args = requireNonNull(args);
     }
 
     public static void main(String[] args) {
-        new ErrorCallbackApp(
-                new GlfwApp(
-                        new Main(
-                                new ProgramArguments(args)
-                        )
-                )
+        new Main(
+                new ProgramArguments(args)
         ).run();
     }
 
-    @Override
-    public void run() {
+    private void run() {
         try {
-            final AppUiLayers layers = new AppUiLayers();
-            try (Services services = new MapBasedServices()) {
-                createServices(services, layers);
-                try (CompositeAutoCloseable group = subscribe(services)) {
-                    try (AppWindow window = new AppWindow(args.fullScreen())) {
-                        GL.createCapabilities();
-                        window.wireEvents(layers.events());
-                        window.show();
-                        services.resolve(Events.class)
-                                .fire(new NewGameEvent());
-                        glfwSwapInterval(args.swapInterval());
-                        logger.info("Entering main loop...");
-                        final Schedule schedule = services.resolve(Schedule.class);
-                        while (!window.shouldClose() && !exitFlag) {
-                            window.checkEvents();
-                            layers.draw();
-                            window.swapBuffers();
-                            schedule.processPendingTasks(2);
-                        }
-                    }
-                }
-            }
+            new ErrorCallbackApp(
+                    new GlfwApp(this::mainLoop)
+            ).call();
         } catch (Exception e) {
             logger.error("Unhandled exception!", e);
         }
     }
 
-    private void createServices(Services services, UiLayers layers) throws IOException {
+    private Void mainLoop() throws Exception {
+        try (Services services = new MapBasedServices();
+             AutoCloseable g1 = registerServices(services);
+             AutoCloseable g2 = subscribe(services);
+             AppWindow window = new AppWindow(args.fullScreen())
+        ) {
+            GL.createCapabilities();
+            final UiLayers layers = services.resolve(UiLayers.class);
+            window.wireEvents(layers.events());
+            window.show();
+            services.resolve(Events.class)
+                    .fire(new NewGameEvent());
+            glfwSwapInterval(args.swapInterval());
+            logger.info("Entering main loop...");
+            final Schedule schedule = services.resolve(Schedule.class);
+            while (!window.shouldClose() && !exitFlag) {
+                window.checkEvents();
+                layers.draw();
+                window.swapBuffers();
+                schedule.processPendingTasks(2);
+            }
+            return null;
+        }
+    }
+
+    private AutoCloseable registerServices(Services services) {
         logger.info("Creating services...");
-        services.add(Events.class, new AppEvents());
-        services.add(Schedule.class, new AppSchedule());
         final FileSystem fileSystem = createFileSystem();
-        services.add(Assets.class, GameAssets.create(fileSystem));
-        services.add(UiLayers.class, layers);
-        services.add(FileSystem.class, fileSystem);
-        services.add(PersistedConfiguration.class, new AppConfig(services));
-        services.add(SoundEffects.class, new AppSoundEffects(services));
+        return new ServiceGroupBuilder(services)
+                .add(Schedule.class, new AppSchedule())
+                .add(Events.class, new AppEvents())
+                .add(UiLayers.class, new AppUiLayers())
+                .add(Assets.class, GameAssets.create(fileSystem))
+                .add(FileSystem.class, fileSystem)
+                .add(PersistedConfiguration.class, new AppConfig(services))
+                .add(SoundEffects.class, new AppSoundEffects(services))
+                .build();
     }
 
     private FileSystem createFileSystem() {
@@ -131,12 +134,17 @@ public final class Main implements Runnable {
         );
     }
 
-    private CompositeAutoCloseable subscribe(Services services) {
-        return new SubscriptionsBuilder()
+    private AutoCloseable subscribe(Services services) {
+        final Events events = services.resolve(Events.class);
+        final GameEvents gameEvents = new GameEvents(services);
+        final MenuEvents menuEvents = new MenuEvents(services);
+        return new SubscriptionsBuilder(events)
                 .with(QuitGameEvent.class, this::onQuitGame)
-                .with(NewGameEvent.class, new OnNewGameEvent(services))
-                .with(ShowMenuEvent.class, new OnShowMenuEvent(services))
-                .build(services.resolve(Events.class));
+                .with(ShowMenuEvent.class, menuEvents::onShowMenuEvent)
+                .with(NewGameEvent.class, gameEvents::onNewGameEvent)
+                .build()
+                .and(gameEvents)
+                .and(menuEvents);
     }
 
     private QuitGameEvent onQuitGame(QuitGameEvent event) {

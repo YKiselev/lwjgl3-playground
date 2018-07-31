@@ -18,17 +18,17 @@ class SubscriptionsBuilderTest {
 
     @Test
     void shouldSubscribe() {
-        new SubscriptionsBuilder()
+        new SubscriptionsBuilder(events)
                 .with(String.class, handler)
-                .build(events);
+                .build();
         verify(events).subscribe(String.class, handler);
     }
 
     @Test
     void shouldSubscribeWithoutPredicate() {
-        new SubscriptionsBuilder()
+        new SubscriptionsBuilder(events)
                 .with(String.class, handler)
-                .build(events);
+                .build();
         verify(events).subscribe(String.class, handler);
     }
 
@@ -37,9 +37,9 @@ class SubscriptionsBuilderTest {
         final AutoCloseable ac = mock(AutoCloseable.class);
         when(events.subscribe(String.class, handler))
                 .thenReturn(ac);
-        new SubscriptionsBuilder()
+        new SubscriptionsBuilder(events)
                 .with(String.class, handler)
-                .build(events)
+                .build()
                 .close();
         verify(ac).close();
     }

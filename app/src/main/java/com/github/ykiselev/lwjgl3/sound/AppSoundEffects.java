@@ -106,9 +106,9 @@ public final class AppSoundEffects implements SoundEffects, AutoCloseable {
                         .map(h -> h.handle(event))
                         .orElse(event);
 
-        subscriptions = new SubscriptionsBuilder()
+        subscriptions = new SubscriptionsBuilder(services.resolve(Events.class))
                 .with(ValueChangingEvent.class, handler)
-                .build(services.resolve(Events.class));
+                .build();
     }
 
     private ValueChangingEvent onSoundEffectsLevelChanging(ValueChangingEvent event) {

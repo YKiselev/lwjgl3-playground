@@ -2,10 +2,8 @@ package com.github.ykiselev.lwjgl3.playground;
 
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.assets.formats.obj.ObjModel;
-import com.github.ykiselev.closeables.CompositeAutoCloseable;
 import com.github.ykiselev.io.FileSystem;
 import com.github.ykiselev.lwjgl3.events.Events;
-import com.github.ykiselev.lwjgl3.events.SubscriptionsBuilder;
 import com.github.ykiselev.lwjgl3.events.layers.ShowMenuEvent;
 import com.github.ykiselev.lwjgl3.layers.UiLayer;
 import com.github.ykiselev.lwjgl3.services.Services;
@@ -75,8 +73,6 @@ public final class Game implements UiLayer, WindowEvents, AutoCloseable {
 
     private final Services services;
 
-    private final CompositeAutoCloseable group;
-
     private final SpriteBatch spriteBatch;
 
     private final Wrap<? extends Texture2d> cuddles;
@@ -116,8 +112,6 @@ public final class Game implements UiLayer, WindowEvents, AutoCloseable {
     public Game(Services services) {
         this.services = requireNonNull(services);
         final Assets assets = services.resolve(Assets.class);
-        this.group = new SubscriptionsBuilder()
-                .build(services.resolve(Events.class));
         spriteBatch = new DefaultSpriteBatch(
                 assets.load("progs/sprite-batch.conf", ProgramObject.class)
         );
@@ -246,7 +240,6 @@ public final class Game implements UiLayer, WindowEvents, AutoCloseable {
         cuddles.close();
         MemoryUtil.memFree(pv);
         frameBuffer.close();
-        group.close();
     }
 
     private void drawPyramids(FloatBuffer vp) {
