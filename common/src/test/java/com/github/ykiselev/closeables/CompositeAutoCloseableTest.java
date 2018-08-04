@@ -30,7 +30,7 @@ class CompositeAutoCloseableTest {
 
     @Test
     void shouldCallInReversedOrder() throws Exception {
-        ac.invert().close();
+        ac.reverse().close();
         InOrder inOrder = inOrder(ac1, ac2, ac3);
         inOrder.verify(ac3).close();
         inOrder.verify(ac2).close();

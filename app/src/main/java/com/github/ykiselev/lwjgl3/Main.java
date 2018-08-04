@@ -16,139 +16,57 @@
 
 package com.github.ykiselev.lwjgl3;
 
-import com.github.ykiselev.assets.Assets;
-import com.github.ykiselev.io.FileSystem;
-import com.github.ykiselev.lwjgl3.app.ErrorCallbackApp;
-import com.github.ykiselev.lwjgl3.app.GlfwApp;
-import com.github.ykiselev.lwjgl3.assets.GameAssets;
-import com.github.ykiselev.lwjgl3.config.AppConfig;
-import com.github.ykiselev.lwjgl3.config.PersistedConfiguration;
-import com.github.ykiselev.lwjgl3.events.AppEvents;
-import com.github.ykiselev.lwjgl3.events.Events;
-import com.github.ykiselev.lwjgl3.events.SubscriptionsBuilder;
-import com.github.ykiselev.lwjgl3.events.game.NewGameEvent;
-import com.github.ykiselev.lwjgl3.events.game.QuitGameEvent;
-import com.github.ykiselev.lwjgl3.events.layers.ShowMenuEvent;
-import com.github.ykiselev.lwjgl3.fs.AppFileSystem;
-import com.github.ykiselev.lwjgl3.fs.ClassPathResources;
-import com.github.ykiselev.lwjgl3.fs.DiskResources;
-import com.github.ykiselev.lwjgl3.host.GameEvents;
-import com.github.ykiselev.lwjgl3.host.MenuEvents;
 import com.github.ykiselev.lwjgl3.host.ProgramArguments;
-import com.github.ykiselev.lwjgl3.layers.AppUiLayers;
-import com.github.ykiselev.lwjgl3.layers.UiLayers;
-import com.github.ykiselev.lwjgl3.services.MapBasedServices;
-import com.github.ykiselev.lwjgl3.services.ServiceGroupBuilder;
-import com.github.ykiselev.lwjgl3.services.Services;
-import com.github.ykiselev.lwjgl3.services.SoundEffects;
-import com.github.ykiselev.lwjgl3.services.schedule.AppSchedule;
-import com.github.ykiselev.lwjgl3.services.schedule.Schedule;
-import com.github.ykiselev.lwjgl3.sound.AppSoundEffects;
-import com.github.ykiselev.lwjgl3.window.AppWindow;
-import org.lwjgl.opengl.GL;
-import org.slf4j.Logger;
+import org.lwjgl.glfw.GLFWErrorCallback;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
-
-import static java.util.Objects.requireNonNull;
-import static org.lwjgl.glfw.GLFW.glfwSwapInterval;
+import static org.lwjgl.glfw.GLFW.glfwInit;
+import static org.lwjgl.glfw.GLFW.glfwSetErrorCallback;
+import static org.lwjgl.glfw.GLFW.glfwTerminate;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
 public final class Main {
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
-
-    private final ProgramArguments args;
-
-    private volatile boolean exitFlag;
-
-    private Main(ProgramArguments args) {
-        this.args = requireNonNull(args);
-    }
-
     public static void main(String[] args) {
-        new Main(
-                new ProgramArguments(args)
-        ).run();
-    }
-
-    private void run() {
-        try {
-            new ErrorCallbackApp(
-                    new GlfwApp(this::mainLoop)
-            ).call();
-        } catch (Exception e) {
-            logger.error("Unhandled exception!", e);
-        }
-    }
-
-    private Void mainLoop() throws Exception {
-        try (Services services = new MapBasedServices();
-             AutoCloseable g1 = registerServices(services);
-             AutoCloseable g2 = subscribe(services);
-             AppWindow window = new AppWindow(args.fullScreen())
-        ) {
-            GL.createCapabilities();
-            final UiLayers layers = services.resolve(UiLayers.class);
-            window.wireEvents(layers.events());
-            window.show();
-            services.resolve(Events.class)
-                    .fire(new NewGameEvent());
-            glfwSwapInterval(args.swapInterval());
-            logger.info("Entering main loop...");
-            final Schedule schedule = services.resolve(Schedule.class);
-            while (!window.shouldClose() && !exitFlag) {
-                window.checkEvents();
-                layers.draw();
-                window.swapBuffers();
-                schedule.processPendingTasks(2);
-            }
-            return null;
-        }
-    }
-
-    private AutoCloseable registerServices(Services services) {
-        logger.info("Creating services...");
-        final FileSystem fileSystem = createFileSystem();
-        return new ServiceGroupBuilder(services)
-                .add(Schedule.class, new AppSchedule())
-                .add(Events.class, new AppEvents())
-                .add(UiLayers.class, new AppUiLayers())
-                .add(Assets.class, GameAssets.create(fileSystem))
-                .add(FileSystem.class, fileSystem)
-                .add(PersistedConfiguration.class, new AppConfig(services))
-                .add(SoundEffects.class, new AppSoundEffects(services))
-                .build();
-    }
-
-    private FileSystem createFileSystem() {
-        return new AppFileSystem(
-                args.home(),
-                Arrays.asList(
-                        new DiskResources(args.assetPaths()),
-                        new ClassPathResources(getClass().getClassLoader())
+        withExceptionCatching(
+                () -> withErrorCallback(
+                        () -> withGlfw(
+                                new MainLoop(
+                                        new ProgramArguments(args)
+                                )
+                        )
                 )
         );
     }
 
-    private AutoCloseable subscribe(Services services) {
-        final Events events = services.resolve(Events.class);
-        final GameEvents gameEvents = new GameEvents(services);
-        final MenuEvents menuEvents = new MenuEvents(services);
-        return new SubscriptionsBuilder(events)
-                .with(QuitGameEvent.class, this::onQuitGame)
-                .with(ShowMenuEvent.class, menuEvents::onShowMenuEvent)
-                .with(NewGameEvent.class, gameEvents::onNewGameEvent)
-                .build()
-                .and(gameEvents)
-                .and(menuEvents);
+    private static void withErrorCallback(Runnable delegate) {
+        try (GLFWErrorCallback callback = GLFWErrorCallback.createPrint(System.err)) {
+            final GLFWErrorCallback previous = glfwSetErrorCallback(callback);
+            try {
+                delegate.run();
+            } finally {
+                glfwSetErrorCallback(previous);
+            }
+        }
     }
 
-    private QuitGameEvent onQuitGame(QuitGameEvent event) {
-        exitFlag = true;
-        return null;
+    private static void withGlfw(Runnable delegate) {
+        glfwInit();
+        try {
+            delegate.run();
+        } finally {
+            glfwTerminate();
+        }
     }
+
+    private static void withExceptionCatching(Runnable delegate) {
+        try {
+            delegate.run();
+        } catch (Exception e) {
+            LoggerFactory.getLogger(Main.class).error("Unhandled exception!", e);
+        }
+    }
+
 }

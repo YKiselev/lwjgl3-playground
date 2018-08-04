@@ -30,10 +30,10 @@ public final class ServiceGroupBuilder {
     }
 
     /**
-     * @return the inverted chain of {@link AutoCloseable}'s
+     * @return the reversed chain of {@link AutoCloseable}'s
      */
     public AutoCloseable build() {
-        return ac.invert();
+        return ac.reverse();
     }
 
 }

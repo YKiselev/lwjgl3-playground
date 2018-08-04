@@ -26,7 +26,7 @@ public final class CompositeAutoCloseable implements AutoCloseable {
         return new CompositeAutoCloseable(array);
     }
 
-    public CompositeAutoCloseable invert() {
+    public CompositeAutoCloseable reverse() {
         final AutoCloseable[] tmp = new AutoCloseable[closeables.length];
         for (int i = 0; i <= closeables.length / 2; i++) {
             tmp[tmp.length - i - 1] = closeables[i];
