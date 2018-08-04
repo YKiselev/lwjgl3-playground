@@ -32,7 +32,7 @@ public final class ServiceGroupBuilder {
     /**
      * @return the reversed chain of {@link AutoCloseable}'s
      */
-    public AutoCloseable build() {
+    public CompositeAutoCloseable build() {
         return ac.reverse();
     }
 

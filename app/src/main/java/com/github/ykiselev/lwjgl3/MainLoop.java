@@ -43,7 +43,7 @@ import com.github.ykiselev.lwjgl3.services.schedule.AppSchedule;
 import com.github.ykiselev.lwjgl3.services.schedule.Schedule;
 import com.github.ykiselev.lwjgl3.sound.AppSoundEffects;
 import com.github.ykiselev.lwjgl3.window.AppWindow;
-import org.lwjgl.opengl.GL;
+import com.github.ykiselev.lwjgl3.window.WindowBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,17 +72,15 @@ public final class MainLoop implements Runnable {
         try (Services services = new MapBasedServices();
              AutoCloseable ac1 = registerServices(services);
              AutoCloseable ac2 = subscribe(services);
-             AppWindow window = new AppWindow(args.fullScreen())
+             AppWindow window = createWindow(services)
         ) {
-            GL.createCapabilities();
-            final UiLayers layers = services.resolve(UiLayers.class);
-            window.wireEvents(layers.events());
             window.show();
             services.resolve(Events.class)
                     .fire(new NewGameEvent());
             glfwSwapInterval(args.swapInterval());
             logger.info("Entering main loop...");
             final Schedule schedule = services.resolve(Schedule.class);
+            final UiLayers layers = services.resolve(UiLayers.class);
             while (!window.shouldClose() && !exitFlag) {
                 window.checkEvents();
                 layers.draw();
@@ -92,6 +90,18 @@ public final class MainLoop implements Runnable {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private AppWindow createWindow(Services services) {
+        return new WindowBuilder()
+                .fullScreen(args.fullScreen())
+                .version(3, 3)
+                .coreProfile()
+                .debug(true)
+                .primaryMonitor()
+                .dimensions(800, 600)
+                .events(services.resolve(UiLayers.class).events())
+                .build("LWJGL Playground");
     }
 
     private AutoCloseable registerServices(Services services) {
