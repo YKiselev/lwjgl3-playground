@@ -16,38 +16,19 @@
 
 package com.github.ykiselev.lwjgl3;
 
-import com.github.ykiselev.assets.Assets;
-import com.github.ykiselev.io.FileSystem;
-import com.github.ykiselev.lwjgl3.assets.GameAssets;
-import com.github.ykiselev.lwjgl3.config.AppConfig;
-import com.github.ykiselev.lwjgl3.config.PersistedConfiguration;
-import com.github.ykiselev.lwjgl3.events.AppEvents;
+import com.github.ykiselev.closeables.CompositeAutoCloseable;
 import com.github.ykiselev.lwjgl3.events.Events;
 import com.github.ykiselev.lwjgl3.events.SubscriptionsBuilder;
 import com.github.ykiselev.lwjgl3.events.game.NewGameEvent;
 import com.github.ykiselev.lwjgl3.events.game.QuitGameEvent;
-import com.github.ykiselev.lwjgl3.events.layers.ShowMenuEvent;
-import com.github.ykiselev.lwjgl3.fs.AppFileSystem;
-import com.github.ykiselev.lwjgl3.fs.ClassPathResources;
-import com.github.ykiselev.lwjgl3.fs.DiskResources;
-import com.github.ykiselev.lwjgl3.host.GameEvents;
-import com.github.ykiselev.lwjgl3.host.MenuEvents;
 import com.github.ykiselev.lwjgl3.host.ProgramArguments;
-import com.github.ykiselev.lwjgl3.layers.AppUiLayers;
 import com.github.ykiselev.lwjgl3.layers.UiLayers;
-import com.github.ykiselev.lwjgl3.services.MapBasedServices;
-import com.github.ykiselev.lwjgl3.services.ServiceGroupBuilder;
 import com.github.ykiselev.lwjgl3.services.Services;
-import com.github.ykiselev.lwjgl3.services.SoundEffects;
-import com.github.ykiselev.lwjgl3.services.schedule.AppSchedule;
 import com.github.ykiselev.lwjgl3.services.schedule.Schedule;
-import com.github.ykiselev.lwjgl3.sound.AppSoundEffects;
 import com.github.ykiselev.lwjgl3.window.AppWindow;
 import com.github.ykiselev.lwjgl3.window.WindowBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Arrays;
 
 import static java.util.Objects.requireNonNull;
 import static org.lwjgl.glfw.GLFW.glfwSwapInterval;
@@ -61,18 +42,19 @@ public final class MainLoop implements Runnable {
 
     private final ProgramArguments args;
 
+    private final Services services;
+
     private volatile boolean exitFlag;
 
-    public MainLoop(ProgramArguments args) {
+    public MainLoop(ProgramArguments args, Services services) {
         this.args = requireNonNull(args);
+        this.services = requireNonNull(services);
     }
 
     @Override
     public void run() {
-        try (Services services = new MapBasedServices();
-             AutoCloseable ac1 = registerServices(services);
-             AutoCloseable ac2 = subscribe(services);
-             AppWindow window = createWindow(services)
+        try (AppWindow window = createWindow(services);
+             CompositeAutoCloseable ac = subscribe()
         ) {
             window.show();
             services.resolve(Events.class)
@@ -87,8 +69,6 @@ public final class MainLoop implements Runnable {
                 window.swapBuffers();
                 schedule.processPendingTasks(2);
             }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
         }
     }
 
@@ -104,41 +84,10 @@ public final class MainLoop implements Runnable {
                 .build("LWJGL Playground");
     }
 
-    private AutoCloseable registerServices(Services services) {
-        logger.info("Creating services...");
-        final FileSystem fileSystem = createFileSystem();
-        return new ServiceGroupBuilder(services)
-                .add(Schedule.class, new AppSchedule())
-                .add(Events.class, new AppEvents())
-                .add(UiLayers.class, new AppUiLayers())
-                .add(Assets.class, GameAssets.create(fileSystem))
-                .add(FileSystem.class, fileSystem)
-                .add(PersistedConfiguration.class, new AppConfig(services))
-                .add(SoundEffects.class, new AppSoundEffects(services))
-                .build();
-    }
-
-    private FileSystem createFileSystem() {
-        return new AppFileSystem(
-                args.home(),
-                Arrays.asList(
-                        new DiskResources(args.assetPaths()),
-                        new ClassPathResources(getClass().getClassLoader())
-                )
-        );
-    }
-
-    private AutoCloseable subscribe(Services services) {
-        final Events events = services.resolve(Events.class);
-        final GameEvents gameEvents = new GameEvents(services);
-        final MenuEvents menuEvents = new MenuEvents(services);
-        return new SubscriptionsBuilder(events)
+    private CompositeAutoCloseable subscribe() {
+        return new SubscriptionsBuilder(services.resolve(Events.class))
                 .with(QuitGameEvent.class, this::onQuitGame)
-                .with(ShowMenuEvent.class, menuEvents::onShowMenuEvent)
-                .with(NewGameEvent.class, gameEvents::onNewGameEvent)
-                .build()
-                .and(gameEvents)
-                .and(menuEvents);
+                .build();
     }
 
     private QuitGameEvent onQuitGame(QuitGameEvent event) {

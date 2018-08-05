@@ -14,9 +14,13 @@ public final class CompositeAutoCloseable implements AutoCloseable {
     }
 
     @Override
-    public void close() throws Exception {
-        for (AutoCloseable subscription : closeables) {
-            subscription.close();
+    public void close() {
+        try {
+            for (AutoCloseable subscription : closeables) {
+                subscription.close();
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 

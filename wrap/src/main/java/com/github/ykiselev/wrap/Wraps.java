@@ -24,6 +24,11 @@ public final class Wraps {
                     throw new RuntimeException(e);
                 }
             }
+
+            @Override
+            public String toString() {
+                return "Wrap{" + value + "}";
+            }
         };
     }
 

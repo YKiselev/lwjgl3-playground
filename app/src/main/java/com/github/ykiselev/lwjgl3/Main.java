@@ -30,11 +30,15 @@ import static org.lwjgl.glfw.GLFW.glfwTerminate;
 public final class Main {
 
     public static void main(String[] args) {
+        final ProgramArguments programArguments = new ProgramArguments(args);
         withExceptionCatching(
                 () -> withErrorCallback(
                         () -> withGlfw(
-                                new MainLoop(
-                                        new ProgramArguments(args)
+                                new Host(
+                                        programArguments,
+                                        services -> new MainLoop(
+                                                programArguments, services
+                                        )
                                 )
                         )
                 )
