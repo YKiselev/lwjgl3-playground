@@ -28,7 +28,7 @@ public interface Schedule {
     /**
      * Runs scheduled tasks if current time >= task run time
      *
-     * @param quota the soft time limit for processing (there is no guarantee that this limit will not be breached).
+     * @param quota the soft time limit for processing in milliseconds. There is no guarantee that this limit will not be breached.
      */
     void processPendingTasks(long quota);
 }

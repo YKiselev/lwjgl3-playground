@@ -16,7 +16,7 @@ public final class AppSchedule implements Schedule {
     private final LongSupplier clock;
 
     public AppSchedule(LongSupplier clock) {
-        this.clock = clock;
+        this.clock = requireNonNull(clock);
     }
 
     public AppSchedule() {
@@ -31,26 +31,24 @@ public final class AppSchedule implements Schedule {
 
     @Override
     public void schedule(long interval, TimeUnit unit, Runnable task) {
-        add(
-                new Task(
-                        time() + unit.toMillis(interval),
-                        task,
-                        interval)
-        );
+        add(task(unit.toMillis(interval), task));
     }
 
     @Override
     public void schedule(long interval, TimeUnit unit, Repeatable task) {
-        add(
-                new Task(
-                        time() + unit.toMillis(interval),
-                        interval, task
-                )
-        );
+        add(task(unit.toMillis(interval), task));
     }
 
     private long time() {
         return clock.getAsLong();
+    }
+
+    private Task task(long interval, Runnable r) {
+        return new Task(time() + interval, interval, r);
+    }
+
+    private Task task(long interval, Repeatable r) {
+        return new Task(time() + interval, interval, r);
     }
 
     @Override
@@ -65,21 +63,20 @@ public final class AppSchedule implements Schedule {
             final Task task;
             synchronized (tasks) {
                 task = tasks.peek();
-                if (task == null || task.targetTime > time + timeLeft) {
+                if (task == null || task.after(time + timeLeft)) {
                     break;
                 }
                 tasks.poll();
             }
             if (task.run()) {
-                task.reset(time());
-                add(task);
+                add(task.reset(time()));
             }
         }
     }
 
     private static final class Task implements Comparable<Task>, Repeatable {
 
-        private long targetTime;
+        private final long targetTime;
 
         private final long interval;
 
@@ -91,15 +88,19 @@ public final class AppSchedule implements Schedule {
             this.repeatable = requireNonNull(repeatable);
         }
 
-        Task(long targetTime, Runnable runnable, long interval) {
+        Task(long targetTime, long interval, Runnable runnable) {
             this(targetTime, interval, () -> {
                 runnable.run();
                 return false;
             });
         }
 
-        void reset(long time) {
-            targetTime = interval + time;
+        Task reset(long time) {
+            return new Task(time + interval, interval, repeatable);
+        }
+
+        boolean after(long time) {
+            return targetTime > time;
         }
 
         @Override
@@ -112,4 +113,5 @@ public final class AppSchedule implements Schedule {
             return repeatable.run();
         }
     }
+
 }

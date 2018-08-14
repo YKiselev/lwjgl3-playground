@@ -42,8 +42,6 @@ import com.github.ykiselev.lwjgl3.services.SoundEffects;
 import com.github.ykiselev.lwjgl3.services.schedule.AppSchedule;
 import com.github.ykiselev.lwjgl3.services.schedule.Schedule;
 import com.github.ykiselev.lwjgl3.sound.AppSoundEffects;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.function.Function;
@@ -56,8 +54,6 @@ import static java.util.Objects.requireNonNull;
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
 public final class Host implements Runnable {
-
-    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final ProgramArguments args;
 
@@ -81,7 +77,6 @@ public final class Host implements Runnable {
     }
 
     private CompositeAutoCloseable registerServices(Services services) {
-        logger.info("Creating services...");
         final FileSystem fileSystem = createFileSystem();
         return new ServiceGroupBuilder(services)
                 .add(Schedule.class, new AppSchedule())
