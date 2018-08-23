@@ -4,7 +4,7 @@ import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.lwjgl3.config.PersistedConfiguration;
 import com.github.ykiselev.lwjgl3.events.Events;
 import com.github.ykiselev.lwjgl3.events.game.NewGameEvent;
-import com.github.ykiselev.lwjgl3.events.game.QuitGameEvent;
+import com.github.ykiselev.lwjgl3.events.game.QuitEvent;
 import com.github.ykiselev.lwjgl3.layers.UiLayer;
 import com.github.ykiselev.lwjgl3.layers.UiLayers;
 import com.github.ykiselev.lwjgl3.layers.menu.ListMenu.MenuItem;
@@ -81,7 +81,7 @@ public final class Menu implements UiLayer, AutoCloseable, Removable {
                 new MenuItem(
                         new Link(
                                 "Exit",
-                                () -> events.fire(new QuitGameEvent())
+                                () -> events.fire(new QuitEvent())
                         )
                 )
         );

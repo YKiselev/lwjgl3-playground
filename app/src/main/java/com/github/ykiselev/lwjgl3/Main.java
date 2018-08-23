@@ -16,13 +16,10 @@
 
 package com.github.ykiselev.lwjgl3;
 
+import com.github.ykiselev.lwjgl3.app.AppBuilder;
+import com.github.ykiselev.lwjgl3.app.Host;
+import com.github.ykiselev.lwjgl3.app.MainLoop;
 import com.github.ykiselev.lwjgl3.host.ProgramArguments;
-import org.lwjgl.glfw.GLFWErrorCallback;
-import org.slf4j.LoggerFactory;
-
-import static org.lwjgl.glfw.GLFW.glfwInit;
-import static org.lwjgl.glfw.GLFW.glfwSetErrorCallback;
-import static org.lwjgl.glfw.GLFW.glfwTerminate;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
@@ -31,46 +28,16 @@ public final class Main {
 
     public static void main(String[] args) {
         final ProgramArguments programArguments = new ProgramArguments(args);
-        withExceptionCatching(
-                () -> withErrorCallback(
-                        () -> withGlfw(
-                                new Host(
-                                        programArguments,
-                                        services -> new MainLoop(
-                                                programArguments, services
-                                        )
-                                )
-                        )
+        new AppBuilder(
+                new Host(
+                        programArguments,
+                        services -> new MainLoop(
+                                programArguments, services
+                        ).run()
                 )
-        );
+        ).withGlfw()
+                .withErrorCallback()
+                .withExceptionCatching()
+                .run();
     }
-
-    private static void withErrorCallback(Runnable delegate) {
-        try (GLFWErrorCallback callback = GLFWErrorCallback.createPrint(System.err)) {
-            final GLFWErrorCallback previous = glfwSetErrorCallback(callback);
-            try {
-                delegate.run();
-            } finally {
-                glfwSetErrorCallback(previous);
-            }
-        }
-    }
-
-    private static void withGlfw(Runnable delegate) {
-        glfwInit();
-        try {
-            delegate.run();
-        } finally {
-            glfwTerminate();
-        }
-    }
-
-    private static void withExceptionCatching(Runnable delegate) {
-        try {
-            delegate.run();
-        } catch (Exception e) {
-            LoggerFactory.getLogger(Main.class).error("Unhandled exception!", e);
-        }
-    }
-
 }

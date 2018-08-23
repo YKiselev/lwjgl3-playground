@@ -3,6 +3,8 @@ package com.github.ykiselev.lwjgl3.events;
 import com.github.ykiselev.closeables.CompositeAutoCloseable;
 import com.github.ykiselev.lwjgl3.events.layers.EventHandler;
 
+import java.util.function.UnaryOperator;
+
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -24,10 +26,17 @@ public final class SubscriptionsBuilder {
     }
 
     public <T> SubscriptionsBuilder with(Class<T> eventType, EventHandler<T> handler) {
-        return new SubscriptionsBuilder(
-                events,
-                ac.and(events.subscribe(eventType, handler))
+        return and(
+                events.subscribe(eventType, handler)
         );
+    }
+
+    public SubscriptionsBuilder with(UnaryOperator<SubscriptionsBuilder> subscriber) {
+        return subscriber.apply(this);
+    }
+
+    public SubscriptionsBuilder and(AutoCloseable value) {
+        return new SubscriptionsBuilder(events, ac.and(value));
     }
 
     public CompositeAutoCloseable build() {

@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package com.github.ykiselev.lwjgl3;
+package com.github.ykiselev.lwjgl3.app;
 
 import com.github.ykiselev.closeables.CompositeAutoCloseable;
 import com.github.ykiselev.lwjgl3.events.Events;
 import com.github.ykiselev.lwjgl3.events.SubscriptionsBuilder;
 import com.github.ykiselev.lwjgl3.events.game.NewGameEvent;
-import com.github.ykiselev.lwjgl3.events.game.QuitGameEvent;
+import com.github.ykiselev.lwjgl3.events.game.QuitEvent;
 import com.github.ykiselev.lwjgl3.host.ProgramArguments;
 import com.github.ykiselev.lwjgl3.layers.UiLayers;
 import com.github.ykiselev.lwjgl3.services.Services;
@@ -86,11 +86,11 @@ public final class MainLoop implements Runnable {
 
     private CompositeAutoCloseable subscribe() {
         return new SubscriptionsBuilder(services.resolve(Events.class))
-                .with(QuitGameEvent.class, this::onQuitGame)
+                .with(QuitEvent.class, this::onQuit)
                 .build();
     }
 
-    private QuitGameEvent onQuitGame(QuitGameEvent event) {
+    private QuitEvent onQuit(QuitEvent event) {
         exitFlag = true;
         return null;
     }

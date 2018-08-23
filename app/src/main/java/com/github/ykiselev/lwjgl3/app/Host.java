@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.github.ykiselev.lwjgl3;
+package com.github.ykiselev.lwjgl3.app;
 
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.closeables.CompositeAutoCloseable;
@@ -25,8 +25,6 @@ import com.github.ykiselev.lwjgl3.config.PersistedConfiguration;
 import com.github.ykiselev.lwjgl3.events.AppEvents;
 import com.github.ykiselev.lwjgl3.events.Events;
 import com.github.ykiselev.lwjgl3.events.SubscriptionsBuilder;
-import com.github.ykiselev.lwjgl3.events.game.NewGameEvent;
-import com.github.ykiselev.lwjgl3.events.layers.ShowMenuEvent;
 import com.github.ykiselev.lwjgl3.fs.AppFileSystem;
 import com.github.ykiselev.lwjgl3.fs.ClassPathResources;
 import com.github.ykiselev.lwjgl3.fs.DiskResources;
@@ -44,7 +42,7 @@ import com.github.ykiselev.lwjgl3.services.schedule.Schedule;
 import com.github.ykiselev.lwjgl3.sound.AppSoundEffects;
 
 import java.util.Arrays;
-import java.util.function.Function;
+import java.util.function.Consumer;
 
 import static java.util.Objects.requireNonNull;
 
@@ -57,11 +55,11 @@ public final class Host implements Runnable {
 
     private final ProgramArguments args;
 
-    private final Function<Services, Runnable> factory;
+    private final Consumer<Services> delegate;
 
-    public Host(ProgramArguments args, Function<Services, Runnable> factory) {
+    public Host(ProgramArguments args, Consumer<Services> delegate) {
         this.args = requireNonNull(args);
-        this.factory = requireNonNull(factory);
+        this.delegate = requireNonNull(delegate);
     }
 
     @Override
@@ -72,7 +70,7 @@ public final class Host implements Runnable {
                 .and(subscribe(services))
                 .reverse()
         ) {
-            factory.apply(services).run();
+            delegate.accept(services);
         }
     }
 
@@ -100,13 +98,9 @@ public final class Host implements Runnable {
     }
 
     private CompositeAutoCloseable subscribe(Services services) {
-        final GameEvents gameEvents = new GameEvents(services);
-        final MenuEvents menuEvents = new MenuEvents(services);
         return new SubscriptionsBuilder(services.resolve(Events.class))
-                .with(ShowMenuEvent.class, menuEvents::onShowMenuEvent)
-                .with(NewGameEvent.class, gameEvents::onNewGameEvent)
-                .build()
-                .and(gameEvents)
-                .and(menuEvents);
+                .with(new MenuEvents(services))
+                .with(new GameEvents(services))
+                .build();
     }
 }
