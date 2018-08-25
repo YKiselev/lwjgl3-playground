@@ -23,6 +23,7 @@ import com.github.ykiselev.lwjgl3.window.AppWindow;
 import com.github.ykiselev.lwjgl3.window.WindowBuilder;
 import com.github.ykiselev.services.Services;
 import com.github.ykiselev.services.events.Events;
+import com.github.ykiselev.services.events.game.NewGameEvent;
 import com.github.ykiselev.services.events.game.QuitEvent;
 import com.github.ykiselev.services.layers.UiLayers;
 import com.github.ykiselev.services.schedule.Schedule;
@@ -56,8 +57,8 @@ public final class MainLoop implements Runnable {
              CompositeAutoCloseable ac = subscribe()
         ) {
             window.show();
-//            services.resolve(Events.class)
-//                    .fire(new NewGameEvent());
+            services.resolve(Events.class)
+                    .fire(new NewGameEvent());
             glfwSwapInterval(args.swapInterval());
             logger.info("Entering main loop...");
             final Schedule schedule = services.resolve(Schedule.class);

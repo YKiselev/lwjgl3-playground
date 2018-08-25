@@ -89,6 +89,8 @@ public final class Game implements UiLayer, WindowEvents, AutoCloseable {
 
     private float radius = 8;
 
+    private float alpha;
+
     private float cameraZ = -0.5f;
 
     private boolean lmbPressed, rmbPressed;
@@ -297,8 +299,10 @@ public final class Game implements UiLayer, WindowEvents, AutoCloseable {
             radius = 1;
         }
         if (rmbPressed) {
-            cameraZ = (float) Math.max(-radius, Math.min(radius, 0.1 * (cy - cy0)));
+            final double maxAngle = Math.toRadians(45.0);
+            alpha = (float) Math.max(-maxAngle, Math.min(maxAngle, 0.1 * (cy - cy0)));
         }
+        cameraZ = (float) (radius * Math.sin(alpha));
         final double sec = System.currentTimeMillis() / 1000.0;
         try (MemoryStack ms = MemoryStack.stackPush()) {
             final FloatBuffer view = ms.mallocFloat(16);
