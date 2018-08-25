@@ -1,6 +1,6 @@
 package com.github.ykiselev.lwjgl3.events;
 
-import com.github.ykiselev.lwjgl3.events.layers.EventHandler;
+import com.github.ykiselev.services.events.EventHandler;
 
 import java.util.function.Consumer;
 

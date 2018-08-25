@@ -1,7 +1,7 @@
 package com.github.ykiselev.lwjgl3.layers.ui.elements;
 
 
-import com.github.ykiselev.lwjgl3.layers.DrawingContext;
+import com.github.ykiselev.services.layers.DrawingContext;
 import com.github.ykiselev.lwjgl3.layers.ui.AbstractUiElement;
 
 import static java.util.Objects.requireNonNull;

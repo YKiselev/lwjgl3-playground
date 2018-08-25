@@ -1,7 +1,7 @@
 package com.github.ykiselev.lwjgl3.layers.ui;
 
-import com.github.ykiselev.lwjgl3.layers.DrawingContext;
-import com.github.ykiselev.lwjgl3.playground.WindowEvents;
+import com.github.ykiselev.services.layers.DrawingContext;
+import com.github.ykiselev.window.WindowEvents;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).

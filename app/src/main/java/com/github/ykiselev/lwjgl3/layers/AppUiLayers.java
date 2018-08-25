@@ -1,7 +1,9 @@
 package com.github.ykiselev.lwjgl3.layers;
 
-import com.github.ykiselev.lwjgl3.playground.WindowEvents;
+import com.github.ykiselev.lwjgl3.window.WindowEvents;
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
+import com.github.ykiselev.services.layers.UiLayer;
+import com.github.ykiselev.services.layers.UiLayers;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -78,12 +80,20 @@ public final class AppUiLayers implements UiLayers {
 
     @Override
     public void replace(UiLayer layer) {
-        layers.clear();
-        layers.push(layer);
+        if (layer == null) {
+            throw new NullPointerException("Layer can not be null!");
+        }
+        while (!layers.isEmpty()) {
+            layers.pop().onPop();
+        }
+        push(layer);
     }
 
     @Override
     public void push(UiLayer layer) {
+        if (layer == null) {
+            throw new NullPointerException("Layer can not be null!");
+        }
         if (layers.contains(layer)) {
             throw new IllegalArgumentException("Already pushed:" + layer);
         }
@@ -93,11 +103,14 @@ public final class AppUiLayers implements UiLayers {
 
     @Override
     public void pop(UiLayer layer) {
-        final UiLayer pop = layers.pop();
+        if (layer == null) {
+            throw new NullPointerException("Layer can not be null!");
+        }
+        final UiLayer pop = layers.peek();
         if (pop != layer) {
             throw new IllegalArgumentException("Not a top layer: " + layer);
         }
-        layer.onPop();
+        layers.pop().onPop();
     }
 
     private boolean dispatch(Predicate<WindowEvents> p) {

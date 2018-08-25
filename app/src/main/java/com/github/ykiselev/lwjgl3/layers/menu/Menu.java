@@ -1,12 +1,6 @@
 package com.github.ykiselev.lwjgl3.layers.menu;
 
 import com.github.ykiselev.assets.Assets;
-import com.github.ykiselev.lwjgl3.config.PersistedConfiguration;
-import com.github.ykiselev.lwjgl3.events.Events;
-import com.github.ykiselev.lwjgl3.events.game.NewGameEvent;
-import com.github.ykiselev.lwjgl3.events.game.QuitEvent;
-import com.github.ykiselev.lwjgl3.layers.UiLayer;
-import com.github.ykiselev.lwjgl3.layers.UiLayers;
 import com.github.ykiselev.lwjgl3.layers.menu.ListMenu.MenuItem;
 import com.github.ykiselev.lwjgl3.layers.ui.elements.CheckBox;
 import com.github.ykiselev.lwjgl3.layers.ui.elements.Link;
@@ -14,10 +8,16 @@ import com.github.ykiselev.lwjgl3.layers.ui.elements.Slider;
 import com.github.ykiselev.lwjgl3.layers.ui.models.checkbox.SimpleCheckBoxModel;
 import com.github.ykiselev.lwjgl3.layers.ui.models.slider.ConfigurationBoundSliderModel;
 import com.github.ykiselev.lwjgl3.layers.ui.models.slider.SliderDefinition;
-import com.github.ykiselev.lwjgl3.playground.DelegatingWindowEvents;
-import com.github.ykiselev.lwjgl3.playground.WindowEvents;
-import com.github.ykiselev.lwjgl3.services.Removable;
-import com.github.ykiselev.lwjgl3.services.Services;
+import com.github.ykiselev.services.PersistedConfiguration;
+import com.github.ykiselev.services.Removable;
+import com.github.ykiselev.services.Services;
+import com.github.ykiselev.services.events.Events;
+import com.github.ykiselev.services.events.game.NewGameEvent;
+import com.github.ykiselev.services.events.game.QuitEvent;
+import com.github.ykiselev.services.layers.UiLayer;
+import com.github.ykiselev.services.layers.UiLayers;
+import com.github.ykiselev.window.DelegatingWindowEvents;
+import com.github.ykiselev.window.WindowEvents;
 
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
 import static org.lwjgl.glfw.GLFW.GLFW_PRESS;

@@ -1,6 +1,6 @@
 package com.github.ykiselev.lwjgl3.layers.ui.models.slider;
 
-import com.github.ykiselev.lwjgl3.config.PersistedConfiguration;
+import com.github.ykiselev.services.PersistedConfiguration;
 
 import static java.util.Objects.requireNonNull;
 

@@ -43,6 +43,7 @@
         <module>common</module>
         <module>assets</module>
         <module>wrap</module>
+        <module>spi</module>
     </modules>
 
     <dependencyManagement>

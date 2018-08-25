@@ -1,5 +1,8 @@
 package com.github.ykiselev.lwjgl3.services.schedule;
 
+import com.github.ykiselev.services.schedule.Repeatable;
+import com.github.ykiselev.services.schedule.Schedule;
+
 import java.util.PriorityQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.function.LongSupplier;

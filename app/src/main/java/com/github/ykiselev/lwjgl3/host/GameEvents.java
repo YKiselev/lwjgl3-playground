@@ -2,10 +2,10 @@ package com.github.ykiselev.lwjgl3.host;
 
 import com.github.ykiselev.closeables.Closeables;
 import com.github.ykiselev.lwjgl3.events.SubscriptionsBuilder;
-import com.github.ykiselev.lwjgl3.events.game.NewGameEvent;
-import com.github.ykiselev.lwjgl3.layers.UiLayers;
-import com.github.ykiselev.lwjgl3.playground.Game;
-import com.github.ykiselev.lwjgl3.services.Services;
+import com.github.ykiselev.lwjgl3.layers.game.Game;
+import com.github.ykiselev.services.Services;
+import com.github.ykiselev.services.events.game.NewGameEvent;
+import com.github.ykiselev.services.layers.UiLayers;
 
 import java.util.function.UnaryOperator;
 

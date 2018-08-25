@@ -1,6 +1,7 @@
 package com.github.ykiselev.lwjgl3.events;
 
-import com.github.ykiselev.lwjgl3.events.layers.EventHandler;
+import com.github.ykiselev.services.events.EventHandler;
+import com.github.ykiselev.services.events.Events;
 
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;

@@ -1,6 +1,6 @@
 package com.github.ykiselev.lwjgl3.layers.ui.models.checkbox;
 
-import com.github.ykiselev.lwjgl3.config.PersistedConfiguration;
+import com.github.ykiselev.services.PersistedConfiguration;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).

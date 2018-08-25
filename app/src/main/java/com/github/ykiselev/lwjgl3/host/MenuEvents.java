@@ -2,11 +2,11 @@ package com.github.ykiselev.lwjgl3.host;
 
 import com.github.ykiselev.closeables.Closeables;
 import com.github.ykiselev.lwjgl3.events.SubscriptionsBuilder;
-import com.github.ykiselev.lwjgl3.events.layers.ShowMenuEvent;
-import com.github.ykiselev.lwjgl3.layers.UiLayers;
 import com.github.ykiselev.lwjgl3.layers.menu.Menu;
-import com.github.ykiselev.lwjgl3.services.Services;
-import com.github.ykiselev.lwjgl3.services.schedule.Schedule;
+import com.github.ykiselev.services.Services;
+import com.github.ykiselev.services.events.menu.ShowMenuEvent;
+import com.github.ykiselev.services.layers.UiLayers;
+import com.github.ykiselev.services.schedule.Schedule;
 
 import java.util.concurrent.TimeUnit;
 import java.util.function.UnaryOperator;

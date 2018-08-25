@@ -1,6 +1,7 @@
 package com.github.ykiselev.lwjgl3.events;
 
-import com.github.ykiselev.lwjgl3.events.layers.EventHandler;
+import com.github.ykiselev.services.events.EventHandler;
+import com.github.ykiselev.services.events.Events;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;

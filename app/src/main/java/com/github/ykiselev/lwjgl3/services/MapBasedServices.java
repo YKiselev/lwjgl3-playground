@@ -1,6 +1,7 @@
 package com.github.ykiselev.lwjgl3.services;
 
 import com.github.ykiselev.closeables.Closeables;
+import com.github.ykiselev.services.Services;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

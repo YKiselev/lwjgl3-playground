@@ -1,13 +1,13 @@
 package com.github.ykiselev.lwjgl3.sound;
 
 import com.github.ykiselev.closeables.CompositeAutoCloseable;
-import com.github.ykiselev.lwjgl3.config.PersistedConfiguration;
-import com.github.ykiselev.lwjgl3.events.Events;
 import com.github.ykiselev.lwjgl3.events.SubscriptionsBuilder;
-import com.github.ykiselev.lwjgl3.events.config.ValueChangingEvent;
-import com.github.ykiselev.lwjgl3.events.layers.EventHandler;
-import com.github.ykiselev.lwjgl3.services.Services;
-import com.github.ykiselev.lwjgl3.services.SoundEffects;
+import com.github.ykiselev.services.PersistedConfiguration;
+import com.github.ykiselev.services.Services;
+import com.github.ykiselev.services.SoundEffects;
+import com.github.ykiselev.services.events.EventHandler;
+import com.github.ykiselev.services.events.Events;
+import com.github.ykiselev.services.events.config.ValueChangingEvent;
 import com.github.ykiselev.tree.PrefixTree;
 import com.github.ykiselev.tree.PrefixTreeBuilder;
 import com.typesafe.config.Config;

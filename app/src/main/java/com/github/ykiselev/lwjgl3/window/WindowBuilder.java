@@ -1,6 +1,5 @@
 package com.github.ykiselev.lwjgl3.window;
 
-import com.github.ykiselev.lwjgl3.playground.WindowEvents;
 import org.lwjgl.glfw.GLFWCursorPosCallback;
 import org.lwjgl.glfw.GLFWFramebufferSizeCallback;
 import org.lwjgl.glfw.GLFWKeyCallback;

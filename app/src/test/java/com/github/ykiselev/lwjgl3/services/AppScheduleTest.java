@@ -1,7 +1,7 @@
 package com.github.ykiselev.lwjgl3.services;
 
 import com.github.ykiselev.lwjgl3.services.schedule.AppSchedule;
-import com.github.ykiselev.lwjgl3.services.schedule.Repeatable;
+import com.github.ykiselev.services.schedule.Repeatable;
 import org.junit.jupiter.api.Test;
 import org.mockito.stubbing.Answer;
 

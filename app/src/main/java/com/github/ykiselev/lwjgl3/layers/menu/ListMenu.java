@@ -1,10 +1,7 @@
 package com.github.ykiselev.lwjgl3.layers.menu;
 
 import com.github.ykiselev.assets.Assets;
-import com.github.ykiselev.lwjgl3.layers.DrawingContext;
-import com.github.ykiselev.lwjgl3.layers.UiLayer;
 import com.github.ykiselev.lwjgl3.layers.ui.UiElement;
-import com.github.ykiselev.lwjgl3.playground.WindowEvents;
 import com.github.ykiselev.opengl.shaders.ProgramObject;
 import com.github.ykiselev.opengl.sprites.Colors;
 import com.github.ykiselev.opengl.sprites.DefaultSpriteBatch;
@@ -14,6 +11,9 @@ import com.github.ykiselev.opengl.text.Glyph;
 import com.github.ykiselev.opengl.text.SpriteFont;
 import com.github.ykiselev.opengl.textures.SimpleTexture2d;
 import com.github.ykiselev.opengl.textures.Texture2d;
+import com.github.ykiselev.services.layers.DrawingContext;
+import com.github.ykiselev.services.layers.UiLayer;
+import com.github.ykiselev.window.WindowEvents;
 import com.github.ykiselev.wrap.Wrap;
 
 import java.util.Arrays;
