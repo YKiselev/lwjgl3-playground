@@ -44,6 +44,7 @@
         <module>assets</module>
         <module>wrap</module>
         <module>spi</module>
+        <module>ui</module>
     </modules>
 
     <dependencyManagement>

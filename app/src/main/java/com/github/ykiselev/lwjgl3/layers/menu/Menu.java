@@ -2,12 +2,12 @@ package com.github.ykiselev.lwjgl3.layers.menu;
 
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.lwjgl3.layers.menu.ListMenu.MenuItem;
-import com.github.ykiselev.lwjgl3.layers.ui.elements.CheckBox;
-import com.github.ykiselev.lwjgl3.layers.ui.elements.Link;
-import com.github.ykiselev.lwjgl3.layers.ui.elements.Slider;
-import com.github.ykiselev.lwjgl3.layers.ui.models.checkbox.SimpleCheckBoxModel;
-import com.github.ykiselev.lwjgl3.layers.ui.models.slider.ConfigurationBoundSliderModel;
-import com.github.ykiselev.lwjgl3.layers.ui.models.slider.SliderDefinition;
+import com.github.ykiselev.playground.ui.elements.CheckBox;
+import com.github.ykiselev.playground.ui.elements.Link;
+import com.github.ykiselev.playground.ui.elements.Slider;
+import com.github.ykiselev.playground.ui.models.checkbox.SimpleCheckBoxModel;
+import com.github.ykiselev.playground.ui.models.slider.ConfigurationBoundSliderModel;
+import com.github.ykiselev.playground.ui.models.slider.SliderDefinition;
 import com.github.ykiselev.services.PersistedConfiguration;
 import com.github.ykiselev.services.Removable;
 import com.github.ykiselev.services.Services;

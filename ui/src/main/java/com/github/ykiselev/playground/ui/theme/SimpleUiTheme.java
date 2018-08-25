@@ -1,7 +1,7 @@
-package com.github.ykiselev.lwjgl3.layers.ui.theme;
+package com.github.ykiselev.playground.ui.theme;
 
-import com.github.ykiselev.lwjgl3.layers.ui.UiElement;
-import com.github.ykiselev.lwjgl3.layers.ui.UiTheme;
+import com.github.ykiselev.playground.ui.UiElement;
+import com.github.ykiselev.playground.ui.UiTheme;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).

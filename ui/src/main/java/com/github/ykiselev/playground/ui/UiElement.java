@@ -1,4 +1,4 @@
-package com.github.ykiselev.lwjgl3.layers.ui;
+package com.github.ykiselev.playground.ui;
 
 import com.github.ykiselev.services.layers.DrawingContext;
 import com.github.ykiselev.window.WindowEvents;

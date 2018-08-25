@@ -1,4 +1,4 @@
-package com.github.ykiselev.lwjgl3.layers.ui.models.slider;
+package com.github.ykiselev.playground.ui.models.slider;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).

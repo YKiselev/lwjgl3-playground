@@ -1,4 +1,4 @@
-package com.github.ykiselev.lwjgl3.layers.ui.models.checkbox;
+package com.github.ykiselev.playground.ui.models.checkbox;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).

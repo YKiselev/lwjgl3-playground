@@ -1,4 +1,4 @@
-package com.github.ykiselev.lwjgl3.layers.ui;
+package com.github.ykiselev.playground.ui;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
