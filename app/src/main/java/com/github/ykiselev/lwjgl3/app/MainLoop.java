@@ -17,15 +17,15 @@
 package com.github.ykiselev.lwjgl3.app;
 
 import com.github.ykiselev.closeables.CompositeAutoCloseable;
-import com.github.ykiselev.services.events.Events;
 import com.github.ykiselev.lwjgl3.events.SubscriptionsBuilder;
-import com.github.ykiselev.lwjgl3.events.game.QuitEvent;
 import com.github.ykiselev.lwjgl3.host.ProgramArguments;
-import com.github.ykiselev.services.layers.UiLayers;
-import com.github.ykiselev.lwjgl3.services.Services;
-import com.github.ykiselev.lwjgl3.services.schedule.Schedule;
 import com.github.ykiselev.lwjgl3.window.AppWindow;
 import com.github.ykiselev.lwjgl3.window.WindowBuilder;
+import com.github.ykiselev.services.Services;
+import com.github.ykiselev.services.events.Events;
+import com.github.ykiselev.services.events.game.QuitEvent;
+import com.github.ykiselev.services.layers.UiLayers;
+import com.github.ykiselev.services.schedule.Schedule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

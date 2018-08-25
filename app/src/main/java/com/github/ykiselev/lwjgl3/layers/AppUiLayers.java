@@ -1,9 +1,9 @@
 package com.github.ykiselev.lwjgl3.layers;
 
-import com.github.ykiselev.lwjgl3.window.WindowEvents;
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
 import com.github.ykiselev.services.layers.UiLayer;
 import com.github.ykiselev.services.layers.UiLayers;
+import com.github.ykiselev.window.WindowEvents;
 
 import java.util.ArrayDeque;
 import java.util.Deque;

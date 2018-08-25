@@ -16,6 +16,7 @@
 
 package com.github.ykiselev.lwjgl3.window;
 
+import com.github.ykiselev.window.WindowEvents;
 import org.lwjgl.system.MemoryStack;
 
 import java.nio.IntBuffer;

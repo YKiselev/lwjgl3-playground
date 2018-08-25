@@ -77,11 +77,11 @@ public final class Host implements Runnable {
     private CompositeAutoCloseable registerServices(Services services) {
         final FileSystem fileSystem = createFileSystem();
         return new ServiceGroupBuilder(services)
+                .add(FileSystem.class, fileSystem)
                 .add(Schedule.class, new AppSchedule())
                 .add(Events.class, new AppEvents())
                 .add(UiLayers.class, new AppUiLayers())
                 .add(Assets.class, GameAssets.create(fileSystem))
-                .add(FileSystem.class, fileSystem)
                 .add(PersistedConfiguration.class, new AppConfig(services))
                 .add(SoundEffects.class, new AppSoundEffects(services))
                 .build();
