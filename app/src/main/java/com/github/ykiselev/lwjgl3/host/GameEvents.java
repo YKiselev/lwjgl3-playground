@@ -1,11 +1,13 @@
 package com.github.ykiselev.lwjgl3.host;
 
+import com.github.ykiselev.base.game.BaseGame;
 import com.github.ykiselev.closeables.Closeables;
 import com.github.ykiselev.lwjgl3.events.SubscriptionsBuilder;
-import com.github.ykiselev.lwjgl3.layers.game.Game;
+import com.github.ykiselev.services.PersistedConfiguration;
 import com.github.ykiselev.services.Services;
 import com.github.ykiselev.services.events.game.NewGameEvent;
 import com.github.ykiselev.services.layers.UiLayers;
+import com.github.ykiselev.spi.ClassUtils;
 
 import java.util.function.UnaryOperator;
 
@@ -18,7 +20,7 @@ public final class GameEvents implements AutoCloseable, UnaryOperator<Subscripti
 
     private final Services services;
 
-    private volatile Game game;
+    private volatile BaseGame game;
 
     private final Object lock = new Object();
 
@@ -27,12 +29,15 @@ public final class GameEvents implements AutoCloseable, UnaryOperator<Subscripti
     }
 
     private NewGameEvent onNewGameEvent(NewGameEvent event) {
+        final String factoryClassName = services.resolve(PersistedConfiguration.class)
+                .root()
+                .getString("game.factory");
         synchronized (lock) {
             if (game != null) {
                 Closeables.close(game);
                 game = null;
             }
-            game = new Game(services);
+            game = ClassUtils.create(factoryClassName, services);
             services.resolve(UiLayers.class)
                     .replace(game);
         }

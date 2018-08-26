@@ -1,4 +1,4 @@
-package com.github.ykiselev.lwjgl3.layers.game;
+package com.github.ykiselev.base.game;
 
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.assets.formats.obj.ObjModel;
@@ -24,6 +24,8 @@ import com.github.ykiselev.services.layers.UiLayer;
 import com.github.ykiselev.trigger.Trigger;
 import com.github.ykiselev.window.WindowEvents;
 import com.github.ykiselev.wrap.Wrap;
+import org.lwjgl.glfw.GLFW;
+import org.lwjgl.opengl.GL11;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 import org.slf4j.Logger;
@@ -35,37 +37,11 @@ import java.nio.FloatBuffer;
 import java.nio.channels.WritableByteChannel;
 
 import static java.util.Objects.requireNonNull;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_F1;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_PRINT_SCREEN;
-import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_LEFT;
-import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_RIGHT;
-import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
-import static org.lwjgl.glfw.GLFW.glfwGetTime;
-import static org.lwjgl.opengl.GL11.GL_BACK;
-import static org.lwjgl.opengl.GL11.GL_CCW;
-import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
-import static org.lwjgl.opengl.GL11.GL_CULL_FACE;
-import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
-import static org.lwjgl.opengl.GL11.GL_DEPTH_TEST;
-import static org.lwjgl.opengl.GL11.GL_LESS;
-import static org.lwjgl.opengl.GL11.GL_SCISSOR_TEST;
-import static org.lwjgl.opengl.GL11.GL_STENCIL_TEST;
-import static org.lwjgl.opengl.GL11.glClear;
-import static org.lwjgl.opengl.GL11.glClearColor;
-import static org.lwjgl.opengl.GL11.glClearDepth;
-import static org.lwjgl.opengl.GL11.glCullFace;
-import static org.lwjgl.opengl.GL11.glDepthFunc;
-import static org.lwjgl.opengl.GL11.glDepthMask;
-import static org.lwjgl.opengl.GL11.glDisable;
-import static org.lwjgl.opengl.GL11.glEnable;
-import static org.lwjgl.opengl.GL11.glFrontFace;
-import static org.lwjgl.opengl.GL11.glViewport;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class Game implements UiLayer, WindowEvents, AutoCloseable {
+public final class BaseGame implements UiLayer, AutoCloseable {
 
     enum FrameBufferMode {
         COLOR, DEPTH
@@ -111,9 +87,35 @@ public final class Game implements UiLayer, WindowEvents, AutoCloseable {
             null
     );
 
+    private final WindowEvents events = new WindowEvents() {
+        @Override
+        public boolean keyEvent(int key, int scanCode, int action, int mods) {
+            return onKey(key, scanCode, action, mods);
+        }
+
+        @Override
+        public void cursorEvent(double x, double y) {
+            onCursor(x, y);
+        }
+
+        @Override
+        public boolean mouseButtonEvent(int button, int action, int mods) {
+            return onMouseButton(button, action, mods);
+        }
+
+        @Override
+        public void frameBufferResized(int width, int height) {
+        }
+
+        @Override
+        public boolean scrollEvent(double dx, double dy) {
+            return onScroll(dx, dy);
+        }
+    };
+
     private FrameBufferMode frameBufferMode = FrameBufferMode.COLOR;
 
-    public Game(Services services) {
+    public BaseGame(Services services) {
         this.services = requireNonNull(services);
         final Assets assets = services.resolve(Assets.class);
         spriteBatch = new DefaultSpriteBatch(
@@ -144,19 +146,18 @@ public final class Game implements UiLayer, WindowEvents, AutoCloseable {
 
     @Override
     public WindowEvents events() {
-        return this;
+        return events;
     }
 
-    @Override
-    public boolean keyEvent(int key, int scanCode, int action, int mods) {
-        if (action == GLFW_PRESS) {
+    private boolean onKey(int key, int scanCode, int action, int mods) {
+        if (action == GLFW.GLFW_PRESS) {
             switch (key) {
-                case GLFW_KEY_ESCAPE:
+                case GLFW.GLFW_KEY_ESCAPE:
                     services.resolve(Events.class)
                             .fire(new ShowMenuEvent());
                     break;
 
-                case GLFW_KEY_PRINT_SCREEN:
+                case GLFW.GLFW_KEY_PRINT_SCREEN:
                     try {
                         dumpToFile(frameBuffer.color(), "color.png");
                         dumpToFile(frameBuffer.depth(), "depth.png");
@@ -165,7 +166,7 @@ public final class Game implements UiLayer, WindowEvents, AutoCloseable {
                     }
                     break;
 
-                case GLFW_KEY_F1:
+                case GLFW.GLFW_KEY_F1:
                     int i = 0;
                     final FrameBufferMode[] values = FrameBufferMode.values();
                     for (; i < values.length; i++) {
@@ -203,34 +204,26 @@ public final class Game implements UiLayer, WindowEvents, AutoCloseable {
         }
     }
 
-    @Override
-    public void cursorEvent(double x, double y) {
+    private void onCursor(double x, double y) {
         cx = x;
         cy = y;
     }
 
-    @Override
-    public boolean mouseButtonEvent(int button, int action, int mods) {
+    private boolean onMouseButton(int button, int action, int mods) {
         switch (button) {
-            case GLFW_MOUSE_BUTTON_LEFT:
-                lmbPressed = (action == GLFW_PRESS);
+            case GLFW.GLFW_MOUSE_BUTTON_LEFT:
+                lmbPressed = (action == GLFW.GLFW_PRESS);
                 break;
 
-            case GLFW_MOUSE_BUTTON_RIGHT:
-                rmbPressed = action == GLFW_PRESS;
-                rmbTrigger.value(action == GLFW_PRESS);
+            case GLFW.GLFW_MOUSE_BUTTON_RIGHT:
+                rmbPressed = action == GLFW.GLFW_PRESS;
+                rmbTrigger.value(action == GLFW.GLFW_PRESS);
                 break;
         }
         return true;
     }
 
-    @Override
-    public void frameBufferResized(int width, int height) {
-        //todo
-    }
-
-    @Override
-    public boolean scrollEvent(double dx, double dy) {
+    private boolean onScroll(double dx, double dy) {
         radius += dy;
         return true;
     }
@@ -323,34 +316,34 @@ public final class Game implements UiLayer, WindowEvents, AutoCloseable {
     public void draw(int width, int height) {
         frameBuffer.size(width, height);
 
-        glViewport(0, 0, width, height);
-        glFrontFace(GL_CCW);
-        glCullFace(GL_BACK);
-        glEnable(GL_CULL_FACE);
-        glEnable(GL_DEPTH_TEST);
-        glDisable(GL_SCISSOR_TEST);
-        glDisable(GL_STENCIL_TEST);
-        glDepthFunc(GL_LESS);
-        glDepthMask(true);
+        GL11.glViewport(0, 0, width, height);
+        GL11.glFrontFace(GL11.GL_CCW);
+        GL11.glCullFace(GL11.GL_BACK);
+        GL11.glEnable(GL11.GL_CULL_FACE);
+        GL11.glEnable(GL11.GL_DEPTH_TEST);
+        GL11.glDisable(GL11.GL_SCISSOR_TEST);
+        GL11.glDisable(GL11.GL_STENCIL_TEST);
+        GL11.glDepthFunc(GL11.GL_LESS);
+        GL11.glDepthMask(true);
 
         setupProjectionViewMatrix(width, height);
 
         frameBuffer.bind();
 
-        glClearDepth(100.0f);
-        glClearColor(0, 0, 0.5f, 1);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        GL11.glClearDepth(100.0f);
+        GL11.glClearColor(0, 0, 0.5f, 1);
+        GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
 
         drawPyramids(pv);
         drawModel(pv);
         frameBuffer.unbind();
 
-        final double t = glfwGetTime();
+        final double t = GLFW.glfwGetTime();
         final double fps = (double) frames / t;
 
-        glClearColor(0.5f, 0.5f, 0.5f, 1);
-        glClear(GL_COLOR_BUFFER_BIT);
-        glDisable(GL_DEPTH_TEST);
+        GL11.glClearColor(0.5f, 0.5f, 0.5f, 1);
+        GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
+        GL11.glDisable(GL11.GL_DEPTH_TEST);
 
         spriteBatch.begin(0, 0, width, height, true);
         switch (frameBufferMode) {

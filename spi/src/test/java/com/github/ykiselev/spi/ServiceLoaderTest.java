@@ -42,7 +42,7 @@ class ServiceLoaderTest {
         }
     }
 
-    public static class SenderFactory implements ServiceFactory<Sender> {
+    public static class SenderFactory implements Factory<Sender> {
 
         @Override
         public Sender create(Services services) {
@@ -54,7 +54,7 @@ class ServiceLoaderTest {
 
     }
 
-    public static class FooFactory implements ServiceFactory<Foo> {
+    public static class FooFactory implements Factory<Foo> {
 
         @Override
         public Foo create(Services services) {
