@@ -2,6 +2,7 @@ package com.github.ykiselev.lwjgl3.app;
 
 import com.github.ykiselev.lwjgl3.Main;
 import org.lwjgl.glfw.GLFWErrorCallback;
+import org.lwjgl.system.Configuration;
 import org.slf4j.LoggerFactory;
 
 import static java.util.Objects.requireNonNull;
@@ -32,6 +33,10 @@ public final class AppBuilder {
         return new AppBuilder(() -> withExceptionCatching(delegate));
     }
 
+    public AppBuilder withLogging() {
+        return new AppBuilder(() -> withLogging(delegate));
+    }
+
     private void withErrorCallback(Runnable delegate) {
         try (GLFWErrorCallback callback = GLFWErrorCallback.createPrint(System.err)) {
             final GLFWErrorCallback previous = glfwSetErrorCallback(callback);
@@ -58,6 +63,11 @@ public final class AppBuilder {
         } catch (Exception e) {
             LoggerFactory.getLogger(Main.class).error("Unhandled exception!", e);
         }
+    }
+
+    private void withLogging(Runnable delegate) {
+        Configuration.DEBUG_STREAM.set(LwjglToLog4j2.class.getName());
+        delegate.run();
     }
 
     public void run() {

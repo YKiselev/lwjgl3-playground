@@ -38,6 +38,7 @@ public final class Main {
         ).withGlfw()
                 .withErrorCallback()
                 .withExceptionCatching()
+                .withLogging()
                 .run();
     }
 }

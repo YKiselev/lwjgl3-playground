@@ -19,4 +19,11 @@ public abstract class Wrap<T> implements AutoCloseable {
 
     @Override
     public abstract void close();
+
+    @Override
+    public String toString() {
+        return "Wrap{" +
+                "value=" + value +
+                '}';
+    }
 }
