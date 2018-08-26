@@ -33,15 +33,19 @@ public final class DiskResources implements ResourceFolder {
 
     @Override
     public Optional<URL> resolve(String resource, boolean shouldExist) {
-        final Predicate<Path> filter;
+        final Predicate<Path> preFilter;
+        final Predicate<Path> resFilter;
         if (shouldExist) {
-            filter = p -> Files.exists(p);
+            preFilter = p -> true;
+            resFilter = p -> Files.exists(p);
         } else {
-            filter = Files::isWritable;
+            preFilter = Files::isWritable;
+            resFilter = v -> true;
         }
         return paths.stream()
+                .filter(preFilter)
                 .map(p -> p.resolve(resource))
-                .filter(filter)
+                .filter(resFilter)
                 .map(Path::toUri)
                 .map(uri -> {
                     try {
