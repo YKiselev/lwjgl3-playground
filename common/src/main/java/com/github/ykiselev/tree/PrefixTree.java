@@ -15,7 +15,7 @@ import static java.util.Objects.requireNonNull;
  * </pre>
  * it would have three possible paths: "A", "A:B", "A:C".
  * <p/>
- * Use {@link PrefixTreeBuilder} to create instances of this class.
+ * Use {@link MutablePrefixTree} to create instances of this class.
  *
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
