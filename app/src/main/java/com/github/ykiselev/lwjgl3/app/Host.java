@@ -41,7 +41,6 @@ import com.github.ykiselev.services.events.Events;
 import com.github.ykiselev.services.layers.UiLayers;
 import com.github.ykiselev.services.schedule.Schedule;
 
-import java.util.Arrays;
 import java.util.function.Consumer;
 
 import static java.util.Objects.requireNonNull;
@@ -89,11 +88,8 @@ public final class Host implements Runnable {
 
     private FileSystem createFileSystem() {
         return new AppFileSystem(
-                args.home(),
-                Arrays.asList(
-                        new DiskResources(args.assetPaths()),
-                        new ClassPathResources(getClass().getClassLoader())
-                )
+                new DiskResources(args.assetPaths()),
+                new ClassPathResources(getClass().getClassLoader())
         );
     }
 

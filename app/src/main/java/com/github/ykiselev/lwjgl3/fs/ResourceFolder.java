@@ -8,5 +8,13 @@ import java.util.Optional;
  */
 public interface ResourceFolder {
 
-    Optional<URL> resolve(String resource);
+    default Optional<URL> resolve(String resource) {
+        return resolve(resource, true);
+    }
+
+    Optional<URL> resolve(String resource, boolean shouldExist);
+
+    default boolean isWritable() {
+        return false;
+    }
 }

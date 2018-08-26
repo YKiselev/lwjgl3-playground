@@ -5,21 +5,21 @@ import com.github.ykiselev.io.FileSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
-import java.nio.file.OpenOption;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Optional;
-
-import static java.util.Objects.requireNonNull;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
@@ -28,35 +28,59 @@ public final class AppFileSystem implements FileSystem {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final Path home;
-
     private final Collection<ResourceFolder> folders;
 
-    public AppFileSystem(Path home, Collection<ResourceFolder> folders) {
-        this.home = requireNonNull(home);
-        this.folders = requireNonNull(folders);
+    /**
+     * @param folders the read-only resource folders sorted by priority.
+     */
+    public AppFileSystem(ResourceFolder... folders) {
+        this.folders = Arrays.asList(folders.clone());
     }
 
-    private FileChannel open(String name, OpenOption... options) {
-        final Path path = home.resolve(name);
-        logger.info("Opening file {}...", path);
+    private FileChannel open(URL resource, boolean append) {
+        final Path path;
         try {
-            return FileChannel.open(path, options);
-        } catch (FileNotFoundException e) {
-            return null;
+            path = Paths.get(resource.toURI()).toAbsolutePath();
+        } catch (URISyntaxException e) {
+            throw new ResourceException("Unable to convert to URI: " + resource, e);
+        }
+        logger.debug("Opening {}...", path);
+        ensureParentFoldersExists(path);
+        try {
+            return FileChannel.open(
+                    path,
+                    StandardOpenOption.CREATE,
+                    StandardOpenOption.WRITE,
+                    append ? StandardOpenOption.APPEND : StandardOpenOption.TRUNCATE_EXISTING
+            );
         } catch (IOException e) {
             throw new UncheckedIOException("Unable to open " + path, e);
         }
     }
 
+    private void ensureParentFoldersExists(Path path) {
+        final Path parent = path.getParent();
+        if (parent != null) {
+            try {
+                Files.createDirectories(parent);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        }
+    }
+
     @Override
     public WritableByteChannel openForWriting(String name, boolean append) {
-        return open(
-                name,
-                StandardOpenOption.CREATE,
-                StandardOpenOption.WRITE,
-                append ? StandardOpenOption.APPEND : StandardOpenOption.TRUNCATE_EXISTING
-        );
+        if (name == null) {
+            return null;
+        }
+        final ResourceFolder folder = folders.stream()
+                .filter(ResourceFolder::isWritable)
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("No writable folders!"));
+        return folder.resolve(name, false)
+                .map(url -> open(url, append))
+                .orElseThrow(() -> new IllegalStateException("Unknown error!"));
     }
 
     @Override
@@ -73,7 +97,7 @@ public final class AppFileSystem implements FileSystem {
     }
 
     private ReadableByteChannel channel(String resource, URL url) {
-        logger.debug("Resource {} resolved into {}", resource, url);
+        logger.debug("Resource {} resolved to {}", resource, url);
         try {
             return Channels.newChannel(
                     url.openStream()

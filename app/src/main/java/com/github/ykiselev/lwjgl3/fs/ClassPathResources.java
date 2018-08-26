@@ -19,7 +19,7 @@ public final class ClassPathResources implements ResourceFolder {
     }
 
     @Override
-    public Optional<URL> resolve(String resource) {
+    public Optional<URL> resolve(String resource, boolean shouldExist) {
         return Stream.of(resource, "/" + resource)
                 .map(loader::getResource)
                 .filter(Objects::nonNull)

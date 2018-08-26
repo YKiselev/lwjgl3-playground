@@ -74,13 +74,19 @@ public final class ProgramArguments {
         );
     }
 
+    /**
+     * Writable folder to store mod configs, caches, etc.
+     *
+     * @return the path to write-enabled folder.
+     */
     public Path home() {
-        final Path path = value("app.home")
+        final Path path = value("mod.home")
                 .map(Paths::get)
                 .orElse(
                         Paths.get(
                                 System.getProperty("user.home"),
-                                System.getProperty("app.folder", "lwjgl3-playground")
+                                System.getProperty("app.folder", "lwjgl3-playground"),
+                                System.getProperty("mod", "base")
                         )
                 );
         if (!Files.exists(path)) {
