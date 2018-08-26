@@ -134,6 +134,7 @@ public final class AppConfig implements PersistedConfiguration, AutoCloseable {
         return config.root()
                 .render(
                         ConfigRenderOptions.defaults()
+                                .setFormatted(true)
                                 .setOriginComments(false)
                                 .setJson(false)
                 );

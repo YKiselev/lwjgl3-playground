@@ -3,7 +3,7 @@ package com.github.ykiselev.lwjgl3.layers.game;
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.assets.formats.obj.ObjModel;
 import com.github.ykiselev.io.FileSystem;
-import com.github.ykiselev.lwjgl3.playground.FrameBuffer;
+import com.github.ykiselev.opengl.buffers.FrameBuffer;
 import com.github.ykiselev.opengl.matrices.Matrix;
 import com.github.ykiselev.opengl.matrices.Vector3f;
 import com.github.ykiselev.opengl.models.GenericIndexedGeometry;

@@ -1,6 +1,5 @@
-package com.github.ykiselev.lwjgl3.playground;
+package com.github.ykiselev.opengl.buffers;
 
-import com.github.ykiselev.opengl.buffers.FrameBufferObject;
 import com.github.ykiselev.opengl.textures.DefaultSimpleTexture2d;
 import com.github.ykiselev.opengl.textures.Texture2d;
 
