@@ -18,7 +18,7 @@ package com.github.ykiselev.lwjgl3.app;
 
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.closeables.CompositeAutoCloseable;
-import com.github.ykiselev.io.FileSystem;
+import com.github.ykiselev.services.FileSystem;
 import com.github.ykiselev.lwjgl3.assets.GameAssets;
 import com.github.ykiselev.lwjgl3.config.AppConfig;
 import com.github.ykiselev.lwjgl3.events.AppEvents;

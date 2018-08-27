@@ -1,4 +1,4 @@
-package com.github.ykiselev.io;
+package com.github.ykiselev.services;
 
 import com.github.ykiselev.assets.Resources;
 

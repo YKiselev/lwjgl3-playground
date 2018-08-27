@@ -3,7 +3,7 @@ package com.github.ykiselev.base.game;
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.assets.formats.obj.ObjModel;
 import com.github.ykiselev.components.Game;
-import com.github.ykiselev.io.FileSystem;
+import com.github.ykiselev.services.FileSystem;
 import com.github.ykiselev.opengl.buffers.FrameBuffer;
 import com.github.ykiselev.opengl.matrices.Matrix;
 import com.github.ykiselev.opengl.matrices.Vector3f;

@@ -1,6 +1,6 @@
 package com.github.ykiselev.lwjgl3.config;
 
-import com.github.ykiselev.io.FileSystem;
+import com.github.ykiselev.services.FileSystem;
 import com.github.ykiselev.lwjgl3.events.SubscriptionsBuilder;
 import com.github.ykiselev.services.PersistedConfiguration;
 import com.github.ykiselev.services.Services;

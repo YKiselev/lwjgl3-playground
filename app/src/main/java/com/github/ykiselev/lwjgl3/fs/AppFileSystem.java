@@ -1,7 +1,7 @@
 package com.github.ykiselev.lwjgl3.fs;
 
 import com.github.ykiselev.assets.ResourceException;
-import com.github.ykiselev.io.FileSystem;
+import com.github.ykiselev.services.FileSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
