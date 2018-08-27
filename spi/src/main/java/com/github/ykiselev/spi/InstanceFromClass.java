@@ -5,52 +5,48 @@ import com.github.ykiselev.services.Services;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
+import java.util.function.Supplier;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class ClassUtils {
+public final class InstanceFromClass<T> implements Supplier<T> {
 
-    public static Class<?> forName(String name) {
-        try {
-            return Class.forName(name);
-        } catch (ClassNotFoundException e) {
-            throw new IllegalStateException("Class not found: " + name, e);
-        }
+    private final Supplier<Class<?>> delegate;
+
+    private final Services services;
+
+    public InstanceFromClass(Supplier<Class<?>> delegate, Services services) {
+        this.delegate = requireNonNull(delegate);
+        this.services = requireNonNull(services);
     }
 
-    /**
-     * Loads specified class and creates an instance.
-     *
-     * @param name     the name of traget class or specific {@link Factory} implementation.
-     * @param services the {@link Services} to pass to {@link Factory}.
-     * @param <T>      the type of class.
-     * @return the instance of class.
-     */
-    public static <T> T create(String name, Services services) {
-        return create(forName(name), services);
+    public InstanceFromClass(Class clazz, Services services) {
+        this(() -> clazz, services);
     }
 
+    @Override
     @SuppressWarnings("unchecked")
-    public static <T> T create(Class<?> clazz, Services services) {
-        final T instance;
+    public T get() {
+        final Class<?> clazz = delegate.get();
+        final Object instance;
         if (Factory.class.isAssignableFrom(clazz)) {
-            final Factory<T> factory = newInstance((Class<Factory<T>>) clazz);
-            instance = factory.create(services);
+            instance = newInstance((Class<Factory>) clazz).create(services);
         } else {
-            instance = newInstance((Class<T>) clazz, services);
+            instance = newInstance(clazz, services);
         }
-        return instance;
+        return (T) instance;
     }
 
-    @SuppressWarnings("unchecked")
-    public static <T> T newInstance(Class<T> clazz, Object... args) {
+    private static Object newInstance(Class<?> clazz, Object... args) {
         return Arrays.stream(clazz.getDeclaredConstructors())
                 .filter(ctor -> match(ctor, args))
                 .findFirst()
                 .map(ctor -> {
                     try {
-                        return (T) ctor.newInstance(args);
+                        return (Object) ctor.newInstance(args);
                     } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
                         throw new IllegalArgumentException("Unable to create instance of " + clazz, e);
                     }
@@ -81,11 +77,12 @@ public final class ClassUtils {
         return true;
     }
 
-    public static <T> T newInstance(Class<T> clazz) {
+    private static <T> T newInstance(Class<T> clazz) {
         try {
             return clazz.getDeclaredConstructor().newInstance();
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
     }
+
 }

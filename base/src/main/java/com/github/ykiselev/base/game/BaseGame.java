@@ -2,6 +2,7 @@ package com.github.ykiselev.base.game;
 
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.assets.formats.obj.ObjModel;
+import com.github.ykiselev.components.Game;
 import com.github.ykiselev.io.FileSystem;
 import com.github.ykiselev.opengl.buffers.FrameBuffer;
 import com.github.ykiselev.opengl.matrices.Matrix;
@@ -20,7 +21,6 @@ import com.github.ykiselev.opengl.vertices.VertexDefinitions;
 import com.github.ykiselev.services.Services;
 import com.github.ykiselev.services.events.Events;
 import com.github.ykiselev.services.events.menu.ShowMenuEvent;
-import com.github.ykiselev.services.layers.UiLayer;
 import com.github.ykiselev.trigger.Trigger;
 import com.github.ykiselev.window.WindowEvents;
 import com.github.ykiselev.wrap.Wrap;
@@ -41,7 +41,7 @@ import static java.util.Objects.requireNonNull;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class BaseGame implements UiLayer, AutoCloseable {
+public final class BaseGame implements Game {
 
     enum FrameBufferMode {
         COLOR, DEPTH

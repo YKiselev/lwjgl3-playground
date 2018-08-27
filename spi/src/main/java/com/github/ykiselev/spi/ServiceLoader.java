@@ -42,22 +42,16 @@ public final class ServiceLoader {
     }
 
     private Map.Entry<Class<?>, Class<?>> load(String key, String value) {
-        final Class<?> iface, impl;
-        try {
-            iface = Class.forName(key);
-            impl = Class.forName(value);
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
-        }
+        final Class<?> iface = ClassFromName.get(key);
+        final Class<?> impl = ClassFromName.get(value);
         if (!iface.isAssignableFrom(impl) && !Factory.class.isAssignableFrom(impl)) {
             throw new IllegalArgumentException(impl + " does not implement " + iface);
         }
         return new SimpleImmutableEntry<>(iface, impl);
     }
 
-    @SuppressWarnings("unchecked")
     private <T> AutoCloseable add(Class<T> iface, Class<?> impl, Services services) {
-        final T instance = ClassUtils.create(impl, services);
+        final T instance = new InstanceFromClass<T>(impl, services).get();
         if (!iface.isInstance(instance)) {
             throw new IllegalArgumentException("Expected instance of " + iface + " got " + instance);
         }
