@@ -18,6 +18,7 @@ package com.github.ykiselev.assets;
 
 import java.nio.channels.ReadableByteChannel;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 /**
  * Low-level resource access api.
@@ -32,7 +33,18 @@ public interface Resources {
      *
      * @param resource the resource name
      * @return the readable byte channel
-     * @throws ResourceException if {@code resource} does not exists or something goes wrong during channel opening
+     * @throws ResourceException if something goes wrong during channel opening
      */
     Optional<ReadableByteChannel> open(String resource) throws ResourceException;
+
+    /**
+     * Opens new read-only channels for all instances of requested resource.
+     * Caller is expected to close channel after use.
+     *
+     * @param resource the resource name
+     * @return the readable byte channel
+     * @throws ResourceException if something goes wrong during channel opening
+     */
+    Stream<ReadableByteChannel> openAll(String resource) throws ResourceException;
+
 }

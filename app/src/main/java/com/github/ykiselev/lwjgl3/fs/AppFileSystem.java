@@ -20,6 +20,7 @@ import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
@@ -94,6 +95,16 @@ public final class AppFileSystem implements FileSystem {
                 .map(Optional::get)
                 .map(url -> channel(resource, url))
                 .findFirst();
+    }
+
+    @Override
+    public Stream<ReadableByteChannel> openAll(String resource) throws ResourceException {
+        if (resource == null) {
+            return Stream.empty();
+        }
+        return folders.stream()
+                .flatMap(f -> f.resolveAll(resource))
+                .map(url -> channel(resource, url));
     }
 
     private ReadableByteChannel channel(String resource, URL url) {
