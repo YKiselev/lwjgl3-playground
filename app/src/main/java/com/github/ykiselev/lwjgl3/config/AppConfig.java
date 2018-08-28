@@ -1,7 +1,7 @@
 package com.github.ykiselev.lwjgl3.config;
 
-import com.github.ykiselev.services.FileSystem;
 import com.github.ykiselev.lwjgl3.events.SubscriptionsBuilder;
+import com.github.ykiselev.services.FileSystem;
 import com.github.ykiselev.services.PersistedConfiguration;
 import com.github.ykiselev.services.Services;
 import com.github.ykiselev.services.events.Events;
@@ -108,9 +108,9 @@ public final class AppConfig implements PersistedConfiguration, AutoCloseable {
 
     private Config readFromFile() {
         return services.resolve(FileSystem.class)
-                .open("app.conf")
+                .openAll("app.conf")
                 .map(this::readFromFile)
-                .orElse(ConfigFactory.empty());
+                .reduce(ConfigFactory.empty(), Config::withFallback);
     }
 
     private Config readFromFile(ReadableByteChannel channel) {
