@@ -107,6 +107,11 @@ public final class ListMenu implements UiLayer {
     }
 
     @Override
+    public Kind kind() {
+        return Kind.POPUP;
+    }
+
+    @Override
     public WindowEvents events() {
         return events;
     }

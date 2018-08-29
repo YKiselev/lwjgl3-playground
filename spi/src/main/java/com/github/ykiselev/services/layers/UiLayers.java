@@ -16,12 +16,12 @@ public interface UiLayers {
     WindowEvents events();
 
     /**
-     * Clears current stack of layers and then pushes passed value.
+     * Removes all popup layers from top and then makes passed layer a topmost.
      *
      * @param layer the layer to push after clearing of current layer stack.
      * @throws NullPointerException if layer is {@code null}
      */
-    void replace(UiLayer layer);
+    void bringToFront(UiLayer layer);
 
     /**
      * Adds passed value on top of current layer stack.
@@ -40,6 +40,13 @@ public interface UiLayers {
      * @throws NullPointerException     if layer is {@code null}
      */
     void pop(UiLayer layer);
+
+    /**
+     * Removes layer from the current stack. Does nothing if layer is not the part of stack.
+     *
+     * @param layer the layer to remove
+     */
+    void remove(UiLayer layer);
 
     /**
      * This method should draw current stack of layers.

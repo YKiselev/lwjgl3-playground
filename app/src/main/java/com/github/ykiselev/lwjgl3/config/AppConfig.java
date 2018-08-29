@@ -88,7 +88,7 @@ public final class AppConfig implements PersistedConfiguration, AutoCloseable {
 
     private void updateConfig(String path, ConfigValue value) {
         for (; ; ) {
-            final Config before = this.config;
+            final Config before = config;
             final Config after = before.withValue(path, value);
             if (CH.compareAndSet(this, before, after)) {
                 break;

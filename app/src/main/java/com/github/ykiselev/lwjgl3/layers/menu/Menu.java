@@ -56,6 +56,11 @@ public final class Menu implements UiLayer, AutoCloseable, Removable {
         return !pushed;
     }
 
+    @Override
+    public Kind kind() {
+        return Kind.POPUP;
+    }
+
     public Menu(Services services) {
         this.services = services;
         final Assets assets = services.resolve(Assets.class);

@@ -34,25 +34,30 @@ public final class GameEvents implements AutoCloseable, UnaryOperator<Subscripti
                 .root()
                 .getString("game.factory");
         synchronized (lock) {
-            if (game != null) {
-                Closeables.close(game);
-                game = null;
-            }
+            closeGame();
             game = new InstanceFromClass<Game>(
                     new ClassFromName(factoryClassName),
                     services
             ).get();
             services.resolve(UiLayers.class)
-                    .replace(game);
+                    .bringToFront(game);
         }
         return null;
     }
 
     @Override
     public void close() {
+        closeGame();
+    }
+
+    private void closeGame() {
         synchronized (lock) {
-            Closeables.close(game);
-            game = null;
+            if (game != null) {
+                services.resolve(UiLayers.class)
+                        .remove(game);
+                Closeables.close(game);
+                game = null;
+            }
         }
     }
 

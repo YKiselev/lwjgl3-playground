@@ -16,6 +16,7 @@ import java.util.function.Supplier;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.only;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -32,7 +33,7 @@ class LazyTest {
         assertEquals("x", lazy.get());
         assertEquals("x", lazy.get());
         assertEquals("x", lazy.get());
-        verify(delegate, only()).get();
+        verify(delegate, times(1)).get();
     }
 
     @Test
@@ -43,7 +44,7 @@ class LazyTest {
         assertEquals(5, lazy.getAsInt());
         assertEquals(5, lazy.getAsInt());
         assertEquals(5, lazy.getAsInt());
-        verify(delegate, only()).getAsInt();
+        verify(delegate, times(1)).getAsInt();
     }
 
     @Test
@@ -54,7 +55,7 @@ class LazyTest {
         assertEquals(15, lazy.getAsLong());
         assertEquals(15, lazy.getAsLong());
         assertEquals(15, lazy.getAsLong());
-        verify(delegate, only()).getAsLong();
+        verify(delegate, times(1)).getAsLong();
     }
 
     @Test
@@ -65,7 +66,7 @@ class LazyTest {
         assertEquals(3.14, lazy.getAsDouble());
         assertEquals(3.14, lazy.getAsDouble());
         assertEquals(3.14, lazy.getAsDouble());
-        verify(delegate, only()).getAsDouble();
+        verify(delegate, times(1)).getAsDouble();
     }
 
     @Test
@@ -76,7 +77,7 @@ class LazyTest {
         assertTrue(lazy.getAsBoolean());
         assertTrue(lazy.getAsBoolean());
         assertTrue(lazy.getAsBoolean());
-        verify(delegate, only()).getAsBoolean();
+        verify(delegate, times(1)).getAsBoolean();
     }
 
     private <T> void runParallel(Supplier<T> lazy, Predicate<T> validator) {

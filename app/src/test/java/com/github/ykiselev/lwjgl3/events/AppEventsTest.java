@@ -1,15 +1,16 @@
 package com.github.ykiselev.lwjgl3.events;
 
-import com.github.ykiselev.services.events.EventHandler;
+import com.github.ykiselev.services.events.EventFilter;
 import com.github.ykiselev.services.events.Events;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -51,14 +52,14 @@ class AppEventsTest {
 
     private final Events bus = new AppEvents();
 
-    private <V> EventHandler<V> fail() {
+    private <V> Consumer<V> fail() {
         return c -> Assertions.fail("Should not be called!");
     }
 
     @Test
     void shouldSubscribe() throws Exception {
         final List<String> journal = new ArrayList<>();
-        final EventHandler<String> handler = EventHandlers.of(journal::add);
+        final Consumer<String> handler = journal::add;
         AutoCloseable s1 = bus.subscribe(String.class, handler);
         bus.fire("1");
         bus.fire("2");
@@ -73,37 +74,7 @@ class AppEventsTest {
         bus.subscribe(A.class, fail());
         bus.subscribe(B.class, fail());
         bus.subscribe(C.class, fail());
-        bus.subscribe(D.class, EventHandlers.of(c -> flag.set(true)));
-        bus.fire(new D());
-        assertTrue(flag.get());
-    }
-
-    @Test
-    @Disabled
-    void shouldFindInterfaceEventType() {
-        final AtomicBoolean flag = new AtomicBoolean(false);
-        bus.subscribe(A.class, fail());
-        bus.subscribe(B.class, fail());
-        bus.subscribe(C.class, EventHandlers.of(c -> flag.set(true)));
-        bus.fire(new D());
-        assertTrue(flag.get());
-    }
-
-    @Test
-    @Disabled
-    void shouldFindSuperclassEventType() {
-        final AtomicBoolean flag = new AtomicBoolean(false);
-        bus.subscribe(A.class, fail());
-        bus.subscribe(B.class, EventHandlers.of(c -> flag.set(true)));
-        bus.fire(new D());
-        assertTrue(flag.get());
-    }
-
-    @Test
-    @Disabled
-    void shouldFindSuperclassInterfaceEventType() {
-        final AtomicBoolean flag = new AtomicBoolean(false);
-        bus.subscribe(A.class, EventHandlers.of(c -> flag.set(true)));
+        bus.subscribe(D.class, c -> flag.set(true));
         bus.fire(new D());
         assertTrue(flag.get());
     }
@@ -113,8 +84,8 @@ class AppEventsTest {
         final AtomicBoolean f = new AtomicBoolean(false);
         final AtomicBoolean e = new AtomicBoolean(false);
         bus.subscribe(E.class, fail());
-        bus.subscribe(F.class, EventHandlers.of(c -> f.set(true)));
-        bus.subscribe(G.class, EventHandlers.of(c -> e.set(true)));
+        bus.subscribe(F.class, c -> f.set(true));
+        bus.subscribe(G.class, c -> e.set(true));
         assertNotNull(bus.fire(new F()));
         assertNotNull(bus.fire(new G()));
         assertTrue(f.get());
@@ -124,7 +95,7 @@ class AppEventsTest {
     @Test
     void shouldUnsubscribe() throws Exception {
         final AtomicBoolean f = new AtomicBoolean(false);
-        AutoCloseable s2 = bus.subscribe(F.class, EventHandlers.of(c -> f.set(true)));
+        AutoCloseable s2 = bus.subscribe(F.class, c -> f.set(true));
         bus.fire(new F());
         assertTrue(f.get());
         s2.close();
@@ -132,6 +103,21 @@ class AppEventsTest {
                 IllegalStateException.class,
                 () -> bus.fire(new F())
         );
+    }
+
+    @Test
+    void shouldFilter() throws Exception {
+        final List<String> journal = new ArrayList<>();
+        final Consumer<String> handler = journal::add;
+        final EventFilter<String> filter = s -> "x".equals(s) ? s : null;
+        AutoCloseable s1 = bus.subscribe(String.class, handler);
+        AutoCloseable s2 = bus.add(String.class, filter);
+        bus.fire("a");
+        bus.fire("x");
+        bus.fire("c");
+        s1.close();
+        s2.close();
+        assertEquals(Collections.singletonList("x"), journal);
     }
 
 }

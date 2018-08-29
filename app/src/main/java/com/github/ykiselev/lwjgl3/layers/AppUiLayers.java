@@ -79,13 +79,17 @@ public final class AppUiLayers implements UiLayers {
     }
 
     @Override
-    public void replace(UiLayer layer) {
+    public void bringToFront(UiLayer layer) {
         if (layer == null) {
             throw new NullPointerException("Layer can not be null!");
         }
         while (!layers.isEmpty()) {
+            if (!layers.peek().isPopup()) {
+                break;
+            }
             layers.pop().onPop();
         }
+        remove(layer);
         push(layer);
     }
 
@@ -113,6 +117,13 @@ public final class AppUiLayers implements UiLayers {
         layers.pop().onPop();
     }
 
+    @Override
+    public void remove(UiLayer layer) {
+        if (layers.remove(layer)) {
+            layer.onPop();
+        }
+    }
+
     private boolean dispatch(Predicate<WindowEvents> p) {
         for (UiLayer layer : layers) {
             if (p.test(layer.events())) {
@@ -121,4 +132,5 @@ public final class AppUiLayers implements UiLayers {
         }
         return false;
     }
+
 }

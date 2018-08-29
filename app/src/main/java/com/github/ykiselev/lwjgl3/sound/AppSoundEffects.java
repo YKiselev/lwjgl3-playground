@@ -5,11 +5,11 @@ import com.github.ykiselev.lwjgl3.events.SubscriptionsBuilder;
 import com.github.ykiselev.services.PersistedConfiguration;
 import com.github.ykiselev.services.Services;
 import com.github.ykiselev.services.SoundEffects;
-import com.github.ykiselev.services.events.EventHandler;
+import com.github.ykiselev.services.events.EventFilter;
 import com.github.ykiselev.services.events.Events;
 import com.github.ykiselev.services.events.config.ValueChangingEvent;
-import com.github.ykiselev.tree.PrefixTree;
 import com.github.ykiselev.tree.MutablePrefixTree;
+import com.github.ykiselev.tree.PrefixTree;
 import com.typesafe.config.Config;
 import org.lwjgl.openal.AL;
 import org.lwjgl.openal.ALC10;
@@ -98,10 +98,10 @@ public final class AppSoundEffects implements SoundEffects, AutoCloseable {
                 alcGetInteger(device, ALC_STEREO_SOURCES)
         );
 
-        final PrefixTree<EventHandler<ValueChangingEvent>> tree = new MutablePrefixTree<EventHandler<ValueChangingEvent>>("\\.")
+        final PrefixTree<EventFilter<ValueChangingEvent>> tree = new MutablePrefixTree<EventFilter<ValueChangingEvent>>("\\.")
                 .add("sound.effects.level", this::onSoundEffectsLevelChanging)
                 .toPrefixTree();
-        final EventHandler<ValueChangingEvent> handler = event ->
+        final EventFilter<ValueChangingEvent> handler = event ->
                 tree.find(event.path())
                         .map(h -> h.handle(event))
                         .orElse(event);

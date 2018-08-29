@@ -7,4 +7,8 @@ import com.github.ykiselev.services.layers.UiLayer;
  */
 public interface Game extends UiLayer, AutoCloseable {
 
+    @Override
+    default Kind kind() {
+        return Kind.NORMAL;
+    }
 }
