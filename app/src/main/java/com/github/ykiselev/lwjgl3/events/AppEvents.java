@@ -84,7 +84,7 @@ public final class AppEvents implements Events {
 
         private final Class<T> clazz;
 
-        private T[] handlers;
+        private volatile T[] handlers;
 
         private static final VarHandle handle;
 
