@@ -13,8 +13,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -98,11 +98,10 @@ class AppEventsTest {
         AutoCloseable s2 = bus.subscribe(F.class, c -> f.set(true));
         bus.fire(new F());
         assertTrue(f.get());
+        f.set(false);
         s2.close();
-        assertThrows(
-                IllegalStateException.class,
-                () -> bus.fire(new F())
-        );
+        bus.fire(new F());
+        assertFalse(f.get());
     }
 
     @Test

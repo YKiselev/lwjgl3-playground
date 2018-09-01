@@ -21,7 +21,7 @@ class ParallelRunnerTest {
     }
 
     @Test
-    void shouldRunInParallel() {
+    void shouldRunInParallel() throws Exception {
         Supplier<Runnable> s = () -> {
             System.out.println("Preparing from " + Thread.currentThread());
             sleep(ThreadLocalRandom.current().nextLong(100, 250));
@@ -30,6 +30,7 @@ class ParallelRunnerTest {
                 sleep(ThreadLocalRandom.current().nextLong(100, 250));
             };
         };
-        new ParallelRunner(3, s, s, s).run();
+        ParallelRunner.fromRunnable(3, s)
+                .call();
     }
 }

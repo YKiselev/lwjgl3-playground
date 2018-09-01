@@ -15,7 +15,6 @@ import java.util.function.Supplier;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.only;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -80,19 +79,19 @@ class LazyTest {
         verify(delegate, times(1)).getAsBoolean();
     }
 
-    private <T> void runParallel(Supplier<T> lazy, Predicate<T> validator) {
+    private <T> void runParallel(Supplier<T> lazy, Predicate<T> validator) throws Exception {
         final AtomicLong errors = new AtomicLong();
         Supplier<Runnable> f = () -> () -> {
             if (!validator.test(lazy.get())) {
                 errors.incrementAndGet();
             }
         };
-        new ParallelRunner(500, f, f, f, f).run();
+        ParallelRunner.fromRunnable(500, f).call();
         assertEquals(0, errors.get());
     }
 
     @Test
-    void shouldBeThreadSafe() {
+    void shouldBeThreadSafe() throws Exception {
         AtomicLong counter = new AtomicLong();
         Supplier<Long> lazy = Lazy.sync((Supplier<Long>) counter::incrementAndGet);
         runParallel(lazy, v -> v == 1L);
@@ -100,7 +99,7 @@ class LazyTest {
     }
 
     @Test
-    void intShouldBeThreadSafe() {
+    void intShouldBeThreadSafe() throws Exception {
         AtomicInteger counter = new AtomicInteger();
         IntSupplier lazy = Lazy.sync(counter::incrementAndGet);
         runParallel(lazy::getAsInt, v -> v == 1);
@@ -108,7 +107,7 @@ class LazyTest {
     }
 
     @Test
-    void longShouldBeThreadSafe() {
+    void longShouldBeThreadSafe() throws Exception {
         AtomicLong counter = new AtomicLong();
         LongSupplier lazy = Lazy.sync(counter::incrementAndGet);
         runParallel(lazy::getAsLong, v -> v == 1L);
@@ -116,7 +115,7 @@ class LazyTest {
     }
 
     @Test
-    void doubleShouldBeThreadSafe() {
+    void doubleShouldBeThreadSafe() throws Exception {
         AtomicInteger counter = new AtomicInteger();
         DoubleSupplier lazy = Lazy.sync((DoubleSupplier) counter::incrementAndGet);
         runParallel(lazy::getAsDouble, v -> v == 1.0);
@@ -124,7 +123,7 @@ class LazyTest {
     }
 
     @Test
-    void booleanShouldBeThreadSafe() {
+    void booleanShouldBeThreadSafe() throws Exception {
         AtomicLong counter = new AtomicLong();
         BooleanSupplier lazy = Lazy.sync(() -> (counter.incrementAndGet() & 1) != 0);
         runParallel(lazy::getAsBoolean, v -> v);

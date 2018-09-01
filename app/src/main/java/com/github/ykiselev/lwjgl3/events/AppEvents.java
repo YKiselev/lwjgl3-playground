@@ -2,10 +2,11 @@ package com.github.ykiselev.lwjgl3.events;
 
 import com.github.ykiselev.services.events.EventFilter;
 import com.github.ykiselev.services.events.Events;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
-import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -17,6 +18,8 @@ import java.util.function.Consumer;
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
 public final class AppEvents implements Events {
+
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final Map<Class, Subscribers> subscribers = new ConcurrentHashMap<>();
 
@@ -40,145 +43,135 @@ public final class AppEvents implements Events {
     public <T> T fire(T event) {
         final Subscribers s = subscribers.get(event.getClass());
         if (s == null) {
-            throw new IllegalStateException("No subscribers for " + event);
+            logger.warn("No subscribers for {}", event);
+            return event;
         }
         return s.fire(event);
-    }
-
-    private static <T> int indexOf(T[] array, T value) {
-        for (int i = 0; i < array.length; i++) {
-            if (array[i] == value) {
-                return i;
-            }
-        }
-        return -1;
     }
 
     /**
      * Collection of subscribers.
      */
-    private static final class Subscribers {
+    private final class Subscribers {
 
-        private final Filters filters = new Filters();
+        private final Delegates<EventFilter> filters = new Delegates<>(new EventFilter[0]);
 
-        private final Consumers consumers = new Consumers();
+        private final Delegates<Consumer> handlers = new Delegates<>(new Consumer[0]);
 
         AutoCloseable subscribe(Consumer<?> handler) {
-            return consumers.subscribe(handler);
+            return handlers.add(handler);
         }
 
         AutoCloseable add(EventFilter<?> filter) {
-            return filters.subscribe(filter);
+            return filters.add(filter);
         }
 
         <T> T fire(T event) {
-            final T filtered = filters.fire(event);
+            final T filtered = filter(event);
             if (filtered != null) {
-                consumers.fire(event);
+                handle(event);
             }
             return filtered;
         }
+
+        private <T> T filter(T event) {
+            T result = event;
+            for (@SuppressWarnings("unchecked") EventFilter<T> filter : filters.array()) {
+                result = filter.handle(result);
+            }
+            return result;
+        }
+
+        @SuppressWarnings("unchecked")
+        private void handle(Object event) {
+            final Consumer[] array = handlers.array();
+            if (array.length == 0) {
+                logger.warn("No handlers for {}", event);
+            }
+            for (Consumer consumer : array) {
+                consumer.accept(event);
+            }
+        }
     }
 
-    private static abstract class Handlers<T> {
+    /**
+     * Array of handlers. Expected to be small thus each time new handler is added or removed array is expanded/trimmed by one element.
+     * This class is thread-safe and lock-free.
+     *
+     * @param <T> type parameter
+     */
+    private static final class Delegates<T> {
 
-        private final Class<T> clazz;
-
-        private volatile T[] handlers;
+        private volatile T[] items;
 
         private static final VarHandle handle;
 
         static {
             try {
                 handle = MethodHandles.lookup()
-                        .findVarHandle(Handlers.class, "handlers", Object[].class);
+                        .findVarHandle(Delegates.class, "items", Object[].class);
             } catch (NoSuchFieldException | IllegalAccessException e) {
                 throw new Error(e);
             }
         }
 
-        Handlers(Class<T> clazz) {
-            @SuppressWarnings("unchecked") final T[] array = (T[]) Array.newInstance(clazz, 0);
-            this.clazz = clazz;
-            this.handlers = array;
+        Delegates(T[] items) {
+            this.items = items.clone();
         }
 
-        AutoCloseable subscribe(T handler) {
+        /**
+         * Adds new element to array if there is no such element (elements are compared by reference).
+         *
+         * @param item the item to add to the end of array
+         * @return the handle which may be used to remove item later
+         */
+        AutoCloseable add(T item) {
             for (; ; ) {
                 final T[] prevArray = array();
-                final int existing = indexOf(prevArray, handler);
+                final int existing = indexOf(prevArray, item);
                 if (existing >= 0) {
-                    return newSubscription(handler);
+                    return handle(item);
                 }
                 final T[] newArray = Arrays.copyOf(prevArray, prevArray.length + 1);
-                newArray[prevArray.length] = handler;
+                newArray[prevArray.length] = item;
                 if (handle.compareAndSet(this, prevArray, newArray)) {
-                    return newSubscription(handler);
+                    return handle(item);
                 }
             }
         }
 
-        private AutoCloseable newSubscription(T handler) {
-            return () -> {
-                for (; ; ) {
-                    final T[] prevArray = array();
-                    final int idx = indexOf(prevArray, handler);
-                    if (idx < 0) {
-                        break;
-                    }
-                    @SuppressWarnings("unchecked") final T[] newArray = (T[]) Array.newInstance(clazz, prevArray.length - 1);
-                    if (idx > 0) {
-                        System.arraycopy(prevArray, 0, newArray, 0, idx);
-                    }
-                    if (idx < newArray.length) {
-                        System.arraycopy(prevArray, idx + 1, newArray, idx, newArray.length - idx);
-                    }
-                    if (handle.compareAndSet(Handlers.this, prevArray, newArray)) {
-                        break;
-                    }
-                }
-            };
+        private AutoCloseable handle(T handler) {
+            return () -> remove(handler);
         }
 
-        @SuppressWarnings("unchecked")
+        private void remove(T handler) {
+            for (; ; ) {
+                final T[] prevArray = array();
+                final int idx = indexOf(prevArray, handler);
+                if (idx < 0) {
+                    break;
+                }
+                final T[] newArray = Arrays.copyOf(prevArray, prevArray.length - 1);
+                if (idx < newArray.length) {
+                    System.arraycopy(prevArray, idx + 1, newArray, idx, newArray.length - idx);
+                }
+                if (handle.compareAndSet(Delegates.this, prevArray, newArray)) {
+                    break;
+                }
+            }
+        }
+
+        private static <T> int indexOf(T[] array, T value) {
+            for (int i = 0; i < array.length; i++) {
+                if (array[i] == value) {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
         T[] array() {
-            return (T[]) handle.getVolatile(this);
-        }
-    }
-
-    private static final class Consumers extends Handlers<Consumer> {
-
-        Consumers() {
-            super(Consumer.class);
-        }
-
-        void fire(Object event) {
-            @SuppressWarnings("unchecked") final Consumer<Object>[] array = array();
-            if (array.length == 0) {
-                throw new IllegalStateException("No subscribers for event " + event);
-            }
-            for (Consumer<Object> consumer : array) {
-                consumer.accept(event);
-            }
-        }
-    }
-
-    private static final class Filters extends Handlers<EventFilter> {
-
-        Filters() {
-            super(EventFilter.class);
-        }
-
-        <T> T fire(T event) {
-            @SuppressWarnings("unchecked") final EventFilter<T>[] array = array();
-            T result = event;
-            for (EventFilter<T> filter : array) {
-                result = filter.handle(result);
-                if (result == null) {
-                    return null;
-                }
-            }
-            return result;
+            return items;
         }
     }
 }

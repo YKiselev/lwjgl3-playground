@@ -1,109 +1,56 @@
 package com.github.ykiselev.collections;
 
 /**
- * Simple double linked list with ability to add/remove list nodes (instead of values) and thus to use custom node class.
+ * Double linked list with ability to add/remove list nodes (instead of values) and thus to use custom node class.
+ * Note: if not stated otherwise consecutive attempts to add already linked node will lead to undefined behaviour.
  *
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class NodeList<N extends NodeList.Node<N>> {
+public interface NodeList<N extends NodeList.Node<N>> {
 
-    private N head;
+    N head();
 
-    private N tail;
-
-    public N head() {
-        return head;
-    }
-
-    public N tail() {
-        return tail;
-    }
-
-    public N addFirst(N ref) {
-        ref.next = head;
-        if (head != null) {
-            head.prev = ref;
-        }
-        head = ref;
-        if (tail == null) {
-            tail = ref;
-        }
-        return ref;
-    }
-
-    public N addLast(N ref) {
-        ref.prev = tail;
-        if (tail != null) {
-            tail.next = ref;
-        }
-        tail = ref;
-        if (head == null) {
-            head = ref;
-        }
-        return ref;
-    }
-
-    public N remove(N ref) {
-        final N next = ref.next;
-        final N prev = ref.prev;
-        if (next != null) {
-            next.prev = prev;
-        }
-        if (prev != null) {
-            prev.next = next;
-        }
-        if (ref == head) {
-            head = next;
-        }
-        if (ref == tail) {
-            tail = prev;
-        }
-        ref.prev = ref.next = null;
-        return ref;
-    }
-
-    public void clear() {
-        while (tail != null) {
-            remove(tail);
-        }
-    }
+    N tail();
 
     /**
-     * Base node class without actual payload.
+     * Adds unlinked node to the head of the list
      *
-     * @param <N> the type of node's implementing class
+     * @param ref the node
+     * @return the linked node
      */
-    public static abstract class Node<N extends Node<N>> {
+    N addFirst(N ref);
 
-        N next;
+    /**
+     * Adds unlinked node to the tail of the list
+     *
+     * @param ref the node
+     * @return the linked node
+     */
+    N addLast(N ref);
 
-        N prev;
+    /**
+     * Removes node from the list
+     *
+     * @param ref the node to remove
+     * @return the unlinked node
+     */
+    N remove(N ref);
 
-        public final N next() {
-            return next;
-        }
-
-        public final N prev() {
-            return prev;
+    /**
+     * Clears list
+     */
+    default void clear() {
+        N n;
+        while ((n = tail()) != null) {
+            remove(n);
         }
     }
 
-    /**
-     * Base node class
-     *
-     * @param <V> the type of node's value
-     */
-    public static class ImmutableNode<V> extends Node<ImmutableNode<V>> {
+    interface Node<N extends Node<N>> {
 
-        private final V value;
+        N next();
 
-        public V value() {
-            return value;
-        }
-
-        ImmutableNode(V value) {
-            this.value = value;
-        }
+        N prev();
     }
 
 }

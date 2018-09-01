@@ -1,19 +1,19 @@
 package com.github.ykiselev.collections;
 
-import com.github.ykiselev.collections.NodeList.ImmutableNode;
+import com.github.ykiselev.collections.SimpleNodeList.ImmutableNode;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-class NodeListTest {
+class SimpleNodeListTest {
 
-    private final NodeList<ImmutableNode<Integer>> ints = new NodeList<>();
+    private final NodeList<ImmutableNode<Integer>> ints = new SimpleNodeList<>();
 
     private ImmutableNode<Integer> node(int value) {
         return new ImmutableNode<>(value);
@@ -35,8 +35,8 @@ class NodeListTest {
         ints.addFirst(node(2));
         final ImmutableNode<Integer> n3 = ints.addFirst(node(3));
         assertListEquals(ints, 3, 2, 1);
-        assertTrue(ints.head() == n3);
-        assertTrue(ints.tail() == n1);
+        assertSame(ints.head(), n3);
+        assertSame(ints.tail(), n1);
     }
 
     @Test
@@ -45,8 +45,8 @@ class NodeListTest {
         ints.addLast(node(2));
         final ImmutableNode<Integer> n3 = ints.addLast(node(3));
         assertListEquals(ints, 1, 2, 3);
-        assertTrue(ints.head() == n1);
-        assertTrue(ints.tail() == n3);
+        assertSame(ints.head(), n1);
+        assertSame(ints.tail(), n3);
     }
 
     @Test
@@ -66,9 +66,9 @@ class NodeListTest {
 
     @Test
     void shouldClear() {
-        final ImmutableNode<Integer> n1 = ints.addLast(node(1));
-        final ImmutableNode<Integer> n2 = ints.addLast(node(2));
-        final ImmutableNode<Integer> n3 = ints.addLast(node(3));
+        ints.addLast(node(1));
+        ints.addLast(node(2));
+        ints.addLast(node(3));
         assertListEquals(ints, 1, 2, 3);
         ints.clear();
         assertNull(ints.head());

@@ -1,6 +1,7 @@
 package com.github.ykiselev.caching;
 
 import com.github.ykiselev.collections.NodeList;
+import com.github.ykiselev.collections.SimpleNodeList;
 
 import java.util.function.Consumer;
 import java.util.function.ToIntFunction;
@@ -18,7 +19,7 @@ public final class WeightingCachedReferences<V> implements CachedReferences<V> {
 
     private final Consumer<V> evictionConsumer;
 
-    private final NodeList<WeightedReference> list = new NodeList<>();
+    private final NodeList<WeightedReference> list = new SimpleNodeList<>();
 
     private int totalWeight;
 
@@ -98,7 +99,7 @@ public final class WeightingCachedReferences<V> implements CachedReferences<V> {
     /**
      * Custom list node
      */
-    private class WeightedReference extends NodeList.Node<WeightedReference> implements Cached<V> {
+    private class WeightedReference extends SimpleNodeList.AbstractNode<WeightedReference> implements Cached<V> {
 
         int weight;
 
