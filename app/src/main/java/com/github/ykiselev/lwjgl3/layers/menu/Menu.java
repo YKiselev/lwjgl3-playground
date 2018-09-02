@@ -117,7 +117,7 @@ public final class Menu implements UiLayer, AutoCloseable, Removable {
                 new MenuItem(
                         new Link(
                                 "New",
-                                () -> events.fire(new NewGameEvent())
+                                () -> events.fire(NewGameEvent.INSTANCE)
                         )
                 ),
                 new MenuItem(
@@ -141,7 +141,7 @@ public final class Menu implements UiLayer, AutoCloseable, Removable {
                 new MenuItem(
                         new Link(
                                 "Exit",
-                                () -> events.fire(new QuitEvent())
+                                () -> events.fire(QuitEvent.INSTANCE)
                         )
                 )
         );

@@ -58,7 +58,7 @@ public final class MainLoop implements Runnable {
         ) {
             window.show();
             services.resolve(Events.class)
-                    .fire(new NewGameEvent());
+                    .fire(NewGameEvent.INSTANCE);
             glfwSwapInterval(args.swapInterval());
             logger.info("Entering main loop...");
             final Schedule schedule = services.resolve(Schedule.class);

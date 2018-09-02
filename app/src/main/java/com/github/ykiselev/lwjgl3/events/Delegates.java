@@ -1,15 +1,17 @@
-package com.github.ykiselev.collections;
+package com.github.ykiselev.lwjgl3.events;
 
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
+import java.lang.reflect.Array;
 import java.util.Arrays;
 
 /**
- * @author Yuriy Kiselev (uze@yandex.ru).
- * @deprecated not generic enough
+ * Array of handlers. Expected to be small thus each time new handler is added or removed array is expanded/trimmed by one element.
+ * This class is thread-safe and lock-free.
+ *
+ * @param <T> type parameter
  */
-@Deprecated
-public final class CopyOnWriteArray<T> {
+final class Delegates<T> {
 
     private volatile T[] items;
 
@@ -18,13 +20,18 @@ public final class CopyOnWriteArray<T> {
     static {
         try {
             handle = MethodHandles.lookup()
-                    .findVarHandle(CopyOnWriteArray.class, "items", Object[].class);
+                    .findVarHandle(Delegates.class, "items", Object[].class);
         } catch (NoSuchFieldException | IllegalAccessException e) {
             throw new Error(e);
         }
     }
 
-    public CopyOnWriteArray(T[] items) {
+    /**
+     * Empty array expected.
+     *
+     * @param items the typed array to use as reference when copying.
+     */
+    Delegates(T[] items) {
         this.items = items.clone();
     }
 
@@ -34,7 +41,7 @@ public final class CopyOnWriteArray<T> {
      * @param item the item to add to the end of array
      * @return the handle which may be used to remove item later
      */
-    public AutoCloseable add(T item) {
+    AutoCloseable add(T item) {
         for (; ; ) {
             final T[] prevArray = array();
             final int existing = indexOf(prevArray, item);
@@ -60,11 +67,17 @@ public final class CopyOnWriteArray<T> {
             if (idx < 0) {
                 break;
             }
-            final T[] newArray = Arrays.copyOf(prevArray, prevArray.length - 1);
+            @SuppressWarnings("unchecked") final T[] newArray = (T[]) Array.newInstance(
+                    prevArray.getClass().getComponentType(),
+                    prevArray.length - 1
+            );
+            if (idx > 0) {
+                System.arraycopy(prevArray, 0, newArray, 0, idx);
+            }
             if (idx < newArray.length) {
                 System.arraycopy(prevArray, idx + 1, newArray, idx, newArray.length - idx);
             }
-            if (handle.compareAndSet(CopyOnWriteArray.this, prevArray, newArray)) {
+            if (handle.compareAndSet(Delegates.this, prevArray, newArray)) {
                 break;
             }
         }
@@ -79,7 +92,7 @@ public final class CopyOnWriteArray<T> {
         return -1;
     }
 
-    public T[] array() {
+    T[] array() {
         return items;
     }
 }

@@ -5,4 +5,8 @@ package com.github.ykiselev.services.events.game;
  */
 public final class QuitEvent {
 
+    public static final QuitEvent INSTANCE = new QuitEvent();
+
+    private QuitEvent() {
+    }
 }

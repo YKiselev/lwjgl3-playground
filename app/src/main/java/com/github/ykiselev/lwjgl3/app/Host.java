@@ -77,11 +77,11 @@ public final class Host implements Runnable {
         final FileSystem fileSystem = createFileSystem();
         return new ServiceGroupBuilder(services)
                 .add(FileSystem.class, fileSystem)
-                .add(Schedule.class, new AppSchedule())
                 .add(Events.class, new AppEvents())
+                .add(PersistedConfiguration.class, new AppConfig(services))
+                .add(Schedule.class, new AppSchedule())
                 .add(UiLayers.class, new AppUiLayers())
                 .add(Assets.class, GameAssets.create(fileSystem))
-                .add(PersistedConfiguration.class, new AppConfig(services))
                 .add(SoundEffects.class, new AppSoundEffects(services))
                 .build();
     }
