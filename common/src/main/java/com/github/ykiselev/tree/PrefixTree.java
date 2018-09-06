@@ -1,7 +1,12 @@
 package com.github.ykiselev.tree;
 
-import java.util.Optional;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Function;
+import java.util.function.IntFunction;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.util.Objects.requireNonNull;
 
@@ -25,37 +30,104 @@ public final class PrefixTree<V> {
 
     private final TreeNode<String, V> root;
 
+    /**
+     * @param pattern the pattern to use to split paths into parts
+     * @param root    the root node
+     */
     PrefixTree(Pattern pattern, TreeNode<String, V> root) {
         this.pattern = requireNonNull(pattern);
         this.root = requireNonNull(root);
     }
 
     /**
-     * Searches for node by supplied path. Supplied path is split to elements (refixes) by {@code pattern} supplied to constructor of this class.
+     * Searches for node by supplied path.
      *
      * @param path the path to search node for.
      * @return the found node or {@code null}
      */
-    public Optional<V> find(String path) {
+    public V find(String path) {
         return find(pattern.split(path));
     }
 
     /**
-     * Searches for node by supplied array of path partprefixes.
-     * Supplied path is split by {@code pattern} supplied to constructor of this class.
+     * Searches for node by supplied array of path parts (prefixes).
      *
      * @param parts the node path splitted to elements
      * @return the node or {@code null}
      */
-    public Optional<V> find(String[] parts) {
+    public V find(String[] parts) {
         TreeNode<String, V> node = root;
         for (String part : parts) {
             node = node.find(part);
             if (node == null) {
-                return Optional.empty();
+                return null;
             }
         }
-        return Optional.ofNullable(node)
-                .map(TreeNode::value);
+        return node != null ? node.value() : null;
+    }
+
+    public PrefixTree<V> merge(PrefixTree<V> other) {
+        return new PrefixTree<>(
+                pattern,
+                new MergeNode<>(root, other.root)
+                        .emit()
+        );
+    }
+
+    private static class MergeNode<V> {
+
+        private final TreeNode<String, V> a;
+
+        private final TreeNode<String, V> b;
+
+        MergeNode(TreeNode<String, V> a, TreeNode<String, V> b) {
+            this.a = a;
+            this.b = b;
+        }
+
+        TreeNode<String, V> emit() {
+            if (a != null) {
+                if (b == null) {
+                    return a;
+                } else {
+                    if (!Objects.equals(a.key(), b.key())) {
+                        throw new IllegalArgumentException("Can not merge nodes with different keys: " + a.key() + " != " + b.key());
+                    }
+                    if (a.size() == 0) {
+                        return b;
+                    } else if (b.size() == 0) {
+                        return a;
+                    }
+                    return merge();
+                }
+            } else {
+                return b;
+            }
+        }
+
+        private TreeNode<String, V> merge() {
+            final Map<String, TreeNode<String, V>> keyToA = a.children()
+                    .collect(Collectors.toMap(
+                            TreeNode::key,
+                            Function.identity()
+                    ));
+            final Map<String, TreeNode<String, V>> keyToB = b.children()
+                    .collect(Collectors.toMap(
+                            TreeNode::key,
+                            Function.identity()
+                    ));
+            final IntFunction<TreeNode<String, V>[]> generator = TreeNode[]::new;
+            return new TreeNode<>(a.key(), a.value(),
+                    Stream.concat(
+                            a.children()
+                                    .map(n -> new MergeNode<>(n, keyToB.get(n.key())))
+                                    .map(MergeNode::emit),
+                            b.children()
+                                    .filter(n -> !keyToA.containsKey(n.key()))
+                                    .map(n -> new MergeNode<>(null, n))
+                                    .map(MergeNode::emit)
+                    ).toArray(generator)
+            );
+        }
     }
 }

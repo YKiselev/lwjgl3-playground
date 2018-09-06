@@ -26,8 +26,8 @@ public final class Trigger {
 
     public void value(boolean value) {
         final State newState = state(value);
-        if (this.state != newState) {
-            this.state = newState;
+        if (state != newState) {
+            state = newState;
             if (value) {
                 if (whenOn != null) {
                     whenOn.run();

@@ -8,7 +8,9 @@ import static java.util.Objects.requireNonNull;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
+ * @deprecated not used
  */
+@Deprecated
 public final class ProxiedRef<T> implements Ref<T> {
 
     private final Class<T> clazz;

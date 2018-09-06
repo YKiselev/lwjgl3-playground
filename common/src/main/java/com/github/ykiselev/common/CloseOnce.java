@@ -4,7 +4,9 @@ import static java.util.Objects.requireNonNull;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
+ * @deprecated seems to be unused
  */
+@Deprecated
 public final class CloseOnce implements AutoCloseable {
 
     private volatile AutoCloseable closeable;

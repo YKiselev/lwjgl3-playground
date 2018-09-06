@@ -11,7 +11,9 @@ import static java.util.Objects.requireNonNull;
  * When proxy's {@link AutoCloseable#close()} method is called original object instance is passed to the specified {@code onClose} consumer.
  *
  * @author Yuriy Kiselev (uze@yandex.ru).
+ * @deprecated not used
  */
+@Deprecated
 public final class AutoCloseableProxy {
 
     /**
@@ -25,7 +27,7 @@ public final class AutoCloseableProxy {
     public static <T> T create(T target, Class<?>[] interfaces, Consumer<T> onClose) {
         requireNonNull(onClose);
         final Class<?>[] ifaces;
-        if (AutoCloseable.class.isInstance(target)) {
+        if (target instanceof AutoCloseable) {
             ifaces = interfaces;
         } else {
             ifaces = Arrays.copyOf(interfaces, interfaces.length + 1);

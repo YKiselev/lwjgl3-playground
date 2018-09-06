@@ -101,11 +101,13 @@ public final class AppSoundEffects implements SoundEffects, AutoCloseable {
         final PrefixTree<EventFilter<ValueChangingEvent>> tree = new MutablePrefixTree<EventFilter<ValueChangingEvent>>("\\.")
                 .add("sound.effects.level", this::onSoundEffectsLevelChanging)
                 .toPrefixTree();
-        final EventFilter<ValueChangingEvent> handler = event ->
-                tree.find(event.path())
-                        .map(h -> h.handle(event))
-                        .orElse(event);
-
+        final EventFilter<ValueChangingEvent> handler = event -> {
+            final EventFilter<ValueChangingEvent> filter = tree.find(event.path());
+            if (filter != null) {
+                return filter.handle(event);
+            }
+            return event;
+        };
         subscriptions = new SubscriptionsBuilder(services.resolve(Events.class))
                 .with(ValueChangingEvent.class, handler)
                 .build();
