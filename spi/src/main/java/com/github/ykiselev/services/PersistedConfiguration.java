@@ -1,6 +1,6 @@
 package com.github.ykiselev.services;
 
-import com.typesafe.config.Config;
+import com.github.ykiselev.services.configuration.Config;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
@@ -9,5 +9,15 @@ public interface PersistedConfiguration {
 
     Config root();
 
-    void set(String path, Object value);
+    void setString(String path, String value);
+
+    void setBoolean(String path, boolean value);
+
+    void setInt(String path, int value);
+
+    void setLong(String path, long value);
+
+    void setFloat(String path, float value);
+
+    void setDouble(String path, double value);
 }

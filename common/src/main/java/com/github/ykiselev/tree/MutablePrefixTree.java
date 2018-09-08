@@ -1,13 +1,6 @@
 package com.github.ykiselev.tree;
 
-import com.github.ykiselev.recursion.TreeStage;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.function.IntFunction;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import static java.util.Objects.requireNonNull;
 
@@ -69,39 +62,6 @@ public final class MutablePrefixTree<V> {
     }
 
     public PrefixTree<V> toPrefixTree() {
-        return new PrefixTree<>(pattern, root.emit());
-    }
-
-    private TreeStage<MutableTreeNode<String, V>, TreeNode<String, V>> stage(MutableTreeNode<String, V> node) {
-        final IntFunction<TreeNode<String, V>[]> generator = TreeNode[]::new;
-        return new TreeStage<>(
-                () -> node.stream()
-                        .map(this::stage)
-                        .collect(Collectors.toList()),
-                stages -> new TreeNode<>(
-                        node.key(),
-                        node.value(),
-                        stages.stream()
-                                .filter(ns -> ns.result() != null)
-                                .map(TreeStage::result)
-                                .toArray(generator)
-                )
-        );
-    }
-
-    public PrefixTree<V> toPrefixTreeNonRec() {
-        final List<TreeStage<MutableTreeNode<String, V>, TreeNode<String, V>>> nodes = new ArrayList<>();
-        nodes.add(stage(root));
-        int from = 0;
-        while (from < nodes.size()) {
-            final TreeStage<MutableTreeNode<String, V>, TreeNode<String, V>> s = nodes.get(from);
-            from++;
-            nodes.addAll(s.call());
-        }
-        final ListIterator<TreeStage<MutableTreeNode<String, V>, TreeNode<String, V>>> it = nodes.listIterator(nodes.size());
-        while (it.hasPrevious()) {
-            it.previous().collectResult();
-        }
         return new PrefixTree<>(pattern, root.emit());
     }
 }

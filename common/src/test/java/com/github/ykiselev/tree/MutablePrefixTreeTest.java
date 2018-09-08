@@ -22,17 +22,6 @@ class MutablePrefixTreeTest {
     }
 
     @Test
-    void shouldBuildImmutableTreeNonRec() {
-        final PrefixTree<Integer> tree = new MutablePrefixTree<Integer>("\\.")
-                .add("a.b.c.d.e.f.g.1", 1)
-                .add("a.b.k.l.m.n.2", 2)
-                .toPrefixTreeNonRec();
-        assertEquals(1, (int) tree.find("a.b.c.d.e.f.g.1"));
-        assertEquals(2, (int) tree.find("a.b.k.l.m.n.2"));
-        assertNull(tree.find("a.b.3"));
-    }
-
-    @Test
     void shouldMerge() {
         PrefixTree<Integer> a = new MutablePrefixTree<Integer>("\\.")
                 .add("a.b.c.d.e", 1)
