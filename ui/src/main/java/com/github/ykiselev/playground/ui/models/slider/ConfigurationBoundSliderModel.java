@@ -1,6 +1,6 @@
 package com.github.ykiselev.playground.ui.models.slider;
 
-import com.github.ykiselev.services.PersistedConfiguration;
+import com.github.ykiselev.services.configuration.Config;
 
 import static java.util.Objects.requireNonNull;
 
@@ -11,11 +11,11 @@ public final class ConfigurationBoundSliderModel implements SliderModel {
 
     private final String key;
 
-    private final PersistedConfiguration configuration;
+    private final Config configuration;
 
     private final SliderDefinition definition;
 
-    public ConfigurationBoundSliderModel(SliderDefinition definition, PersistedConfiguration configuration, String key) {
+    public ConfigurationBoundSliderModel(SliderDefinition definition, Config configuration, String key) {
         this.key = requireNonNull(key);
         this.configuration = requireNonNull(configuration);
         this.definition = requireNonNull(definition);
@@ -28,7 +28,7 @@ public final class ConfigurationBoundSliderModel implements SliderModel {
 
     @Override
     public int value() {
-        return configuration.root().getInt(key);
+        return configuration.getInt(key);
     }
 
     @Override

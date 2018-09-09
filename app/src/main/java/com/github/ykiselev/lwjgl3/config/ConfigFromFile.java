@@ -3,6 +3,7 @@ package com.github.ykiselev.lwjgl3.config;
 import com.github.ykiselev.services.FileSystem;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import com.typesafe.config.ConfigObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,6 +13,7 @@ import java.io.UncheckedIOException;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.util.AbstractMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -23,7 +25,7 @@ import static java.util.Objects.requireNonNull;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-final class ConfigFromFile implements Supplier<Map<String, ConfigValue>> {
+final class ConfigFromFile implements Supplier<Map<String, Object>> {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -34,19 +36,29 @@ final class ConfigFromFile implements Supplier<Map<String, ConfigValue>> {
     }
 
     @Override
-    public Map<String, ConfigValue> get() {
+    public Map<String, Object> get() {
         logger.info("Loading config...");
-        return readFromFile()
-                .withFallback(ConfigFactory.parseResources("fallback/app.conf"))
-                .resolve()
-                .root()
-                .entrySet()
+        return transform(
+                readConfigObject()
+        );
+    }
+
+    private Map<String, Object> transform(ConfigObject obj) {
+        return obj.keySet()
                 .stream()
-                .flatMap(e -> denormalize(e.getKey(), e.getValue().unwrapped()))
+                .flatMap(k -> denormalize(k, obj.get(k).unwrapped()))
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
                         e -> value(e.getValue())
                 ));
+    }
+
+    private ConfigObject readConfigObject() {
+        return readFromFile()
+                .withFallback(ConfigFactory.parseURL(
+                        getClass().getResource("/fallback/app.conf")
+                )).resolve()
+                .root();
     }
 
     private Config readFromFile() {
@@ -67,38 +79,50 @@ final class ConfigFromFile implements Supplier<Map<String, ConfigValue>> {
 
     private Stream<Map.Entry<String, Object>> denormalize(String key, Object value) {
         if (value instanceof Map) {
-            return ((Map<String, Object>) value).entrySet()
-                    .stream()
-                    .flatMap(e -> denormalize(key + "." + e.getKey(), e.getValue()));
-        } else {
-            return Stream.of(
-                    new AbstractMap.SimpleImmutableEntry<>(
-                            key,
-                            value
-                    )
+            @SuppressWarnings("unchecked") final Map<String, Object> map = (Map<String, Object>) value;
+            return Stream.concat(
+                    Stream.of(
+                            new AbstractMap.SimpleImmutableEntry<>(
+                                    key,
+                                    new Values.Section(
+                                            new HashSet<>(map.keySet())
+                                    )
+                            )
+                    ),
+                    map.entrySet()
+                            .stream()
+                            .flatMap(e -> denormalize(key + "." + e.getKey(), e.getValue()))
             );
         }
+        return Stream.of(
+                new AbstractMap.SimpleImmutableEntry<>(key, value)
+        );
     }
 
-    public static ConfigValue value(Object value) {
+    @SuppressWarnings("unchecked")
+    public static Object value(Object value) {
+        if (value instanceof Values.Section) {
+            return value;
+        }
         if (value instanceof List) {
-            return new ListValue((List<String>) value);
+            return new Values.ConstantList((List<?>) value);
         }
-        final SimpleValue result = new SimpleValue();
         if (value == null || value instanceof String) {
-            result.setString((String) value);
-        } else if (value instanceof Long) {
-            result.setLong((long) value);
-        } else if (value instanceof Integer) {
-            result.setInt((int) value);
-        } else if (value instanceof Double) {
-            result.setDouble((double) value);
-        } else if (value instanceof Boolean) {
-            result.setBoolean((boolean) value);
-        } else {
-            throw new IllegalArgumentException("Unsupported value type: " + value);
+            return new Values.SimpleString((String) value);
         }
-        return result;
+        if (value instanceof Long) {
+            return new Values.SimpleLong((long) value);
+        }
+        if (value instanceof Integer) {
+            return new Values.SimpleLong((int) value);
+        }
+        if (value instanceof Double) {
+            return new Values.SimpleDouble((double) value);
+        }
+        if (value instanceof Boolean) {
+            return new Values.SimpleBoolean((boolean) value);
+        }
+        throw new IllegalArgumentException("Unsupported value type: " + value);
     }
 
 }

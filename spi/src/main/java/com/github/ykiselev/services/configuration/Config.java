@@ -1,27 +1,83 @@
 package com.github.ykiselev.services.configuration;
 
-import java.util.Collection;
+import java.util.List;
 
 /**
+ * Mutable configuration.
+ *
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
 public interface Config {
 
-    Config getConfig(String path);
+    <V extends ConfigValue> V getValue(String path, Class<V> clazz);
+
+    <V extends ConfigValue> V getOrCreateValue(String path, Class<V> clazz);
+
+    <T> List<T> getList(String path, Class<T> clazz);
 
     boolean hasPath(String path);
 
-    String getString(String path);
+    default String getString(String path) {
+        final ConfigValue value = getValue(path, ConfigValue.class);
+        return value != null ? value.getString() : null;
+    }
 
-    boolean getBoolean(String path);
+    default boolean getBoolean(String path) {
+        final BooleanValue value = getValue(path, BooleanValue.class);
+        return value != null && value.value();
+    }
 
-    int getInt(String path);
+    default int getInt(String path) {
+        final long raw = getLong(path);
+        if (raw < Integer.MIN_VALUE || raw > Integer.MAX_VALUE) {
+            throw new IllegalArgumentException("Value " + raw + " can not be represented as int!");
+        }
+        return (int) raw;
+    }
 
-    long getLong(String path);
+    default long getLong(String path) {
+        final LongValue value = getValue(path, LongValue.class);
+        return value != null ? value.value() : 0L;
+    }
 
-    float getFloat(String path);
+    default float getFloat(String path) {
+        final double raw = getDouble(path);
+        if (raw < Float.MIN_VALUE && raw > Float.MAX_VALUE) {
+            throw new IllegalArgumentException("Value " + raw + " can not be represented as float!");
+        }
+        return (float) raw;
+    }
 
-    double getDouble(String path);
+    default double getDouble(String path) {
+        final DoubleValue value = getValue(path, DoubleValue.class);
+        return value != null ? value.value() : 0;
+    }
 
-    Collection<String> getStringList(String path);
+    default void setString(String path, String value) {
+        getOrCreateValue(path, StringValue.class).setString(value);
+    }
+
+    default void setBoolean(String path, boolean value) {
+        getOrCreateValue(path, BooleanValue.class).value(value);
+    }
+
+    default void setInt(String path, int value) {
+        setLong(path, value);
+    }
+
+    default void setLong(String path, long value) {
+        getOrCreateValue(path, LongValue.class).value(value);
+    }
+
+    default void setFloat(String path, float value) {
+        setDouble(path, value);
+    }
+
+    default void setDouble(String path, double value) {
+        getOrCreateValue(path, DoubleValue.class).value(value);
+    }
+
+    default List<String> getStringList(String path) {
+        return getList(path, String.class);
+    }
 }

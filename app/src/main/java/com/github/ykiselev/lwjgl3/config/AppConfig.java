@@ -4,15 +4,15 @@ import com.github.ykiselev.services.FileSystem;
 import com.github.ykiselev.services.PersistedConfiguration;
 import com.github.ykiselev.services.Services;
 import com.github.ykiselev.services.configuration.Config;
-import com.github.ykiselev.services.events.Events;
-import com.github.ykiselev.services.events.config.ValueChangingEvent;
+import com.github.ykiselev.services.configuration.ConfigValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 import static java.util.Objects.requireNonNull;
 
@@ -25,14 +25,41 @@ public final class AppConfig implements PersistedConfiguration, AutoCloseable {
 
     private final Services services;
 
-    private volatile Map<String, ConfigValue> config;
+    private volatile Map<String, Object> config;
+
+    private final Config root = new Config() {
+
+        @Override
+        public <V extends ConfigValue> V getValue(String path, Class<V> clazz) {
+            return clazz.cast(config.get(path));
+        }
+
+        @Override
+        public <V extends ConfigValue> V getOrCreateValue(String path, Class<V> clazz) {
+            return ensureValueExists(path, clazz);
+        }
+
+        @Override
+        public <T> List<T> getList(String path, Class<T> clazz) {
+            final Object raw = config.get(path);
+            if (raw instanceof Values.ConstantList) {
+                return ((Values.ConstantList) raw).toUniformList(clazz);
+            }
+            return null;
+        }
+
+        @Override
+        public boolean hasPath(String path) {
+            return config.containsKey(path);
+        }
+    };
 
     private static final VarHandle CH;
 
     static {
         try {
             CH = MethodHandles.lookup()
-                    .in(AppConfig.class)
+                    //.in(AppConfig.class)
                     .findVarHandle(AppConfig.class, "config", Map.class);
         } catch (NoSuchFieldException | IllegalAccessException e) {
             throw new Error(e);
@@ -46,69 +73,32 @@ public final class AppConfig implements PersistedConfiguration, AutoCloseable {
 
     @Override
     public Config root() {
-        throw new UnsupportedOperationException("not implemented");
+        return root;
     }
 
-    @Override
-    public void setBoolean(String path, boolean value) {
-        throw new UnsupportedOperationException("not implemented");
-    }
-
-    @Override
-    public void setInt(String path, int value) {
-        throw new UnsupportedOperationException("not implemented");
-    }
-
-    @Override
-    public void setLong(String path, long value) {
-        throw new UnsupportedOperationException("not implemented");
-    }
-
-    @Override
-    public void setFloat(String path, float value) {
-        throw new UnsupportedOperationException("not implemented");
-    }
-
-    @Override
-    public void setDouble(String path, double value) {
-        throw new UnsupportedOperationException("not implemented");
-    }
-
-    @Override
-    public void setString(String path, String value) {
-        final Object oldValue = getValue(path);
-        if (Objects.equals(oldValue, value)) {
-            logger.debug("Skipping setting \"{}\" to the same value \"{}\"...", path, value);
-        } else {
-            logger.debug("Setting \"{}\" to \"{}\"", path, value);
-            final ValueChangingEvent result = services.resolve(Events.class).fire(
-                    new ValueChangingEvent(path, oldValue, value)
-            );
-//            if (result != null) {
-//                updateConfig(path, ConfigValueFactory.fromAnyRef(value));
-//            }
+    private <V extends ConfigValue> V ensureValueExists(String path, Class<V> clazz) {
+        V result = null;
+        for (; ; ) {
+            final Map<String, Object> before = this.config;
+            final Object existing = before.get(path);
+            if (clazz.isInstance(existing)) {
+                result = clazz.cast(existing);
+                break;
+            }
+            final Map<String, Object> after = new HashMap<>(before);
+            if (result == null) {
+                result = Values.create(clazz);
+            }
+            after.put(path, result);
+            if (CH.compareAndSet(this, before, after)) {
+                break;
+            }
         }
+        return result;
     }
-
-//    private void updateConfig(String path, ConfigValue value) {
-//        for (; ; ) {
-//            final Config before = config;
-//            final Config after = before.withValue(path, value);
-//            if (CH.compareAndSet(this, before, after)) {
-//                break;
-//            }
-//        }
-//    }
 
     @Override
     public void close() throws Exception {
         new ConfigToFile(config, services.resolve(FileSystem.class)).run();
     }
-
-    private Object getValue(String path) {
-        throw new UnsupportedOperationException();
-//        final Map<String, ConfigValue> cfg = this.config;
-//        return this.config.hasPath(path) ? this.config.getValue(path).unwrapped() : null;
-    }
-
 }

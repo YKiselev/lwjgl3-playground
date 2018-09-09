@@ -1,8 +1,6 @@
 package com.github.ykiselev.lwjgl3.layers.menu;
 
 import com.github.ykiselev.assets.Assets;
-import com.github.ykiselev.playground.ui.menus.ListMenu;
-import com.github.ykiselev.playground.ui.menus.ListMenu.MenuItem;
 import com.github.ykiselev.opengl.shaders.ProgramObject;
 import com.github.ykiselev.opengl.sprites.DefaultSpriteBatch;
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
@@ -13,6 +11,8 @@ import com.github.ykiselev.opengl.textures.Texture2d;
 import com.github.ykiselev.playground.ui.elements.CheckBox;
 import com.github.ykiselev.playground.ui.elements.Link;
 import com.github.ykiselev.playground.ui.elements.Slider;
+import com.github.ykiselev.playground.ui.menus.ListMenu;
+import com.github.ykiselev.playground.ui.menus.ListMenu.MenuItem;
 import com.github.ykiselev.playground.ui.models.checkbox.SimpleCheckBoxModel;
 import com.github.ykiselev.playground.ui.models.slider.ConfigurationBoundSliderModel;
 import com.github.ykiselev.playground.ui.models.slider.SliderDefinition;
@@ -74,7 +74,7 @@ public final class Menu implements UiLayer, AutoCloseable, Removable {
         final Slider effectsSlider = new Slider(
                 new ConfigurationBoundSliderModel(
                         new SliderDefinition(0, 10, 1),
-                        configuration,
+                        configuration.root(),
                         "sound.effects.level"
                 )
         );
@@ -133,7 +133,7 @@ public final class Menu implements UiLayer, AutoCloseable, Removable {
                         new Slider(
                                 new ConfigurationBoundSliderModel(
                                         new SliderDefinition(0, 10, 1),
-                                        configuration,
+                                        configuration.root(),
                                         "sound.music.level"
                                 )
                         )

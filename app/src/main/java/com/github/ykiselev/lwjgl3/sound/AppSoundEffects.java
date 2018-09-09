@@ -6,6 +6,7 @@ import com.github.ykiselev.services.PersistedConfiguration;
 import com.github.ykiselev.services.Services;
 import com.github.ykiselev.services.SoundEffects;
 import com.github.ykiselev.services.configuration.Config;
+import com.github.ykiselev.services.configuration.RelativeConfig;
 import com.github.ykiselev.services.events.EventFilter;
 import com.github.ykiselev.services.events.Events;
 import com.github.ykiselev.services.events.config.ValueChangingEvent;
@@ -48,6 +49,8 @@ public final class AppSoundEffects implements SoundEffects, AutoCloseable {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
+    private final SoundSettings settings = new SoundSettings();
+
     private final Services services;
 
     private final long device;
@@ -58,9 +61,10 @@ public final class AppSoundEffects implements SoundEffects, AutoCloseable {
 
     public AppSoundEffects(Services services) {
         this.services = requireNonNull(services);
-        final Config config = services.resolve(PersistedConfiguration.class)
-                .root()
-                .getConfig("sound");
+        final Config config = new RelativeConfig(
+                services.resolve(PersistedConfiguration.class).root(),
+                "sound"
+        );
 
         device = alcOpenDevice(config.getString("device"));
         if (device == NULL) {

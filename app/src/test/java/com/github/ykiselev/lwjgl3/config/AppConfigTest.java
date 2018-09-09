@@ -2,6 +2,7 @@ package com.github.ykiselev.lwjgl3.config;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import com.typesafe.config.ConfigObject;
 import com.typesafe.config.ConfigRenderOptions;
 import org.junit.jupiter.api.Test;
 
@@ -21,12 +22,11 @@ class AppConfigTest {
 
     @Test
     void shouldRead() {
-        Config config = ConfigFactory.parseResources("test.conf");
+        ConfigObject root = ConfigFactory.parseResources("test.conf").root();
 
-        final Map<String, Object> map = config.root()
-                .entrySet()
+        final Map<String, Object> map = root.keySet()
                 .stream()
-                .flatMap(e -> denormalize(e.getKey(), e.getValue().unwrapped()))
+                .flatMap(k -> denormalize(k, root.get(k).unwrapped()))
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
                         Map.Entry::getValue
