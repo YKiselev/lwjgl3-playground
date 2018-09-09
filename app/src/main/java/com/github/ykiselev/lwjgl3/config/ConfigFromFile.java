@@ -1,6 +1,7 @@
 package com.github.ykiselev.lwjgl3.config;
 
 import com.github.ykiselev.services.FileSystem;
+import com.github.ykiselev.services.configuration.values.Values;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigObject;

@@ -1,5 +1,7 @@
 package com.github.ykiselev.services.configuration;
 
+import com.github.ykiselev.services.configuration.values.ConfigValue;
+
 import java.util.List;
 
 import static java.util.Objects.requireNonNull;

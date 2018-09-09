@@ -1,7 +1,7 @@
 package com.github.ykiselev.lwjgl3.config;
 
 import com.github.ykiselev.services.FileSystem;
-import com.github.ykiselev.services.configuration.ConfigValue;
+import com.github.ykiselev.services.configuration.values.ConfigValue;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigRenderOptions;
 import org.slf4j.Logger;

@@ -1,5 +1,11 @@
 package com.github.ykiselev.services.configuration;
 
+import com.github.ykiselev.services.configuration.values.BooleanValue;
+import com.github.ykiselev.services.configuration.values.ConfigValue;
+import com.github.ykiselev.services.configuration.values.DoubleValue;
+import com.github.ykiselev.services.configuration.values.LongValue;
+import com.github.ykiselev.services.configuration.values.StringValue;
+
 import java.util.List;
 
 /**

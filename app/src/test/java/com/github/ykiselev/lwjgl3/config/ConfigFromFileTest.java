@@ -1,10 +1,11 @@
 package com.github.ykiselev.lwjgl3.config;
 
 import com.github.ykiselev.services.FileSystem;
-import com.github.ykiselev.services.configuration.BooleanValue;
-import com.github.ykiselev.services.configuration.DoubleValue;
-import com.github.ykiselev.services.configuration.LongValue;
-import com.github.ykiselev.services.configuration.StringValue;
+import com.github.ykiselev.services.configuration.values.BooleanValue;
+import com.github.ykiselev.services.configuration.values.DoubleValue;
+import com.github.ykiselev.services.configuration.values.LongValue;
+import com.github.ykiselev.services.configuration.values.StringValue;
+import com.github.ykiselev.services.configuration.values.Values;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 

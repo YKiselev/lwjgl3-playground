@@ -4,15 +4,19 @@ import com.github.ykiselev.services.FileSystem;
 import com.github.ykiselev.services.PersistedConfiguration;
 import com.github.ykiselev.services.Services;
 import com.github.ykiselev.services.configuration.Config;
-import com.github.ykiselev.services.configuration.ConfigValue;
+import com.github.ykiselev.services.configuration.values.ConfigValue;
+import com.github.ykiselev.services.configuration.values.Values;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static java.util.Objects.requireNonNull;
 
@@ -36,7 +40,9 @@ public final class AppConfig implements PersistedConfiguration, AutoCloseable {
 
         @Override
         public <V extends ConfigValue> V getOrCreateValue(String path, Class<V> clazz) {
-            return ensureValueExists(path, clazz);
+            final V result = Values.create(clazz);
+            merge(Collections.singletonMap(path, result));
+            return result;
         }
 
         @Override
@@ -59,7 +65,6 @@ public final class AppConfig implements PersistedConfiguration, AutoCloseable {
     static {
         try {
             CH = MethodHandles.lookup()
-                    //.in(AppConfig.class)
                     .findVarHandle(AppConfig.class, "config", Map.class);
         } catch (NoSuchFieldException | IllegalAccessException e) {
             throw new Error(e);
@@ -76,29 +81,44 @@ public final class AppConfig implements PersistedConfiguration, AutoCloseable {
         return root;
     }
 
-    private <V extends ConfigValue> V ensureValueExists(String path, Class<V> clazz) {
-        V result = null;
-        for (; ; ) {
-            final Map<String, Object> before = this.config;
-            final Object existing = before.get(path);
-            if (clazz.isInstance(existing)) {
-                result = clazz.cast(existing);
-                break;
+    @Override
+    public AutoCloseable wire(Map<String, ConfigValue> values) {
+        merge(values);
+        final Set<String> keysToRemove = new HashSet<>(values.keySet());
+        return () -> {
+            final Map<String, ConfigValue> modified = unwire(keysToRemove);
+            if (modified.size() != keysToRemove.size()) {
+                logger.warn("Expected {} but got {}", keysToRemove, modified.keySet());
             }
-            final Map<String, Object> after = new HashMap<>(before);
-            if (result == null) {
-                result = Values.create(clazz);
-            }
-            after.put(path, result);
-            if (CH.compareAndSet(this, before, after)) {
-                break;
+            merge(modified);
+        };
+    }
+
+    private Map<String, ConfigValue> unwire(Set<String> keys) {
+        final Map<String, Object> current = this.config;
+        final Map<String, ConfigValue> result = new HashMap<>();
+        for (String key : keys) {
+            final Object raw = current.get(key);
+            if (raw instanceof ConfigValue) {
+                result.put(key, Values.toSimpleValue((ConfigValue) raw));
             }
         }
         return result;
     }
 
+    private void merge(Map<String, ConfigValue> values) {
+        for (; ; ) {
+            final Map<String, Object> before = this.config;
+            final Map<String, Object> after = new HashMap<>(before);
+            after.putAll(values);
+            if (CH.compareAndSet(this, before, after)) {
+                break;
+            }
+        }
+    }
+
     @Override
-    public void close() throws Exception {
+    public void close() {
         new ConfigToFile(config, services.resolve(FileSystem.class)).run();
     }
 }

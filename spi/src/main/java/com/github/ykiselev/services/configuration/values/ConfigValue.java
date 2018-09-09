@@ -1,4 +1,4 @@
-package com.github.ykiselev.services.configuration;
+package com.github.ykiselev.services.configuration.values;
 
 /**
  * Mutable value.

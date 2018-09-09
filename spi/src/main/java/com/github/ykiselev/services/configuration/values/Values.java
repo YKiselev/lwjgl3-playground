@@ -1,13 +1,16 @@
-package com.github.ykiselev.lwjgl3.config;
+package com.github.ykiselev.services.configuration.values;
 
-import com.github.ykiselev.services.configuration.BooleanValue;
-import com.github.ykiselev.services.configuration.ConfigValue;
-import com.github.ykiselev.services.configuration.DoubleValue;
-import com.github.ykiselev.services.configuration.LongValue;
-import com.github.ykiselev.services.configuration.StringValue;
+import com.github.ykiselev.common.BooleanConsumer;
 
 import java.util.List;
 import java.util.Set;
+import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
+import java.util.function.DoubleConsumer;
+import java.util.function.DoubleSupplier;
+import java.util.function.LongConsumer;
+import java.util.function.LongSupplier;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static java.util.Objects.requireNonNull;
@@ -15,7 +18,10 @@ import static java.util.Objects.requireNonNull;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-final class Values {
+public final class Values {
+
+    private Values() {
+    }
 
     static final class SimpleString implements StringValue {
 
@@ -37,20 +43,27 @@ final class Values {
         public void value(String value) {
             this.value = value;
         }
+    }
 
-        @Override
-        public String getString() {
-            return value;
+    static final class WiredString implements StringValue {
+
+        private final Supplier<String> getter;
+
+        private final Consumer<String> setter;
+
+        WiredString(Supplier<String> getter, Consumer<String> setter) {
+            this.getter = requireNonNull(getter);
+            this.setter = requireNonNull(setter);
         }
 
         @Override
-        public void setString(String value) {
-            value(value);
+        public String value() {
+            return getter.get();
         }
 
         @Override
-        public Object boxed() {
-            return value;
+        public void value(String value) {
+            setter.accept(value);
         }
     }
 
@@ -74,20 +87,27 @@ final class Values {
         public void value(boolean value) {
             this.value = value;
         }
+    }
 
-        @Override
-        public String getString() {
-            return Boolean.toString(value);
+    static final class WiredBoolean implements BooleanValue {
+
+        private final BooleanSupplier getter;
+
+        private final BooleanConsumer setter;
+
+        WiredBoolean(BooleanSupplier getter, BooleanConsumer setter) {
+            this.getter = requireNonNull(getter);
+            this.setter = requireNonNull(setter);
         }
 
         @Override
-        public void setString(String value) {
-            value(Boolean.parseBoolean(value));
+        public boolean value() {
+            return getter.getAsBoolean();
         }
 
         @Override
-        public Object boxed() {
-            return value;
+        public void value(boolean value) {
+            setter.accept(value);
         }
     }
 
@@ -111,20 +131,27 @@ final class Values {
         public void value(long value) {
             this.value = value;
         }
+    }
 
-        @Override
-        public String getString() {
-            return Long.toString(value);
+    static final class WiredLong implements LongValue {
+
+        private final LongSupplier getter;
+
+        private final LongConsumer setter;
+
+        WiredLong(LongSupplier getter, LongConsumer setter) {
+            this.getter = requireNonNull(getter);
+            this.setter = requireNonNull(setter);
         }
 
         @Override
-        public void setString(String value) {
-            value(Long.parseLong(value));
+        public long value() {
+            return getter.getAsLong();
         }
 
         @Override
-        public Object boxed() {
-            return value;
+        public void value(long value) {
+            setter.accept(value);
         }
     }
 
@@ -148,36 +175,43 @@ final class Values {
         public void value(double value) {
             this.value = value;
         }
+    }
 
-        @Override
-        public String getString() {
-            return Double.toString(value);
+    static final class WiredDouble implements DoubleValue {
+
+        private final DoubleSupplier getter;
+
+        private final DoubleConsumer setter;
+
+        WiredDouble(DoubleSupplier getter, DoubleConsumer setter) {
+            this.getter = requireNonNull(getter);
+            this.setter = requireNonNull(setter);
         }
 
         @Override
-        public void setString(String value) {
-            value(Double.parseDouble(value));
+        public double value() {
+            return getter.getAsDouble();
         }
 
         @Override
-        public Object boxed() {
-            return value;
+        public void value(double value) {
+            setter.accept(value);
         }
     }
 
-    static final class ConstantList {
+    public static final class ConstantList {
 
         private final List<?> list;
 
-        List<?> list() {
+        public List<?> list() {
             return list;
         }
 
-        ConstantList(List<?> list) {
+        public ConstantList(List<?> list) {
             this.list = requireNonNull(list);
         }
 
-        <T> List<T> toUniformList(Class<T> itemClass) {
+        public <T> List<T> toUniformList(Class<T> itemClass) {
             return list.stream()
                     .map(itemClass::cast)
                     .collect(Collectors.toList());
@@ -211,5 +245,21 @@ final class Values {
             throw new IllegalArgumentException("Unknown type: " + clazz);
         }
         return clazz.cast(result);
+    }
+
+    public static ConfigValue toSimpleValue(ConfigValue value) {
+        final ConfigValue result;
+        if (value instanceof WiredString) {
+            result = new SimpleString(((WiredString) value).value());
+        } else if (value instanceof WiredBoolean) {
+            result = new SimpleBoolean(((WiredBoolean) value).value());
+        } else if (value instanceof WiredLong) {
+            result = new SimpleLong(((WiredLong) value).value());
+        } else if (value instanceof WiredDouble) {
+            result = new SimpleDouble(((WiredDouble) value).value());
+        } else {
+            throw new IllegalArgumentException("Unknown value type: " + value);
+        }
+        return result;
     }
 }
