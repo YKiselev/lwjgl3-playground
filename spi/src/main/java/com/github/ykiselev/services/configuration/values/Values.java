@@ -2,8 +2,6 @@ package com.github.ykiselev.services.configuration.values;
 
 import com.github.ykiselev.common.BooleanConsumer;
 
-import java.util.List;
-import java.util.Set;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.DoubleConsumer;
@@ -11,7 +9,6 @@ import java.util.function.DoubleSupplier;
 import java.util.function.LongConsumer;
 import java.util.function.LongSupplier;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 import static java.util.Objects.requireNonNull;
 
@@ -23,14 +20,14 @@ public final class Values {
     private Values() {
     }
 
-    static final class SimpleString implements StringValue {
+    public static final class SimpleString implements StringValue {
 
         private volatile String value;
 
-        SimpleString() {
+        public SimpleString() {
         }
 
-        SimpleString(String value) {
+        public SimpleString(String value) {
             this.value = value;
         }
 
@@ -45,13 +42,13 @@ public final class Values {
         }
     }
 
-    static final class WiredString implements StringValue {
+    public static final class WiredString implements StringValue {
 
         private final Supplier<String> getter;
 
         private final Consumer<String> setter;
 
-        WiredString(Supplier<String> getter, Consumer<String> setter) {
+        public WiredString(Supplier<String> getter, Consumer<String> setter) {
             this.getter = requireNonNull(getter);
             this.setter = requireNonNull(setter);
         }
@@ -67,14 +64,14 @@ public final class Values {
         }
     }
 
-    static final class SimpleBoolean implements BooleanValue {
+    public static final class SimpleBoolean implements BooleanValue {
 
         private volatile boolean value;
 
-        SimpleBoolean() {
+        public SimpleBoolean() {
         }
 
-        SimpleBoolean(boolean value) {
+        public SimpleBoolean(boolean value) {
             this.value = value;
         }
 
@@ -89,13 +86,13 @@ public final class Values {
         }
     }
 
-    static final class WiredBoolean implements BooleanValue {
+    public static final class WiredBoolean implements BooleanValue {
 
         private final BooleanSupplier getter;
 
         private final BooleanConsumer setter;
 
-        WiredBoolean(BooleanSupplier getter, BooleanConsumer setter) {
+        public WiredBoolean(BooleanSupplier getter, BooleanConsumer setter) {
             this.getter = requireNonNull(getter);
             this.setter = requireNonNull(setter);
         }
@@ -111,14 +108,14 @@ public final class Values {
         }
     }
 
-    static final class SimpleLong implements LongValue {
+    public static final class SimpleLong implements LongValue {
 
         private volatile long value;
 
-        SimpleLong() {
+        public SimpleLong() {
         }
 
-        SimpleLong(long value) {
+        public SimpleLong(long value) {
             this.value = value;
         }
 
@@ -133,13 +130,13 @@ public final class Values {
         }
     }
 
-    static final class WiredLong implements LongValue {
+    public static final class WiredLong implements LongValue {
 
         private final LongSupplier getter;
 
         private final LongConsumer setter;
 
-        WiredLong(LongSupplier getter, LongConsumer setter) {
+        public WiredLong(LongSupplier getter, LongConsumer setter) {
             this.getter = requireNonNull(getter);
             this.setter = requireNonNull(setter);
         }
@@ -155,14 +152,14 @@ public final class Values {
         }
     }
 
-    static final class SimpleDouble implements DoubleValue {
+    public static final class SimpleDouble implements DoubleValue {
 
         private volatile double value;
 
-        SimpleDouble() {
+        public SimpleDouble() {
         }
 
-        SimpleDouble(double value) {
+        public SimpleDouble(double value) {
             this.value = value;
         }
 
@@ -177,13 +174,13 @@ public final class Values {
         }
     }
 
-    static final class WiredDouble implements DoubleValue {
+    public static final class WiredDouble implements DoubleValue {
 
         private final DoubleSupplier getter;
 
         private final DoubleConsumer setter;
 
-        WiredDouble(DoubleSupplier getter, DoubleConsumer setter) {
+        public WiredDouble(DoubleSupplier getter, DoubleConsumer setter) {
             this.getter = requireNonNull(getter);
             this.setter = requireNonNull(setter);
         }
@@ -199,52 +196,38 @@ public final class Values {
         }
     }
 
-    public static final class ConstantList {
-
-        private final List<?> list;
-
-        public List<?> list() {
-            return list;
-        }
-
-        public ConstantList(List<?> list) {
-            this.list = requireNonNull(list);
-        }
-
-        public <T> List<T> toUniformList(Class<T> itemClass) {
-            return list.stream()
-                    .map(itemClass::cast)
-                    .collect(Collectors.toList());
-        }
-    }
-
-    static final class Section {
-
-        private final Set<String> names;
-
-        public Set<String> names() {
-            return names;
-        }
-
-        Section(Set<String> names) {
-            this.names = names;
-        }
-    }
-
-    public static <T extends ConfigValue> T create(Class<T> clazz) {
+    public static <T extends ConfigValue> T simpleValue(Class<T> clazz) {
         final ConfigValue result;
         if (clazz == StringValue.class) {
-            result = new Values.SimpleString();
+            result = new SimpleString();
         } else if (clazz == LongValue.class) {
-            result = new Values.SimpleLong();
+            result = new SimpleLong();
         } else if (clazz == DoubleValue.class) {
-            result = new Values.SimpleDouble();
+            result = new SimpleDouble();
         } else if (clazz == BooleanValue.class) {
-            result = new Values.SimpleBoolean();
+            result = new SimpleBoolean();
         } else {
             throw new IllegalArgumentException("Unknown type: " + clazz);
         }
         return clazz.cast(result);
+    }
+
+    public static Object toSimpleValue(Object value) {
+        final Object result;
+        if (value == null || value instanceof String) {
+            result = new SimpleString((String) value);
+        } else if (value instanceof Long) {
+            result = new SimpleLong((long) value);
+        } else if (value instanceof Integer) {
+            result = new SimpleLong((int) value);
+        } else if (value instanceof Double) {
+            result = new SimpleDouble((double) value);
+        } else if (value instanceof Boolean) {
+            result = new SimpleBoolean((boolean) value);
+        } else {
+            throw new IllegalArgumentException("Unsupported value type: " + value);
+        }
+        return result;
     }
 
     public static ConfigValue toSimpleValue(ConfigValue value) {
@@ -258,7 +241,7 @@ public final class Values {
         } else if (value instanceof WiredDouble) {
             result = new SimpleDouble(((WiredDouble) value).value());
         } else {
-            throw new IllegalArgumentException("Unknown value type: " + value);
+            result = value;
         }
         return result;
     }

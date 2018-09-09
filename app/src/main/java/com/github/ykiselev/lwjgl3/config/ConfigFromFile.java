@@ -85,7 +85,7 @@ final class ConfigFromFile implements Supplier<Map<String, Object>> {
                     Stream.of(
                             new AbstractMap.SimpleImmutableEntry<>(
                                     key,
-                                    new Values.Section(
+                                    new Section(
                                             new HashSet<>(map.keySet())
                                     )
                             )
@@ -102,28 +102,13 @@ final class ConfigFromFile implements Supplier<Map<String, Object>> {
 
     @SuppressWarnings("unchecked")
     public static Object value(Object value) {
-        if (value instanceof Values.Section) {
+        if (value instanceof Section) {
             return value;
         }
         if (value instanceof List) {
-            return new Values.ConstantList((List<?>) value);
+            return new ConstantList((List<?>) value);
         }
-        if (value == null || value instanceof String) {
-            return new Values.SimpleString((String) value);
-        }
-        if (value instanceof Long) {
-            return new Values.SimpleLong((long) value);
-        }
-        if (value instanceof Integer) {
-            return new Values.SimpleLong((int) value);
-        }
-        if (value instanceof Double) {
-            return new Values.SimpleDouble((double) value);
-        }
-        if (value instanceof Boolean) {
-            return new Values.SimpleBoolean((boolean) value);
-        }
-        throw new IllegalArgumentException("Unsupported value type: " + value);
+        return Values.toSimpleValue(value);
     }
 
 }

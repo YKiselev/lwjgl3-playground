@@ -40,7 +40,7 @@ public final class AppConfig implements PersistedConfiguration, AutoCloseable {
 
         @Override
         public <V extends ConfigValue> V getOrCreateValue(String path, Class<V> clazz) {
-            final V result = Values.create(clazz);
+            final V result = Values.simpleValue(clazz);
             merge(Collections.singletonMap(path, result));
             return result;
         }
@@ -48,8 +48,8 @@ public final class AppConfig implements PersistedConfiguration, AutoCloseable {
         @Override
         public <T> List<T> getList(String path, Class<T> clazz) {
             final Object raw = config.get(path);
-            if (raw instanceof Values.ConstantList) {
-                return ((Values.ConstantList) raw).toUniformList(clazz);
+            if (raw instanceof ConstantList) {
+                return ((ConstantList) raw).toUniformList(clazz);
             }
             return null;
         }
@@ -83,7 +83,16 @@ public final class AppConfig implements PersistedConfiguration, AutoCloseable {
 
     @Override
     public AutoCloseable wire(Map<String, ConfigValue> values) {
-        merge(values);
+        if (values.isEmpty()) {
+            throw new IllegalArgumentException("Nothing to wire!");
+        }
+        final Map<String, Object> previous = merge(values);
+        values.forEach((key, value) -> {
+            final Object raw = previous.get(key);
+            if (raw instanceof ConfigValue) {
+                value.setString(((ConfigValue) raw).getString());
+            }
+        });
         final Set<String> keysToRemove = new HashSet<>(values.keySet());
         return () -> {
             final Map<String, ConfigValue> modified = unwire(keysToRemove);
@@ -106,13 +115,17 @@ public final class AppConfig implements PersistedConfiguration, AutoCloseable {
         return result;
     }
 
-    private void merge(Map<String, ConfigValue> values) {
+    /**
+     * @param values the values to merge with current map
+     * @return the previous map
+     */
+    private Map<String, Object> merge(Map<String, ConfigValue> values) {
         for (; ; ) {
             final Map<String, Object> before = this.config;
             final Map<String, Object> after = new HashMap<>(before);
             after.putAll(values);
             if (CH.compareAndSet(this, before, after)) {
-                break;
+                return before;
             }
         }
     }

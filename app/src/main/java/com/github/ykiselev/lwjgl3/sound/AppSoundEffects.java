@@ -1,17 +1,10 @@
 package com.github.ykiselev.lwjgl3.sound;
 
-import com.github.ykiselev.closeables.CompositeAutoCloseable;
-import com.github.ykiselev.lwjgl3.events.SubscriptionsBuilder;
 import com.github.ykiselev.services.PersistedConfiguration;
 import com.github.ykiselev.services.Services;
 import com.github.ykiselev.services.SoundEffects;
 import com.github.ykiselev.services.configuration.Config;
 import com.github.ykiselev.services.configuration.RelativeConfig;
-import com.github.ykiselev.services.events.EventFilter;
-import com.github.ykiselev.services.events.Events;
-import com.github.ykiselev.services.events.config.ValueChangingEvent;
-import com.github.ykiselev.tree.MutablePrefixTree;
-import com.github.ykiselev.tree.PrefixTree;
 import org.lwjgl.openal.AL;
 import org.lwjgl.openal.ALC10;
 import org.lwjgl.openal.ALC11;
@@ -57,15 +50,13 @@ public final class AppSoundEffects implements SoundEffects, AutoCloseable {
 
     private final long context;
 
-    private final CompositeAutoCloseable subscriptions;
+    private final AutoCloseable subscriptions;
 
     public AppSoundEffects(Services services) {
         this.services = requireNonNull(services);
-        final Config config = new RelativeConfig(
-                services.resolve(PersistedConfiguration.class).root(),
-                "sound"
-        );
 
+        final PersistedConfiguration persistedConfiguration = services.resolve(PersistedConfiguration.class);
+        final Config config = new RelativeConfig(persistedConfiguration.root(), "sound");
         device = alcOpenDevice(config.getString("device"));
         if (device == NULL) {
             throw new IllegalArgumentException("No device found!");
@@ -102,24 +93,7 @@ public final class AppSoundEffects implements SoundEffects, AutoCloseable {
                 alcGetInteger(device, ALC_STEREO_SOURCES)
         );
 
-        final PrefixTree<EventFilter<ValueChangingEvent>> tree = new MutablePrefixTree<EventFilter<ValueChangingEvent>>("\\.")
-                .add("sound.effects.level", this::onSoundEffectsLevelChanging)
-                .toPrefixTree();
-        final EventFilter<ValueChangingEvent> handler = event -> {
-            final EventFilter<ValueChangingEvent> filter = tree.find(event.path());
-            if (filter != null) {
-                return filter.handle(event);
-            }
-            return event;
-        };
-        subscriptions = new SubscriptionsBuilder(services.resolve(Events.class))
-                .with(ValueChangingEvent.class, handler)
-                .build();
-    }
-
-    private ValueChangingEvent onSoundEffectsLevelChanging(ValueChangingEvent event) {
-        logger.info("Setting sound level to {}", event.newValue());
-        return event;
+        subscriptions = settings.register(persistedConfiguration);
     }
 
     @Override

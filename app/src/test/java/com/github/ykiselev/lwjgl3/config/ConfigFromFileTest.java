@@ -5,7 +5,6 @@ import com.github.ykiselev.services.configuration.values.BooleanValue;
 import com.github.ykiselev.services.configuration.values.DoubleValue;
 import com.github.ykiselev.services.configuration.values.LongValue;
 import com.github.ykiselev.services.configuration.values.StringValue;
-import com.github.ykiselev.services.configuration.values.Values;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -40,6 +39,6 @@ class ConfigFromFileTest {
         assertTrue(((BooleanValue) map.get("sound.extension.enabled")).value());
         assertEquals(15.5, ((DoubleValue) map.get("sound.extension.spatial-sound.base")).value());
         assertEquals("b1", ((StringValue) map.get("mouse.buttons.left")).value());
-        assertArrayEquals(new String[]{"a=b", "c=d"}, ((Values.ConstantList) map.get("services")).list().toArray());
+        assertArrayEquals(new String[]{"a=b", "c=d"}, ((ConstantList) map.get("services")).list().toArray());
     }
 }
