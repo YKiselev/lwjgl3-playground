@@ -55,27 +55,27 @@ public interface Config {
         return value != null ? value.value() : 0;
     }
 
-    default void setString(String path, String value) {
+    default void set(String path, String value) {
         getOrCreateValue(path, StringValue.class).setString(value);
     }
 
-    default void setBoolean(String path, boolean value) {
+    default void set(String path, boolean value) {
         getOrCreateValue(path, BooleanValue.class).value(value);
     }
 
-    default void setInt(String path, int value) {
-        setLong(path, value);
+    default void set(String path, int value) {
+        this.set(path, (long) value);
     }
 
-    default void setLong(String path, long value) {
+    default void set(String path, long value) {
         getOrCreateValue(path, LongValue.class).value(value);
     }
 
-    default void setFloat(String path, float value) {
-        setDouble(path, value);
+    default void set(String path, float value) {
+        set(path, (double) value);
     }
 
-    default void setDouble(String path, double value) {
+    default void set(String path, double value) {
         getOrCreateValue(path, DoubleValue.class).value(value);
     }
 

@@ -25,6 +25,6 @@ public final class ConfigurationBoundCheckBoxModel implements CheckBoxModel {
 
     @Override
     public void checked(boolean value) {
-        configuration.setBoolean(key, value);
+        configuration.set(key, value);
     }
 }

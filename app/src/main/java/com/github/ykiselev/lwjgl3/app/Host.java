@@ -22,7 +22,7 @@ import com.github.ykiselev.services.FileSystem;
 import com.github.ykiselev.lwjgl3.assets.GameAssets;
 import com.github.ykiselev.lwjgl3.config.AppConfig;
 import com.github.ykiselev.lwjgl3.events.AppEvents;
-import com.github.ykiselev.lwjgl3.events.SubscriptionsBuilder;
+import com.github.ykiselev.services.events.SubscriptionsBuilder;
 import com.github.ykiselev.lwjgl3.fs.AppFileSystem;
 import com.github.ykiselev.lwjgl3.fs.ClassPathResources;
 import com.github.ykiselev.lwjgl3.fs.DiskResources;

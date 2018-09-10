@@ -2,7 +2,7 @@ package com.github.ykiselev.lwjgl3.host;
 
 import com.github.ykiselev.closeables.Closeables;
 import com.github.ykiselev.components.Game;
-import com.github.ykiselev.lwjgl3.events.SubscriptionsBuilder;
+import com.github.ykiselev.services.events.SubscriptionsBuilder;
 import com.github.ykiselev.services.PersistedConfiguration;
 import com.github.ykiselev.services.Services;
 import com.github.ykiselev.services.events.game.NewGameEvent;

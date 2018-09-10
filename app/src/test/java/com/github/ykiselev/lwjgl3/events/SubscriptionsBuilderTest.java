@@ -1,6 +1,7 @@
 package com.github.ykiselev.lwjgl3.events;
 
 import com.github.ykiselev.services.events.Events;
+import com.github.ykiselev.services.events.SubscriptionsBuilder;
 import org.junit.jupiter.api.Test;
 
 import java.util.function.Consumer;

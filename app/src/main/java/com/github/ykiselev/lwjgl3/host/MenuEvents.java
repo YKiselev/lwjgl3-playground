@@ -1,7 +1,7 @@
 package com.github.ykiselev.lwjgl3.host;
 
 import com.github.ykiselev.closeables.Closeables;
-import com.github.ykiselev.lwjgl3.events.SubscriptionsBuilder;
+import com.github.ykiselev.services.events.SubscriptionsBuilder;
 import com.github.ykiselev.lwjgl3.layers.menu.Menu;
 import com.github.ykiselev.services.Services;
 import com.github.ykiselev.services.events.menu.ShowMenuEvent;

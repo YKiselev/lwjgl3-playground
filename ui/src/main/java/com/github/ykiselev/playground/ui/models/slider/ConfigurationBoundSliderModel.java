@@ -33,7 +33,7 @@ public final class ConfigurationBoundSliderModel implements SliderModel {
 
     @Override
     public void value(int value) {
-        configuration.setInt(key, value);
+        configuration.set(key, value);
     }
 
     @Override

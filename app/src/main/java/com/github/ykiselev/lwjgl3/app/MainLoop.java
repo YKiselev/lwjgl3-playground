@@ -17,7 +17,7 @@
 package com.github.ykiselev.lwjgl3.app;
 
 import com.github.ykiselev.closeables.CompositeAutoCloseable;
-import com.github.ykiselev.lwjgl3.events.SubscriptionsBuilder;
+import com.github.ykiselev.services.events.SubscriptionsBuilder;
 import com.github.ykiselev.lwjgl3.host.ProgramArguments;
 import com.github.ykiselev.lwjgl3.window.AppWindow;
 import com.github.ykiselev.lwjgl3.window.WindowBuilder;

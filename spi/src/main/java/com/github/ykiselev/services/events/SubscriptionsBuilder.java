@@ -1,8 +1,6 @@
-package com.github.ykiselev.lwjgl3.events;
+package com.github.ykiselev.services.events;
 
 import com.github.ykiselev.closeables.CompositeAutoCloseable;
-import com.github.ykiselev.services.events.EventFilter;
-import com.github.ykiselev.services.events.Events;
 
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
@@ -28,15 +26,11 @@ public final class SubscriptionsBuilder {
     }
 
     public <T> SubscriptionsBuilder with(Class<T> eventType, Consumer<T> handler) {
-        return and(
-                events.subscribe(eventType, handler)
-        );
+        return and(events.subscribe(eventType, handler));
     }
 
     public <T> SubscriptionsBuilder with(Class<T> eventType, EventFilter<T> handler) {
-        return and(
-                events.add(eventType, handler)
-        );
+        return and(events.add(eventType, handler));
     }
 
     public SubscriptionsBuilder with(UnaryOperator<SubscriptionsBuilder> subscriber) {
