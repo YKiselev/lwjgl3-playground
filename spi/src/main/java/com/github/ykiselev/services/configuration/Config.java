@@ -34,11 +34,7 @@ public interface Config {
     }
 
     default int getInt(String path) {
-        final long raw = getLong(path);
-        if (raw < Integer.MIN_VALUE || raw > Integer.MAX_VALUE) {
-            throw new IllegalArgumentException("Value " + raw + " can not be represented as int!");
-        }
-        return (int) raw;
+        return Math.toIntExact(getLong(path));
     }
 
     default long getLong(String path) {

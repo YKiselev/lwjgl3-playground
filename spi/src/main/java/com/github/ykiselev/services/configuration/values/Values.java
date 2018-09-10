@@ -222,6 +222,8 @@ public final class Values {
             result = new SimpleLong((int) value);
         } else if (value instanceof Double) {
             result = new SimpleDouble((double) value);
+        } else if (value instanceof Float) {
+            result = new SimpleDouble((float) value);
         } else if (value instanceof Boolean) {
             result = new SimpleBoolean((boolean) value);
         } else {

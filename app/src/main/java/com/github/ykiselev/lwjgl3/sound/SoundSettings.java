@@ -25,14 +25,13 @@ final class SoundSettings {
     AutoCloseable register(PersistedConfiguration configuration) {
         return configuration.wire(
                 new WiredValues()
-                        .with("sound.effects.level", () -> effectsLevel, this::setEffectsLevel)
+                        .withInt("sound.effects.level", () -> effectsLevel, this::setEffectsLevel)
                         .build()
         );
     }
 
-    private void setEffectsLevel(long value) {
-        final int intValue = (int) value;
-        logger.info("Setting sound level to {}", intValue);
-        effectsLevel(intValue);
+    private void setEffectsLevel(int value) {
+        logger.info("Setting sound level to {}", value);
+        effectsLevel(value);
     }
 }

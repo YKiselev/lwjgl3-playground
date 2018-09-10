@@ -33,9 +33,14 @@ public final class AppConfig implements PersistedConfiguration, AutoCloseable {
 
     private final Config root = new Config() {
 
+        @SuppressWarnings("unchecked")
         @Override
         public <V extends ConfigValue> V getValue(String path, Class<V> clazz) {
-            return clazz.cast(config.get(path));
+            final Object raw = config.get(path);
+            if (clazz.isInstance(raw)) {
+                return (V) raw;
+            }
+            return null;
         }
 
         @Override
