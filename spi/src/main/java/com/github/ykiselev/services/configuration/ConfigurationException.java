@@ -29,4 +29,14 @@ public abstract class ConfigurationException extends RuntimeException {
             super(message);
         }
     }
+
+    /**
+     *
+     */
+    public static final class VariableNotFoundException extends ConfigurationException {
+
+        public VariableNotFoundException(String message) {
+            super(message);
+        }
+    }
 }

@@ -4,6 +4,7 @@ import com.github.ykiselev.services.FileSystem;
 import com.github.ykiselev.services.PersistedConfiguration;
 import com.github.ykiselev.services.Services;
 import com.github.ykiselev.services.configuration.Config;
+import com.github.ykiselev.services.configuration.ConfigurationException;
 import com.github.ykiselev.services.configuration.values.ConfigValue;
 import com.github.ykiselev.services.configuration.values.Values;
 import org.slf4j.Logger;
@@ -17,6 +18,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import static java.util.Objects.requireNonNull;
 
@@ -27,24 +30,28 @@ public final class AppConfig implements PersistedConfiguration, AutoCloseable {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final Services services;
-
     private volatile Map<String, Object> config;
+
+    private final Consumer<Map<String, Object>> writer;
 
     private final Config root = new Config() {
 
         @SuppressWarnings("unchecked")
         @Override
         public <V extends ConfigValue> V getValue(String path, Class<V> clazz) {
-            final Object raw = config.get(path);
-            if (clazz.isInstance(raw)) {
-                return (V) raw;
+            final V result = clazz.cast(config.get(path));
+            if (result == null) {
+                throw new ConfigurationException.VariableNotFoundException(path);
             }
-            return null;
+            return result;
         }
 
         @Override
         public <V extends ConfigValue> V getOrCreateValue(String path, Class<V> clazz) {
+            final Object raw = config.get(path);
+            if (raw != null) {
+                return clazz.cast(raw);
+            }
             final V result = Values.simpleValue(clazz);
             merge(Collections.singletonMap(path, result));
             return result;
@@ -55,13 +62,17 @@ public final class AppConfig implements PersistedConfiguration, AutoCloseable {
             final Object raw = config.get(path);
             if (raw instanceof ConstantList) {
                 return ((ConstantList) raw).toUniformList(clazz);
+            } else if (raw == null) {
+                throw new ConfigurationException.VariableNotFoundException(path);
+            } else {
+                throw new ClassCastException("Cannot cast " + raw.getClass().getName() + " to " + clazz.getName());
             }
-            return null;
         }
 
         @Override
-        public boolean hasPath(String path) {
-            return config.containsKey(path);
+        public boolean hasVariable(String path) {
+            final Object raw = config.get(path);
+            return raw instanceof ConfigValue || raw instanceof ConstantList;
         }
     };
 
@@ -76,9 +87,14 @@ public final class AppConfig implements PersistedConfiguration, AutoCloseable {
         }
     }
 
+    public AppConfig(Supplier<Map<String, Object>> reader, Consumer<Map<String, Object>> writer) {
+        this.config = requireNonNull(reader.get());
+        this.writer = requireNonNull(writer);
+    }
+
     public AppConfig(Services services) {
-        this.services = requireNonNull(services);
-        this.config = new ConfigFromFile(services.resolve(FileSystem.class)).get();
+        this(new ConfigFromFile(services.resolve(FileSystem.class)),
+                new ConfigToFile(services.resolve(FileSystem.class)));
     }
 
     @Override
@@ -137,6 +153,6 @@ public final class AppConfig implements PersistedConfiguration, AutoCloseable {
 
     @Override
     public void close() {
-        new ConfigToFile(config, services.resolve(FileSystem.class)).run();
+        writer.accept(config);
     }
 }

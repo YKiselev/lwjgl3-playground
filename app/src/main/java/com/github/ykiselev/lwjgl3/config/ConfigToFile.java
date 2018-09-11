@@ -13,6 +13,7 @@ import java.io.Writer;
 import java.nio.channels.Channels;
 import java.nio.channels.WritableByteChannel;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -21,34 +22,31 @@ import static java.util.Objects.requireNonNull;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-final class ConfigToFile implements Runnable {
+final class ConfigToFile implements Consumer<Map<String, Object>> {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final Map<String, Object> map;
-
     private final FileSystem fileSystem;
 
-    ConfigToFile(Map<String, Object> map, FileSystem fileSystem) {
-        this.map = requireNonNull(map);
+    ConfigToFile(FileSystem fileSystem) {
         this.fileSystem = requireNonNull(fileSystem);
     }
 
     @Override
-    public void run() {
+    public void accept(Map<String, Object> config) {
         logger.info("Saving config...");
         try (WritableByteChannel channel = fileSystem.openForWriting("app.conf", false)) {
             try (Writer writer = Channels.newWriter(channel, "utf-8")) {
-                writer.write(asString());
+                writer.write(asString(config));
             }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
     }
 
-    private String asString() {
+    private String asString(Map<String, Object> config) {
         return ConfigFactory.parseMap(
-                transform(map)
+                transform(config)
         ).root()
                 .render(
                         ConfigRenderOptions.defaults()

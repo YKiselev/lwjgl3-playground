@@ -1,85 +1,167 @@
 package com.github.ykiselev.lwjgl3.config;
 
-import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
-import com.typesafe.config.ConfigObject;
-import com.typesafe.config.ConfigRenderOptions;
+import com.github.ykiselev.services.PersistedConfiguration;
+import com.github.ykiselev.services.configuration.ConfigurationException.VariableNotFoundException;
+import com.github.ykiselev.services.configuration.values.StringValue;
+import com.github.ykiselev.services.configuration.values.Values;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
-import java.util.AbstractMap;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
+
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
- * todo - write real test
- *
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
+@SuppressWarnings("unchecked")
+@DisplayName("app config")
 class AppConfigTest {
 
-    @Test
-    void shouldRead() {
-        ConfigObject root = ConfigFactory.parseResources("test.conf").root();
+    private Consumer<Map<String, Object>> writer = Mockito.mock(Consumer.class);
 
-        final Map<String, Object> map = root.keySet()
-                .stream()
-                .flatMap(k -> denormalize(k, root.get(k).unwrapped()))
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        Map.Entry::getValue
-                ));
+    @Nested
+    @DisplayName("when filled")
+    class WhenFilled {
 
-        System.out.println(map);
+        PersistedConfiguration cfg;
 
-        Config cfg = ConfigFactory.parseMap(map);
-        final String rendered = cfg.root()
-                .render(
-                        ConfigRenderOptions.defaults()
-                                .setFormatted(true)
-                                .setOriginComments(false)
-                                .setJson(false)
-                );
-        System.out.println("Rendered config from map: " + rendered);
-    }
+        @BeforeEach
+        void setUp() {
+            Map<String, Object> map = new HashMap<>();
+            map.put("a.string", Values.toSimpleValue("abc"));
+            map.put("a.boolean1", Values.toSimpleValue(Boolean.TRUE));
+            map.put("a.boolean2", Values.toSimpleValue(Boolean.FALSE));
+            map.put("a.int", Values.toSimpleValue(123));
+            map.put("a.long", Values.toSimpleValue(999999999999999999L));
+            map.put("a.float", Values.toSimpleValue(3.14f));
+            map.put("a.double", Values.toSimpleValue(Math.PI));
+            map.put("b.stringList", new ConstantList(Arrays.asList("x", "y", "z")));
+            this.cfg = new AppConfig(() -> map, writer);
+        }
 
-    private Stream<Map.Entry<String, Object>> denormalize(String key, Object value) {
-        if (value instanceof Map) {
-            Map<String, Object> map = (Map<String, Object>) value;
-            return map.entrySet()
-                    .stream()
-                    .flatMap(e -> denormalize(key + "." + e.getKey(), e.getValue()));
-        } else {
-            return Stream.of(
-                    new AbstractMap.SimpleImmutableEntry<>(
-                            key,
-                            value
-                    )
-            );
+        @Test
+        void shouldGetVariable() {
+            assertEquals("abc", cfg.root().getString("a.string"));
+            assertTrue(cfg.root().getBoolean("a.boolean1"));
+            assertFalse(cfg.root().getBoolean("a.boolean2"));
+            assertEquals(123, cfg.root().getInt("a.int"));
+            assertEquals(999999999999999999L, cfg.root().getLong("a.long"));
+            assertEquals(3.14f, cfg.root().getFloat("a.float"));
+            assertEquals(Math.PI, cfg.root().getDouble("a.double"));
+            assertArrayEquals(new String[]{"x", "y", "z"}, cfg.root().getStringList("b.stringList").toArray());
+        }
+
+        @Test
+        void shouldKnowVariable() {
+            assertTrue(cfg.root().hasVariable("a.string"));
+            assertTrue(cfg.root().hasVariable("a.boolean1"));
+            assertTrue(cfg.root().hasVariable("a.boolean2"));
+            assertTrue(cfg.root().hasVariable("a.int"));
+            assertTrue(cfg.root().hasVariable("a.long"));
+            assertTrue(cfg.root().hasVariable("a.float"));
+            assertTrue(cfg.root().hasVariable("a.double"));
+            assertTrue(cfg.root().hasVariable("b.stringList"));
+        }
+
+        @Test
+        void shouldSetVariable() {
+            cfg.root().set("a.string", "xyz");
+            assertEquals("xyz", cfg.root().getString("a.string"));
+
+            cfg.root().set("a.boolean1", false);
+            assertFalse(cfg.root().getBoolean("a.boolean1"));
+
+            cfg.root().set("a.boolean2", true);
+            assertTrue(cfg.root().getBoolean("a.boolean2"));
+
+            cfg.root().set("a.int", 456);
+            assertEquals(456, cfg.root().getInt("a.int"));
+
+            cfg.root().set("a.long", Long.MIN_VALUE);
+            assertEquals(Long.MIN_VALUE, cfg.root().getLong("a.long"));
+
+            cfg.root().set("a.float", -1f);
+            assertEquals(-1f, cfg.root().getFloat("a.float"));
+
+            cfg.root().set("a.double", Double.MAX_VALUE);
+            assertEquals(Double.MAX_VALUE, cfg.root().getDouble("a.double"));
+        }
+
+        @Test
+        void shouldSetNewVariable() {
+            cfg.root().set("s1", "c");
+            assertEquals("c", cfg.root().getString("s1"));
+
+            cfg.root().set("b1", true);
+            assertTrue(cfg.root().getBoolean("b1"));
+
+            cfg.root().set("i1", 5);
+            assertEquals(5, cfg.root().getInt("i1"));
+
+            cfg.root().set("l1", Long.MAX_VALUE);
+            assertEquals(Long.MAX_VALUE, cfg.root().getLong("l1"));
+
+            cfg.root().set("f1", -7f);
+            assertEquals(-7f, cfg.root().getFloat("f1"));
+
+            cfg.root().set("d1", Double.NaN);
+            assertEquals(Double.NaN, cfg.root().getDouble("d1"));
+        }
+
+        @Test
+        void shouldThrowIfTypeMismatch() {
+            assertThrows(ClassCastException.class, () ->
+                    cfg.root().getBoolean("a.string"));
+            assertThrows(ClassCastException.class, () ->
+                    cfg.root().getLong("a.string"));
+            assertThrows(ClassCastException.class, () ->
+                    cfg.root().getDouble("a.string"));
+            assertThrows(ClassCastException.class, () ->
+                    cfg.root().getStringList("a.string"));
+            assertThrows(ClassCastException.class, () ->
+                    cfg.root().getList("b.stringList", Number.class));
         }
     }
 
     @Test
+    void shouldRead() {
+        Supplier reader = mock(Supplier.class);
+        when(reader.get()).thenReturn(Collections.emptyMap());
+        new AppConfig(reader, m -> {
+        });
+        verify(reader, times(1)).get();
+    }
+
+    @Test
     void shouldWrite() {
-        Map<String, Object> map = new HashMap<>();
-        map.put("a.b.c.value", 1);
-        map.put("a.b.d", 2);
-        map.put("a.b.e", 1);
-        map.put("a.b.c.services", Arrays.asList("a=b", "c=d"));
+        new AppConfig(Collections::emptyMap, writer).close();
+        verify(writer, times(1)).accept(any(Map.class));
+    }
 
-        System.out.println(map);
-
-        Config cfg = ConfigFactory.parseMap(map);
-        final String rendered = cfg.root()
-                .render(
-                        ConfigRenderOptions.defaults()
-                                .setFormatted(true)
-                                .setOriginComments(false)
-                                .setJson(false)
-                );
-        System.out.println("Rendered config from map: " + rendered);
+    @Test
+    void shouldThrowIfNoVariable() {
+        assertThrows(VariableNotFoundException.class,
+                () -> new AppConfig(Collections::emptyMap, v -> {
+                }).root().getValue("a", StringValue.class)
+        );
     }
 }
 

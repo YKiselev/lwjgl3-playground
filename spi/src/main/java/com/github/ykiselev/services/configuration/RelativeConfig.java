@@ -40,7 +40,7 @@ public final class RelativeConfig implements Config {
     }
 
     @Override
-    public boolean hasPath(String path) {
-        return delegate.hasPath(path(path));
+    public boolean hasVariable(String path) {
+        return delegate.hasVariable(path(path));
     }
 }

@@ -1,5 +1,6 @@
 package com.github.ykiselev.services.configuration;
 
+import com.github.ykiselev.services.configuration.ConfigurationException.VariableNotFoundException;
 import com.github.ykiselev.services.configuration.values.BooleanValue;
 import com.github.ykiselev.services.configuration.values.ConfigValue;
 import com.github.ykiselev.services.configuration.values.DoubleValue;
@@ -15,14 +16,42 @@ import java.util.List;
  */
 public interface Config {
 
-    <V extends ConfigValue> V getValue(String path, Class<V> clazz);
+    /**
+     * Gets config variable. Requested variable should exists.
+     *
+     * @param path  the variable path
+     * @param clazz the type variable expected to be of
+     * @param <V>   type parameter
+     * @return the found config variable
+     * @throws ClassCastException        if variable type does not match
+     * @throws VariableNotFoundException if there is no variable at specified path
+     */
+    <V extends ConfigValue> V getValue(String path, Class<V> clazz) throws ClassCastException, VariableNotFoundException;
 
-    <V extends ConfigValue> V getOrCreateValue(String path, Class<V> clazz);
+    /**
+     * Gets or creates variable. If variable exists and have the same type it is retured. If there is no variable at specified path - new variable is created.
+     *
+     * @param path  the variable path
+     * @param clazz the type variable expected to be of
+     * @param <V>   type parameter
+     * @return the config variable
+     * @throws ClassCastException if existing variable type does not match
+     */
+    <V extends ConfigValue> V getOrCreateValue(String path, Class<V> clazz) throws ClassCastException;
 
     <T> List<T> getList(String path, Class<T> clazz);
 
-    boolean hasPath(String path);
+    /**
+     * @param path the path to check
+     * @return {@code true} if there is variable at the specified path.
+     */
+    boolean hasVariable(String path);
 
+    /**
+     * @param path the variable path
+     * @return variable value
+     * @throws VariableNotFoundException if there is no variable at specified path
+     */
     default String getString(String path) {
         final ConfigValue value = getValue(path, ConfigValue.class);
         return value != null ? value.getString() : null;
@@ -64,7 +93,7 @@ public interface Config {
     }
 
     default void set(String path, int value) {
-        this.set(path, (long) value);
+        set(path, (long) value);
     }
 
     default void set(String path, long value) {
