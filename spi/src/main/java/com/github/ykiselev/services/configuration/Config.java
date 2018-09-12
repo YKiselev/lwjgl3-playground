@@ -39,76 +39,167 @@ public interface Config {
      */
     <V extends ConfigValue> V getOrCreateValue(String path, Class<V> clazz) throws ClassCastException;
 
-    <T> List<T> getList(String path, Class<T> clazz);
+    /**
+     * Returns list of elements of specified type.
+     *
+     * @param path  the variable path.
+     * @param clazz the class of list element.
+     * @param <T>   the type parameter.
+     * @return list of elements of specified type.
+     * @throws ClassCastException        if variable exists but is not a list or it's element type cannot be cast to {@code clazz}.
+     * @throws VariableNotFoundException if variable does not exists.
+     */
+    <T> List<T> getList(String path, Class<T> clazz) throws ClassCastException, VariableNotFoundException;
 
     /**
+     * Checks if there is any variable at specified path.
+     *
      * @param path the path to check
      * @return {@code true} if there is variable at the specified path.
      */
     boolean hasVariable(String path);
 
     /**
+     * Returns value of string variable at specified path.
+     *
      * @param path the variable path
      * @return variable value
+     * @throws ClassCastException        if variable type does not match
      * @throws VariableNotFoundException if there is no variable at specified path
      */
-    default String getString(String path) {
-        final ConfigValue value = getValue(path, ConfigValue.class);
-        return value != null ? value.getString() : null;
+    default String getString(String path) throws ClassCastException, VariableNotFoundException {
+        return getValue(path, ConfigValue.class).getString();
     }
 
-    default boolean getBoolean(String path) {
-        final BooleanValue value = getValue(path, BooleanValue.class);
-        return value != null && value.value();
+    /**
+     * Returns value of boolean variable at specified path.
+     *
+     * @param path the variable path
+     * @return variable value
+     * @throws ClassCastException        if variable type does not match
+     * @throws VariableNotFoundException if there is no variable at specified path
+     */
+    default boolean getBoolean(String path) throws ClassCastException, VariableNotFoundException {
+        return getValue(path, BooleanValue.class).value();
     }
 
-    default int getInt(String path) {
+    /**
+     * Returns value of int variable at specified path.
+     *
+     * @param path the variable path
+     * @return variable value
+     * @throws ClassCastException        if variable type does not match
+     * @throws VariableNotFoundException if there is no variable at specified path
+     * @throws ArithmeticException       if value overflows an int
+     */
+    default int getInt(String path) throws ClassCastException, VariableNotFoundException, ArithmeticException {
         return Math.toIntExact(getLong(path));
     }
 
-    default long getLong(String path) {
-        final LongValue value = getValue(path, LongValue.class);
-        return value != null ? value.value() : 0L;
+    /**
+     * Returns value of long variable at specified path.
+     *
+     * @param path the variable path
+     * @return variable value
+     * @throws ClassCastException        if variable type does not match
+     * @throws VariableNotFoundException if there is no variable at specified path
+     */
+    default long getLong(String path) throws ClassCastException, VariableNotFoundException {
+        return getValue(path, LongValue.class).value();
     }
 
-    default float getFloat(String path) {
+    /**
+     * Returns value of float variable at specified path.
+     *
+     * @param path the variable path
+     * @return variable value
+     * @throws ClassCastException        if variable type does not match
+     * @throws VariableNotFoundException if there is no variable at specified path
+     * @throws ArithmeticException       if value overflows a float
+     */
+    default float getFloat(String path) throws ClassCastException, VariableNotFoundException, ArithmeticException {
         final double raw = getDouble(path);
         if (raw < Float.MIN_VALUE && raw > Float.MAX_VALUE) {
-            throw new IllegalArgumentException("Value " + raw + " cannot be represented as float!");
+            throw new ArithmeticException("Value " + raw + " cannot be represented as float!");
         }
         return (float) raw;
     }
 
-    default double getDouble(String path) {
-        final DoubleValue value = getValue(path, DoubleValue.class);
-        return value != null ? value.value() : 0;
+    /**
+     * Returns value of double variable at specified path.
+     *
+     * @param path the variable path
+     * @return variable value
+     * @throws ClassCastException        if variable type does not match
+     * @throws VariableNotFoundException if there is no variable at specified path
+     */
+    default double getDouble(String path) throws ClassCastException, VariableNotFoundException {
+        return getValue(path, DoubleValue.class).value();
     }
 
-    default void set(String path, String value) {
+    /**
+     * Sets value of string variable at specified path (or creates new if does not exists).
+     *
+     * @param path  the variable path
+     * @param value the value to set
+     * @throws ClassCastException if variable type does not match
+     */
+    default void set(String path, String value) throws ClassCastException {
         getOrCreateValue(path, StringValue.class).setString(value);
     }
 
-    default void set(String path, boolean value) {
+    /**
+     * Sets value of boolean variable at specified path (or creates new if does not exists).
+     *
+     * @param path  the variable path
+     * @param value the value to set
+     * @throws ClassCastException if variable type does not match
+     */
+    default void set(String path, boolean value) throws ClassCastException {
         getOrCreateValue(path, BooleanValue.class).value(value);
     }
 
-    default void set(String path, int value) {
+    /**
+     * Sets value of int variable at specified path (or creates new if does not exists).
+     *
+     * @param path  the variable path
+     * @param value the value to set
+     * @throws ClassCastException if variable type does not match
+     */
+    default void set(String path, int value) throws ClassCastException {
         set(path, (long) value);
     }
 
-    default void set(String path, long value) {
+    /**
+     * Sets value of long variable at specified path (or creates new if does not exists).
+     *
+     * @param path  the variable path
+     * @param value the value to set
+     * @throws ClassCastException if variable type does not match
+     */
+    default void set(String path, long value) throws ClassCastException {
         getOrCreateValue(path, LongValue.class).value(value);
     }
 
-    default void set(String path, float value) {
-        set(path, (double) value);
-    }
-
-    default void set(String path, double value) {
+    /**
+     * Sets value of double variable at specified path (or creates new if does not exists).
+     *
+     * @param path  the variable path
+     * @param value the value to set
+     * @throws ClassCastException if variable type does not match
+     */
+    default void set(String path, double value) throws ClassCastException {
         getOrCreateValue(path, DoubleValue.class).value(value);
     }
 
-    default List<String> getStringList(String path) {
+    /**
+     * Gets value of string list variable at specified path.
+     *
+     * @param path the variable path
+     * @throws ClassCastException if variable is not a list or element type cannot be cast to {@link String} class.
+     * @see Config#getList(java.lang.String, java.lang.Class)
+     */
+    default List<String> getStringList(String path) throws ClassCastException {
         return getList(path, String.class);
     }
 }
