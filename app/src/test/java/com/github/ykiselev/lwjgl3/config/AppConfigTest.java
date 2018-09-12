@@ -2,6 +2,7 @@ package com.github.ykiselev.lwjgl3.config;
 
 import com.github.ykiselev.services.PersistedConfiguration;
 import com.github.ykiselev.services.configuration.ConfigurationException.VariableNotFoundException;
+import com.github.ykiselev.services.configuration.WiredValues;
 import com.github.ykiselev.services.configuration.values.StringValue;
 import com.github.ykiselev.services.configuration.values.Values;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,6 +35,59 @@ import static org.mockito.Mockito.when;
 @SuppressWarnings("unchecked")
 @DisplayName("app config")
 class AppConfigTest {
+
+    static class ToWire {
+
+        private int var1 = 1;
+
+        private boolean var2 = true;
+
+        private long var3 = 3L;
+
+        private double var4 = 4d;
+
+        private String var5 = "5";
+
+        int var1() {
+            return var1;
+        }
+
+        void var1(int var1) {
+            this.var1 = var1;
+        }
+
+        boolean var2() {
+            return var2;
+        }
+
+        void var2(boolean var2) {
+            this.var2 = var2;
+        }
+
+        long var3() {
+            return var3;
+        }
+
+        void var3(long var3) {
+            this.var3 = var3;
+        }
+
+        double var4() {
+            return var4;
+        }
+
+        void var4(double var5) {
+            this.var4 = var5;
+        }
+
+        String var5() {
+            return var5;
+        }
+
+        void var5(String var6) {
+            this.var5 = var6;
+        }
+    }
 
     private Consumer<Map<String, Object>> writer = Mockito.mock(Consumer.class);
 
@@ -124,6 +178,31 @@ class AppConfigTest {
 
             cfg.root().set("d1", Double.NaN);
             assertEquals(Double.NaN, cfg.root().getDouble("d1"));
+        }
+
+        @Test
+        void shouldWireAndSetVariable() {
+            ToWire toWire = new ToWire();
+
+            assertEquals(1, toWire.var1());
+            assertTrue(toWire.var2());
+            assertEquals(3L, toWire.var3());
+            assertEquals(4d, toWire.var4());
+            assertEquals("5", toWire.var5());
+
+            cfg.wire(new WiredValues()
+                    .withInt("a.int", toWire::var1, toWire::var1)
+                    .withBoolean("a.boolean2", toWire::var2, toWire::var2)
+                    .withLong("a.long", toWire::var3, toWire::var3)
+                    .withDouble("a.double", toWire::var4, toWire::var4)
+                    .withString("a.string", toWire::var5, toWire::var5)
+                    .build());
+
+            assertEquals(123, toWire.var1());
+            assertFalse(toWire.var2());
+            assertEquals(999999999999999999L, toWire.var3());
+            assertEquals(Math.PI, toWire.var4());
+            assertEquals("abc", toWire.var5());
         }
 
         @Test

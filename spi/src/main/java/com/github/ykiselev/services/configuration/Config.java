@@ -74,7 +74,7 @@ public interface Config {
     default float getFloat(String path) {
         final double raw = getDouble(path);
         if (raw < Float.MIN_VALUE && raw > Float.MAX_VALUE) {
-            throw new IllegalArgumentException("Value " + raw + " can not be represented as float!");
+            throw new IllegalArgumentException("Value " + raw + " cannot be represented as float!");
         }
         return (float) raw;
     }

@@ -20,6 +20,8 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
+ * Wired values map builder.
+ *
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
 public final class WiredValues {
