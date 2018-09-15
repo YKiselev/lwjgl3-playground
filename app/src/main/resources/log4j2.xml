@@ -47,12 +47,12 @@
             <AppenderRef ref="Console"/>
             <AppenderRef ref="RollingFile"/>
         </Logger>
-        <Logger name="com.github.ykiselev.lwjgl3.fs.AppFileSystem" level="debug" additivity="false">
+        <Logger name="com.github.ykiselev.lwjgl3.services.fs.AppFileSystem" level="debug" additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="RollingFile"/>
         </Logger>
         <!-- Set to trace level to see new reference allocations -->
-        <Logger name="com.github.ykiselev.lwjgl3.assets.RefCountedAssets" level="warn" additivity="false">
+        <Logger name="com.github.ykiselev.lwjgl3.services.assets.RefCountedAssets" level="warn" additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="RollingFile"/>
         </Logger>

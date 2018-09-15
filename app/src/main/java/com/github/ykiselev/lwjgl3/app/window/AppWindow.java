@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.github.ykiselev.lwjgl3.window;
+package com.github.ykiselev.lwjgl3.app.window;
 
 import com.github.ykiselev.window.WindowEvents;
 import org.lwjgl.system.MemoryStack;
