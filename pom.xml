@@ -36,6 +36,7 @@
         <lwjgl.natives>natives-${os.detected.name}</lwjgl.natives>
         <junit-jupiter.version>5.0.2</junit-jupiter.version>
         <typesafe-config.version>1.3.2</typesafe-config.version>
+        <mockito.version>2.22.0</mockito.version>
     </properties>
 
     <modules>
@@ -181,7 +182,7 @@
             <dependency>
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-core</artifactId>
-                <version>2.8.47</version>
+                <version>${mockito.version}</version>
                 <scope>test</scope>
             </dependency>
         </dependencies>
