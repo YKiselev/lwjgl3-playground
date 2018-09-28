@@ -21,8 +21,13 @@ import com.github.ykiselev.services.commands.CommandException.CommandStackOverfl
 import com.github.ykiselev.services.commands.CommandException.UnknownCommandException;
 import com.github.ykiselev.services.commands.Commands;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+
+import java.util.Collections;
+import java.util.Iterator;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -51,9 +56,21 @@ class AppCommandsTest {
 
     @Test
     void shouldOverflow() {
-        commands.add("overflow", () -> commands.execute("overflow"));
+        Runnable h = Mockito.mock(Runnable.class);
+        commands.add("overflow", h);
+
+        final Iterator<String> it = Collections.singletonList("overflow").iterator();
+        doAnswer(invocation -> {
+            if (it.hasNext()) {
+                commands.execute(it.next());
+            }
+            return null;
+        }).when(h).run();
+
         assertThrows(CommandStackOverflowException.class, () ->
                 commands.execute("overflow"));
+
+        verify(h, times(1)).run();
     }
 
     @Test
@@ -70,6 +87,22 @@ class AppCommandsTest {
         commands.add("cmd", h);
         commands.execute("cmd;cmd");
         verify(h, times(2)).run();
+    }
+
+    @Test
+    void shouldExecuteMultiLine() {
+        Runnable h = mock(Runnable.class);
+        commands.add("cmd", h);
+        commands.execute("cmd\rcmd\ncmd\r\ncmd");
+        verify(h, times(4)).run();
+    }
+
+    @Test
+    void shouldPassArgsd() {
+        Commands.H2 h = mock(Commands.H2.class);
+        commands.add("cmd", h);
+        commands.execute("cmd 1");
+        verify(h, times(1)).handle("cmd", "1");
     }
 
 }

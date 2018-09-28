@@ -16,6 +16,7 @@
 
 package com.github.ykiselev.lwjgl3.services.console;
 
+import com.github.ykiselev.cow.CopyOnModify;
 import com.github.ykiselev.services.commands.CommandException.CommandAlreadyRegisteredException;
 import com.github.ykiselev.services.commands.CommandException.CommandExecutionFailedException;
 import com.github.ykiselev.services.commands.CommandException.CommandStackOverflowException;
@@ -25,8 +26,6 @@ import com.github.ykiselev.services.commands.Tokenizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.VarHandle;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -43,8 +42,6 @@ import static java.util.Objects.requireNonNull;
  */
 public final class AppCommands implements Commands {
 
-    private static final VarHandle VH;
-
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final Tokenizer tokenizer;
@@ -53,19 +50,10 @@ public final class AppCommands implements Commands {
 
     private final Deque<List<String>> stack = new ArrayDeque<>();
 
-    // Note: this map should be treated as immutable!
-    private volatile Map<String, Consumer<List<String>>> handlers = Collections.emptyMap();
+    private final CopyOnModify<Map<String, Consumer<List<String>>>> handlers = new CopyOnModify<>(Collections.emptyMap());
 
     // accessed only from synchronized block
     private int depth;
-
-    static {
-        try {
-            VH = MethodHandles.lookup().findVarHandle(AppCommands.class, "handlers", Map.class);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            throw new Error(e);
-        }
-    }
 
     public AppCommands(Tokenizer tokenizer, int maxDepth) {
         this.tokenizer = requireNonNull(tokenizer);
@@ -109,10 +97,14 @@ public final class AppCommands implements Commands {
         }
     }
 
+    private Consumer<List<String>> handler(String command) {
+        return handlers.item().get(command);
+    }
+
     private int execute(String commandLine, int fromIndex, List<String> args) throws CommandExecutionFailedException, UnknownCommandException {
         final int result = tokenizer.tokenize(commandLine, fromIndex, args);
         if (!args.isEmpty()) {
-            final Consumer<List<String>> handler = handlers.get(args.get(0));
+            final Consumer<List<String>> handler = handler(args.get(0));
             if (handler != null) {
                 try {
                     handler.accept(args);
@@ -130,28 +122,23 @@ public final class AppCommands implements Commands {
 
     @Override
     public AutoCloseable add(String command, Consumer<List<String>> handler) throws CommandAlreadyRegisteredException {
-        for (; ; ) {
-            final Map<String, Consumer<List<String>>> before = this.handlers;
+        handlers.modify(before -> {
             final Map<String, Consumer<List<String>>> after = new HashMap<>(before);
             if (after.putIfAbsent(command, handler) != null) {
                 throw new CommandAlreadyRegisteredException(command);
             }
-            if (VH.compareAndSet(this, before, after)) {
-                return () -> remove(command);
-            }
-        }
+            return after;
+        });
+        return () -> remove(command);
     }
 
     private void remove(String command) {
-        for (; ; ) {
-            final Map<String, Consumer<List<String>>> before = this.handlers;
+        handlers.modify(before -> {
             final Map<String, Consumer<List<String>>> after = new HashMap<>(before);
             if (after.remove(command) == null) {
                 logger.warn("Unable to remove (not found): {}", command);
             }
-            if (VH.compareAndSet(this, before, after)) {
-                break;
-            }
-        }
+            return after;
+        });
     }
 }
