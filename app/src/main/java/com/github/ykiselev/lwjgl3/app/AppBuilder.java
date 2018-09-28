@@ -17,8 +17,8 @@
 package com.github.ykiselev.lwjgl3.app;
 
 import com.github.ykiselev.lwjgl3.Main;
+import org.apache.logging.log4j.io.IoBuilder;
 import org.lwjgl.glfw.GLFWErrorCallback;
-import org.lwjgl.system.Configuration;
 import org.slf4j.LoggerFactory;
 
 import static java.util.Objects.requireNonNull;
@@ -82,7 +82,8 @@ public final class AppBuilder {
     }
 
     private void withLogging(Runnable delegate) {
-        Configuration.DEBUG_STREAM.set(LwjglToLog4j2.class.getName());
+        System.setOut(IoBuilder.forLogger().buildPrintStream());
+        System.setErr(IoBuilder.forLogger().buildPrintStream());
         delegate.run();
     }
 

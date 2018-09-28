@@ -18,26 +18,29 @@ package com.github.ykiselev.lwjgl3.app;
 
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.closeables.CompositeAutoCloseable;
-import com.github.ykiselev.services.FileSystem;
-import com.github.ykiselev.lwjgl3.services.assets.GameAssets;
-import com.github.ykiselev.lwjgl3.services.config.AppConfig;
 import com.github.ykiselev.lwjgl3.events.AppEvents;
-import com.github.ykiselev.services.events.SubscriptionsBuilder;
-import com.github.ykiselev.lwjgl3.services.fs.AppFileSystem;
-import com.github.ykiselev.lwjgl3.services.fs.ClassPathResources;
-import com.github.ykiselev.lwjgl3.services.fs.DiskResources;
 import com.github.ykiselev.lwjgl3.host.GameEvents;
 import com.github.ykiselev.lwjgl3.host.MenuEvents;
 import com.github.ykiselev.lwjgl3.host.ProgramArguments;
 import com.github.ykiselev.lwjgl3.layers.AppUiLayers;
 import com.github.ykiselev.lwjgl3.services.MapBasedServices;
+import com.github.ykiselev.lwjgl3.services.assets.GameAssets;
+import com.github.ykiselev.lwjgl3.services.config.AppConfig;
+import com.github.ykiselev.lwjgl3.services.console.AppCommands;
+import com.github.ykiselev.lwjgl3.services.console.DefaultTokenizer;
+import com.github.ykiselev.lwjgl3.services.fs.AppFileSystem;
+import com.github.ykiselev.lwjgl3.services.fs.ClassPathResources;
+import com.github.ykiselev.lwjgl3.services.fs.DiskResources;
 import com.github.ykiselev.lwjgl3.services.schedule.AppSchedule;
 import com.github.ykiselev.lwjgl3.services.sound.AppSoundEffects;
+import com.github.ykiselev.services.FileSystem;
 import com.github.ykiselev.services.PersistedConfiguration;
 import com.github.ykiselev.services.ServiceGroupBuilder;
 import com.github.ykiselev.services.Services;
 import com.github.ykiselev.services.SoundEffects;
+import com.github.ykiselev.services.commands.Commands;
 import com.github.ykiselev.services.events.Events;
+import com.github.ykiselev.services.events.SubscriptionsBuilder;
 import com.github.ykiselev.services.layers.UiLayers;
 import com.github.ykiselev.services.schedule.Schedule;
 
@@ -78,6 +81,7 @@ public final class Host implements Runnable {
         return new ServiceGroupBuilder(services)
                 .add(FileSystem.class, fileSystem)
                 .add(Events.class, new AppEvents())
+                .add(Commands.class, new AppCommands(new DefaultTokenizer()))
                 .add(PersistedConfiguration.class, new AppConfig(services))
                 .add(Schedule.class, new AppSchedule())
                 .add(UiLayers.class, new AppUiLayers())

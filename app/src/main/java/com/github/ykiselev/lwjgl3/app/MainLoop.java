@@ -17,12 +17,12 @@
 package com.github.ykiselev.lwjgl3.app;
 
 import com.github.ykiselev.closeables.CompositeAutoCloseable;
-import com.github.ykiselev.services.events.SubscriptionsBuilder;
-import com.github.ykiselev.lwjgl3.host.ProgramArguments;
 import com.github.ykiselev.lwjgl3.app.window.AppWindow;
 import com.github.ykiselev.lwjgl3.app.window.WindowBuilder;
+import com.github.ykiselev.lwjgl3.host.ProgramArguments;
 import com.github.ykiselev.services.Services;
 import com.github.ykiselev.services.events.Events;
+import com.github.ykiselev.services.events.SubscriptionsBuilder;
 import com.github.ykiselev.services.events.game.NewGameEvent;
 import com.github.ykiselev.services.events.game.QuitEvent;
 import com.github.ykiselev.services.layers.UiLayers;
@@ -90,8 +90,7 @@ public final class MainLoop implements Runnable {
                 .build();
     }
 
-    private QuitEvent onQuit(QuitEvent event) {
+    private void onQuit(QuitEvent event) {
         exitFlag = true;
-        return null;
     }
 }

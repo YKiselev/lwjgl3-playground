@@ -55,9 +55,24 @@ public final class AppCommands implements Commands {
     // accessed only from synchronized block
     private int depth;
 
+    /**
+     * Primary ctor.
+     *
+     * @param tokenizer the tokenizer to use.
+     * @param maxDepth  the maximum depth of recursive calls.
+     */
     public AppCommands(Tokenizer tokenizer, int maxDepth) {
         this.tokenizer = requireNonNull(tokenizer);
         this.maxDepth = maxDepth;
+    }
+
+    /**
+     * Convenient ctor with {@code maxDepth} set to 16.
+     *
+     * @param tokenizer the tokenizer to use.
+     */
+    public AppCommands(Tokenizer tokenizer) {
+        this(tokenizer, 16);
     }
 
     private List<String> newArgs() {
