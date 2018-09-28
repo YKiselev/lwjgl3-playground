@@ -67,11 +67,4 @@ public abstract class CommandException extends RuntimeException {
             super(message);
         }
     }
-
-    public static final class TokenizerHasFailedException extends CommandException {
-
-        public TokenizerHasFailedException(String commandLine) {
-            super(String.format("Tokenizer has failed to split command: \"%s\"", commandLine));
-        }
-    }
 }

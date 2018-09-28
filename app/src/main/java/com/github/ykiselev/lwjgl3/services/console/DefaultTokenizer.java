@@ -16,6 +16,8 @@
 
 package com.github.ykiselev.lwjgl3.services.console;
 
+import com.github.ykiselev.services.commands.Tokenizer;
+
 import java.util.Collection;
 
 /**
@@ -24,50 +26,85 @@ import java.util.Collection;
 public final class DefaultTokenizer implements Tokenizer {
 
     @Override
-    public void tokenize(String commandLine, Collection<String> result) {
-        if (commandLine == null || commandLine.isEmpty()) {
-            return;
+    public int tokenize(String text, int fromIndex, Collection<String> result) {
+        if (text == null || text.isEmpty()) {
+            return 0;
         }
-        int i = 0, len = commandLine.length();
-        boolean quoted;
+        int i = fromIndex, len = text.length(), slashes = 0;
         while (i < len) {
-            while (i < len && Character.isWhitespace(commandLine.charAt(i))) {
-                i++;
+            final char ch = text.charAt(i);
+            // First check for double-char sequences
+            if (ch == '*' && slashes == 1) {
+                // Multi-line comment found, skipp all till the closing sequence
+                final int end = text.indexOf("*/", i);
+                if (end == -1) {
+                    throw new IllegalArgumentException("Unclosed multi-line comment!");
+                }
+                i = end + 2;
+                continue;
             }
-            if (i >= len) {
+            if (ch == '/') {
+                slashes++;
+                if (slashes == 2) {
+                    // Single line comment found, skip all till the first of (CR, LF, end of string)
+                    final int lf = text.indexOf('\n', i);
+                    final int cr = text.indexOf('\r', i);
+                    if (lf == -1 && cr == -1) {
+                        i = len;
+                        break; // the whole remaining text is a commentary
+                    }
+                    if (lf >= 0 && cr >= 0) {
+                        i = Math.min(cr, lf) + 1;
+                    } else if (cr >= 0) {
+                        i = cr + 1;
+                    } else {
+                        i = lf + 1;
+                    }
+                    slashes = 0;
+                } else {
+                    i++;
+                }
+                continue;
+            }
+            slashes = 0;
+            // Stop parsing on delimiter, CR, LF
+            if (ch == ';' || ch == '\r' || ch == '\n') {
+                i++;
                 break;
             }
-            quoted = false;
-            if (commandLine.charAt(i) == '"') {
-                quoted = true;
+            // Then skip white-spaces
+            if (Character.isWhitespace(ch)) {
                 i++;
+                continue;
             }
-            if (i >= len) {
-                break;
-            }
-            int tokenLen;
-            if (quoted) {
-                tokenLen = collectQuotedToken(commandLine, i);
+            final int tokenLen;
+            if (ch == '"' || ch == '\'') {
+                i++;
+                if (i >= len) {
+                    break;
+                }
+                tokenLen = collectQuotedToken(text, i, ch);
                 if (tokenLen > 1) {
-                    result.add(commandLine.substring(i, i + tokenLen));
+                    result.add(text.substring(i, i + tokenLen));
                 } else {
                     result.add("");
                 }
                 i++;
             } else {
-                tokenLen = collectToken(commandLine, i);
+                tokenLen = collectToken(text, i);
                 if (tokenLen > 0) {
-                    result.add(commandLine.substring(i, i + tokenLen));
+                    result.add(text.substring(i, i + tokenLen));
                 }
             }
             i += tokenLen;
         }
+        return i;
     }
 
-    private int collectQuotedToken(String seq, int fromIndex) {
+    private int collectQuotedToken(String seq, int fromIndex, char quote) {
         int i = fromIndex;
         for (; i < seq.length(); i++) {
-            final int nextQuote = seq.indexOf('"', i);
+            final int nextQuote = seq.indexOf(quote, i);
             if (nextQuote == -1) {
                 throw new IllegalArgumentException("Unpaired quote!");
             } else {
@@ -88,7 +125,8 @@ public final class DefaultTokenizer implements Tokenizer {
     private int collectToken(String seq, int fromIndex) {
         int i = fromIndex;
         for (; i < seq.length(); i++) {
-            if (Character.isWhitespace(seq.charAt(i))) {
+            final char ch = seq.charAt(i);
+            if (Character.isWhitespace(ch) || ch == '/' || ch == ';') {
                 break;
             }
         }

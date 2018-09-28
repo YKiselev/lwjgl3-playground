@@ -16,8 +16,16 @@
 
 package com.github.ykiselev.lwjgl3.services.console;
 
+import com.github.ykiselev.services.commands.CommandException.CommandExecutionFailedException;
+import com.github.ykiselev.services.commands.CommandException.CommandStackOverflowException;
+import com.github.ykiselev.services.commands.CommandException.UnknownCommandException;
 import com.github.ykiselev.services.commands.Commands;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
@@ -28,6 +36,40 @@ class AppCommandsTest {
 
     @Test
     void shouldReportUnknownCommand() {
-        commands.execute("this will not work!");
+        assertThrows(UnknownCommandException.class, () ->
+                commands.execute("this will not work!"));
     }
+
+    @Test
+    void shouldFail() {
+        commands.add("fail", () -> {
+            throw new RuntimeException("Oops!");
+        });
+        assertThrows(CommandExecutionFailedException.class, () ->
+                commands.execute("fail now"));
+    }
+
+    @Test
+    void shouldOverflow() {
+        commands.add("overflow", () -> commands.execute("overflow"));
+        assertThrows(CommandStackOverflowException.class, () ->
+                commands.execute("overflow"));
+    }
+
+    @Test
+    void shouldExecute() {
+        Runnable h = mock(Runnable.class);
+        commands.add("cmd", h);
+        commands.execute("cmd");
+        verify(h, times(1)).run();
+    }
+
+    @Test
+    void shouldExecuteSeparatedBySemicolon() {
+        Runnable h = mock(Runnable.class);
+        commands.add("cmd", h);
+        commands.execute("cmd;cmd");
+        verify(h, times(2)).run();
+    }
+
 }

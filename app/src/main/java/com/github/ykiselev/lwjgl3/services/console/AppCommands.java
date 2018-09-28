@@ -19,9 +19,9 @@ package com.github.ykiselev.lwjgl3.services.console;
 import com.github.ykiselev.services.commands.CommandException.CommandAlreadyRegisteredException;
 import com.github.ykiselev.services.commands.CommandException.CommandExecutionFailedException;
 import com.github.ykiselev.services.commands.CommandException.CommandStackOverflowException;
-import com.github.ykiselev.services.commands.CommandException.TokenizerHasFailedException;
 import com.github.ykiselev.services.commands.CommandException.UnknownCommandException;
 import com.github.ykiselev.services.commands.Commands;
+import com.github.ykiselev.services.commands.Tokenizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -86,7 +86,7 @@ public final class AppCommands implements Commands {
     }
 
     @Override
-    public void execute(String commandLine) throws CommandStackOverflowException, CommandExecutionFailedException, UnknownCommandException, TokenizerHasFailedException {
+    public void execute(String commandLine) throws CommandStackOverflowException, CommandExecutionFailedException, UnknownCommandException {
         if (commandLine == null || commandLine.isEmpty()) {
             return;
         }
@@ -97,7 +97,11 @@ public final class AppCommands implements Commands {
             }
             final List<String> args = newArgs();
             try {
-                execute(commandLine, args);
+                int fromIndex = 0;
+                while (fromIndex < commandLine.length()) {
+                    fromIndex = execute(commandLine, fromIndex, args);
+                    args.clear();
+                }
             } finally {
                 freeArgs(args);
                 depth--;
@@ -105,22 +109,23 @@ public final class AppCommands implements Commands {
         }
     }
 
-    private void execute(String commandLine, List<String> args) throws CommandExecutionFailedException, UnknownCommandException, TokenizerHasFailedException {
-        tokenizer.tokenize(commandLine, args);
+    private int execute(String commandLine, int fromIndex, List<String> args) throws CommandExecutionFailedException, UnknownCommandException {
+        final int result = tokenizer.tokenize(commandLine, fromIndex, args);
         if (!args.isEmpty()) {
             final Consumer<List<String>> handler = handlers.get(args.get(0));
             if (handler != null) {
                 try {
                     handler.accept(args);
+                } catch (CommandExecutionFailedException | CommandStackOverflowException e) {
+                    throw e;
                 } catch (RuntimeException e) {
                     throw new CommandExecutionFailedException(commandLine, e);
                 }
             } else {
                 throw new UnknownCommandException(args.get(0));
             }
-        } else {
-            throw new TokenizerHasFailedException(commandLine);
         }
+        return result;
     }
 
     @Override

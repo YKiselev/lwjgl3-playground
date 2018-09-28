@@ -16,6 +16,7 @@
 
 package com.github.ykiselev.lwjgl3.services.console;
 
+import com.github.ykiselev.services.commands.Tokenizer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -25,6 +26,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -36,7 +38,13 @@ class DefaultTokenizerTest {
 
     private final Tokenizer processor = new DefaultTokenizer();
 
-    private final Consumer<String> consumer = v -> processor.tokenize(v, parts);
+    private final Consumer<String> consumer = v -> {
+        int fromIndex = 0;
+        final int len = v != null ? v.length() : 0;
+        while (fromIndex < len) {
+            fromIndex = processor.tokenize(v, fromIndex, parts);
+        }
+    };
 
     private void assertEquals(String... v) {
         assertArrayEquals(v, parts.toArray());
@@ -69,7 +77,7 @@ class DefaultTokenizerTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {" \" first \t second \"", "\" first \t second \"", "\" first \t second \""})
+    @ValueSource(strings = {" \" first \t second \"", "\" first \t second \"", "\" first \t second \"", "' first \t second '"})
     void shouldParseQuotedTokens(String value) {
         consumer.accept(value);
         assertEquals(" first \t second ");
@@ -82,4 +90,41 @@ class DefaultTokenizerTest {
         assertEquals("simple", "quoted tokens");
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {"1;2", " 1 ;2", "1; 2", " 1 \t; \t2  "})
+    void shouldParseDelimitedBySemicolon(String value) {
+        consumer.accept(value);
+        assertEquals("1", "2");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"a b c //d", "a//xxx\rb//yyy\nc"})
+    void shouldStripSingleLineComments(String value) {
+        consumer.accept(value);
+        assertEquals("a", "b", "c");
+    }
+
+    @Test
+    void shouldNotStripSingleLineCommentInsideQuotedText() {
+        consumer.accept("a \"b c //d\"");
+        assertEquals("a", "b c //d");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"a b c /* d */", "a/*xxx*/ b/*yyy*/ c"})
+    void shouldStripMultiLineComments(String value) {
+        consumer.accept(value);
+        assertEquals("a", "b", "c");
+    }
+
+    @Test
+    void shouldNotStripMultiLineCommentInsideQuotedText() {
+        consumer.accept("a \"b c /* d */\"");
+        assertEquals("a", "b c /* d */");
+    }
+
+    @Test
+    void shouldFailIfUnclosedMultiLineComment() {
+        assertThrows(IllegalArgumentException.class, () -> consumer.accept("a b c /* d"));
+    }
 }

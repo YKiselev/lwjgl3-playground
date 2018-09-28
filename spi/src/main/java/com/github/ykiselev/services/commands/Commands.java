@@ -19,7 +19,6 @@ package com.github.ykiselev.services.commands;
 import com.github.ykiselev.services.commands.CommandException.CommandAlreadyRegisteredException;
 import com.github.ykiselev.services.commands.CommandException.CommandExecutionFailedException;
 import com.github.ykiselev.services.commands.CommandException.CommandStackOverflowException;
-import com.github.ykiselev.services.commands.CommandException.TokenizerHasFailedException;
 import com.github.ykiselev.services.commands.CommandException.UnknownCommandException;
 
 import java.util.List;
@@ -27,23 +26,7 @@ import java.util.function.Consumer;
 
 /**
  * Command processor.<br/>
- * Supported command syntax:<br/>
- * <pre>
- *     command [arg1 arg2... argN]
- * </pre>
- * To pass multiple commands on one line use ';' as delimiter (spaces before and after are optional and will be stripped by tokenizer):
- * <pre>
- *     command1 arg1 arg2; command2 arg1 arg2 arg3
- * </pre>
- * To pass argument(s) with whitespaces use quotes - (") or (')
- * <pre>
- *     command "arg with whitespaces"
- * </pre>
- * Passed script may contain single-line comments starting from (//) and lasting till the first CR or LF character is encountered.
- * <pre>
- *     // this text is ignored
- *     command arg1
- * </pre>
+ * For supported command syntax see {@link Tokenizer} javadoc.
  *
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
@@ -56,9 +39,8 @@ public interface Commands {
      * @throws CommandStackOverflowException   if current call's depth is greater than configured {@code maxDepth}.
      * @throws CommandExecutionFailedException if command execution has failed.
      * @throws UnknownCommandException         if unknown command is present in passed command line.
-     * @throws TokenizerHasFailedException     if configured tokenizer is unable to split passed {@code non-null} and {@code non-empty} command line to tokens.
      */
-    void execute(String commandLine) throws CommandStackOverflowException, CommandExecutionFailedException, UnknownCommandException, TokenizerHasFailedException;
+    void execute(String commandLine) throws CommandStackOverflowException, CommandExecutionFailedException, UnknownCommandException;
 
     /**
      * Registers passed command handler for specified command. The handler will receive a list of command arguments where
