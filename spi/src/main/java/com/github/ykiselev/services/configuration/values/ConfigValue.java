@@ -17,7 +17,7 @@
 package com.github.ykiselev.services.configuration.values;
 
 /**
- * Mutable value.
+ * Configuration value.
  *
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
@@ -28,4 +28,12 @@ public interface ConfigValue {
     void setString(String value);
 
     Object boxed();
+
+    default boolean isReadOnly() {
+        return false;
+    }
+
+    default boolean isPersisted() {
+        return false;
+    }
 }

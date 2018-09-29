@@ -124,7 +124,6 @@ public final class AppWindow implements AutoCloseable {
     private void checkWindowResize() {
         if (windowResized) {
             windowResized = false;
-            // todo - callback?
         }
     }
 

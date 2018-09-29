@@ -16,6 +16,7 @@
 
 package com.github.ykiselev.lwjgl3.services.config;
 
+import com.github.ykiselev.cow.CopyOnModify;
 import com.github.ykiselev.services.FileSystem;
 import com.github.ykiselev.services.PersistedConfiguration;
 import com.github.ykiselev.services.Services;
@@ -26,8 +27,6 @@ import com.github.ykiselev.services.configuration.values.Values;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.VarHandle;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -46,7 +45,7 @@ public final class AppConfig implements PersistedConfiguration, AutoCloseable {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private volatile Map<String, Object> config;
+    private final CopyOnModify<Map<String, Object>> config;
 
     private final Consumer<Map<String, Object>> writer;
 
@@ -55,7 +54,7 @@ public final class AppConfig implements PersistedConfiguration, AutoCloseable {
         @SuppressWarnings("unchecked")
         @Override
         public <V extends ConfigValue> V getValue(String path, Class<V> clazz) {
-            final V result = clazz.cast(config.get(path));
+            final V result = clazz.cast(getRawValue(path));
             if (result == null) {
                 throw new ConfigurationException.VariableNotFoundException(path);
             }
@@ -64,7 +63,7 @@ public final class AppConfig implements PersistedConfiguration, AutoCloseable {
 
         @Override
         public <V extends ConfigValue> V getOrCreateValue(String path, Class<V> clazz) {
-            final Object raw = config.get(path);
+            final Object raw = getRawValue(path);
             if (raw != null) {
                 return clazz.cast(raw);
             }
@@ -75,7 +74,7 @@ public final class AppConfig implements PersistedConfiguration, AutoCloseable {
 
         @Override
         public <T> List<T> getList(String path, Class<T> clazz) {
-            final Object raw = config.get(path);
+            final Object raw = getRawValue(path);
             if (raw instanceof ConstantList) {
                 return ((ConstantList) raw).toUniformList(clazz);
             } else if (raw == null) {
@@ -87,24 +86,13 @@ public final class AppConfig implements PersistedConfiguration, AutoCloseable {
 
         @Override
         public boolean hasVariable(String path) {
-            final Object raw = config.get(path);
+            final Object raw = getRawValue(path);
             return raw instanceof ConfigValue || raw instanceof ConstantList;
         }
     };
 
-    private static final VarHandle CH;
-
-    static {
-        try {
-            CH = MethodHandles.lookup()
-                    .findVarHandle(AppConfig.class, "config", Map.class);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            throw new Error(e);
-        }
-    }
-
     public AppConfig(Supplier<Map<String, Object>> reader, Consumer<Map<String, Object>> writer) {
-        this.config = requireNonNull(reader.get());
+        this.config = new CopyOnModify<>(reader.get());
         this.writer = requireNonNull(writer);
     }
 
@@ -116,6 +104,10 @@ public final class AppConfig implements PersistedConfiguration, AutoCloseable {
     @Override
     public Config root() {
         return root;
+    }
+
+    private Object getRawValue(String path) {
+        return config.value().get(path);
     }
 
     @Override
@@ -141,7 +133,7 @@ public final class AppConfig implements PersistedConfiguration, AutoCloseable {
     }
 
     private Map<String, ConfigValue> unwire(Set<String> keys) {
-        final Map<String, Object> current = this.config;
+        final Map<String, Object> current = config.value();
         final Map<String, ConfigValue> result = new HashMap<>();
         for (String key : keys) {
             final Object raw = current.get(key);
@@ -157,18 +149,15 @@ public final class AppConfig implements PersistedConfiguration, AutoCloseable {
      * @return the previous map
      */
     private Map<String, Object> merge(Map<String, ConfigValue> values) {
-        for (; ; ) {
-            final Map<String, Object> before = this.config;
+        return config.modify(before -> {
             final Map<String, Object> after = new HashMap<>(before);
             after.putAll(values);
-            if (CH.compareAndSet(this, before, after)) {
-                return before;
-            }
-        }
+            return after;
+        });
     }
 
     @Override
     public void close() {
-        writer.accept(config);
+        writer.accept(config.value());
     }
 }

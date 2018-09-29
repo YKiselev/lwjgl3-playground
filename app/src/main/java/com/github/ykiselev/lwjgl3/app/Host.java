@@ -67,11 +67,11 @@ public final class Host implements Runnable {
     @Override
     public void run() {
         final Services services = new MapBasedServices();
-        try (CompositeAutoCloseable ac = new CompositeAutoCloseable(services)
+        final CompositeAutoCloseable ac = new CompositeAutoCloseable(services)
                 .and(registerServices(services))
                 .and(subscribe(services))
-                .reverse()
-        ) {
+                .reverse();
+        try (ac) {
             delegate.accept(services);
         }
     }

@@ -49,24 +49,44 @@ public final class WiredValues {
         return this;
     }
 
-    public WiredValues withString(String path, Supplier<String> getter, Consumer<String> setter) {
-        return add(path, new Values.WiredString(getter, setter));
+    public WiredValues withString(String path, Supplier<String> getter, Consumer<String> setter, boolean persisted) {
+        return add(path, new Values.WiredString(persisted, getter, setter));
     }
 
-    public WiredValues withBoolean(String path, BooleanSupplier getter, BooleanConsumer setter) {
-        return add(path, new Values.WiredBoolean(getter, setter));
+    public WiredValues withString(String path, Supplier<String> getter, boolean persisted) {
+        return withString(path, getter, null, persisted);
     }
 
-    public WiredValues withInt(String path, IntSupplier getter, IntConsumer setter) {
-        return add(path, new Values.WiredLong(getter::getAsInt, v -> setter.accept(Math.toIntExact(v))));
+    public WiredValues withBoolean(String path, BooleanSupplier getter, BooleanConsumer setter, boolean persisted) {
+        return add(path, new Values.WiredBoolean(persisted, getter, setter));
     }
 
-    public WiredValues withLong(String path, LongSupplier getter, LongConsumer setter) {
-        return add(path, new Values.WiredLong(getter, setter));
+    public WiredValues withBoolean(String path, BooleanSupplier getter, boolean persisted) {
+        return withBoolean(path, getter, null, persisted);
     }
 
-    public WiredValues withDouble(String path, DoubleSupplier getter, DoubleConsumer setter) {
-        return add(path, new Values.WiredDouble(getter, setter));
+    public WiredValues withInt(String path, IntSupplier getter, IntConsumer setter, boolean persisted) {
+        return add(path, new Values.WiredLong(persisted, getter::getAsInt, v -> setter.accept(Math.toIntExact(v))));
+    }
+
+    public WiredValues withInt(String path, IntSupplier getter, boolean persisted) {
+        return withInt(path, getter, null, persisted);
+    }
+
+    public WiredValues withLong(String path, LongSupplier getter, LongConsumer setter, boolean persisted) {
+        return add(path, new Values.WiredLong(persisted, getter, setter));
+    }
+
+    public WiredValues withLong(String path, LongSupplier getter, boolean persisted) {
+        return withLong(path, getter, null, persisted);
+    }
+
+    public WiredValues withDouble(String path, DoubleSupplier getter, DoubleConsumer setter, boolean persisted) {
+        return add(path, new Values.WiredDouble(persisted, getter, setter));
+    }
+
+    public WiredValues withDouble(String path, DoubleSupplier getter, boolean persisted) {
+        return withDouble(path, getter, null, persisted);
     }
 
     public Map<String, ConfigValue> build() {

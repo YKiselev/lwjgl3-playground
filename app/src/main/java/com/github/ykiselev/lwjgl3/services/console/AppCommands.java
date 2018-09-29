@@ -113,7 +113,7 @@ public final class AppCommands implements Commands {
     }
 
     private Consumer<List<String>> handler(String command) {
-        return handlers.item().get(command);
+        return handlers.value().get(command);
     }
 
     private int execute(String commandLine, int fromIndex, List<String> args) throws CommandExecutionFailedException, UnknownCommandException {

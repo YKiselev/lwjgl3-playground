@@ -36,15 +36,39 @@ public final class Values {
     private Values() {
     }
 
-    public static final class SimpleString implements StringValue {
+    private static abstract class AbstractValue implements ConfigValue {
+
+        private final boolean persisted;
+
+        AbstractValue(boolean persisted) {
+            this.persisted = persisted;
+        }
+
+        @Override
+        public boolean isPersisted() {
+            return persisted;
+        }
+    }
+
+    public static final class SimpleString extends AbstractValue implements StringValue {
 
         private volatile String value;
 
+        public SimpleString(boolean persisted, String value) {
+            super(persisted);
+            this.value = value;
+        }
+
         public SimpleString() {
+            super(false);
         }
 
         public SimpleString(String value) {
-            this.value = value;
+            this(false, value);
+        }
+
+        public SimpleString(WiredString src) {
+            this(src.isPersisted(), src.value());
         }
 
         @Override
@@ -58,15 +82,16 @@ public final class Values {
         }
     }
 
-    public static final class WiredString implements StringValue {
+    public static final class WiredString extends AbstractValue implements StringValue {
 
         private final Supplier<String> getter;
 
         private final Consumer<String> setter;
 
-        public WiredString(Supplier<String> getter, Consumer<String> setter) {
+        public WiredString(boolean persisted, Supplier<String> getter, Consumer<String> setter) {
+            super(persisted);
             this.getter = requireNonNull(getter);
-            this.setter = requireNonNull(setter);
+            this.setter = setter;
         }
 
         @Override
@@ -76,19 +101,36 @@ public final class Values {
 
         @Override
         public void value(String value) {
-            setter.accept(value);
+            if (setter != null) {
+                setter.accept(value);
+            }
+        }
+
+        @Override
+        public boolean isReadOnly() {
+            return setter != null;
         }
     }
 
-    public static final class SimpleBoolean implements BooleanValue {
+    public static final class SimpleBoolean extends AbstractValue implements BooleanValue {
 
         private volatile boolean value;
 
+        public SimpleBoolean(boolean persisted, boolean value) {
+            super(persisted);
+            this.value = value;
+        }
+
         public SimpleBoolean() {
+            super(false);
         }
 
         public SimpleBoolean(boolean value) {
-            this.value = value;
+            this(false, value);
+        }
+
+        public SimpleBoolean(WiredBoolean src) {
+            this(src.isPersisted(), src.value());
         }
 
         @Override
@@ -102,15 +144,16 @@ public final class Values {
         }
     }
 
-    public static final class WiredBoolean implements BooleanValue {
+    public static final class WiredBoolean extends AbstractValue implements BooleanValue {
 
         private final BooleanSupplier getter;
 
         private final BooleanConsumer setter;
 
-        public WiredBoolean(BooleanSupplier getter, BooleanConsumer setter) {
+        public WiredBoolean(boolean persisted, BooleanSupplier getter, BooleanConsumer setter) {
+            super(persisted);
             this.getter = requireNonNull(getter);
-            this.setter = requireNonNull(setter);
+            this.setter = setter;
         }
 
         @Override
@@ -120,19 +163,36 @@ public final class Values {
 
         @Override
         public void value(boolean value) {
-            setter.accept(value);
+            if (setter != null) {
+                setter.accept(value);
+            }
+        }
+
+        @Override
+        public boolean isReadOnly() {
+            return setter != null;
         }
     }
 
-    public static final class SimpleLong implements LongValue {
+    public static final class SimpleLong extends AbstractValue implements LongValue {
 
         private volatile long value;
 
+        public SimpleLong(boolean persisted, long value) {
+            super(persisted);
+            this.value = value;
+        }
+
         public SimpleLong() {
+            super(false);
         }
 
         public SimpleLong(long value) {
-            this.value = value;
+            this(false, value);
+        }
+
+        public SimpleLong(WiredLong src) {
+            this(src.isPersisted(), src.value());
         }
 
         @Override
@@ -146,15 +206,16 @@ public final class Values {
         }
     }
 
-    public static final class WiredLong implements LongValue {
+    public static final class WiredLong extends AbstractValue implements LongValue {
 
         private final LongSupplier getter;
 
         private final LongConsumer setter;
 
-        public WiredLong(LongSupplier getter, LongConsumer setter) {
-            this.getter = requireNonNull(getter);
-            this.setter = requireNonNull(setter);
+        public WiredLong(boolean persisted, LongSupplier getter, LongConsumer setter) {
+            super(persisted);
+            this.getter = getter;
+            this.setter = setter;
         }
 
         @Override
@@ -164,19 +225,36 @@ public final class Values {
 
         @Override
         public void value(long value) {
-            setter.accept(value);
+            if (setter != null) {
+                setter.accept(value);
+            }
+        }
+
+        @Override
+        public boolean isReadOnly() {
+            return setter != null;
         }
     }
 
-    public static final class SimpleDouble implements DoubleValue {
+    public static final class SimpleDouble extends AbstractValue implements DoubleValue {
 
         private volatile double value;
 
+        public SimpleDouble(boolean persisted, double value) {
+            super(persisted);
+            this.value = value;
+        }
+
         public SimpleDouble() {
+            super(false);
         }
 
         public SimpleDouble(double value) {
-            this.value = value;
+            this(false, value);
+        }
+
+        public SimpleDouble(WiredDouble src) {
+            this(src.isPersisted(), src.value());
         }
 
         @Override
@@ -190,15 +268,16 @@ public final class Values {
         }
     }
 
-    public static final class WiredDouble implements DoubleValue {
+    public static final class WiredDouble extends AbstractValue implements DoubleValue {
 
         private final DoubleSupplier getter;
 
         private final DoubleConsumer setter;
 
-        public WiredDouble(DoubleSupplier getter, DoubleConsumer setter) {
-            this.getter = requireNonNull(getter);
-            this.setter = requireNonNull(setter);
+        public WiredDouble(boolean persisted, DoubleSupplier getter, DoubleConsumer setter) {
+            super(persisted);
+            this.getter = getter;
+            this.setter = setter;
         }
 
         @Override
@@ -208,7 +287,14 @@ public final class Values {
 
         @Override
         public void value(double value) {
-            setter.accept(value);
+            if (setter != null) {
+                setter.accept(value);
+            }
+        }
+
+        @Override
+        public boolean isReadOnly() {
+            return setter != null;
         }
     }
 
@@ -251,13 +337,13 @@ public final class Values {
     public static ConfigValue toSimpleValue(ConfigValue value) {
         final ConfigValue result;
         if (value instanceof WiredString) {
-            result = new SimpleString(((WiredString) value).value());
+            result = new SimpleString((WiredString) value);
         } else if (value instanceof WiredBoolean) {
-            result = new SimpleBoolean(((WiredBoolean) value).value());
+            result = new SimpleBoolean((WiredBoolean) value);
         } else if (value instanceof WiredLong) {
-            result = new SimpleLong(((WiredLong) value).value());
+            result = new SimpleLong((WiredLong) value);
         } else if (value instanceof WiredDouble) {
-            result = new SimpleDouble(((WiredDouble) value).value());
+            result = new SimpleDouble((WiredDouble) value);
         } else {
             result = value;
         }

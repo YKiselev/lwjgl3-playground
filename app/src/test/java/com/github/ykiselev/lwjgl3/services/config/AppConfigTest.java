@@ -207,11 +207,11 @@ class AppConfigTest {
             assertEquals("5", toWire.var5());
 
             cfg.wire(new WiredValues()
-                    .withInt("a.int", toWire::var1, toWire::var1)
-                    .withBoolean("a.boolean2", toWire::var2, toWire::var2)
-                    .withLong("a.long", toWire::var3, toWire::var3)
-                    .withDouble("a.double", toWire::var4, toWire::var4)
-                    .withString("a.string", toWire::var5, toWire::var5)
+                    .withInt("a.int", toWire::var1, toWire::var1, false)
+                    .withBoolean("a.boolean2", toWire::var2, toWire::var2, false)
+                    .withLong("a.long", toWire::var3, toWire::var3, false)
+                    .withDouble("a.double", toWire::var4, toWire::var4, false)
+                    .withString("a.string", toWire::var5, toWire::var5, false)
                     .build());
 
             assertEquals(123, toWire.var1());

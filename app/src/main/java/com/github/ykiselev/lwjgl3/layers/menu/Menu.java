@@ -29,6 +29,7 @@ import com.github.ykiselev.playground.ui.elements.Link;
 import com.github.ykiselev.playground.ui.elements.Slider;
 import com.github.ykiselev.playground.ui.menus.ListMenu;
 import com.github.ykiselev.playground.ui.menus.ListMenu.MenuItem;
+import com.github.ykiselev.playground.ui.models.checkbox.ConfigurationBoundCheckBoxModel;
 import com.github.ykiselev.playground.ui.models.checkbox.SimpleCheckBoxModel;
 import com.github.ykiselev.playground.ui.models.slider.ConfigurationBoundSliderModel;
 import com.github.ykiselev.playground.ui.models.slider.SliderDefinition;
@@ -141,6 +142,13 @@ public final class Menu implements UiLayer, AutoCloseable, Removable {
                         new CheckBox(
                                 new SimpleCheckBoxModel(m -> effectsSlider.enable(m.checked()), true)
                                 //new ConfigurationBoundCheckBoxModel(configuration, "sound.flag1"),
+                        )
+                ),
+                new MenuItem(
+                        "Is Game Present?",
+                        new CheckBox(
+                                //new SimpleCheckBoxModel(m -> effectsSlider.enable(m.checked()), true)
+                                new ConfigurationBoundCheckBoxModel(configuration.root(), "game.isPresent")
                         )
                 ),
                 new MenuItem("Effects", effectsSlider),

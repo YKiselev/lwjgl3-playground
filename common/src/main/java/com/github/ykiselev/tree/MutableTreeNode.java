@@ -163,17 +163,6 @@ public final class MutableTreeNode<K, V> implements Node<MutableTreeNode<K, V>> 
         return null;
     }
 
-    MutableTreeNode<K, V> merge(MutableTreeNode<K, V> other) {
-        if (other == null) {
-            return this;
-        }
-        if (!Objects.equals(key, other.key)) {
-            throw new IllegalStateException("Can not merge nodes with different keys: " + key + " != " + other.key);
-        }
-        // todo
-        return null;
-    }
-
     TreeNode<K, V> emit() {
         if (children != null && !children.isEmpty()) {
             final Function<MutableTreeNode<K, V>, TreeNode<K, V>> transformation = MutableTreeNode::emit;

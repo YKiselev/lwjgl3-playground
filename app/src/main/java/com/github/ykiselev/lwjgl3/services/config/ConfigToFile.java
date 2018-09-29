@@ -30,7 +30,6 @@ import java.nio.channels.Channels;
 import java.nio.channels.WritableByteChannel;
 import java.util.Map;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static java.util.Objects.requireNonNull;
@@ -63,21 +62,18 @@ final class ConfigToFile implements Consumer<Map<String, Object>> {
     private String asString(Map<String, Object> config) {
         return ConfigFactory.parseMap(
                 transform(config)
-        ).root()
-                .render(
-                        ConfigRenderOptions.defaults()
-                                .setFormatted(true)
-                                .setOriginComments(false)
-                                .setJson(false)
-                );
+        ).root().render(
+                ConfigRenderOptions.defaults()
+                        .setFormatted(true)
+                        .setOriginComments(false)
+                        .setJson(false)
+        );
     }
 
     private Map<String, Object> transform(Map<String, Object> src) {
-        final Predicate<Map.Entry<String, Object>> valuesOnly = e ->
-                e.getValue() instanceof ConfigValue;
         return src.entrySet()
                 .stream()
-                .filter(valuesOnly)
+                .filter(e -> e.getValue() instanceof ConfigValue && ((ConfigValue) e.getValue()).isPersisted())
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
                         e -> ((ConfigValue) e.getValue()).boxed()

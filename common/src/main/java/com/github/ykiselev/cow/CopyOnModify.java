@@ -32,11 +32,11 @@ public final class CopyOnModify<V> {
 
     private static final VarHandle VH;
 
-    private volatile V item;
+    private volatile V value;
 
     static {
         try {
-            VH = MethodHandles.lookup().findVarHandle(CopyOnModify.class, "item", Object.class);
+            VH = MethodHandles.lookup().findVarHandle(CopyOnModify.class, "value", Object.class);
         } catch (NoSuchFieldException | IllegalAccessException e) {
             throw new Error(e);
         }
@@ -45,38 +45,39 @@ public final class CopyOnModify<V> {
     /**
      * Note: It is user's responsibility to not modify returned value!
      *
-     * @return the current value of item
+     * @return the current value
      */
-    public V item() {
-        return item;
+    public V value() {
+        return value;
     }
 
     /**
      * Primary ctor.
      *
-     * @param item the initial value.
+     * @param value the initial value.
      * @throws NullPointerException if supplied value is {@code null}.
      */
-    public CopyOnModify(V item) throws NullPointerException {
-        this.item = requireNonNull(item);
+    public CopyOnModify(V value) throws NullPointerException {
+        this.value = requireNonNull(value);
     }
 
     /**
      * Creates new value from current using supplied operator and then sets it using {@link VarHandle#compareAndSet(Object...)} method.
-     * This process may be repeated several times until CAS returns {@code true}. It is important for supplied operator
-     * to create fresh value each time it is invoked!
+     * This process may be repeated several times until CAS returns {@code true}.
      *
-     * @param operator the operator to create new distinct copy of stored value. It is an error to return the same value!
+     * @param operator the operator to create new distinct copy of stored value. It is an error to return the same instance!
+     * @return the previous value
+     * @throws IllegalStateException if new value is the same instance as before
      */
-    public void modify(UnaryOperator<V> operator) {
+    public V modify(UnaryOperator<V> operator) throws IllegalStateException {
         for (; ; ) {
-            final V before = this.item;
+            final V before = this.value;
             final V after = operator.apply(before);
             if (before == after) {
-                throw new IllegalStateException("New value should not be identical to previous!");
+                throw new IllegalStateException("New value cannot be the same instance as previous!");
             }
             if (VH.compareAndSet(this, before, after)) {
-                break;
+                return before;
             }
         }
     }

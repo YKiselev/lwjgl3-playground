@@ -16,15 +16,19 @@
 
 package com.github.ykiselev.lwjgl3.host;
 
+import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.closeables.Closeables;
 import com.github.ykiselev.components.Game;
-import com.github.ykiselev.services.events.SubscriptionsBuilder;
 import com.github.ykiselev.services.PersistedConfiguration;
 import com.github.ykiselev.services.Services;
+import com.github.ykiselev.services.configuration.WiredValues;
+import com.github.ykiselev.services.events.SubscriptionsBuilder;
 import com.github.ykiselev.services.events.game.NewGameEvent;
 import com.github.ykiselev.services.layers.UiLayers;
 import com.github.ykiselev.spi.ClassFromName;
 import com.github.ykiselev.spi.InstanceFromClass;
+import com.github.ykiselev.wrap.Wrap;
+import com.typesafe.config.Config;
 
 import java.util.function.UnaryOperator;
 
@@ -45,12 +49,10 @@ public final class GameEvents implements AutoCloseable, UnaryOperator<Subscripti
         this.services = requireNonNull(services);
     }
 
-    private NewGameEvent onNewGameEvent(NewGameEvent event) {
-        final String factoryClassName = services.resolve(PersistedConfiguration.class)
-                .root()
-                .getString("game.factory");
+    private void onNewGameEvent(NewGameEvent event) {
         synchronized (lock) {
             closeGame();
+            final String factoryClassName = getFactoryClassName();
             game = new InstanceFromClass<Game>(
                     new ClassFromName(factoryClassName),
                     services
@@ -58,7 +60,14 @@ public final class GameEvents implements AutoCloseable, UnaryOperator<Subscripti
             services.resolve(UiLayers.class)
                     .bringToFront(game);
         }
-        return null;
+    }
+
+    private String getFactoryClassName() {
+        final Wrap<Config> wrap = services.resolve(Assets.class)
+                .load("game.conf", Config.class);
+        try (wrap) {
+            return wrap.value().getString("game.factory");
+        }
     }
 
     @Override
@@ -77,9 +86,17 @@ public final class GameEvents implements AutoCloseable, UnaryOperator<Subscripti
         }
     }
 
+    private boolean isPresent() {
+        return game != null;
+    }
+
     @Override
     public SubscriptionsBuilder apply(SubscriptionsBuilder builder) {
         return builder.with(NewGameEvent.class, this::onNewGameEvent)
+                .and(services.resolve(PersistedConfiguration.class)
+                        .wire(new WiredValues()
+                                .withBoolean("game.isPresent", this::isPresent, false)
+                                .build()))
                 .and(this);
     }
 }
