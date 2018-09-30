@@ -14,24 +14,32 @@
  * limitations under the License.
  */
 
-package com.github.ykiselev.services.events.game;
+package com.github.ykiselev.services.commands;
 
+import com.github.ykiselev.services.Services;
 import com.github.ykiselev.services.events.EventFromCommand;
+import com.github.ykiselev.services.events.Events;
 
-import java.util.Collection;
+import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class QuitEvent implements EventFromCommand<QuitEvent> {
+public final class EventFiringHandler<E> implements Consumer<List<String>> {
 
-    public static final QuitEvent INSTANCE = new QuitEvent();
+    private final Services services;
 
-    private QuitEvent() {
+    private final EventFromCommand<E> factory;
+
+    public EventFiringHandler(Services services, EventFromCommand<E> factory) {
+        this.services = services;
+        this.factory = factory;
     }
 
     @Override
-    public QuitEvent fromCommand(Collection<String> args) {
-        return INSTANCE;
+    public void accept(List<String> args) {
+        services.resolve(Events.class)
+                .fire(factory.fromCommand(args));
     }
 }

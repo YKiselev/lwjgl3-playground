@@ -40,7 +40,6 @@ import com.github.ykiselev.services.Services;
 import com.github.ykiselev.services.SoundEffects;
 import com.github.ykiselev.services.commands.Commands;
 import com.github.ykiselev.services.events.Events;
-import com.github.ykiselev.services.events.SubscriptionsBuilder;
 import com.github.ykiselev.services.layers.UiLayers;
 import com.github.ykiselev.services.schedule.Schedule;
 
@@ -69,7 +68,8 @@ public final class Host implements Runnable {
         final Services services = new MapBasedServices();
         final CompositeAutoCloseable ac = new CompositeAutoCloseable(services)
                 .and(registerServices(services))
-                .and(subscribe(services))
+                .with(new MenuEvents(services))
+                .with(new GameEvents(services))
                 .reverse();
         try (ac) {
             delegate.accept(services);
@@ -95,12 +95,5 @@ public final class Host implements Runnable {
                 new DiskResources(args.assetPaths()),
                 new ClassPathResources(getClass().getClassLoader())
         );
-    }
-
-    private CompositeAutoCloseable subscribe(Services services) {
-        return new SubscriptionsBuilder(services.resolve(Events.class))
-                .with(new MenuEvents(services))
-                .with(new GameEvents(services))
-                .build();
     }
 }

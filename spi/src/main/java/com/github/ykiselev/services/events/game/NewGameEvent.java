@@ -16,13 +16,22 @@
 
 package com.github.ykiselev.services.events.game;
 
+import com.github.ykiselev.services.events.EventFromCommand;
+
+import java.util.Collection;
+
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class NewGameEvent {
+public final class NewGameEvent implements EventFromCommand<NewGameEvent> {
 
     public static final NewGameEvent INSTANCE = new NewGameEvent();
 
     private NewGameEvent() {
+    }
+
+    @Override
+    public NewGameEvent fromCommand(Collection<String> args) {
+        return INSTANCE;
     }
 }

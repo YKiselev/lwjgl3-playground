@@ -17,9 +17,10 @@
 package com.github.ykiselev.lwjgl3.host;
 
 import com.github.ykiselev.closeables.Closeables;
-import com.github.ykiselev.services.events.SubscriptionsBuilder;
+import com.github.ykiselev.closeables.CompositeAutoCloseable;
 import com.github.ykiselev.lwjgl3.layers.menu.Menu;
 import com.github.ykiselev.services.Services;
+import com.github.ykiselev.services.events.Events;
 import com.github.ykiselev.services.events.menu.ShowMenuEvent;
 import com.github.ykiselev.services.layers.UiLayers;
 import com.github.ykiselev.services.schedule.Schedule;
@@ -32,7 +33,7 @@ import static java.util.Objects.requireNonNull;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class MenuEvents implements AutoCloseable, UnaryOperator<SubscriptionsBuilder> {
+public final class MenuEvents implements AutoCloseable, UnaryOperator<CompositeAutoCloseable> {
 
     private final Services services;
 
@@ -44,7 +45,7 @@ public final class MenuEvents implements AutoCloseable, UnaryOperator<Subscripti
         this.services = requireNonNull(services);
     }
 
-    private ShowMenuEvent onShowMenuEvent(ShowMenuEvent event) {
+    private void onShowMenuEvent() {
         synchronized (lock) {
             if (menu == null) {
                 menu = new Menu(services);
@@ -54,7 +55,6 @@ public final class MenuEvents implements AutoCloseable, UnaryOperator<Subscripti
             services.resolve(UiLayers.class)
                     .push(menu);
         }
-        return null;
     }
 
     private boolean recycle() {
@@ -78,8 +78,10 @@ public final class MenuEvents implements AutoCloseable, UnaryOperator<Subscripti
     }
 
     @Override
-    public SubscriptionsBuilder apply(SubscriptionsBuilder builder) {
-        return builder.with(ShowMenuEvent.class, this::onShowMenuEvent)
-                .and(this);
+    public CompositeAutoCloseable apply(CompositeAutoCloseable builder) {
+        return builder.and(
+                services.resolve(Events.class)
+                        .subscribe(ShowMenuEvent.class, this::onShowMenuEvent)
+        ).and(this);
     }
 }

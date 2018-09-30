@@ -21,8 +21,9 @@ import com.github.ykiselev.lwjgl3.app.window.AppWindow;
 import com.github.ykiselev.lwjgl3.app.window.WindowBuilder;
 import com.github.ykiselev.lwjgl3.host.ProgramArguments;
 import com.github.ykiselev.services.Services;
+import com.github.ykiselev.services.commands.Commands;
+import com.github.ykiselev.services.commands.EventFiringHandler;
 import com.github.ykiselev.services.events.Events;
-import com.github.ykiselev.services.events.SubscriptionsBuilder;
 import com.github.ykiselev.services.events.game.NewGameEvent;
 import com.github.ykiselev.services.events.game.QuitEvent;
 import com.github.ykiselev.services.layers.UiLayers;
@@ -57,6 +58,7 @@ public final class MainLoop implements Runnable {
              CompositeAutoCloseable ac = subscribe()
         ) {
             window.show();
+            // todo - remove that
             services.resolve(Events.class)
                     .fire(NewGameEvent.INSTANCE);
             glfwSwapInterval(args.swapInterval());
@@ -85,12 +87,15 @@ public final class MainLoop implements Runnable {
     }
 
     private CompositeAutoCloseable subscribe() {
-        return new SubscriptionsBuilder(services.resolve(Events.class))
-                .with(QuitEvent.class, this::onQuit)
-                .build();
+        return new CompositeAutoCloseable(
+                services.resolve(Events.class)
+                        .subscribe(QuitEvent.class, this::onQuit),
+                services.resolve(Commands.class)
+                        .add("quit", new EventFiringHandler<>(services, QuitEvent.INSTANCE))
+        );
     }
 
-    private void onQuit(QuitEvent event) {
+    private void onQuit() {
         exitFlag = true;
     }
 }

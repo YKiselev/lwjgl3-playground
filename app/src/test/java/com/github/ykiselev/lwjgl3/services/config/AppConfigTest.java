@@ -52,7 +52,7 @@ import static org.mockito.Mockito.when;
 @DisplayName("app config")
 class AppConfigTest {
 
-    static class ToWire {
+    static class State {
 
         private int var1 = 1;
 
@@ -198,7 +198,7 @@ class AppConfigTest {
 
         @Test
         void shouldWireAndSetVariable() {
-            ToWire toWire = new ToWire();
+            State toWire = new State();
 
             assertEquals(1, toWire.var1());
             assertTrue(toWire.var2());
@@ -233,6 +233,25 @@ class AppConfigTest {
                     cfg.root().getStringList("a.string"));
             assertThrows(ClassCastException.class, () ->
                     cfg.root().getList("b.stringList", Number.class));
+        }
+
+        @Test
+        void shouldListAllVariablesAndConstLists() {
+            assertArrayEquals(
+                    new String[]{
+                            "a.boolean1",
+                            "a.boolean2",
+                            "a.double",
+                            "a.float",
+                            "a.int",
+                            "a.long",
+                            "a.string",
+                            "b.stringList"
+                    },
+                    cfg.root().names()
+                            .sorted()
+                            .toArray()
+            );
         }
     }
 

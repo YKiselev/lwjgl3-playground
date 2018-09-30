@@ -54,13 +54,14 @@ public final class AppSoundEffects implements SoundEffects, AutoCloseable {
 
         long device = alcOpenDevice(deviceName);
         if (device == NULL) {
-            device = alcOpenDevice((CharSequence) null);
+            deviceName = null;
+            device = alcOpenDevice(deviceName);
             if (device == NULL) {
                 throw new IllegalArgumentException("No device found!");
             }
         }
+
         this.device = new SoundDevice(services, device);
-        //this.subscriptions = ac.and(settings.register(cfg));
     }
 
     private void setDeviceName(String value) {

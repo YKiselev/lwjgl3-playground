@@ -19,6 +19,7 @@ package com.github.ykiselev.services.configuration;
 import com.github.ykiselev.services.configuration.values.ConfigValue;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 import static java.util.Objects.requireNonNull;
 
@@ -58,5 +59,10 @@ public final class RelativeConfig implements Config {
     @Override
     public boolean hasVariable(String path) {
         return delegate.hasVariable(path(path));
+    }
+
+    @Override
+    public Stream<String> names() {
+        return delegate.names();
     }
 }

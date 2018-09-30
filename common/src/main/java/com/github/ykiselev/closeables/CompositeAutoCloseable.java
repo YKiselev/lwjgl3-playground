@@ -17,6 +17,7 @@
 package com.github.ykiselev.closeables;
 
 import java.util.Arrays;
+import java.util.function.UnaryOperator;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
@@ -44,6 +45,10 @@ public final class CompositeAutoCloseable implements AutoCloseable {
         final AutoCloseable[] array = Arrays.copyOf(closeables, closeables.length + 1);
         array[closeables.length] = value;
         return new CompositeAutoCloseable(array);
+    }
+
+    public CompositeAutoCloseable with(UnaryOperator<CompositeAutoCloseable> value) {
+        return value.apply(this);
     }
 
     public CompositeAutoCloseable reverse() {

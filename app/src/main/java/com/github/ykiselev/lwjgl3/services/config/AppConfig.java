@@ -34,7 +34,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import static java.util.Objects.requireNonNull;
 
@@ -50,6 +52,9 @@ public final class AppConfig implements PersistedConfiguration, AutoCloseable {
     private final Consumer<Map<String, Object>> writer;
 
     private final Config root = new Config() {
+
+        private final Predicate<Object> varFilter = obj ->
+                obj instanceof ConfigValue || obj instanceof ConstantList;
 
         @SuppressWarnings("unchecked")
         @Override
@@ -86,8 +91,16 @@ public final class AppConfig implements PersistedConfiguration, AutoCloseable {
 
         @Override
         public boolean hasVariable(String path) {
-            final Object raw = getRawValue(path);
-            return raw instanceof ConfigValue || raw instanceof ConstantList;
+            return varFilter.test(getRawValue(path));
+        }
+
+        @Override
+        public Stream<String> names() {
+            return config.value()
+                    .entrySet()
+                    .stream()
+                    .filter(e -> varFilter.test(e.getValue()))
+                    .map(Map.Entry::getKey);
         }
     };
 

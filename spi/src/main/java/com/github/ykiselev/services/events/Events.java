@@ -38,6 +38,18 @@ public interface Events {
     <T> AutoCloseable subscribe(Class<T> eventClass, Consumer<T> handler);
 
     /**
+     * Subscribes to specified event class. Convenient method for cases when event object isn't needed.
+     *
+     * @param <T>        the type parameter
+     * @param eventClass the event class to subscribe to
+     * @param handler    the event handler that will be called on event of specified class
+     * @return the subscription object. To unsubscribe call it's {@link AutoCloseable#close()} method.
+     */
+    default <T> AutoCloseable subscribe(Class<T> eventClass, Runnable handler) {
+        return subscribe(eventClass, evt -> handler.run());
+    }
+
+    /**
      * Registers filter for specified event class
      *
      * @param <T>        the type parameter

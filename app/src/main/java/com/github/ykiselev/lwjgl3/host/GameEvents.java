@@ -18,11 +18,14 @@ package com.github.ykiselev.lwjgl3.host;
 
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.closeables.Closeables;
+import com.github.ykiselev.closeables.CompositeAutoCloseable;
 import com.github.ykiselev.components.Game;
 import com.github.ykiselev.services.PersistedConfiguration;
 import com.github.ykiselev.services.Services;
+import com.github.ykiselev.services.commands.Commands;
+import com.github.ykiselev.services.commands.EventFiringHandler;
 import com.github.ykiselev.services.configuration.WiredValues;
-import com.github.ykiselev.services.events.SubscriptionsBuilder;
+import com.github.ykiselev.services.events.Events;
 import com.github.ykiselev.services.events.game.NewGameEvent;
 import com.github.ykiselev.services.layers.UiLayers;
 import com.github.ykiselev.spi.ClassFromName;
@@ -37,7 +40,9 @@ import static java.util.Objects.requireNonNull;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class GameEvents implements AutoCloseable, UnaryOperator<SubscriptionsBuilder> {
+public final class GameEvents implements AutoCloseable, UnaryOperator<CompositeAutoCloseable> {
+
+    public static final String NEW_GAME = "new-game";
 
     private final Services services;
 
@@ -47,19 +52,6 @@ public final class GameEvents implements AutoCloseable, UnaryOperator<Subscripti
 
     public GameEvents(Services services) {
         this.services = requireNonNull(services);
-    }
-
-    private void onNewGameEvent(NewGameEvent event) {
-        synchronized (lock) {
-            closeGame();
-            final String factoryClassName = getFactoryClassName();
-            game = new InstanceFromClass<Game>(
-                    new ClassFromName(factoryClassName),
-                    services
-            ).get();
-            services.resolve(UiLayers.class)
-                    .bringToFront(game);
-        }
     }
 
     private String getFactoryClassName() {
@@ -86,17 +78,31 @@ public final class GameEvents implements AutoCloseable, UnaryOperator<Subscripti
         }
     }
 
-    private boolean isPresent() {
-        return game != null;
+    @Override
+    public CompositeAutoCloseable apply(CompositeAutoCloseable builder) {
+        return builder.and(
+                services.resolve(Events.class)
+                        .subscribe(NewGameEvent.class, this::onNewGame)
+        ).and(
+                services.resolve(Commands.class)
+                        .add(NEW_GAME, new EventFiringHandler<>(services, NewGameEvent.INSTANCE))
+        ).and(
+                services.resolve(PersistedConfiguration.class)
+                        .wire(new WiredValues()
+                                .withBoolean("game.isPresent", () -> game != null, false)
+                                .build())
+        ).and(this);
     }
 
-    @Override
-    public SubscriptionsBuilder apply(SubscriptionsBuilder builder) {
-        return builder.with(NewGameEvent.class, this::onNewGameEvent)
-                .and(services.resolve(PersistedConfiguration.class)
-                        .wire(new WiredValues()
-                                .withBoolean("game.isPresent", this::isPresent, false)
-                                .build()))
-                .and(this);
+    private void onNewGame() {
+        synchronized (lock) {
+            closeGame();
+            game = new InstanceFromClass<Game>(
+                    new ClassFromName(getFactoryClassName()),
+                    services
+            ).get();
+            services.resolve(UiLayers.class)
+                    .bringToFront(game);
+        }
     }
 }

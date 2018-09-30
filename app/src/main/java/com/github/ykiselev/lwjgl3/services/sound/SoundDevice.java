@@ -78,14 +78,12 @@ final class SoundDevice implements AutoCloseable {
         logger.info("Is OpenALC11 ? {}, has ALC_EXT_EFX ? {}", capabilities.OpenALC11, capabilities.ALC_EXT_EFX);
 
         if (capabilities.OpenALC11) {
-            logger.info("Is device enumeration supported? {}", capabilities.ALC_ENUMERATE_ALL_EXT);
             List<String> devices = getStringList(NULL, ALC11.ALC_ALL_DEVICES_SPECIFIER);
             if (devices == null) {
                 assertNoAlErrors();
             } else {
                 logger.info("All devices: {}", devices);
             }
-            //logger.info("#5 devices: {}", ALC11.alcGetString(NULL, ALC11.ALC_ALL_DEVICES_SPECIFIER));
         }
         final String defaultDeviceSpecifier = alcGetString(NULL, ALC10.ALC_DEFAULT_DEVICE_SPECIFIER);
         logger.info("Default device: {}", defaultDeviceSpecifier);

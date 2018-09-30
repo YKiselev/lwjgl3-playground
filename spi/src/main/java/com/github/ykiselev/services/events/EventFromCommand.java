@@ -14,24 +14,14 @@
  * limitations under the License.
  */
 
-package com.github.ykiselev.services.events.game;
-
-import com.github.ykiselev.services.events.EventFromCommand;
+package com.github.ykiselev.services.events;
 
 import java.util.Collection;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class QuitEvent implements EventFromCommand<QuitEvent> {
+public interface EventFromCommand<E> {
 
-    public static final QuitEvent INSTANCE = new QuitEvent();
-
-    private QuitEvent() {
-    }
-
-    @Override
-    public QuitEvent fromCommand(Collection<String> args) {
-        return INSTANCE;
-    }
+    E fromCommand(Collection<String> args);
 }
