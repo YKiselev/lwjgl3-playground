@@ -47,7 +47,6 @@
         <module>spi</module>
         <module>ui</module>
         <module>base</module>
-        <module>test</module>
     </modules>
 
     <dependencyManagement>
