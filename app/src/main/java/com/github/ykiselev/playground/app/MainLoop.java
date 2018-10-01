@@ -19,6 +19,9 @@ package com.github.ykiselev.playground.app;
 import com.github.ykiselev.closeables.CompositeAutoCloseable;
 import com.github.ykiselev.playground.app.window.AppWindow;
 import com.github.ykiselev.playground.app.window.WindowBuilder;
+import com.github.ykiselev.playground.host.ConsoleEvents;
+import com.github.ykiselev.playground.host.GameEvents;
+import com.github.ykiselev.playground.host.MenuEvents;
 import com.github.ykiselev.playground.host.ProgramArguments;
 import com.github.ykiselev.services.Services;
 import com.github.ykiselev.services.commands.Commands;
@@ -55,17 +58,20 @@ public final class MainLoop implements Runnable {
     @Override
     public void run() {
         try (AppWindow window = createWindow(services);
+             GameEvents gameEvents = new GameEvents(services);
              CompositeAutoCloseable ac = subscribe()
         ) {
             window.show();
             // todo - remove that
             services.resolve(Events.class)
                     .fire(NewGameEvent.INSTANCE);
+            //
             glfwSwapInterval(args.swapInterval());
             logger.info("Entering main loop...");
             final Schedule schedule = services.resolve(Schedule.class);
             final UiLayers layers = services.resolve(UiLayers.class);
             while (!window.shouldClose() && !exitFlag) {
+                gameEvents.update();
                 window.checkEvents();
                 layers.draw();
                 window.swapBuffers();

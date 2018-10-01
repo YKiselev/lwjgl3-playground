@@ -25,6 +25,11 @@ public interface Game extends UiLayer, AutoCloseable {
 
     @Override
     default Kind kind() {
-        return Kind.NORMAL;
+        return Kind.GAME;
     }
+
+    /**
+     * Should be called in main loop each frame.
+     */
+    void update();
 }

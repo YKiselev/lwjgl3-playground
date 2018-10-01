@@ -22,6 +22,7 @@ import com.github.ykiselev.closeables.CompositeAutoCloseable;
 import com.github.ykiselev.components.Game;
 import com.github.ykiselev.services.PersistedConfiguration;
 import com.github.ykiselev.services.Services;
+import com.github.ykiselev.services.Updateable;
 import com.github.ykiselev.services.commands.Commands;
 import com.github.ykiselev.services.commands.EventFiringHandler;
 import com.github.ykiselev.services.configuration.WiredValues;
@@ -33,14 +34,12 @@ import com.github.ykiselev.spi.InstanceFromClass;
 import com.github.ykiselev.wrap.Wrap;
 import com.typesafe.config.Config;
 
-import java.util.function.UnaryOperator;
-
 import static java.util.Objects.requireNonNull;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class GameEvents implements AutoCloseable, UnaryOperator<CompositeAutoCloseable> {
+public final class GameEvents implements AutoCloseable, Updateable {
 
     private final Services services;
 
@@ -48,8 +47,21 @@ public final class GameEvents implements AutoCloseable, UnaryOperator<CompositeA
 
     private final Object lock = new Object();
 
+    private final AutoCloseable subscriptions;
+
     public GameEvents(Services services) {
         this.services = requireNonNull(services);
+        this.subscriptions = new CompositeAutoCloseable(
+                services.resolve(Events.class)
+                        .subscribe(NewGameEvent.class, this::onNewGame),
+                services.resolve(Commands.class)
+                        .add("new-game", new EventFiringHandler<>(services, NewGameEvent.INSTANCE)),
+                services.resolve(PersistedConfiguration.class)
+                        .wire(new WiredValues()
+                                .withBoolean("game.isPresent", () -> game != null, false)
+                                .build())
+        );
+
     }
 
     private String getFactoryClassName() {
@@ -61,8 +73,17 @@ public final class GameEvents implements AutoCloseable, UnaryOperator<CompositeA
     }
 
     @Override
+    public void update() {
+        final Game game = this.game;
+        if (game != null) {
+            game.update();
+        }
+    }
+
+    @Override
     public void close() {
         closeGame();
+        Closeables.close(subscriptions);
     }
 
     private void closeGame() {
@@ -76,22 +97,6 @@ public final class GameEvents implements AutoCloseable, UnaryOperator<CompositeA
         }
     }
 
-    @Override
-    public CompositeAutoCloseable apply(CompositeAutoCloseable builder) {
-        return builder.and(
-                services.resolve(Events.class)
-                        .subscribe(NewGameEvent.class, this::onNewGame)
-        ).and(
-                services.resolve(Commands.class)
-                        .add("new-game", new EventFiringHandler<>(services, NewGameEvent.INSTANCE))
-        ).and(
-                services.resolve(PersistedConfiguration.class)
-                        .wire(new WiredValues()
-                                .withBoolean("game.isPresent", () -> game != null, false)
-                                .build())
-        ).and(this);
-    }
-
     private void onNewGame() {
         synchronized (lock) {
             closeGame();
@@ -99,8 +104,7 @@ public final class GameEvents implements AutoCloseable, UnaryOperator<CompositeA
                     new ClassFromName(getFactoryClassName()),
                     services
             ).get();
-            services.resolve(UiLayers.class)
-                    .bringToFront(game);
+            services.resolve(UiLayers.class).add(game);
         }
     }
 }

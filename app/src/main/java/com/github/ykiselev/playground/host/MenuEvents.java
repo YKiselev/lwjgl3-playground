@@ -52,8 +52,7 @@ public final class MenuEvents implements AutoCloseable, UnaryOperator<CompositeA
                 services.resolve(Schedule.class)
                         .schedule(10, TimeUnit.SECONDS, this::recycle);
             }
-            services.resolve(UiLayers.class)
-                    .push(menu);
+            services.resolve(UiLayers.class).add(menu);
         }
     }
 

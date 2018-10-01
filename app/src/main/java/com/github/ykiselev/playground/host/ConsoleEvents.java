@@ -42,8 +42,7 @@ public final class ConsoleEvents implements AutoCloseable, UnaryOperator<Composi
     public ConsoleEvents(Services services) {
         this.services = requireNonNull(services);
         this.console = new AppConsole(null);
-        services.resolve(UiLayers.class)
-                .bringToFront(console);
+        services.resolve(UiLayers.class).add(console);
     }
 
     @Override

@@ -71,7 +71,6 @@ public final class Host implements Runnable {
                 .and(registerServices(services))
                 .with(new MenuEvents(services))
                 .with(new ConsoleEvents(services))
-                .with(new GameEvents(services))
                 .reverse();
         try (ac) {
             delegate.accept(services);

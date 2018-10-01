@@ -241,6 +241,11 @@ public final class BaseGame implements Game {
     }
 
     @Override
+    public void update() {
+        // todo
+    }
+
+    @Override
     public void close() throws Exception {
         spriteBatch.close();
         liberationMono.close();

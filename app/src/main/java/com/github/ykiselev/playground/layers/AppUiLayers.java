@@ -21,8 +21,9 @@ import com.github.ykiselev.services.layers.UiLayer;
 import com.github.ykiselev.services.layers.UiLayers;
 import com.github.ykiselev.window.WindowEvents;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.function.Predicate;
 
 /**
@@ -30,7 +31,11 @@ import java.util.function.Predicate;
  */
 public final class AppUiLayers implements UiLayers {
 
-    private final Deque<UiLayer> layers = new ArrayDeque<>();
+    private static final Comparator<UiLayer> LAYER_COMPARATOR = Comparator.comparingInt(
+            layer -> layer.kind().ordinal()
+    );
+
+    private final List<UiLayer> layers = new ArrayList<>();
 
     private final WindowEvents events = new WindowEvents() {
 
@@ -88,37 +93,11 @@ public final class AppUiLayers implements UiLayers {
     }
 
     @Override
+    @SuppressWarnings("ForLoopReplaceableByForEach")
     public void draw() {
-        for (UiLayer layer : (Iterable<UiLayer>) layers::descendingIterator) {
-            layer.draw(width, height);
+        for (int i = 0; i < layers.size(); i++) {
+            layers.get(i).draw(width, height);
         }
-    }
-
-    @Override
-    public void bringToFront(UiLayer layer) {
-        if (layer == null) {
-            throw new NullPointerException("Layer can not be null!");
-        }
-        while (!layers.isEmpty()) {
-            if (!layers.peek().isPopup()) {
-                break;
-            }
-            layers.pop().onPop();
-        }
-        remove(layer);
-        push(layer);
-    }
-
-    @Override
-    public void push(UiLayer layer) {
-        if (layer == null) {
-            throw new NullPointerException("Layer can not be null!");
-        }
-        if (layers.contains(layer)) {
-            throw new IllegalArgumentException("Already pushed:" + layer);
-        }
-        layer.onPush();
-        layers.push(layer);
     }
 
     @Override
@@ -126,11 +105,34 @@ public final class AppUiLayers implements UiLayers {
         if (layer == null) {
             throw new NullPointerException("Layer can not be null!");
         }
-        final UiLayer pop = layers.peek();
-        if (pop != layer) {
+        final int last = layers.size() - 1;
+        if (layers.get(last) != layer) {
             throw new IllegalArgumentException("Not a top layer: " + layer);
         }
-        layers.pop().onPop();
+        layers.remove(last).onPop();
+    }
+
+    @Override
+    public void removePopups() {
+        for (int i = layers.size() - 1; i >= 0; i--) {
+            if (!layers.get(i).isPopup()) {
+                break;
+            }
+            layers.remove(i).onPop();
+        }
+    }
+
+    @Override
+    public void add(UiLayer layer) {
+        if (layer == null) {
+            throw new NullPointerException("Layer can not be null!");
+        }
+        if (layers.contains(layer)) {
+            throw new IllegalArgumentException("Already on stack:" + layer);
+        }
+        layers.add(layer);
+        layers.sort(LAYER_COMPARATOR);
+        layer.onPush();
     }
 
     @Override
@@ -141,8 +143,8 @@ public final class AppUiLayers implements UiLayers {
     }
 
     private boolean dispatch(Predicate<WindowEvents> p) {
-        for (UiLayer layer : layers) {
-            if (p.test(layer.events())) {
+        for (int i = layers.size() - 1; i >= 0; i--) {
+            if (p.test(layers.get(i).events())) {
                 return true;
             }
         }

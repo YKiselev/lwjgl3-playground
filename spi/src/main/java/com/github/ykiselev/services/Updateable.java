@@ -14,39 +14,12 @@
  * limitations under the License.
  */
 
-package com.github.ykiselev.services.layers;
-
-
-import com.github.ykiselev.window.WindowEvents;
+package com.github.ykiselev.services;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public interface UiLayer {
+public interface Updateable {
 
-    enum Kind {
-        GAME, CONSOLE, POPUP;
-    }
-
-    WindowEvents events();
-
-    /**
-     * Called by {@link UiLayers} implementation when this layer is added to current layers stack.
-     */
-    default void onPush() {
-    }
-
-    void draw(int width, int height);
-
-    /**
-     * Called by {@link UiLayers} implementation when this layer is removed from current layers stack.
-     */
-    default void onPop() {
-    }
-
-    Kind kind();
-
-    default boolean isPopup() {
-        return kind() == Kind.POPUP;
-    }
+    void update();
 }

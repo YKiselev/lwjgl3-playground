@@ -55,7 +55,7 @@ public final class AppConsole implements UiLayer, AutoCloseable {
 
     @Override
     public Kind kind() {
-        return Kind.NORMAL;
+        return Kind.CONSOLE;
     }
 
     @Override

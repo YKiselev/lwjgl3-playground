@@ -18,9 +18,13 @@ package com.github.ykiselev.playground.layers;
 
 import com.github.ykiselev.services.layers.UiLayer;
 import com.github.ykiselev.services.layers.UiLayers;
-import org.junit.jupiter.api.Assertions;
+import com.github.ykiselev.window.WindowEvents;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InOrder;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -33,13 +37,28 @@ class AppUiLayersTest {
 
     private UiLayers layers = new AppUiLayers();
 
-    @Test
-    void shouldPushAndPopInOrder() {
-        UiLayer layer1 = mock(UiLayer.class);
-        UiLayer layer2 = mock(UiLayer.class);
+    private UiLayer layer1 = mock(UiLayer.class, "popup1");
 
-        layers.push(layer1);
-        layers.push(layer2);
+    private UiLayer layer2 = mock(UiLayer.class, "popup2");
+
+    private UiLayer layer3 = mock(UiLayer.class, "layer3");
+
+    @BeforeEach
+    void setUp() {
+        when(layer1.kind()).thenReturn(UiLayer.Kind.POPUP);
+        when(layer1.isPopup()).thenReturn(true);
+
+        when(layer2.kind()).thenReturn(UiLayer.Kind.POPUP);
+        when(layer2.isPopup()).thenReturn(true);
+
+        when(layer3.kind()).thenReturn(UiLayer.Kind.GAME);
+        when(layer3.isPopup()).thenReturn(false);
+    }
+
+    @Test
+    void shouldAddAndPopInOrder() {
+        layers.add(layer1);
+        layers.add(layer2);
         verify(layer1, times(1)).onPush();
         verify(layer2, times(1)).onPush();
 
@@ -50,38 +69,87 @@ class AppUiLayersTest {
     }
 
     @Test
-    void shouldFailPushAndPopInWrongOrder() {
-        UiLayer layer1 = mock(UiLayer.class);
-        UiLayer layer2 = mock(UiLayer.class);
+    void shouldAddPopupOnTop() {
+        layers.add(layer1);
+        layers.add(layer3);
+        layers.pop(layer1);
+    }
 
-        layers.push(layer1);
-        layers.push(layer2);
+    @Test
+    void shouldFailAddAndPopInWrongOrder() {
+        layers.add(layer1);
+        layers.add(layer2);
         verify(layer1, times(1)).onPush();
         verify(layer2, times(1)).onPush();
 
-        Assertions.assertThrows(
+        assertThrows(
                 IllegalArgumentException.class,
                 () -> layers.pop(layer1)
         );
     }
 
     @Test
-    void shouldBringToFront() {
-        UiLayer layer1 = mock(UiLayer.class);
-        UiLayer layer2 = mock(UiLayer.class);
-        UiLayer layer3 = mock(UiLayer.class);
+    void shouldDrawBottomUp() {
+        layers.add(layer1);
+        layers.add(layer2);
+        layers.add(layer3);
+        layers.draw();
 
-        when(layer1.isPopup()).thenReturn(false);
-        when(layer2.isPopup()).thenReturn(false);
-        when(layer3.isPopup()).thenReturn(true);
+        InOrder inOrder = inOrder(layer1, layer2, layer3);
 
-        layers.push(layer1);
-        layers.push(layer2);
-        layers.push(layer3);
-        layers.bringToFront(layer1);
+        inOrder.verify(layer3, times(1)).draw(0, 0);
+        inOrder.verify(layer1, times(1)).draw(0, 0);
+        inOrder.verify(layer2, times(1)).draw(0, 0);
+    }
+
+    @Test
+    void shouldDispatchFromTopBottom() {
+        WindowEvents events = mock(WindowEvents.class);
+
+        layers.add(layer1);
+        layers.add(layer2);
+        layers.add(layer3);
+
+        when(layer1.events()).thenReturn(events);
+        when(layer2.events()).thenReturn(events);
+        when(layer3.events()).thenReturn(events);
+
+        layers.events().keyEvent(1, 2, 3, 4);
+
+        InOrder inOrder = inOrder(layer1, layer2, layer3);
+
+        inOrder.verify(layer2, times(1)).events();
+        inOrder.verify(layer1, times(1)).events();
+        inOrder.verify(layer3, times(1)).events();
+
+        verify(events, times(3)).keyEvent(1, 2, 3, 4);
+    }
+
+    @Test
+    void shouldRemovePopups() {
+        layers.add(layer1);
+        layers.add(layer2);
+        layers.add(layer3);
+        layers.removePopups();
+
+        verify(layer1, times(1)).onPush();
+        verify(layer2, times(1)).onPush();
+        verify(layer3, times(1)).onPush();
 
         verify(layer1, times(1)).onPop();
-        verify(layer1, times(2)).onPush();
-        verify(layer3, times(1)).onPop();
+        verify(layer2, times(1)).onPop();
+        verify(layer3, times(0)).onPop();
+    }
+
+    @Test
+    void shouldRemove() {
+        layers.add(layer1);
+        layers.add(layer2);
+        layers.add(layer3);
+        layers.remove(layer2);
+
+        verify(layer1, times(0)).onPop();
+        verify(layer2, times(1)).onPop();
+        verify(layer3, times(0)).onPop();
     }
 }
