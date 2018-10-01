@@ -19,6 +19,7 @@ package com.github.ykiselev.playground.app;
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.closeables.CompositeAutoCloseable;
 import com.github.ykiselev.playground.events.AppEvents;
+import com.github.ykiselev.playground.host.ConsoleEvents;
 import com.github.ykiselev.playground.host.GameEvents;
 import com.github.ykiselev.playground.host.MenuEvents;
 import com.github.ykiselev.playground.host.ProgramArguments;
@@ -69,6 +70,7 @@ public final class Host implements Runnable {
         final CompositeAutoCloseable ac = new CompositeAutoCloseable(services)
                 .and(registerServices(services))
                 .with(new MenuEvents(services))
+                .with(new ConsoleEvents(services))
                 .with(new GameEvents(services))
                 .reverse();
         try (ac) {

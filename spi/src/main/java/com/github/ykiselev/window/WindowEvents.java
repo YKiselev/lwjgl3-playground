@@ -31,28 +31,38 @@ public interface WindowEvents {
      * @return {@code true} if event was handled or {@code false} to pass event to next handler in chain
      * @see GLFWKeyCallbackI#invoke(long, int, int, int, int)
      */
-    boolean keyEvent(int key, int scanCode, int action, int mods);
+    default boolean keyEvent(int key, int scanCode, int action, int mods) {
+        return false;
+    }
 
     /**
      * @see GLFWCursorPosCallbackI#invoke(long, double, double)
      */
-    void cursorEvent(double x, double y);
+    default void cursorEvent(double x, double y) {
+
+    }
 
     /**
      * @return {@code true} if event was handled or {@code false} to pass event to next handler in chain
      * @see GLFWMouseButtonCallbackI#invoke(long, int, int, int)
      */
-    boolean mouseButtonEvent(int button, int action, int mods);
+    default boolean mouseButtonEvent(int button, int action, int mods) {
+        return false;
+    }
 
     /**
      * @param width  the new width of frame buffer
      * @param height the new height of frame buffer
      * @see GLFWFramebufferSizeCallbackI#invoke(long, int, int)
      */
-    void frameBufferResized(int width, int height);
+    default void frameBufferResized(int width, int height) {
+
+    }
 
     /**
      * @see GLFWScrollCallback#invoke(long, double, double)
      */
-    boolean scrollEvent(double dx, double dy);
+    default boolean scrollEvent(double dx, double dy) {
+        return false;
+    }
 }

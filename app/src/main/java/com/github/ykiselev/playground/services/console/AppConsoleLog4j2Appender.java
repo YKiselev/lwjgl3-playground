@@ -40,6 +40,7 @@ public final class AppConsoleLog4j2Appender extends AbstractAppender {
     @Override
     public void append(LogEvent logEvent) {
         // todo - write code
+        int k = 0;
     }
 
     @PluginBuilderFactory

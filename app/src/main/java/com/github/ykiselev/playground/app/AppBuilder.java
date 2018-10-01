@@ -17,6 +17,7 @@
 package com.github.ykiselev.playground.app;
 
 import com.github.ykiselev.playground.Main;
+import com.github.ykiselev.playground.services.console.ConsoleOutputStream;
 import org.apache.logging.log4j.io.IoBuilder;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.slf4j.LoggerFactory;
@@ -82,8 +83,8 @@ public final class AppBuilder {
     }
 
     private void withLogging(Runnable delegate) {
-        System.setOut(IoBuilder.forLogger().buildPrintStream());
-        System.setErr(IoBuilder.forLogger().buildPrintStream());
+        System.setOut(IoBuilder.forLogger("STD_OUT").buildPrintStream());
+        System.setErr(IoBuilder.forLogger("STD_ERR").buildPrintStream());
         delegate.run();
     }
 

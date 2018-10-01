@@ -120,10 +120,6 @@ public final class BaseGame implements Game {
         }
 
         @Override
-        public void frameBufferResized(int width, int height) {
-        }
-
-        @Override
         public boolean scrollEvent(double dx, double dy) {
             return onScroll(dx, dy);
         }
