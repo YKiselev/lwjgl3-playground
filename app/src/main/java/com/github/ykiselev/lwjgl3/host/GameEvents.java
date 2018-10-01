@@ -42,8 +42,6 @@ import static java.util.Objects.requireNonNull;
  */
 public final class GameEvents implements AutoCloseable, UnaryOperator<CompositeAutoCloseable> {
 
-    public static final String NEW_GAME = "new-game";
-
     private final Services services;
 
     private volatile Game game;
@@ -85,7 +83,7 @@ public final class GameEvents implements AutoCloseable, UnaryOperator<CompositeA
                         .subscribe(NewGameEvent.class, this::onNewGame)
         ).and(
                 services.resolve(Commands.class)
-                        .add(NEW_GAME, new EventFiringHandler<>(services, NewGameEvent.INSTANCE))
+                        .add("new-game", new EventFiringHandler<>(services, NewGameEvent.INSTANCE))
         ).and(
                 services.resolve(PersistedConfiguration.class)
                         .wire(new WiredValues()

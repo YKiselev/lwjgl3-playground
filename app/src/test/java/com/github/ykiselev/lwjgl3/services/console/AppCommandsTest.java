@@ -20,13 +20,19 @@ import com.github.ykiselev.services.commands.CommandException.CommandExecutionFa
 import com.github.ykiselev.services.commands.CommandException.CommandStackOverflowException;
 import com.github.ykiselev.services.commands.CommandException.UnknownCommandException;
 import com.github.ykiselev.services.commands.Commands;
+import com.github.ykiselev.test.ParallelRunner;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Supplier;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -98,11 +104,30 @@ class AppCommandsTest {
     }
 
     @Test
-    void shouldPassArgsd() {
+    void shouldPassArgs() {
         Commands.H2 h = mock(Commands.H2.class);
         commands.add("cmd", h);
         commands.execute("cmd 1");
         verify(h, times(1)).handle("cmd", "1");
     }
 
+    @Test
+    void shouldBeThreadSafe() throws Exception {
+        final ThreadLocal<String[]> savedArgs = new ThreadLocal<>();
+        commands.add("a", (List<String> args) -> {
+            savedArgs.set(args.toArray(new String[0]));
+        });
+        commands.add("b", (List<String> args) -> {
+            savedArgs.set(args.toArray(new String[0]));
+        });
+        Supplier<Runnable> s = () -> () -> {
+            ThreadLocalRandom rnd = ThreadLocalRandom.current();
+            String cmd = rnd.nextBoolean() ? "a" : "b";
+            String arg = Long.toString(rnd.nextLong());
+            commands.execute(cmd + " " + arg);
+            assertArrayEquals(new String[]{cmd, arg}, savedArgs.get());
+        };
+        ParallelRunner.fromRunnable(1000, s)
+                .call();
+    }
 }

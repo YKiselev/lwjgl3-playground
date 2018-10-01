@@ -17,13 +17,16 @@
 package com.github.ykiselev.lwjgl3.services.console;
 
 import com.github.ykiselev.services.commands.Tokenizer;
+import com.github.ykiselev.test.ParallelRunner;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -38,16 +41,18 @@ class DefaultTokenizerTest {
 
     private final Tokenizer processor = new DefaultTokenizer();
 
-    private final Consumer<String> consumer = v -> {
-        int fromIndex = 0;
-        final int len = v != null ? v.length() : 0;
-        while (fromIndex < len) {
-            fromIndex = processor.tokenize(v, fromIndex, parts);
-        }
-    };
+    private final Consumer<String> consumer = v -> parse(v, parts);
 
     private void assertEquals(String... v) {
         assertArrayEquals(v, parts.toArray());
+    }
+
+    private void parse(String text, List<String> parts) {
+        int fromIndex = 0;
+        final int len = text != null ? text.length() : 0;
+        while (fromIndex < len) {
+            fromIndex = processor.tokenize(text, fromIndex, parts);
+        }
     }
 
     @ParameterizedTest
@@ -126,5 +131,38 @@ class DefaultTokenizerTest {
     @Test
     void shouldFailIfUnclosedMultiLineComment() {
         assertThrows(IllegalArgumentException.class, () -> consumer.accept("a b c /* d"));
+    }
+
+    @Test
+    void shouldBeThreadSafe() throws Exception {
+        final String[] inputs = {
+                "a b c d e f",
+                "1 2 3 4 5 6",
+                "a 1 b 2 c 3",
+                "x y z 3 2 1"
+        };
+        final String[][] outputs = {
+                {"a", "b", "c", "d", "e", "f"},
+                {"1", "2", "3", "4", "5", "6"},
+                {"a", "1", "b", "2", "c", "3"},
+                {"x", "y", "z", "3", "2", "1"}
+
+        };
+        final Supplier<Callable<Void>> s = () -> new Callable<>() {
+
+            private final List<String> tokens = new ArrayList<>();
+
+            @Override
+            public Void call() {
+                for (int i = 0; i < inputs.length; i++) {
+                    tokens.clear();
+                    parse(inputs[i], tokens);
+                    assertArrayEquals(outputs[i], tokens.toArray());
+                }
+                return null;
+            }
+        };
+        new ParallelRunner<>(1000, s, s, s, s)
+                .call();
     }
 }

@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -50,39 +52,74 @@ public final class ParallelRunner<V> implements Callable<Collection<Collection<V
         this.barrier = new CyclicBarrier(suppliers.length);
     }
 
+    /**
+     * Runs supplied tasks specified number of iterations. Before each iteration tasks are synchronized internally using {@link CyclicBarrier}.
+     *
+     * @return the list of collected task results.
+     * @throws IllegalStateException if some of the supplied tasks has thrown exception or task's {@link Future#get()} throws exception.
+     */
     @Override
-    public Collection<Collection<V>> call() throws Exception {
+    public Collection<Collection<V>> call() throws IllegalStateException {
         final List<Throwable> throwables = new CopyOnWriteArrayList<>();
         @SuppressWarnings("unchecked") final FutureTask<Collection<V>>[] tasks =
                 Arrays.stream(suppliers)
-                        .map(supplier -> (Callable<Collection<V>>) () -> loop(supplier, throwables::add))
+                        .map(supplier -> (Callable<Collection<V>>) () -> threadLoop(supplier, throwables::add))
                         .map(FutureTask::new)
                         .toArray(FutureTask[]::new);
         final Thread[] threads = Arrays.stream(tasks)
                 .map(Thread::new)
                 .peek(Thread::start)
                 .toArray(Thread[]::new);
-        for (Thread thread : threads) {
-            try {
-                thread.join();
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                break;
-            }
-        }
+        waitForThreads(threads, throwables);
         if (!throwables.isEmpty()) {
             final IllegalStateException ex = new IllegalStateException();
             throwables.forEach(ex::addSuppressed);
             throw ex;
         }
+        return collectResult(tasks);
+    }
+
+    private Collection<Collection<V>> collectResult(FutureTask<Collection<V>>[] tasks) {
         final List<Collection<V>> result = new ArrayList<>();
         for (FutureTask<Collection<V>> task : tasks) {
-            result.add(task.get());
+            try {
+                result.add(task.get());
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            } catch (ExecutionException e) {
+                throw new IllegalStateException(e);
+            }
         }
         return result;
     }
 
-    private Collection<V> loop(Supplier<Callable<V>> supplier, Consumer<Throwable> onThrowable) {
+    private void waitForThreads(Thread[] threads, List<Throwable> throwables) {
+        for (; ; ) {
+            // If some threads has failed with exceptions we need to interrupt all other threads otherwise they will stuck on barrier!
+            if (!throwables.isEmpty()) {
+                Arrays.stream(threads)
+                        .forEach(Thread::interrupt);
+            }
+            // Count completed threads
+            int completed = 0;
+            for (Thread thread : threads) {
+                if (!thread.isAlive()) {
+                    completed++;
+                }
+            }
+            if (threads.length == completed) {
+                break;
+            }
+            try {
+                Thread.sleep(20);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
+    }
+
+    private Collection<V> threadLoop(Supplier<Callable<V>> supplier, Consumer<Throwable> onThrowable) {
         final List<V> results = new ArrayList<>();
         try {
             final Callable<V> callable = supplier.get();

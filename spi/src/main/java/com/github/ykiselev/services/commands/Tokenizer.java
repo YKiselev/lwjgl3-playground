@@ -41,6 +41,8 @@ import java.util.Collection;
  * </pre>
  * Comments should be ignored by tokenizer (silently stripped).<br/>
  * Note: single-line or multi-line comments inside quoted text are not stripped and are treated as a part of that text.
+ * <p/>
+ * Implementations of this interface should be thread-safe.
  *
  * @author Yuriy Kiselev (uze@yandex.ru).
  */

@@ -26,14 +26,13 @@ import com.github.ykiselev.services.commands.Tokenizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import static java.util.Objects.requireNonNull;
 
@@ -48,12 +47,9 @@ public final class AppCommands implements Commands {
 
     private final int maxDepth;
 
-    private final Deque<List<String>> stack = new ArrayDeque<>();
-
     private final CopyOnModify<Map<String, Consumer<List<String>>>> handlers = new CopyOnModify<>(Collections.emptyMap());
 
-    // accessed only from synchronized block
-    private int depth;
+    private final ThreadLocal<ThreadContext> context = ThreadLocal.withInitial(ThreadContext::new);
 
     /**
      * Primary ctor.
@@ -75,40 +71,23 @@ public final class AppCommands implements Commands {
         this(tokenizer, 16);
     }
 
-    private List<String> newArgs() {
-        final List<String> existing = stack.poll();
-        if (existing != null) {
-            return existing;
-        }
-        return new ArrayList<>();
-    }
-
-    private void freeArgs(List<String> args) {
-        args.clear();
-        stack.push(args);
-    }
-
     @Override
     public void execute(String commandLine) throws CommandStackOverflowException, CommandExecutionFailedException, UnknownCommandException {
         if (commandLine == null || commandLine.isEmpty()) {
             return;
         }
-        synchronized (stack) {
-            depth++;
-            if (depth > maxDepth) {
-                throw new CommandStackOverflowException(maxDepth);
+        final ThreadContext tc = context.get();
+        tc.enter(maxDepth);
+        try {
+            final List<String> args = tc.args();
+            args.clear();
+            int fromIndex = 0;
+            while (fromIndex < commandLine.length()) {
+                fromIndex = execute(commandLine, fromIndex, args);
+                args.clear();
             }
-            final List<String> args = newArgs();
-            try {
-                int fromIndex = 0;
-                while (fromIndex < commandLine.length()) {
-                    fromIndex = execute(commandLine, fromIndex, args);
-                    args.clear();
-                }
-            } finally {
-                freeArgs(args);
-                depth--;
-            }
+        } finally {
+            tc.leave();
         }
     }
 
@@ -136,6 +115,11 @@ public final class AppCommands implements Commands {
     }
 
     @Override
+    public Stream<String> commands() {
+        return handlers.value().keySet().stream();
+    }
+
+    @Override
     public AutoCloseable add(String command, Consumer<List<String>> handler) throws CommandAlreadyRegisteredException {
         handlers.modify(before -> {
             final Map<String, Consumer<List<String>>> after = new HashMap<>(before);
@@ -155,5 +139,27 @@ public final class AppCommands implements Commands {
             }
             return after;
         });
+    }
+
+    private static final class ThreadContext {
+
+        private final List<String> args = new ArrayList<>();
+
+        private int depth;
+
+        List<String> args() {
+            return args;
+        }
+
+        void enter(int limit) {
+            depth++;
+            if (depth > limit) {
+                throw new CommandStackOverflowException(limit);
+            }
+        }
+
+        void leave() {
+            depth--;
+        }
     }
 }

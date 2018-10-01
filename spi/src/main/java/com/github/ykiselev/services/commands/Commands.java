@@ -23,6 +23,7 @@ import com.github.ykiselev.services.commands.CommandException.UnknownCommandExce
 
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 /**
  * Command processor.<br/>
@@ -41,6 +42,11 @@ public interface Commands {
      * @throws UnknownCommandException         if unknown command is present in passed command line.
      */
     void execute(String commandLine) throws CommandStackOverflowException, CommandExecutionFailedException, UnknownCommandException;
+
+    /**
+     * @return all registered commands
+     */
+    Stream<String> commands();
 
     /**
      * Registers passed command handler for specified command. The handler will receive a list of command arguments where
