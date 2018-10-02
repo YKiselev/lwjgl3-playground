@@ -16,6 +16,8 @@
 
 package com.github.ykiselev.playground.services.console;
 
+import com.github.ykiselev.circular.ArrayCircularBuffer;
+import com.github.ykiselev.circular.CircularBuffer;
 import org.apache.logging.log4j.core.Appender;
 import org.apache.logging.log4j.core.Core;
 import org.apache.logging.log4j.core.Filter;
@@ -23,6 +25,7 @@ import org.apache.logging.log4j.core.Layout;
 import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.appender.AbstractAppender;
 import org.apache.logging.log4j.core.config.plugins.Plugin;
+import org.apache.logging.log4j.core.config.plugins.PluginBuilderAttribute;
 import org.apache.logging.log4j.core.config.plugins.PluginBuilderFactory;
 
 import java.io.Serializable;
@@ -33,14 +36,17 @@ import java.io.Serializable;
 @Plugin(name = "AppConsoleAppender", category = Core.CATEGORY_NAME, elementType = Appender.ELEMENT_TYPE)
 public final class AppConsoleLog4j2Appender extends AbstractAppender {
 
-    private AppConsoleLog4j2Appender(String name, Filter filter, Layout<? extends Serializable> layout) {
+    private final CircularBuffer<String> buffer;
+
+    private AppConsoleLog4j2Appender(String name, Filter filter, Layout<? extends Serializable> layout, int bufferSize) {
         super(name, filter, layout);
+        this.buffer = new ArrayCircularBuffer<>(String.class, bufferSize);
     }
 
     @Override
     public void append(LogEvent logEvent) {
-        // todo - write code
-        int k = 0;
+        Serializable s = getLayout().toSerializable(logEvent);
+        buffer.write(s.toString());
     }
 
     @PluginBuilderFactory
@@ -48,11 +54,19 @@ public final class AppConsoleLog4j2Appender extends AbstractAppender {
         return new Builder<B>().asBuilder();
     }
 
-    public static class Builder<B extends Builder<B>> extends AbstractAppender.Builder<B> implements org.apache.logging.log4j.core.util.Builder<AppConsoleLog4j2Appender> {
+    public static final class Builder<B extends Builder<B>> extends AbstractAppender.Builder<B> implements org.apache.logging.log4j.core.util.Builder<AppConsoleLog4j2Appender> {
+
+        @PluginBuilderAttribute
+        private int bufferSize = 1_000;
 
         @Override
         public AppConsoleLog4j2Appender build() {
-            return new AppConsoleLog4j2Appender(getName(), getFilter(), getOrCreateLayout());
+            return new AppConsoleLog4j2Appender(getName(), getFilter(), getOrCreateLayout(), bufferSize);
+        }
+
+        public B withBufferSize(int bufferCapacity) {
+            this.bufferSize = bufferCapacity;
+            return asBuilder();
         }
     }
 }

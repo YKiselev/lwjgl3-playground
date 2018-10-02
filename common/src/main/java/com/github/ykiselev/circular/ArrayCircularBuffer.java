@@ -16,6 +16,7 @@
 
 package com.github.ykiselev.circular;
 
+import java.lang.reflect.Array;
 import java.util.NoSuchElementException;
 
 /**
@@ -40,8 +41,9 @@ public final class ArrayCircularBuffer<T> implements CircularBuffer<T> {
      */
     private int count;
 
-    public ArrayCircularBuffer(T[] buffer) {
-        this.buffer = buffer.clone();
+    @SuppressWarnings("unchecked")
+    public ArrayCircularBuffer(Class<T> elementClass, int capacity) {
+        this.buffer = (T[]) Array.newInstance(elementClass, capacity);
     }
 
     @Override

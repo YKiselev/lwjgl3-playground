@@ -34,7 +34,7 @@ class ArrayCircularBufferTest {
     @Nested
     class WhenSingleElementBuffer {
 
-        CircularBuffer<String> buffer = new ArrayCircularBuffer<>(new String[1]);
+        CircularBuffer<String> buffer = new ArrayCircularBuffer<>(String.class, 1);
 
         @Test
         void readShouldFailIfEmpty() {
@@ -71,7 +71,7 @@ class ArrayCircularBufferTest {
     @Nested
     class WhenThreeElementBuffer {
 
-        CircularBuffer<String> buffer = new ArrayCircularBuffer<>(new String[3]);
+        CircularBuffer<String> buffer = new ArrayCircularBuffer<>(String.class, 3);
 
         @Test
         void readShouldFailIfEmpty() {
