@@ -16,41 +16,96 @@
 
 package com.github.ykiselev.playground.services.console;
 
+import com.github.ykiselev.assets.Assets;
+import com.github.ykiselev.circular.CircularBuffer;
+import com.github.ykiselev.closeables.Closeables;
+import com.github.ykiselev.opengl.shaders.ProgramObject;
+import com.github.ykiselev.opengl.sprites.DefaultSpriteBatch;
+import com.github.ykiselev.opengl.sprites.SpriteBatch;
+import com.github.ykiselev.opengl.text.SpriteFont;
+import com.github.ykiselev.opengl.textures.SimpleTexture2d;
+import com.github.ykiselev.opengl.textures.Texture2d;
+import com.github.ykiselev.services.Services;
+import com.github.ykiselev.services.events.Events;
+import com.github.ykiselev.services.events.console.ToggleConsoleEvent;
+import com.github.ykiselev.services.events.menu.ShowMenuEvent;
 import com.github.ykiselev.services.layers.UiLayer;
 import com.github.ykiselev.window.WindowEvents;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.core.LoggerContext;
-import org.apache.logging.log4j.core.config.Configuration;
+import com.github.ykiselev.wrap.Wrap;
+import org.lwjgl.glfw.GLFW;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
 public final class AppConsole implements UiLayer, AutoCloseable {
 
-    private final ConsoleOutputStream stream;
+    private final Services services;
+
+    private final CircularBuffer<String> buffer;
+
+    private final SpriteBatch spriteBatch;
+
+    private final Wrap<? extends Texture2d> cuddles;
+
+    private final Wrap<SpriteFont> font;
 
     private final WindowEvents events = new WindowEvents() {
-        // todo
+        @Override
+        public boolean keyEvent(int key, int scanCode, int action, int mods) {
+            return onKey(key, scanCode, action, mods);
+        }
     };
 
-    public AppConsole(ConsoleOutputStream stream) {
-        this.stream = stream;
-    }
+    private final String[] snapshot;
 
     @Override
     public WindowEvents events() {
         return events;
     }
 
+    public AppConsole(Services services, CircularBuffer<String> buffer) {
+        this.services = requireNonNull(services);
+        this.buffer = requireNonNull(buffer);
+        this.snapshot = new String[buffer.capacity()];
+        final Assets assets = services.resolve(Assets.class);
+        spriteBatch = new DefaultSpriteBatch(
+                assets.load("progs/sprite-batch.conf", ProgramObject.class)
+        );
+        cuddles = assets.load("images/htf-cuddles.jpg", SimpleTexture2d.class);
+        font = assets.load("fonts/Liberation Mono.sf", SpriteFont.class);
+    }
+
+    private boolean onKey(int key, int scanCode, int action, int mods) {
+        if (action == GLFW.GLFW_PRESS) {
+            switch (key) {
+                case GLFW.GLFW_KEY_ESCAPE:
+                    services.resolve(Events.class)
+                            .fire(ShowMenuEvent.INSTANCE);
+                    break;
+
+                case GLFW.GLFW_KEY_GRAVE_ACCENT:
+                    services.resolve(Events.class)
+                            .fire(ToggleConsoleEvent.INSTANCE);
+                    break;
+            }
+        }
+        return true;
+    }
+
     @Override
     public void draw(int width, int height) {
-        // todo
-        final LoggerContext context = (LoggerContext) LogManager.getContext(false);
-        final Configuration cfg = context.getConfiguration();
-        final AppConsoleLog4j2Appender appender = cfg.getAppender("AppConsole");
-        if (appender != null) {
-            int g = 0;
+        final int lines = buffer.copyTo(snapshot);
+        spriteBatch.begin(0, 0, width, height, true);
+        final SpriteFont spriteFont = font.value();
+        for (int i = lines - 1, y = 0 + spriteFont.fontHeight(); i >= 0; i--) {
+            final String line = snapshot[i];
+            final int lineHeight = spriteFont.height(line, width);
+            y += lineHeight;
+            spriteBatch.draw(spriteFont, 0, y, width, line, 0xffffffff);
         }
+        spriteBatch.end();
     }
 
     @Override
@@ -59,7 +114,9 @@ public final class AppConsole implements UiLayer, AutoCloseable {
     }
 
     @Override
-    public void close() throws Exception {
-        // todo
+    public void close() {
+        Closeables.close(font);
+        Closeables.close(cuddles);
+        Closeables.close(spriteBatch);
     }
 }

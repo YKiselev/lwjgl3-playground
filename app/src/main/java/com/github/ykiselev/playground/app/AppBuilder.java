@@ -17,10 +17,11 @@
 package com.github.ykiselev.playground.app;
 
 import com.github.ykiselev.playground.Main;
-import com.github.ykiselev.playground.services.console.ConsoleOutputStream;
 import org.apache.logging.log4j.io.IoBuilder;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.slf4j.LoggerFactory;
+
+import java.io.PrintStream;
 
 import static java.util.Objects.requireNonNull;
 import static org.lwjgl.glfw.GLFW.glfwInit;
@@ -83,8 +84,10 @@ public final class AppBuilder {
     }
 
     private void withLogging(Runnable delegate) {
-        System.setOut(IoBuilder.forLogger("STD_OUT").buildPrintStream());
-        System.setErr(IoBuilder.forLogger("STD_ERR").buildPrintStream());
+        final PrintStream std = IoBuilder.forLogger("STD")
+                .buildPrintStream();
+        System.setOut(std);
+        System.setErr(std);
         delegate.run();
     }
 

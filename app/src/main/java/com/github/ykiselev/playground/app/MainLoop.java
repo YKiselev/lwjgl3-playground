@@ -98,7 +98,7 @@ public final class MainLoop implements Runnable {
                         .subscribe(QuitEvent.class, this::onQuit),
                 services.resolve(Commands.class)
                         .add("quit", new EventFiringHandler<>(services, QuitEvent.INSTANCE))
-        );
+        ).with(new ConsoleEvents(services));
     }
 
     private void onQuit() {

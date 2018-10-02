@@ -70,7 +70,6 @@ public final class Host implements Runnable {
         final CompositeAutoCloseable ac = new CompositeAutoCloseable(services)
                 .and(registerServices(services))
                 .with(new MenuEvents(services))
-                .with(new ConsoleEvents(services))
                 .reverse();
         try (ac) {
             delegate.accept(services);

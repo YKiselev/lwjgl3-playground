@@ -16,13 +16,18 @@
 
 package com.github.ykiselev.playground.host;
 
+import com.github.ykiselev.circular.CircularBuffer;
 import com.github.ykiselev.closeables.Closeables;
 import com.github.ykiselev.closeables.CompositeAutoCloseable;
 import com.github.ykiselev.playground.services.console.AppConsole;
+import com.github.ykiselev.playground.services.console.AppConsoleLog4j2Appender;
 import com.github.ykiselev.services.Services;
 import com.github.ykiselev.services.events.Events;
 import com.github.ykiselev.services.events.console.ToggleConsoleEvent;
 import com.github.ykiselev.services.layers.UiLayers;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.config.Configuration;
 
 import java.util.function.UnaryOperator;
 
@@ -41,7 +46,7 @@ public final class ConsoleEvents implements AutoCloseable, UnaryOperator<Composi
 
     public ConsoleEvents(Services services) {
         this.services = requireNonNull(services);
-        this.console = new AppConsole(null);
+        this.console = new AppConsole(services, getBuffer());
         services.resolve(UiLayers.class).add(console);
     }
 
@@ -60,5 +65,15 @@ public final class ConsoleEvents implements AutoCloseable, UnaryOperator<Composi
 
     private void onToggleConsole() {
         throw new UnsupportedOperationException("not implemented");
+    }
+
+    private static CircularBuffer<String> getBuffer() {
+        final LoggerContext context = (LoggerContext) LogManager.getContext(false);
+        final Configuration cfg = context.getConfiguration();
+        final AppConsoleLog4j2Appender appender = cfg.getAppender("AppConsole");
+        if (appender == null) {
+            throw new IllegalStateException("Appender not found: \"AppConsole\". Check log4j2 configuration!");
+        }
+        return appender.buffer();
     }
 }

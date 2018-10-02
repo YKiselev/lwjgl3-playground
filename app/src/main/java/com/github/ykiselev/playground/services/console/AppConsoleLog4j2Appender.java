@@ -33,10 +33,14 @@ import java.io.Serializable;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-@Plugin(name = "AppConsoleAppender", category = Core.CATEGORY_NAME, elementType = Appender.ELEMENT_TYPE)
+@Plugin(name = "AppConsole", category = Core.CATEGORY_NAME, elementType = Appender.ELEMENT_TYPE)
 public final class AppConsoleLog4j2Appender extends AbstractAppender {
 
     private final CircularBuffer<String> buffer;
+
+    public CircularBuffer<String> buffer() {
+        return buffer;
+    }
 
     private AppConsoleLog4j2Appender(String name, Filter filter, Layout<? extends Serializable> layout, int bufferSize) {
         super(name, filter, layout);
@@ -57,7 +61,7 @@ public final class AppConsoleLog4j2Appender extends AbstractAppender {
     public static final class Builder<B extends Builder<B>> extends AbstractAppender.Builder<B> implements org.apache.logging.log4j.core.util.Builder<AppConsoleLog4j2Appender> {
 
         @PluginBuilderAttribute
-        private int bufferSize = 1_000;
+        private int bufferSize = 100;
 
         @Override
         public AppConsoleLog4j2Appender build() {

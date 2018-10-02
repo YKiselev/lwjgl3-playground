@@ -36,37 +36,29 @@
             </Policies>
             <DefaultRolloverStrategy max="5"/>
         </RollingFile>
-        <AppConsoleAppender name="AppConsole">
+        <AppConsole name="AppConsole" bufferSize="300">
             <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %c{1.} - %msg%n"/>
-        </AppConsoleAppender>
+        </AppConsole>
+        <Async name="Async">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="RollingFile"/>
+            <AppenderRef ref="AppConsole"/>
+        </Async>
     </Appenders>
 
     <Loggers>
         <Root level="info">
-            <AppenderRef ref="Console"/>
-            <AppenderRef ref="RollingFile"/>
-            <AppenderRef ref="AppConsole"/>
+            <AppenderRef ref="Async"/>
         </Root>
         <Logger name="com.github.ykiselev" level="debug" additivity="false">
-            <AppenderRef ref="Console"/>
-            <AppenderRef ref="RollingFile"/>
-            <AppenderRef ref="AppConsole"/>
+            <AppenderRef ref="Async"/>
         </Logger>
         <Logger name="com.github.ykiselev.playground.services.fs.AppFileSystem" level="debug" additivity="false">
-            <AppenderRef ref="Console"/>
-            <AppenderRef ref="RollingFile"/>
-            <AppenderRef ref="AppConsole"/>
+            <AppenderRef ref="Async"/>
         </Logger>
         <!-- Set to trace level to see new reference allocations -->
         <Logger name="com.github.ykiselev.playground.services.assets.RefCountedAssets" level="warn" additivity="false">
-            <AppenderRef ref="Console"/>
-            <AppenderRef ref="RollingFile"/>
-            <AppenderRef ref="AppConsole"/>
-        </Logger>
-        <Logger name="LWJGL" level="debug" additivity="false">
-            <AppenderRef ref="Console"/>
-            <AppenderRef ref="RollingFile"/>
-            <AppenderRef ref="AppConsole"/>
+            <AppenderRef ref="Async"/>
         </Logger>
     </Loggers>
 

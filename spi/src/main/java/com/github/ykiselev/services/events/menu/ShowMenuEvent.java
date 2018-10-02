@@ -21,4 +21,8 @@ package com.github.ykiselev.services.events.menu;
  */
 public final class ShowMenuEvent {
 
+    public static final ShowMenuEvent INSTANCE = new ShowMenuEvent();
+
+    private ShowMenuEvent() {
+    }
 }

@@ -36,6 +36,7 @@ import com.github.ykiselev.opengl.vertices.VertexDefinitions;
 import com.github.ykiselev.services.FileSystem;
 import com.github.ykiselev.services.Services;
 import com.github.ykiselev.services.events.Events;
+import com.github.ykiselev.services.events.console.ToggleConsoleEvent;
 import com.github.ykiselev.services.events.menu.ShowMenuEvent;
 import com.github.ykiselev.trigger.Trigger;
 import com.github.ykiselev.window.WindowEvents;
@@ -53,6 +54,7 @@ import java.nio.FloatBuffer;
 import java.nio.channels.WritableByteChannel;
 
 import static java.util.Objects.requireNonNull;
+import static org.lwjgl.glfw.GLFW.glfwGetTime;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
@@ -166,7 +168,12 @@ public final class BaseGame implements Game {
             switch (key) {
                 case GLFW.GLFW_KEY_ESCAPE:
                     services.resolve(Events.class)
-                            .fire(new ShowMenuEvent());
+                            .fire(ShowMenuEvent.INSTANCE);
+                    break;
+
+                case GLFW.GLFW_KEY_GRAVE_ACCENT:
+                    services.resolve(Events.class)
+                            .fire(ToggleConsoleEvent.INSTANCE);
                     break;
 
                 case GLFW.GLFW_KEY_PRINT_SCREEN:
@@ -257,7 +264,7 @@ public final class BaseGame implements Game {
     }
 
     private void drawPyramids(FloatBuffer vp) {
-        final double sec = System.currentTimeMillis() / 1000.0;
+        final double sec = glfwGetTime();
         try (MemoryStack ms = MemoryStack.stackPush()) {
             final FloatBuffer rm = ms.mallocFloat(16);
             Matrix.rotation(0, 0, Math.toRadians(25 * sec % 360), rm);
@@ -282,7 +289,7 @@ public final class BaseGame implements Game {
     }
 
     private void drawModel(FloatBuffer vp) {
-        final double sec = System.currentTimeMillis() / 1000.0;
+        final double sec = glfwGetTime();
         texUniform.value(0);
         cuddles.value().bind();
         try (MemoryStack ms = MemoryStack.stackPush()) {
@@ -313,7 +320,7 @@ public final class BaseGame implements Game {
             alpha = (float) Math.max(-maxAngle, Math.min(maxAngle, 0.1 * (cy - cy0)));
         }
         cameraZ = (float) (radius * Math.sin(alpha));
-        final double sec = System.currentTimeMillis() / 1000.0;
+        final double sec = glfwGetTime();
         try (MemoryStack ms = MemoryStack.stackPush()) {
             final FloatBuffer view = ms.mallocFloat(16);
             final double beta = Math.toRadians(15.0 * sec % 360);
@@ -355,7 +362,7 @@ public final class BaseGame implements Game {
         drawModel(pv);
         frameBuffer.unbind();
 
-        final double t = GLFW.glfwGetTime();
+        final double t = glfwGetTime();
         final double fps = (double) frames / t;
 
         GL11.glClearColor(0.5f, 0.5f, 0.5f, 1);
