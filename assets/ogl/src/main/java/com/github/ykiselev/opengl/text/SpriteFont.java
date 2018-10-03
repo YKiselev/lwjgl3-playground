@@ -25,7 +25,7 @@ public interface SpriteFont extends AutoCloseable {
 
     Texture2d texture();
 
-    int fontHeight();
+    int height();
 
     int glyphXBorder();
 
@@ -51,6 +51,4 @@ public interface SpriteFont extends AutoCloseable {
 
     int height(CharSequence text, int width);
 
-    @Override
-    void close();
 }

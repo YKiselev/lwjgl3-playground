@@ -80,7 +80,7 @@ public final class DefaultSpriteBatch implements SpriteBatch {
         quads.use(font.texture());
 
         final LineStart lineStart = LineStart.from(alignment);
-        final int dy = font.fontHeight() + font.glyphYBorder();
+        final int dy = font.height() + font.glyphYBorder();
         final int maxX = x + maxWidth;
         int fx = lineStart.calculate(x, font, text, 0, maxWidth);
         int fy = y - dy;
@@ -103,7 +103,7 @@ public final class DefaultSpriteBatch implements SpriteBatch {
             }
 
             final int x1 = fx + glyph.width();
-            final int y1 = fy + font.fontHeight();
+            final int y1 = fy + font.height();
             if (value != ' ') {
                 quads.addQuad(fx, fy, glyph.s0(), glyph.t1(), x1, y1, glyph.s1(), glyph.t0(), color);
             }

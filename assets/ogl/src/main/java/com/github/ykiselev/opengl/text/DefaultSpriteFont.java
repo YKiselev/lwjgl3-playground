@@ -42,7 +42,7 @@ public final class DefaultSpriteFont implements SpriteFont {
     }
 
     @Override
-    public int fontHeight() {
+    public int height() {
         return fontHeight;
     }
 

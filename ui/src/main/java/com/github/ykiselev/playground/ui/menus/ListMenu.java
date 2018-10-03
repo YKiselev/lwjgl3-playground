@@ -167,7 +167,7 @@ public final class ListMenu implements UiLayer {
 
         final int x = 150 + cursorWidth;
         final int maxWidth = width - x;
-        int y = height / 2 + items.size() * font.fontHeight() / 2 - font.fontHeight();
+        int y = height / 2 + items.size() * font.height() / 2 - font.height();
         int i = 0;
         for (MenuItem item : items) {
             int dx = 0, th = 0;
