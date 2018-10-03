@@ -26,11 +26,13 @@ import com.github.ykiselev.opengl.vbo.VertexBufferObject;
 import com.github.ykiselev.opengl.vertices.VertexDefinitions;
 import com.github.ykiselev.wrap.Wrap;
 import org.lwjgl.BufferUtils;
+import org.lwjgl.opengl.GL20;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
 import java.util.function.IntConsumer;
 
 import static java.util.Objects.requireNonNull;
@@ -55,26 +57,27 @@ import static org.lwjgl.opengl.GL15.GL_ELEMENT_ARRAY_BUFFER;
 import static org.lwjgl.opengl.GL15.GL_STATIC_DRAW;
 import static org.lwjgl.opengl.GL15.GL_STREAM_DRAW;
 import static org.lwjgl.opengl.GL15.glBufferData;
+import static org.lwjgl.opengl.GL20.GL_ACTIVE_UNIFORM_MAX_LENGTH;
+import static org.lwjgl.opengl.GL20.GL_FLOAT_VEC4;
 
 /**
  * Created by Uze on 17.01.2015.
  */
 public final class TexturedQuads implements AutoCloseable {
 
-    private static final float COLOR_COEFF = 1.0f / 255.0f;
-
-    // Note: fragment shader depends on this number through colors uniform.
-    private static final int MAX_QUADS = 32;
-
     private static final int VERTEX_SIZE_IN_FLOATS = 4;
 
-    private static final int MAX_VERTICES = MAX_QUADS * 4 * VERTEX_SIZE_IN_FLOATS;
+    private static final float COLOR_COEFF = 1.0f / 255.0f;
 
-    private static final int MAX_INDICES = MAX_QUADS * 6;
+    /**
+     * Maximum number of quads in a call to glDrawElements.
+     */
+    private final int maxQuads;
 
-    private static final int INDEX_VALUE_TYPE = MAX_INDICES < 0xff
-            ? GL_UNSIGNED_BYTE
-            : (MAX_INDICES < 0xffff ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT);
+    /**
+     * One of GL_UNSIGNED_BYTE, GL_UNSIGNED_SHORT, GL_UNSIGNED_INT depending on the length of vertex buffer.
+     */
+    private final int indexValueType;
 
     private final Wrap<ProgramObject> program;
 
@@ -124,8 +127,6 @@ public final class TexturedQuads implements AutoCloseable {
     public TexturedQuads(Wrap<ProgramObject> program) {
         this.program = requireNonNull(program);
 
-        vertices = BufferUtils.createFloatBuffer(MAX_VERTICES);
-
         final ProgramObject prg = program.value();
         prg.bind();
         mvpUniform = prg.lookup("mvp");
@@ -143,8 +144,29 @@ public final class TexturedQuads implements AutoCloseable {
         ebo.bind();
 
         // Quad == 2 triangles == 6 indices (can't use stripes due to texture coordinates difference between quads)
+        final int maxIndices;
         try (MemoryStack ms = MemoryStack.stackPush()) {
-            final ByteBuffer indices = ms.malloc(4, 4 * MAX_INDICES);
+            // Get colors uniform array size
+            final ByteBuffer nameBuf = ms.malloc(4, GL20.glGetProgrami(prg.id(), GL_ACTIVE_UNIFORM_MAX_LENGTH));
+            final IntBuffer sizeBuf = ms.ints(1);
+            final IntBuffer typeBuf = ms.ints(1);
+            GL20.glGetActiveUniform(prg.id(), colorsUniform.location(), null, sizeBuf, typeBuf, nameBuf);
+            final int uniformArrayLength = sizeBuf.get();
+            this.maxQuads = uniformArrayLength & ~4;
+            if (maxQuads < 1) {
+                throw new IllegalArgumentException("Invalid array length: \"colors[" + uniformArrayLength + "\"");
+            }
+            final int type = typeBuf.get();
+            if (type != GL_FLOAT_VEC4) {
+                throw new IllegalArgumentException("Expected type of colors array is vec4 got " + type);
+            }
+            // Allocate indices
+            maxIndices = maxQuads * 6;
+            this.indexValueType = maxIndices < 0xff
+                    ? GL_UNSIGNED_BYTE
+                    : (maxIndices < 0xffff ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT);
+
+            final ByteBuffer indices = ms.malloc(4, 4 * maxIndices);
             fillIndexData(indices);
             indices.flip();
             glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW);
@@ -155,13 +177,15 @@ public final class TexturedQuads implements AutoCloseable {
         ebo.unbind();
         prg.unbind();
 
+        final int maxVertices = maxQuads * 4 * VERTEX_SIZE_IN_FLOATS;
+        vertices = BufferUtils.createFloatBuffer(maxVertices);
         matrix = MemoryUtil.memAllocFloat(16);
-        colors = MemoryUtil.memAllocFloat(MAX_QUADS * 4);
+        colors = MemoryUtil.memAllocFloat(maxQuads * 4);
     }
 
     private void fillIndexData(ByteBuffer b) {
         final IntConsumer c;
-        switch (INDEX_VALUE_TYPE) {
+        switch (indexValueType) {
             case GL_UNSIGNED_BYTE:
                 c = v -> b.put((byte) v);
                 break;
@@ -175,10 +199,10 @@ public final class TexturedQuads implements AutoCloseable {
                 break;
 
             default:
-                throw new IllegalArgumentException("Bad index value type: " + INDEX_VALUE_TYPE);
+                throw new IllegalArgumentException("Bad index value type: " + indexValueType);
         }
         int offset = 0;
-        for (int i = 0; i < MAX_QUADS; i++) {
+        for (int i = 0; i < maxQuads; i++) {
             c.accept(offset);
             c.accept(offset + 1);
             c.accept(offset + 2);
@@ -210,7 +234,7 @@ public final class TexturedQuads implements AutoCloseable {
         colors.flip();
         colorsUniform.vector4(colors);
 
-        glDrawElements(GL_TRIANGLES, quadCounter * 6, INDEX_VALUE_TYPE, 0);
+        glDrawElements(GL_TRIANGLES, quadCounter * 6, indexValueType, 0);
 
         colors.clear();
         vertices.clear();
@@ -256,7 +280,7 @@ public final class TexturedQuads implements AutoCloseable {
      * @param color the RGBA color (0xff0000ff - red, 0x00ff00ff - green, 0x0000ffff - blue)
      */
     public void addQuad(float x0, float y0, float s0, float t0, float x1, float y1, float s1, float t1, int color) {
-        if (quadCounter >= MAX_QUADS) {
+        if (quadCounter >= maxQuads) {
             flush();
         }
 

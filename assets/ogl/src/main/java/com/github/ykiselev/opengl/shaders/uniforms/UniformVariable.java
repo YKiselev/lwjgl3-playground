@@ -48,6 +48,11 @@ public final class UniformVariable {
         glUniformMatrix4fv(location, transpose, matrix);
     }
 
+    /**
+     * Specifies the value of a single vec4 uniform variable or a vec4 uniform variable array.
+     *
+     * @param buffer the buffer with vect4 components.
+     */
     public void vector4(FloatBuffer buffer) {
         glUniform4fv(location, buffer);
     }

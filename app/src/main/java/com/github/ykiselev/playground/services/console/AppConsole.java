@@ -91,7 +91,8 @@ public final class AppConsole implements UiLayer, AutoCloseable {
                     break;
             }
         }
-        return true;
+        // debug
+        return false;
     }
 
     @Override
