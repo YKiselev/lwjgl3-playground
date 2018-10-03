@@ -26,7 +26,7 @@ import com.github.ykiselev.playground.host.ProgramArguments;
  */
 public final class Main {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         final ProgramArguments programArguments = new ProgramArguments(args);
         new AppBuilder(
                 new Host(

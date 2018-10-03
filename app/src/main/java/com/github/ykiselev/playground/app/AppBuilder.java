@@ -16,6 +16,7 @@
 
 package com.github.ykiselev.playground.app;
 
+import com.github.ykiselev.common.ThrowingRunnable;
 import com.github.ykiselev.playground.Main;
 import org.apache.logging.log4j.io.IoBuilder;
 import org.lwjgl.glfw.GLFWErrorCallback;
@@ -33,9 +34,9 @@ import static org.lwjgl.glfw.GLFW.glfwTerminate;
  */
 public final class AppBuilder {
 
-    private final Runnable delegate;
+    private final ThrowingRunnable delegate;
 
-    public AppBuilder(Runnable delegate) {
+    public AppBuilder(ThrowingRunnable delegate) {
         this.delegate = requireNonNull(delegate);
     }
 
@@ -55,7 +56,7 @@ public final class AppBuilder {
         return new AppBuilder(() -> withLogging(delegate));
     }
 
-    private void withErrorCallback(Runnable delegate) {
+    private void withErrorCallback(ThrowingRunnable delegate) throws Exception {
         try (GLFWErrorCallback callback = GLFWErrorCallback.createPrint(System.err)) {
             final GLFWErrorCallback previous = glfwSetErrorCallback(callback);
             try {
@@ -66,7 +67,7 @@ public final class AppBuilder {
         }
     }
 
-    private void withGlfw(Runnable delegate) {
+    private void withGlfw(ThrowingRunnable delegate) throws Exception {
         glfwInit();
         try {
             delegate.run();
@@ -75,7 +76,7 @@ public final class AppBuilder {
         }
     }
 
-    private void withExceptionCatching(Runnable delegate) {
+    private void withExceptionCatching(ThrowingRunnable delegate) {
         try {
             delegate.run();
         } catch (Exception e) {
@@ -83,7 +84,7 @@ public final class AppBuilder {
         }
     }
 
-    private void withLogging(Runnable delegate) {
+    private void withLogging(ThrowingRunnable delegate) throws Exception {
         final PrintStream std = IoBuilder.forLogger("STD")
                 .buildPrintStream();
         System.setOut(std);
@@ -91,7 +92,7 @@ public final class AppBuilder {
         delegate.run();
     }
 
-    public void run() {
+    public void run() throws Exception {
         delegate.run();
     }
 }

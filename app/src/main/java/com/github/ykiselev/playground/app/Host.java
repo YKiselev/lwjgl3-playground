@@ -18,10 +18,8 @@ package com.github.ykiselev.playground.app;
 
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.closeables.CompositeAutoCloseable;
+import com.github.ykiselev.common.ThrowingRunnable;
 import com.github.ykiselev.playground.events.AppEvents;
-import com.github.ykiselev.playground.host.ConsoleEvents;
-import com.github.ykiselev.playground.host.GameEvents;
-import com.github.ykiselev.playground.host.MenuEvents;
 import com.github.ykiselev.playground.host.ProgramArguments;
 import com.github.ykiselev.playground.layers.AppUiLayers;
 import com.github.ykiselev.playground.services.MapBasedServices;
@@ -44,8 +42,6 @@ import com.github.ykiselev.services.events.Events;
 import com.github.ykiselev.services.layers.UiLayers;
 import com.github.ykiselev.services.schedule.Schedule;
 
-import java.util.function.Consumer;
-
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -53,26 +49,29 @@ import static java.util.Objects.requireNonNull;
  *
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class Host implements Runnable {
+public final class Host implements ThrowingRunnable {
+
+    public interface Delegate {
+
+        void run(Services services) throws Exception;
+    }
 
     private final ProgramArguments args;
 
-    private final Consumer<Services> delegate;
+    private final Delegate delegate;
 
-    public Host(ProgramArguments args, Consumer<Services> delegate) {
+    public Host(ProgramArguments args, Delegate delegate) {
         this.args = requireNonNull(args);
         this.delegate = requireNonNull(delegate);
     }
 
     @Override
-    public void run() {
-        final Services services = new MapBasedServices();
-        final CompositeAutoCloseable ac = new CompositeAutoCloseable(services)
-                .and(registerServices(services))
-                .with(new MenuEvents(services))
-                .reverse();
-        try (ac) {
-            delegate.accept(services);
+    public void run() throws Exception {
+        try (Services services = new MapBasedServices();
+             AutoCloseable ac = registerServices(services)
+                     .reverse()
+        ) {
+            delegate.run(services);
         }
     }
 

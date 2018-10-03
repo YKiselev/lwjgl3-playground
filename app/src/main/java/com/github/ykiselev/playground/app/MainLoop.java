@@ -17,6 +17,7 @@
 package com.github.ykiselev.playground.app;
 
 import com.github.ykiselev.closeables.CompositeAutoCloseable;
+import com.github.ykiselev.common.ThrowingRunnable;
 import com.github.ykiselev.playground.app.window.AppWindow;
 import com.github.ykiselev.playground.app.window.WindowBuilder;
 import com.github.ykiselev.playground.host.ConsoleEvents;
@@ -40,7 +41,7 @@ import static org.lwjgl.glfw.GLFW.glfwSwapInterval;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class MainLoop implements Runnable {
+public final class MainLoop implements ThrowingRunnable {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -56,10 +57,10 @@ public final class MainLoop implements Runnable {
     }
 
     @Override
-    public void run() {
+    public void run() throws Exception {
         try (AppWindow window = createWindow(services);
-             GameEvents gameEvents = new GameEvents(services);
-             CompositeAutoCloseable ac = subscribe()
+             AutoCloseable ac = subscribe();
+             GameEvents gameEvents = new GameEvents(services)
         ) {
             window.show();
             // todo - remove that
@@ -98,7 +99,8 @@ public final class MainLoop implements Runnable {
                         .subscribe(QuitEvent.class, this::onQuit),
                 services.resolve(Commands.class)
                         .add("quit", new EventFiringHandler<>(services, QuitEvent.INSTANCE))
-        ).with(new ConsoleEvents(services));
+        ).with(new ConsoleEvents(services))
+                .with(new MenuEvents(services));
     }
 
     private void onQuit() {
