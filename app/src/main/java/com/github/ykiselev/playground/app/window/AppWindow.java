@@ -17,8 +17,10 @@
 package com.github.ykiselev.playground.app.window;
 
 import com.github.ykiselev.window.WindowEvents;
+import org.lwjgl.system.Callback;
 import org.lwjgl.system.MemoryStack;
 
+import javax.annotation.Nullable;
 import java.nio.IntBuffer;
 
 import static java.util.Objects.requireNonNull;
@@ -49,9 +51,12 @@ public final class AppWindow implements AutoCloseable {
 
     private final WindowEvents windowEvents;
 
-    public AppWindow(long window, WindowEvents windowEvents) {
+    private final Callback debugMessageCallback;
+
+    public AppWindow(long window, WindowEvents windowEvents, @Nullable Callback debugMessageCallback) {
         this.window = window;
         this.windowEvents = requireNonNull(windowEvents);
+        this.debugMessageCallback = debugMessageCallback;
     }
 
     /**
@@ -100,6 +105,9 @@ public final class AppWindow implements AutoCloseable {
     public void close() {
         glfwFreeCallbacks(window);
         glfwDestroyWindow(window);
+        if (debugMessageCallback != null) {
+            debugMessageCallback.close();
+        }
     }
 
     public void show() {

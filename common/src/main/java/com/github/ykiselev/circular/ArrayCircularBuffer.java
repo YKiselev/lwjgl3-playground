@@ -58,16 +58,18 @@ public final class ArrayCircularBuffer<T> implements CircularBuffer<T> {
 
     @Override
     public void write(T value) {
+        if (head >= buffer.length) {
+            head = 0;
+        }
         if (tail >= buffer.length) {
             tail = 0;
-            if (head == tail) {
-                head++;
-            }
+        }
+        if (count > 0 && head == tail) {
+            head++;
         }
         buffer[tail++] = value;
-        count++;
-        if (count > buffer.length) {
-            count = buffer.length;
+        if (count < buffer.length) {
+            count++;
         }
     }
 
@@ -75,6 +77,9 @@ public final class ArrayCircularBuffer<T> implements CircularBuffer<T> {
     public T read() {
         if (count == 0) {
             throw new NoSuchElementException();
+        }
+        if (tail >= buffer.length) {
+            tail = 0;
         }
         if (head >= buffer.length) {
             head = 0;
@@ -90,14 +95,21 @@ public final class ArrayCircularBuffer<T> implements CircularBuffer<T> {
 
     @Override
     public int copyTo(T[] dest) {
-        if (head < tail) {
-            System.arraycopy(buffer, head, dest, 0, count);
+        int h = head, t = tail;
+        if (h >= buffer.length) {
+            h = 0;
+        }
+        if (t >= buffer.length) {
+            t = 0;
+        }
+        if (h < t) {
+            System.arraycopy(buffer, h, dest, 0, count);
             return count;
         } else if (count > 0) {
-            final int chunk = buffer.length - head;
-            System.arraycopy(buffer, head, dest, 0, chunk);
-            System.arraycopy(buffer, 0, dest, chunk, tail);
-            return tail + chunk;
+            final int chunk = buffer.length - h;
+            System.arraycopy(buffer, h, dest, 0, chunk);
+            System.arraycopy(buffer, 0, dest, chunk, t);
+            return t + chunk;
         }
         return 0;
     }

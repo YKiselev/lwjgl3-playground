@@ -24,6 +24,8 @@ import org.lwjgl.glfw.GLFWMouseButtonCallback;
 import org.lwjgl.glfw.GLFWScrollCallback;
 import org.lwjgl.glfw.GLFWWindowSizeCallback;
 import org.lwjgl.opengl.GL;
+import org.lwjgl.opengl.GLUtil;
+import org.lwjgl.system.Callback;
 
 import static java.util.Objects.requireNonNull;
 import static org.lwjgl.glfw.GLFW.GLFW_CONTEXT_VERSION_MAJOR;
@@ -39,6 +41,7 @@ import static org.lwjgl.glfw.GLFW.GLFW_RESIZABLE;
 import static org.lwjgl.glfw.GLFW.GLFW_TRUE;
 import static org.lwjgl.glfw.GLFW.glfwCreateWindow;
 import static org.lwjgl.glfw.GLFW.glfwGetPrimaryMonitor;
+import static org.lwjgl.glfw.GLFW.glfwGetWindowAttrib;
 import static org.lwjgl.glfw.GLFW.glfwMakeContextCurrent;
 import static org.lwjgl.glfw.GLFW.glfwSetCursorPosCallback;
 import static org.lwjgl.glfw.GLFW.glfwSetFramebufferSizeCallback;
@@ -165,7 +168,13 @@ public final class WindowBuilder {
         }
         glfwMakeContextCurrent(window);
         GL.createCapabilities();
-        final AppWindow result = new AppWindow(window, events);
+        final Callback debugMessageCallback;
+        if (glfwGetWindowAttrib(window, GLFW_OPENGL_DEBUG_CONTEXT) == GLFW_TRUE) {
+            debugMessageCallback = GLUtil.setupDebugMessageCallback();
+        } else {
+            debugMessageCallback = null;
+        }
+        final AppWindow result = new AppWindow(window, events, debugMessageCallback);
         glfwSetFramebufferSizeCallback(window, GLFWFramebufferSizeCallback.create(result::onFrameBufferSize));
         glfwSetWindowSizeCallback(window, GLFWWindowSizeCallback.create(result::onWindowSize));
         glfwSetKeyCallback(window, GLFWKeyCallback.create(result::onKey));

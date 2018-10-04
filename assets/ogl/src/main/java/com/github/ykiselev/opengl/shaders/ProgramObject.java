@@ -17,6 +17,7 @@
 package com.github.ykiselev.opengl.shaders;
 
 import com.github.ykiselev.opengl.Bindable;
+import com.github.ykiselev.opengl.shaders.uniforms.UniformInfo;
 import com.github.ykiselev.opengl.shaders.uniforms.UniformVariable;
 
 /**
@@ -24,9 +25,38 @@ import com.github.ykiselev.opengl.shaders.uniforms.UniformVariable;
  */
 public interface ProgramObject extends Bindable, AutoCloseable {
 
-    int uniformLocation(String uniform) throws ProgramException;
+    /**
+     * @param uniform the uniform variable name
+     * @return the uniform variable location
+     * @throws ProgramException if uniform variable not found
+     */
+    int uniformLocation(String uniform) throws ProgramException.UniformVariableNotFoundException;
 
-    int attributeLocation(String attribute) throws ProgramException;
+    /**
+     * @param attribute the attribute name
+     * @return the attribute location
+     * @throws ProgramException if attribute not found
+     */
+    int attributeLocation(String attribute) throws ProgramException.AttributeNotFoundException;
 
-    UniformVariable lookup(String uniform) throws ProgramException;
+    /**
+     * @param uniform the name of the uniform variable
+     * @return the new instance of uniform variable
+     * @throws ProgramException if active uniform variable cannot be found
+     */
+    UniformVariable lookup(String uniform) throws ProgramException.UniformVariableNotFoundException;
+
+    /**
+     * @param location the location of active uniform variable to describe
+     * @return the variable information
+     */
+    UniformInfo describe(int location);
+
+    /**
+     * @param variable the active uniform variable to describe
+     * @return the variable information
+     */
+    default UniformInfo describe(UniformVariable variable) {
+        return describe(variable.location());
+    }
 }

@@ -18,6 +18,7 @@ package com.github.ykiselev.opengl.sprites;
 
 import com.github.ykiselev.opengl.matrices.Matrix;
 import com.github.ykiselev.opengl.shaders.ProgramObject;
+import com.github.ykiselev.opengl.shaders.uniforms.UniformInfo;
 import com.github.ykiselev.opengl.shaders.uniforms.UniformVariable;
 import com.github.ykiselev.opengl.textures.Texture2d;
 import com.github.ykiselev.opengl.vbo.IndexBufferObject;
@@ -26,13 +27,11 @@ import com.github.ykiselev.opengl.vbo.VertexBufferObject;
 import com.github.ykiselev.opengl.vertices.VertexDefinitions;
 import com.github.ykiselev.wrap.Wrap;
 import org.lwjgl.BufferUtils;
-import org.lwjgl.opengl.GL20;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
 import java.util.function.IntConsumer;
 
 import static java.util.Objects.requireNonNull;
@@ -57,7 +56,6 @@ import static org.lwjgl.opengl.GL15.GL_ELEMENT_ARRAY_BUFFER;
 import static org.lwjgl.opengl.GL15.GL_STATIC_DRAW;
 import static org.lwjgl.opengl.GL15.GL_STREAM_DRAW;
 import static org.lwjgl.opengl.GL15.glBufferData;
-import static org.lwjgl.opengl.GL20.GL_ACTIVE_UNIFORM_MAX_LENGTH;
 import static org.lwjgl.opengl.GL20.GL_FLOAT_VEC4;
 
 /**
@@ -128,11 +126,14 @@ public final class TexturedQuads implements AutoCloseable {
         this.program = requireNonNull(program);
 
         final ProgramObject prg = program.value();
-        prg.bind();
+
         mvpUniform = prg.lookup("mvp");
         colorsUniform = prg.lookup("colors");
         texUniform = prg.lookup("tex");
 
+        final UniformInfo info = prg.describe(colorsUniform);
+
+        prg.bind();
         vao = new VertexArrayObject();
         vao.bind();
 
@@ -146,25 +147,17 @@ public final class TexturedQuads implements AutoCloseable {
         // Quad == 2 triangles == 6 indices (can't use stripes due to texture coordinates difference between quads)
         final int maxIndices;
         try (MemoryStack ms = MemoryStack.stackPush()) {
-            // Get colors uniform array size
-            final ByteBuffer nameBuf = ms.malloc(4, GL20.glGetProgrami(prg.id(), GL_ACTIVE_UNIFORM_MAX_LENGTH));
-            final IntBuffer sizeBuf = ms.ints(1);
-            final IntBuffer typeBuf = ms.ints(1);
-            GL20.glGetActiveUniform(prg.id(), colorsUniform.location(), null, sizeBuf, typeBuf, nameBuf);
-            final int uniformArrayLength = sizeBuf.get();
-            this.maxQuads = uniformArrayLength & ~4;
+            this.maxQuads = info.size() & ~4;
             if (maxQuads < 1) {
-                throw new IllegalArgumentException("Invalid array length: \"colors[" + uniformArrayLength + "\"");
+                throw new IllegalArgumentException("Invalid array length: \"colors[" + info.size() + "\"");
             }
-            final int type = typeBuf.get();
+            final int type = info.type();
             if (type != GL_FLOAT_VEC4) {
-                throw new IllegalArgumentException("Expected type of colors array is vec4 got " + type);
+                throw new IllegalArgumentException("Expected vec4 got different type: " + type);
             }
             // Allocate indices
             maxIndices = maxQuads * 6;
-            this.indexValueType = maxIndices < 0xff
-                    ? GL_UNSIGNED_BYTE
-                    : (maxIndices < 0xffff ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT);
+            this.indexValueType = maxIndices < 0xffff ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT;
 
             final ByteBuffer indices = ms.malloc(4, 4 * maxIndices);
             fillIndexData(indices);

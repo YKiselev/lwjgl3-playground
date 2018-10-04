@@ -134,6 +134,18 @@ class ArrayCircularBufferTest {
             buffer.write("d");
             assertEquals(3, buffer.copyTo(dest));
             assertArrayEquals(new String[]{"b", "c", "d"}, dest);
+
+            buffer.write("e");
+            assertEquals(3, buffer.copyTo(dest));
+            assertArrayEquals(new String[]{"c", "d", "e"}, dest);
+
+            buffer.write("f");
+            assertEquals(3, buffer.copyTo(dest));
+            assertArrayEquals(new String[]{"d", "e", "f"}, dest);
+
+            buffer.write("g");
+            assertEquals(3, buffer.copyTo(dest));
+            assertArrayEquals(new String[]{"e", "f", "g"}, dest);
         }
     }
 

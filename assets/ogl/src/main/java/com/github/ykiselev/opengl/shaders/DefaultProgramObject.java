@@ -16,10 +16,19 @@
 
 package com.github.ykiselev.opengl.shaders;
 
+import com.github.ykiselev.opengl.shaders.ProgramException.AttributeNotFoundException;
+import com.github.ykiselev.opengl.shaders.ProgramException.UniformVariableNotFoundException;
+import com.github.ykiselev.opengl.shaders.uniforms.UniformInfo;
 import com.github.ykiselev.opengl.shaders.uniforms.UniformVariable;
 import com.github.ykiselev.wrap.Wrap;
+import org.lwjgl.opengl.GL20;
+import org.lwjgl.system.MemoryStack;
+
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 
 import static java.util.Objects.requireNonNull;
+import static org.lwjgl.opengl.GL20.GL_ACTIVE_UNIFORM_MAX_LENGTH;
 import static org.lwjgl.opengl.GL20.glDeleteProgram;
 import static org.lwjgl.opengl.GL20.glDetachShader;
 import static org.lwjgl.opengl.GL20.glGetAttribLocation;
@@ -56,32 +65,37 @@ public final class DefaultProgramObject implements ProgramObject {
     }
 
     @Override
-    public int uniformLocation(String uniform) throws ProgramException {
+    public int uniformLocation(String uniform) throws UniformVariableNotFoundException {
         final int location = glGetUniformLocation(id, uniform);
         if (location == -1) {
-            throw new ProgramException("Uniform variable not found: " + uniform
-                    + ".\nThis may be caused by compiler optimization, check if variable is actually used in code!");
+            throw new UniformVariableNotFoundException(uniform);
         }
         return location;
     }
 
     @Override
-    public int attributeLocation(String attribute) throws ProgramException {
+    public int attributeLocation(String attribute) throws AttributeNotFoundException {
         final int location = glGetAttribLocation(id, attribute);
         if (location == -1) {
-            throw new ProgramException("Attribute not found: " + attribute
-                    + ".\nThis may be caused by compiler optimization, check if attribute is actually used in code!");
+            throw new AttributeNotFoundException(attribute);
         }
         return location;
     }
 
-    /**
-     * @param uniform the name of the uniform variable
-     * @return the new instance of uniform variable
-     */
     @Override
-    public UniformVariable lookup(String uniform) throws ProgramException {
+    public UniformVariable lookup(String uniform) throws UniformVariableNotFoundException {
         return new UniformVariable(uniformLocation(uniform), uniform);
+    }
+
+    @Override
+    public UniformInfo describe(int location) throws ProgramException {
+        try (MemoryStack ms = MemoryStack.stackPush()) {
+            final ByteBuffer nameBuf = ms.malloc(GL20.glGetProgrami(id(), GL_ACTIVE_UNIFORM_MAX_LENGTH));
+            final IntBuffer sizeBuf = ms.mallocInt(1);
+            final IntBuffer typeBuf = ms.mallocInt(1);
+            GL20.glGetActiveUniform(id(), location, null, sizeBuf, typeBuf, nameBuf);
+            return new UniformInfo(typeBuf.get(0), sizeBuf.get(0));
+        }
     }
 
     @Override

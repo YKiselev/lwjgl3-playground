@@ -140,12 +140,16 @@ public final class ParallelRunner<V> implements Callable<Collection<Collection<V
         };
     }
 
-    @SuppressWarnings("unchecked")
     public static Callable<Void> fromRunnable(int iterations, Supplier<Runnable> supplier) {
+        return fromRunnable(iterations, Runtime.getRuntime().availableProcessors(), supplier);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static Callable<Void> fromRunnable(int iterations, int parallelism, Supplier<Runnable> supplier) {
         return () -> {
             new ParallelRunner<>(
                     iterations,
-                    IntStream.range(0, Runtime.getRuntime().availableProcessors())
+                    IntStream.range(0, parallelism)
                             .mapToObj(v -> callable(supplier))
                             .toArray(Supplier[]::new)
             ).call();
@@ -153,14 +157,17 @@ public final class ParallelRunner<V> implements Callable<Collection<Collection<V
         };
     }
 
-    @SuppressWarnings("unchecked")
     public static <V> Callable<Collection<Collection<V>>> fromCallable(int iterations, Supplier<Callable<V>> supplier) {
+        return fromCallable(iterations, Runtime.getRuntime().availableProcessors(), supplier);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <V> Callable<Collection<Collection<V>>> fromCallable(int iterations, int parallelism, Supplier<Callable<V>> supplier) {
         return new ParallelRunner(
                 iterations,
-                IntStream.range(0, Runtime.getRuntime().availableProcessors())
+                IntStream.range(0, parallelism)
                         .mapToObj(v -> supplier)
                         .toArray(Supplier[]::new)
         );
     }
-
 }

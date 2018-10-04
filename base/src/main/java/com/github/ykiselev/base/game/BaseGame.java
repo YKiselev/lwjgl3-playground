@@ -77,10 +77,6 @@ public final class BaseGame implements Game {
 
     private final FloatBuffer pv;
 
-    private final GenericIndexedGeometry pyramid;
-
-    private final GenericIndexedGeometry cubes;
-
     private float radius = 8;
 
     private float alpha;
@@ -93,9 +89,11 @@ public final class BaseGame implements Game {
 
     private long frames;
 
-    private final UniformVariable texUniform;
-
     private final FrameBuffer frameBuffer;
+
+    private final Cubes cubes;
+
+    private final Pyramids pyramids;
 
     private final Trigger rmbTrigger = new Trigger(
             () -> {
@@ -137,23 +135,8 @@ public final class BaseGame implements Game {
         );
         cuddles = assets.load("images/htf-cuddles.jpg", SimpleTexture2d.class);
         liberationMono = assets.load("fonts/Liberation Mono.sf", SpriteFont.class);
-        final Wrap<ProgramObject> generic = assets.load("progs/generic.conf", ProgramObject.class);
-        try (Wrap<ObjModel> model = assets.load("models/2cubes.obj", ObjModel.class)) {
-            cubes = new GenericIndexedGeometry(
-                    generic,
-                    VertexDefinitions.POSITION_TEXTURE_NORMAL,
-                    model.value().toIndexedTriangles()
-            );
-        }
-        texUniform = generic.value().lookup("tex");
-        final Wrap<ProgramObject> colored = assets.load("progs/colored.conf", ProgramObject.class);
-        try (Pyramid p = new Pyramid()) {
-            pyramid = new GenericIndexedGeometry(
-                    colored,
-                    VertexDefinitions.POSITION_COLOR,
-                    p
-            );
-        }
+        cubes = new Cubes(assets);
+        pyramids = new Pyramids(assets);
         pv = MemoryUtil.memAllocFloat(16);
         frameBuffer = new FrameBuffer();
     }
@@ -256,41 +239,15 @@ public final class BaseGame implements Game {
     public void close() throws Exception {
         spriteBatch.close();
         liberationMono.close();
-        pyramid.close();
+        pyramids.close();
         cubes.close();
         cuddles.close();
         MemoryUtil.memFree(pv);
         frameBuffer.close();
     }
 
-    private void drawPyramids(FloatBuffer vp) {
-        final double sec = glfwGetTime();
-        try (MemoryStack ms = MemoryStack.stackPush()) {
-            final FloatBuffer rm = ms.mallocFloat(16);
-            Matrix.rotation(0, 0, Math.toRadians(25 * sec % 360), rm);
-
-            final FloatBuffer mvp = ms.mallocFloat(16);
-
-            // 1
-            Matrix.multiply(vp, rm, mvp);
-            pyramid.draw(mvp);
-
-            // 2
-            Matrix.translate(vp, 2, 0, 0, mvp);
-            Matrix.scale(mvp, 3, 3, 3, mvp);
-            Matrix.multiply(mvp, rm, mvp);
-            pyramid.draw(mvp);
-
-            // 3
-            Matrix.translate(vp, -2, 0, 0, mvp);
-            Matrix.multiply(mvp, rm, mvp);
-            pyramid.draw(mvp);
-        }
-    }
-
     private void drawModel(FloatBuffer vp) {
         final double sec = glfwGetTime();
-        texUniform.value(0);
         cuddles.value().bind();
         try (MemoryStack ms = MemoryStack.stackPush()) {
             final FloatBuffer rm = ms.mallocFloat(16);
@@ -358,7 +315,7 @@ public final class BaseGame implements Game {
         GL11.glClearColor(0, 0, 0.5f, 1);
         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
 
-        drawPyramids(pv);
+        pyramids.draw(pv);
         drawModel(pv);
         frameBuffer.unbind();
 

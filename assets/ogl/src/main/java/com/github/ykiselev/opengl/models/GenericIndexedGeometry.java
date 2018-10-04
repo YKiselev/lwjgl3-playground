@@ -18,14 +18,11 @@ package com.github.ykiselev.opengl.models;
 
 import com.github.ykiselev.opengl.IndexedGeometrySource;
 import com.github.ykiselev.opengl.shaders.ProgramObject;
-import com.github.ykiselev.opengl.shaders.uniforms.UniformVariable;
 import com.github.ykiselev.opengl.vbo.IndexBufferObject;
 import com.github.ykiselev.opengl.vbo.VertexArrayObject;
 import com.github.ykiselev.opengl.vbo.VertexBufferObject;
 import com.github.ykiselev.opengl.vertices.VertexDefinition;
 import com.github.ykiselev.wrap.Wrap;
-
-import java.nio.FloatBuffer;
 
 import static java.util.Objects.requireNonNull;
 import static org.lwjgl.opengl.GL11.GL_UNSIGNED_INT;
@@ -45,8 +42,6 @@ public final class GenericIndexedGeometry implements AutoCloseable {
 
     private final IndexBufferObject ebo;
 
-    private final UniformVariable mvpUniform;
-
     private final int mode;
 
     private final int count;
@@ -58,8 +53,6 @@ public final class GenericIndexedGeometry implements AutoCloseable {
 
         final ProgramObject prg = program.value();
         prg.bind();
-        mvpUniform = prg.lookup("mvp");
-        //texUniform = prg.lookup("tex");
 
         vao = new VertexArrayObject();
         vao.bind();
@@ -87,16 +80,17 @@ public final class GenericIndexedGeometry implements AutoCloseable {
         program.close();
     }
 
-    public void draw(FloatBuffer mvp) {
+    public void begin() {
         vao.bind();
         program.value().bind();
-
-        mvpUniform.matrix4(false, mvp);
-        //texUniform.value(0);
-
         vbo.bind();
-        glDrawElements(mode, count, GL_UNSIGNED_INT, 0);
+    }
 
+    public void draw() {
+        glDrawElements(mode, count, GL_UNSIGNED_INT, 0);
+    }
+
+    public void end() {
         vao.unbind();
         vbo.unbind();
         ebo.unbind();

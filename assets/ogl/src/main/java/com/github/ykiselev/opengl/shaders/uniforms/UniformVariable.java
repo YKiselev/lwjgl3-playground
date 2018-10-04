@@ -18,6 +18,7 @@ package com.github.ykiselev.opengl.shaders.uniforms;
 
 import java.nio.FloatBuffer;
 
+import static java.util.Objects.requireNonNull;
 import static org.lwjgl.opengl.GL20.glUniform1i;
 import static org.lwjgl.opengl.GL20.glUniform4fv;
 import static org.lwjgl.opengl.GL20.glUniformMatrix4fv;
@@ -41,7 +42,7 @@ public final class UniformVariable {
 
     public UniformVariable(int location, String name) {
         this.location = location;
-        this.name = name;
+        this.name = requireNonNull(name);
     }
 
     public void matrix4(boolean transpose, FloatBuffer matrix) {

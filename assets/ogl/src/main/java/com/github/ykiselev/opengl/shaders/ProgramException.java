@@ -19,7 +19,7 @@ package com.github.ykiselev.opengl.shaders;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class ProgramException extends RuntimeException {
+public abstract class ProgramException extends RuntimeException {
 
     public ProgramException(String message) {
         super(message);
@@ -35,5 +35,21 @@ public final class ProgramException extends RuntimeException {
 
     public ProgramException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
+    }
+
+    public static final class AttributeNotFoundException extends ProgramException {
+
+        public AttributeNotFoundException(String name) {
+            super("Attribute not found: " + name
+                    + ".\nThis may be caused by compiler optimization, check if attribute is actually used in code!");
+        }
+    }
+
+    public static final class UniformVariableNotFoundException extends ProgramException {
+
+        public UniformVariableNotFoundException(String name) {
+            super("Uniform variable not found: " + name +
+                    ".\nThis may be caused by compiler optimization, check if variable is actually used in code!");
+        }
     }
 }

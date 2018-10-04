@@ -18,6 +18,7 @@ package com.github.ykiselev.playground.services.console;
 
 import com.github.ykiselev.circular.ArrayCircularBuffer;
 import com.github.ykiselev.circular.CircularBuffer;
+import com.github.ykiselev.circular.SynchronizedCircularBuffer;
 import org.apache.logging.log4j.core.Appender;
 import org.apache.logging.log4j.core.Core;
 import org.apache.logging.log4j.core.Filter;
@@ -44,7 +45,9 @@ public final class AppConsoleLog4j2Appender extends AbstractAppender {
 
     private AppConsoleLog4j2Appender(String name, Filter filter, Layout<? extends Serializable> layout, int bufferSize) {
         super(name, filter, layout);
-        this.buffer = new ArrayCircularBuffer<>(String.class, bufferSize);
+        this.buffer = new SynchronizedCircularBuffer<>(
+                new ArrayCircularBuffer<>(String.class, bufferSize)
+        );
     }
 
     @Override
