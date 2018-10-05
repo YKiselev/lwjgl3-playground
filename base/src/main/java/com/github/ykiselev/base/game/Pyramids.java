@@ -35,25 +35,23 @@ import static org.lwjgl.glfw.GLFW.glfwGetTime;
  */
 public final class Pyramids implements AutoCloseable {
 
-    private final GenericIndexedGeometry pyramid;
+    private final GenericIndexedGeometry geometry;
+
+    private final Wrap<ProgramObject> program;
 
     private final UniformVariable mvpUniform;
 
     public Pyramids(Assets assets) {
-        final Wrap<ProgramObject> colored = assets.load("progs/colored.conf", ProgramObject.class);
+        program = assets.load("progs/colored.conf", ProgramObject.class);
         try (Pyramid p = new Pyramid()) {
-            pyramid = new GenericIndexedGeometry(
-                    colored,
-                    VertexDefinitions.POSITION_COLOR,
-                    p
-            );
+            geometry = new GenericIndexedGeometry(VertexDefinitions.POSITION_COLOR, p);
         }
-        final ProgramObject prg = colored.value();
-        mvpUniform = prg.lookup("mvp");
+        mvpUniform = program.value().lookup("mvp");
     }
 
     public void draw(FloatBuffer vp) {
-        pyramid.begin();
+        geometry.begin();
+        program.value().bind();
         final double sec = glfwGetTime();
         try (MemoryStack ms = MemoryStack.stackPush()) {
             final FloatBuffer rm = ms.mallocFloat(16);
@@ -64,26 +62,28 @@ public final class Pyramids implements AutoCloseable {
             // 1
             Matrix.multiply(vp, rm, mvp);
             mvpUniform.matrix4(false, mvp);
-            pyramid.draw();
+            geometry.draw();
 
             // 2
             Matrix.translate(vp, 2, 0, 0, mvp);
             Matrix.scale(mvp, 3, 3, 3, mvp);
             Matrix.multiply(mvp, rm, mvp);
             mvpUniform.matrix4(false, mvp);
-            pyramid.draw();
+            geometry.draw();
 
             // 3
             Matrix.translate(vp, -2, 0, 0, mvp);
             Matrix.multiply(mvp, rm, mvp);
             mvpUniform.matrix4(false, mvp);
-            pyramid.draw();
+            geometry.draw();
         }
-        pyramid.end();
+        program.value().unbind();
+        geometry.end();
     }
 
     @Override
     public void close() {
-        pyramid.close();
+        geometry.close();
+        program.close();
     }
 }

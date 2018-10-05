@@ -31,36 +31,40 @@ import java.nio.FloatBuffer;
  */
 public final class Cubes implements AutoCloseable {
 
-    private final GenericIndexedGeometry cubes;
+    private final GenericIndexedGeometry geometry;
 
     private final UniformVariable texUniform;
 
     private final UniformVariable mvpUniform;
 
+    private final Wrap<ProgramObject> program;
+
     public Cubes(Assets assets) {
-        final Wrap<ProgramObject> generic = assets.load("progs/generic.conf", ProgramObject.class);
+        program = assets.load("progs/generic.conf", ProgramObject.class);
         try (Wrap<ObjModel> model = assets.load("models/2cubes.obj", ObjModel.class)) {
-            cubes = new GenericIndexedGeometry(
-                    generic,
+            geometry = new GenericIndexedGeometry(
                     VertexDefinitions.POSITION_TEXTURE_NORMAL,
                     model.value().toIndexedTriangles()
             );
         }
-        final ProgramObject prg = generic.value();
+        final ProgramObject prg = program.value();
         mvpUniform = prg.lookup("mvp");
         texUniform = prg.lookup("tex");
     }
 
     public void draw(FloatBuffer mvp) {
-        cubes.begin();
+        geometry.begin();
+        program.value().bind();
         texUniform.value(0);
         mvpUniform.matrix4(false, mvp);
-        cubes.draw();
-        cubes.end();
+        geometry.draw();
+        geometry.end();
+        program.value().unbind();
     }
 
     @Override
     public void close() {
-        cubes.close();
+        geometry.close();
+        program.close();
     }
 }
