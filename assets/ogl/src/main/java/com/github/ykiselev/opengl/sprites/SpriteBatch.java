@@ -51,7 +51,9 @@ public interface SpriteBatch extends AutoCloseable {
      * @param color    the RGBA color (0xff0000ff - red, 0x00ff00ff - green, 0x0000ffff - blue)
      * @return actual height of text
      */
-    int draw(SpriteFont font, int x, int y, int maxWidth, CharSequence text, int color);
+    default int draw(SpriteFont font, int x, int y, int maxWidth, CharSequence text, int color) {
+        return draw(font, x, y, maxWidth, text, TextAlignment.LEFT, color);
+    }
 
     /**
      * Draws text at specified location with specified sprite font, maximum width and color.
@@ -79,7 +81,9 @@ public interface SpriteBatch extends AutoCloseable {
      * @param height  the height of sprite
      * @param color   the RGBA color (0xff0000ff - red, 0x00ff00ff - green, 0x0000ffff - blue)
      */
-    void draw(Texture2d texture, int x, int y, int width, int height, int color);
+    default void draw(Texture2d texture, int x, int y, int width, int height, int color) {
+        draw(texture, x, y, width, height, 0f, 0f, 1f, 1f, color);
+    }
 
     void draw(Texture2d texture, int x, int y, int width, int height, float s0, float t0, float s1, float t1, int color);
 

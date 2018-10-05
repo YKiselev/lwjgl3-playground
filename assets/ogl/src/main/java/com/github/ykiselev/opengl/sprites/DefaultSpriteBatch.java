@@ -71,11 +71,6 @@ public final class DefaultSpriteBatch implements SpriteBatch {
     }
 
     @Override
-    public int draw(SpriteFont font, int x, int y, int maxWidth, CharSequence text, int color) {
-        return draw(font, x, y, maxWidth, text, TextAlignment.LEFT, color);
-    }
-
-    @Override
     public int draw(SpriteFont font, int x, int y, int maxWidth, CharSequence text, TextAlignment alignment, int color) {
         quads.use(font.texture());
 
@@ -111,11 +106,6 @@ public final class DefaultSpriteBatch implements SpriteBatch {
             fx = x1;
         }
         return y - fy;
-    }
-
-    @Override
-    public void draw(Texture2d texture, int x, int y, int width, int height, int color) {
-        draw(texture, x, y, width, height, 0f, 0f, 1f, 1f, color);
     }
 
     @Override

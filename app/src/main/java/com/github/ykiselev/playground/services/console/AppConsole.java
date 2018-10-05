@@ -99,6 +99,7 @@ public final class AppConsole implements UiLayer, AutoCloseable {
     public void draw(int width, int height) {
         final int lines = buffer.copyTo(snapshot);
         spriteBatch.begin(0, 0, width, height, true);
+        spriteBatch.draw(cuddles.value(), 0, 0, width, height, 0xff00ff55);
         final SpriteFont font = this.font.value();
         for (int i = lines - 1, y = 1 + font.height(); i >= 0; i--) {
             final String line = snapshot[i];

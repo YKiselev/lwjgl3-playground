@@ -159,7 +159,7 @@ public final class TexturedQuads implements AutoCloseable {
             maxIndices = maxQuads * 6;
             this.indexValueType = maxIndices < 0xffff ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT;
 
-            final ByteBuffer indices = ms.malloc(4, 4 * maxIndices);
+            final ByteBuffer indices = ms.malloc(4 * maxIndices);
             fillIndexData(indices);
             indices.flip();
             glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW);

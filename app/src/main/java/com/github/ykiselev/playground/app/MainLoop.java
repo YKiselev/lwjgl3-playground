@@ -16,6 +16,7 @@
 
 package com.github.ykiselev.playground.app;
 
+import com.github.ykiselev.FrameInfo;
 import com.github.ykiselev.closeables.CompositeAutoCloseable;
 import com.github.ykiselev.common.ThrowingRunnable;
 import com.github.ykiselev.playground.app.window.AppWindow;
@@ -36,6 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static java.util.Objects.requireNonNull;
+import static org.lwjgl.glfw.GLFW.glfwGetTime;
 import static org.lwjgl.glfw.GLFW.glfwSwapInterval;
 
 /**
@@ -48,6 +50,8 @@ public final class MainLoop implements ThrowingRunnable {
     private final ProgramArguments args;
 
     private final Services services;
+
+    private final FrameInfo frameInfo = new FrameInfo(60);
 
     private volatile boolean exitFlag;
 
@@ -72,11 +76,14 @@ public final class MainLoop implements ThrowingRunnable {
             final Schedule schedule = services.resolve(Schedule.class);
             final UiLayers layers = services.resolve(UiLayers.class);
             while (!window.shouldClose() && !exitFlag) {
+                final double t0 = glfwGetTime();
                 gameEvents.update();
                 window.checkEvents();
                 layers.draw();
                 window.swapBuffers();
                 schedule.processPendingTasks(2);
+                final double t1 = glfwGetTime();
+                frameInfo.add((t1 - t0) * 1000.0);
             }
         }
     }
@@ -100,7 +107,8 @@ public final class MainLoop implements ThrowingRunnable {
                 services.resolve(Commands.class)
                         .add("quit", new EventFiringHandler<>(services, QuitEvent.INSTANCE))
         ).with(new ConsoleEvents(services))
-                .with(new MenuEvents(services));
+                .with(new MenuEvents(services))
+                .and(services.add(FrameInfo.class, frameInfo));
     }
 
     private void onQuit() {

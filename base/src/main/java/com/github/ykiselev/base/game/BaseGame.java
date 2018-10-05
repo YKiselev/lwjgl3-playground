@@ -16,23 +16,19 @@
 
 package com.github.ykiselev.base.game;
 
+import com.github.ykiselev.FrameInfo;
 import com.github.ykiselev.assets.Assets;
-import com.github.ykiselev.assets.formats.obj.ObjModel;
 import com.github.ykiselev.components.Game;
 import com.github.ykiselev.opengl.buffers.FrameBuffer;
 import com.github.ykiselev.opengl.matrices.Matrix;
 import com.github.ykiselev.opengl.matrices.Vector3f;
-import com.github.ykiselev.opengl.models.GenericIndexedGeometry;
-import com.github.ykiselev.opengl.models.Pyramid;
 import com.github.ykiselev.opengl.shaders.ProgramObject;
-import com.github.ykiselev.opengl.shaders.uniforms.UniformVariable;
 import com.github.ykiselev.opengl.sprites.DefaultSpriteBatch;
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
 import com.github.ykiselev.opengl.text.SpriteFont;
 import com.github.ykiselev.opengl.textures.CurrentTexture2dAsBytes;
 import com.github.ykiselev.opengl.textures.SimpleTexture2d;
 import com.github.ykiselev.opengl.textures.Texture2d;
-import com.github.ykiselev.opengl.vertices.VertexDefinitions;
 import com.github.ykiselev.services.FileSystem;
 import com.github.ykiselev.services.Services;
 import com.github.ykiselev.services.events.Events;
@@ -69,6 +65,8 @@ public final class BaseGame implements Game {
 
     private final Services services;
 
+    private final FrameInfo frameInfo;
+
     private final SpriteBatch spriteBatch;
 
     private final Wrap<? extends Texture2d> cuddles;
@@ -86,8 +84,6 @@ public final class BaseGame implements Game {
     private boolean lmbPressed, rmbPressed;
 
     private double cx, cy, cx0, cy0;
-
-    private long frames;
 
     private final FrameBuffer frameBuffer;
 
@@ -129,6 +125,7 @@ public final class BaseGame implements Game {
 
     public BaseGame(Services services) {
         this.services = requireNonNull(services);
+        this.frameInfo = services.resolve(FrameInfo.class);
         final Assets assets = services.resolve(Assets.class);
         spriteBatch = new DefaultSpriteBatch(
                 assets.load("progs/sprite-batch.conf", ProgramObject.class)
@@ -319,8 +316,8 @@ public final class BaseGame implements Game {
         drawModel(pv);
         frameBuffer.unbind();
 
-        final double t = glfwGetTime();
-        final double fps = (double) frames / t;
+        //final double t = glfwGetTime();
+        //final double fps = (double) frames / t;
 
         GL11.glClearColor(0.5f, 0.5f, 0.5f, 1);
         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
@@ -340,11 +337,11 @@ public final class BaseGame implements Game {
                 liberationMono.value(),
                 0,
                 height,
-                width, String.format("avg. fps: %.2f, frame buffer mode: %s", fps, frameBufferMode),
+                width,
+                String.format("frame time: min: %.1f, max: %.1f, avg: %.1f, fps: %.2f, frame buffer mode: %s",
+                        frameInfo.min(), frameInfo.max(), frameInfo.avg(), frameInfo.fps(), frameBufferMode),
                 0xffffffff
         );
         spriteBatch.end();
-
-        frames++;
     }
 }
