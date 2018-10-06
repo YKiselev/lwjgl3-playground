@@ -17,6 +17,7 @@
 package com.github.ykiselev.services.configuration;
 
 import com.github.ykiselev.common.BooleanConsumer;
+import com.github.ykiselev.services.PersistedConfiguration;
 import com.github.ykiselev.services.configuration.values.ConfigValue;
 import com.github.ykiselev.services.configuration.values.Values;
 
@@ -35,6 +36,8 @@ import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import static java.util.Objects.requireNonNull;
+
 /**
  * Wired values map builder.
  *
@@ -42,7 +45,13 @@ import java.util.stream.Collectors;
  */
 public final class WiredValues {
 
+    private final PersistedConfiguration cfg;
+
     private final List<Map.Entry<String, ConfigValue>> values = new ArrayList<>();
+
+    public WiredValues(PersistedConfiguration cfg) {
+        this.cfg = requireNonNull(cfg);
+    }
 
     private WiredValues add(String path, ConfigValue value) {
         values.add(new AbstractMap.SimpleImmutableEntry<>(path, value));
@@ -89,11 +98,16 @@ public final class WiredValues {
         return withDouble(path, getter, null, persisted);
     }
 
-    public Map<String, ConfigValue> build() {
+    private Map<String, ConfigValue> toMap() {
         return values.stream()
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
                         Map.Entry::getValue
                 ));
     }
+
+    public AutoCloseable build() {
+        return cfg.wire(toMap());
+    }
+
 }

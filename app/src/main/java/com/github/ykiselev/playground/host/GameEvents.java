@@ -25,7 +25,6 @@ import com.github.ykiselev.services.Services;
 import com.github.ykiselev.services.Updateable;
 import com.github.ykiselev.services.commands.Commands;
 import com.github.ykiselev.services.commands.EventFiringHandler;
-import com.github.ykiselev.services.configuration.WiredValues;
 import com.github.ykiselev.services.events.Events;
 import com.github.ykiselev.services.events.game.NewGameEvent;
 import com.github.ykiselev.services.layers.UiLayers;
@@ -57,11 +56,10 @@ public final class GameEvents implements AutoCloseable, Updateable {
                 services.resolve(Commands.class)
                         .add("new-game", new EventFiringHandler<>(services, NewGameEvent.INSTANCE)),
                 services.resolve(PersistedConfiguration.class)
-                        .wire(new WiredValues()
-                                .withBoolean("game.isPresent", () -> game != null, false)
-                                .build())
+                        .wire()
+                        .withBoolean("game.isPresent", () -> game != null, false)
+                        .build()
         );
-
     }
 
     private String getFactoryClassName() {

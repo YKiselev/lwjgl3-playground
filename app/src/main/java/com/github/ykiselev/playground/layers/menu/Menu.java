@@ -180,7 +180,7 @@ public final class Menu implements UiLayer, AutoCloseable, Removable {
                             .pop(Menu.this);
                     return true;
                 }
-                return false;
+                return true;
             }
         };
     }

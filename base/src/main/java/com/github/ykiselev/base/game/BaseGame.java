@@ -316,9 +316,6 @@ public final class BaseGame implements Game {
         drawModel(pv);
         frameBuffer.unbind();
 
-        //final double t = glfwGetTime();
-        //final double fps = (double) frames / t;
-
         GL11.glClearColor(0.5f, 0.5f, 0.5f, 1);
         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
         GL11.glDisable(GL11.GL_DEPTH_TEST);
@@ -338,7 +335,7 @@ public final class BaseGame implements Game {
                 0,
                 height,
                 width,
-                String.format("frame time: min: %.1f, max: %.1f, avg: %.1f, fps: %.2f, frame buffer mode: %s",
+                String.format("time (ms): min: %.1f, max: %.1f, avg: %.1f, fps: %.2f, frame buffer mode: %s",
                         frameInfo.min(), frameInfo.max(), frameInfo.avg(), frameInfo.fps(), frameBufferMode),
                 0xffffffff
         );

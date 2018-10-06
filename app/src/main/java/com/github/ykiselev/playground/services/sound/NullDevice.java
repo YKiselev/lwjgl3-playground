@@ -14,26 +14,14 @@
  * limitations under the License.
  */
 
-package com.github.ykiselev.closeables;
+package com.github.ykiselev.playground.services.sound;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class Closeables {
+public final class NullDevice implements SoundDevice {
 
-    public static void closeAll(Object... objs) throws RuntimeException {
-        for (Object obj : objs) {
-            close(obj);
-        }
-    }
-
-    public static void close(Object obj) throws RuntimeException {
-        if (obj instanceof AutoCloseable) {
-            try {
-                ((AutoCloseable) obj).close();
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }
+    @Override
+    public void close() throws Exception {
     }
 }

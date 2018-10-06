@@ -18,7 +18,6 @@ package com.github.ykiselev.playground.services.config;
 
 import com.github.ykiselev.services.PersistedConfiguration;
 import com.github.ykiselev.services.configuration.ConfigurationException.VariableNotFoundException;
-import com.github.ykiselev.services.configuration.WiredValues;
 import com.github.ykiselev.services.configuration.values.StringValue;
 import com.github.ykiselev.services.configuration.values.Values;
 import org.junit.jupiter.api.BeforeEach;
@@ -206,13 +205,13 @@ class AppConfigTest {
             assertEquals(4d, toWire.var4());
             assertEquals("5", toWire.var5());
 
-            cfg.wire(new WiredValues()
+            cfg.wire()
                     .withInt("a.int", toWire::var1, toWire::var1, false)
                     .withBoolean("a.boolean2", toWire::var2, toWire::var2, false)
                     .withLong("a.long", toWire::var3, toWire::var3, false)
                     .withDouble("a.double", toWire::var4, toWire::var4, false)
                     .withString("a.string", toWire::var5, toWire::var5, false)
-                    .build());
+                    .build();
 
             assertEquals(123, toWire.var1());
             assertFalse(toWire.var2());

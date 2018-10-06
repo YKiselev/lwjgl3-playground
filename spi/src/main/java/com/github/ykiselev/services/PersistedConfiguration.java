@@ -17,6 +17,7 @@
 package com.github.ykiselev.services;
 
 import com.github.ykiselev.services.configuration.Config;
+import com.github.ykiselev.services.configuration.WiredValues;
 import com.github.ykiselev.services.configuration.values.ConfigValue;
 
 import java.util.Map;
@@ -38,4 +39,13 @@ public interface PersistedConfiguration {
      * @return the handle to the wired variable.
      */
     AutoCloseable wire(Map<String, ConfigValue> values);
+
+    /**
+     * Convenient method to wire many variables at once.
+     *
+     * @return the builder to wire many variables at once.
+     */
+    default WiredValues wire() {
+        return new WiredValues(this);
+    }
 }

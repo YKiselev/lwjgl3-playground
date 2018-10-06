@@ -17,54 +17,32 @@
 package com.github.ykiselev.playground.host;
 
 import com.github.ykiselev.circular.CircularBuffer;
-import com.github.ykiselev.closeables.Closeables;
-import com.github.ykiselev.closeables.CompositeAutoCloseable;
 import com.github.ykiselev.playground.services.console.AppConsole;
 import com.github.ykiselev.playground.services.console.AppConsoleLog4j2Appender;
 import com.github.ykiselev.services.Services;
-import com.github.ykiselev.services.events.Events;
-import com.github.ykiselev.services.events.console.ToggleConsoleEvent;
 import com.github.ykiselev.services.layers.UiLayers;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.config.Configuration;
-
-import java.util.function.UnaryOperator;
 
 import static java.util.Objects.requireNonNull;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class ConsoleEvents implements AutoCloseable, UnaryOperator<CompositeAutoCloseable> {
+public final class ConsoleFactory {
 
     private final Services services;
 
-    private final AppConsole console;
-
-    private final Object lock = new Object();
-
-    public ConsoleEvents(Services services) {
+    public ConsoleFactory(Services services) {
         this.services = requireNonNull(services);
-        this.console = new AppConsole(services, getBuffer());
-        services.resolve(UiLayers.class).add(console);
     }
 
-    @Override
-    public void close() {
-        Closeables.close(console);
-    }
-
-    @Override
-    public CompositeAutoCloseable apply(CompositeAutoCloseable builder) {
-        return builder.and(
-                services.resolve(Events.class)
-                        .subscribe(ToggleConsoleEvent.class, this::onToggleConsole)
-        ).and(this);
-    }
-
-    private void onToggleConsole() {
-        throw new UnsupportedOperationException("not implemented");
+    public AppConsole create() {
+        final AppConsole console = new AppConsole(services, getBuffer());
+        services.resolve(UiLayers.class)
+                .add(console);
+        return console;
     }
 
     private static CircularBuffer<String> getBuffer() {

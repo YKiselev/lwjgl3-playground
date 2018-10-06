@@ -21,7 +21,7 @@ import com.github.ykiselev.closeables.CompositeAutoCloseable;
 import com.github.ykiselev.common.ThrowingRunnable;
 import com.github.ykiselev.playground.app.window.AppWindow;
 import com.github.ykiselev.playground.app.window.WindowBuilder;
-import com.github.ykiselev.playground.host.ConsoleEvents;
+import com.github.ykiselev.playground.host.ConsoleFactory;
 import com.github.ykiselev.playground.host.GameEvents;
 import com.github.ykiselev.playground.host.MenuEvents;
 import com.github.ykiselev.playground.host.ProgramArguments;
@@ -105,10 +105,11 @@ public final class MainLoop implements ThrowingRunnable {
                 services.resolve(Events.class)
                         .subscribe(QuitEvent.class, this::onQuit),
                 services.resolve(Commands.class)
-                        .add("quit", new EventFiringHandler<>(services, QuitEvent.INSTANCE))
-        ).with(new ConsoleEvents(services))
-                .with(new MenuEvents(services))
-                .and(services.add(FrameInfo.class, frameInfo));
+                        .add("quit", new EventFiringHandler<>(services, QuitEvent.INSTANCE)),
+                new ConsoleFactory(services)
+                        .create(),
+                services.add(FrameInfo.class, frameInfo)
+        ).with(new MenuEvents(services));
     }
 
     private void onQuit() {

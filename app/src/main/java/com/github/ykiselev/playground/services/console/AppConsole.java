@@ -19,22 +19,27 @@ package com.github.ykiselev.playground.services.console;
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.circular.CircularBuffer;
 import com.github.ykiselev.closeables.Closeables;
+import com.github.ykiselev.closeables.CompositeAutoCloseable;
 import com.github.ykiselev.opengl.shaders.ProgramObject;
 import com.github.ykiselev.opengl.sprites.DefaultSpriteBatch;
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
 import com.github.ykiselev.opengl.text.SpriteFont;
 import com.github.ykiselev.opengl.textures.SimpleTexture2d;
 import com.github.ykiselev.opengl.textures.Texture2d;
+import com.github.ykiselev.services.PersistedConfiguration;
 import com.github.ykiselev.services.Services;
 import com.github.ykiselev.services.events.Events;
 import com.github.ykiselev.services.events.console.ToggleConsoleEvent;
 import com.github.ykiselev.services.events.menu.ShowMenuEvent;
 import com.github.ykiselev.services.layers.UiLayer;
+import com.github.ykiselev.services.layers.UiLayers;
 import com.github.ykiselev.window.WindowEvents;
 import com.github.ykiselev.wrap.Wrap;
 import org.lwjgl.glfw.GLFW;
 
+import static java.lang.Math.max;
 import static java.util.Objects.requireNonNull;
+import static org.lwjgl.glfw.GLFW.glfwGetTime;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
@@ -58,7 +63,21 @@ public final class AppConsole implements UiLayer, AutoCloseable {
         }
     };
 
+    private final AutoCloseable ac;
+
     private final String[] snapshot;
+
+    private double consoleHeight;
+
+    private double showTime = 3;
+
+    private int backgroundColor = 0xffffffff;
+
+    private int textColor = 0xffffffff;
+
+    private boolean showing;
+
+    private double prevTime;
 
     @Override
     public WindowEvents events() {
@@ -69,6 +88,16 @@ public final class AppConsole implements UiLayer, AutoCloseable {
         this.services = requireNonNull(services);
         this.buffer = requireNonNull(buffer);
         this.snapshot = new String[buffer.capacity()];
+        this.ac = new CompositeAutoCloseable(
+                services.resolve(Events.class)
+                        .subscribe(ToggleConsoleEvent.class, this::onToggleConsole),
+                services.resolve(PersistedConfiguration.class)
+                        .wire()
+                        .withDouble("console.showTime", () -> showTime, v -> showTime = v, true)
+                        .withInt("console.textColor", () -> textColor, v -> textColor = v, true)
+                        .withInt("console.backgroundColor", () -> backgroundColor, v -> backgroundColor = v, true)
+                        .build()
+        );
         final Assets assets = services.resolve(Assets.class);
         spriteBatch = new DefaultSpriteBatch(
                 assets.load("progs/sprite-batch.conf", ProgramObject.class)
@@ -77,36 +106,57 @@ public final class AppConsole implements UiLayer, AutoCloseable {
         font = assets.load("fonts/Liberation Mono.sf", SpriteFont.class);
     }
 
+    private void onToggleConsole() {
+        showing = !showing;
+        prevTime = glfwGetTime();
+    }
+
     private boolean onKey(int key, int scanCode, int action, int mods) {
         if (action == GLFW.GLFW_PRESS) {
             switch (key) {
                 case GLFW.GLFW_KEY_ESCAPE:
+                    showing = false;
+                    consoleHeight = 0;
                     services.resolve(Events.class)
                             .fire(ShowMenuEvent.INSTANCE);
-                    break;
+                    return true;
 
                 case GLFW.GLFW_KEY_GRAVE_ACCENT:
-                    services.resolve(Events.class)
-                            .fire(ToggleConsoleEvent.INSTANCE);
-                    break;
+                    onToggleConsole();
+                    return true;
             }
         }
-        // debug
-        return false;
+        return showing;
     }
 
     @Override
     public void draw(int width, int height) {
+        calculateHeight(height);
+        if (consoleHeight <= 0) {
+            return;
+        }
+        drawConsole(0, height - (int) consoleHeight, width, height);
+    }
+
+    private void calculateHeight(int viewHeight) {
+        final double t = glfwGetTime(), deltaTime = t - prevTime;
+        prevTime = t;
+        final double deltaHeight = (showing ? 1 : -1) * viewHeight * deltaTime / showTime;
+        consoleHeight = max(0, Math.min(viewHeight, consoleHeight + deltaHeight));
+    }
+
+    private void drawConsole(int x0, int y0, int width, int height) {
         final int lines = buffer.copyTo(snapshot);
-        spriteBatch.begin(0, 0, width, height, true);
-        spriteBatch.draw(cuddles.value(), 0, 0, width, height, 0xff00ff55);
+        spriteBatch.begin(x0, y0, width, (int) consoleHeight, true);
+        // todo - it's upside down!
+        spriteBatch.draw(cuddles.value(), x0, y0, width, height, backgroundColor);
         final SpriteFont font = this.font.value();
-        for (int i = lines - 1, y = 1 + font.height(); i >= 0; i--) {
+        for (int i = lines - 1, y = y0; i >= 0; i--) {
             final String line = snapshot[i];
             final int lineHeight = font.height(line, width);
             y += lineHeight;
-            spriteBatch.draw(font, 0, y, width, line, 0xffffffff);
-            if (y + 2 * font.height() > height) {
+            spriteBatch.draw(font, x0, y, width, line, textColor);
+            if (y >= height) {
                 break;
             }
         }
@@ -120,8 +170,8 @@ public final class AppConsole implements UiLayer, AutoCloseable {
 
     @Override
     public void close() {
-        Closeables.close(font);
-        Closeables.close(cuddles);
-        Closeables.close(spriteBatch);
+        services.resolve(UiLayers.class)
+                .remove(this);
+        Closeables.closeAll(font, cuddles, spriteBatch, ac);
     }
 }

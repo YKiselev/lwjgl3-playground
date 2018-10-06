@@ -19,7 +19,6 @@ package com.github.ykiselev.playground.services.sound;
 import com.github.ykiselev.services.PersistedConfiguration;
 import com.github.ykiselev.services.Services;
 import com.github.ykiselev.services.SoundEffects;
-import com.github.ykiselev.services.configuration.WiredValues;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,27 +40,31 @@ public final class AppSoundEffects implements SoundEffects, AutoCloseable {
 
     private volatile String deviceName;
 
+    private volatile boolean enabled = true;
+
     private final SoundDevice device;
 
     public AppSoundEffects(Services services) {
         this.services = requireNonNull(services);
         this.subscriptions = services.resolve(PersistedConfiguration.class)
-                .wire(
-                        new WiredValues()
-                                .withString("sound.device", () -> deviceName, this::setDeviceName, true)
-                                .build()
-                );
+                .wire()
+                .withString("sound.device", () -> deviceName, this::setDeviceName, true)
+                .withBoolean("sound.enabled", () -> enabled, v -> enabled = v, true)
+                .build();
 
-        long device = alcOpenDevice(deviceName);
-        if (device == NULL) {
-            deviceName = null;
-            device = alcOpenDevice(deviceName);
+        if (enabled) {
+            long device = alcOpenDevice(deviceName);
             if (device == NULL) {
-                throw new IllegalArgumentException("No device found!");
+                deviceName = null;
+                device = alcOpenDevice(deviceName);
+                if (device == NULL) {
+                    throw new IllegalArgumentException("No device found!");
+                }
             }
+            this.device = new OpenAlSoundDevice(services, device);
+        } else {
+            this.device = new NullDevice();
         }
-
-        this.device = new SoundDevice(services, device);
     }
 
     private void setDeviceName(String value) {
