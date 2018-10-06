@@ -16,10 +16,14 @@
 
 package com.github.ykiselev.opengl.sprites;
 
+import java.nio.FloatBuffer;
+
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
 public final class Colors {
+
+    public static final float COLOR_COEFF = 1.0f / 255.0f;
 
     public static final int WHITE = 0xffffffff;
 
@@ -104,4 +108,30 @@ public final class Colors {
         }
         return color & 0xffffff00 | (int) (opacity * 255f);
     }
+
+    public static void putAsVector4(FloatBuffer dest, int color) {
+        // r
+        dest.put(COLOR_COEFF * (0xff & (color >>> 24)));
+        // g
+        dest.put(COLOR_COEFF * (0xff & (color >>> 16)));
+        // b
+        dest.put(COLOR_COEFF * (0xff & (color >>> 8)));
+        // a
+        dest.put(COLOR_COEFF * (0xff & color));
+    }
+
+    public static int putAsVector4(float[] dest, int fromIndex, int color) {
+        int i = fromIndex;
+        // r
+        dest[i++] = (COLOR_COEFF * (0xff & (color >>> 24)));
+        // g
+        dest[i++] = (COLOR_COEFF * (0xff & (color >>> 16)));
+        // b
+        dest[i++] = (COLOR_COEFF * (0xff & (color >>> 8)));
+        // a
+        dest[i++] = (COLOR_COEFF * (0xff & color));
+
+        return i;
+    }
+
 }

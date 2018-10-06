@@ -48,7 +48,8 @@ enum LineStart {
     abstract int calculate(int x0, SpriteFont font, CharSequence text, int fromIndex, int maxWidth);
 
     /**
-     * Calculates width of single line of supplied text starting from character at specified index.
+     * Calculates width of single line of supplied text starting from character at specified index. Stops counting line
+     * length if one of these happens: encountered '\n' character, current fragment's width plus next char width exceeds {@code maxWidth}.
      *
      * @param font      the sprite font
      * @param text      the text

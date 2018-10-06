@@ -65,8 +65,6 @@ public final class TexturedQuads implements AutoCloseable {
 
     private static final int VERTEX_SIZE_IN_FLOATS = 4;
 
-    private static final float COLOR_COEFF = 1.0f / 255.0f;
-
     /**
      * Maximum number of quads in a call to glDrawElements.
      */
@@ -282,14 +280,24 @@ public final class TexturedQuads implements AutoCloseable {
         vertices.put(x0).put(y1).put(s0).put(t1);
         vertices.put(x1).put(y1).put(s1).put(t1);
 
-        // r
-        colors.put(COLOR_COEFF * (0xff & (color >>> 24)));
-        // g
-        colors.put(COLOR_COEFF * (0xff & (color >>> 16)));
-        // b
-        colors.put(COLOR_COEFF * (0xff & (color >>> 8)));
-        // a
-        colors.put(COLOR_COEFF * (0xff & color));
+        Colors.putAsVector4(colors, color);
+
+        quadCounter++;
+    }
+
+    /**
+     *
+     */
+    public void addQuad(float x0, float y0, float s0, float t0, float x1, float y1, float s1, float t1, float r, float g, float b, float a) {
+        if (quadCounter >= maxQuads) {
+            flush();
+        }
+
+        vertices.put(x0).put(y0).put(s0).put(t0);
+        vertices.put(x1).put(y0).put(s1).put(t0);
+        vertices.put(x0).put(y1).put(s0).put(t1);
+        vertices.put(x1).put(y1).put(s1).put(t1);
+        colors.put(r).put(g).put(b).put(a);
 
         quadCounter++;
     }

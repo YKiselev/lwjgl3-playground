@@ -323,11 +323,11 @@ public final class BaseGame implements Game {
         spriteBatch.begin(0, 0, width, height, true);
         switch (frameBufferMode) {
             case COLOR:
-                spriteBatch.draw(frameBuffer.color(), 0, 0, width, height, 0xffffffff);
+                spriteBatch.draw(frameBuffer.color(), 0, 0, width, height, 0, 0, 1, 1, 0xffffffff);
                 break;
 
             case DEPTH:
-                spriteBatch.draw(frameBuffer.depth(), 0, 0, width, height, 0xffffffff);
+                spriteBatch.draw(frameBuffer.depth(), 0, 0, width, height, 0, 0, 1, 1, 0xffffffff);
                 break;
         }
         spriteBatch.draw(

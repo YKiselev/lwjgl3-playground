@@ -23,6 +23,8 @@ import com.github.ykiselev.closeables.CompositeAutoCloseable;
 import com.github.ykiselev.opengl.shaders.ProgramObject;
 import com.github.ykiselev.opengl.sprites.DefaultSpriteBatch;
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
+import com.github.ykiselev.opengl.sprites.TextAlignment;
+import com.github.ykiselev.opengl.sprites.TextBuilder;
 import com.github.ykiselev.opengl.text.SpriteFont;
 import com.github.ykiselev.opengl.textures.SimpleTexture2d;
 import com.github.ykiselev.opengl.textures.Texture2d;
@@ -33,9 +35,14 @@ import com.github.ykiselev.services.events.console.ToggleConsoleEvent;
 import com.github.ykiselev.services.events.menu.ShowMenuEvent;
 import com.github.ykiselev.services.layers.UiLayer;
 import com.github.ykiselev.services.layers.UiLayers;
+import com.github.ykiselev.services.schedule.Schedule;
 import com.github.ykiselev.window.WindowEvents;
 import com.github.ykiselev.wrap.Wrap;
 import org.lwjgl.glfw.GLFW;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.TimeUnit;
 
 import static java.lang.Math.max;
 import static java.util.Objects.requireNonNull;
@@ -45,6 +52,8 @@ import static org.lwjgl.glfw.GLFW.glfwGetTime;
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
 public final class AppConsole implements UiLayer, AutoCloseable {
+
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final Services services;
 
@@ -67,6 +76,8 @@ public final class AppConsole implements UiLayer, AutoCloseable {
 
     private final String[] snapshot;
 
+    private final TextBuilder textBuilder = new TextBuilder(200);
+
     private double consoleHeight;
 
     private double showTime = 3;
@@ -78,6 +89,10 @@ public final class AppConsole implements UiLayer, AutoCloseable {
     private boolean showing;
 
     private double prevTime;
+
+    private long totalTime;
+
+    private long frames;
 
     @Override
     public WindowEvents events() {
@@ -98,6 +113,11 @@ public final class AppConsole implements UiLayer, AutoCloseable {
                         .withInt("console.backgroundColor", () -> backgroundColor, v -> backgroundColor = v, true)
                         .build()
         );
+        services.resolve(Schedule.class)
+                .schedule(10, TimeUnit.SECONDS, () -> {
+                    logger.info("draws: {}, avg {} draws/sec", frames, 1e9 * frames / totalTime);
+                    return true;
+                });
         final Assets assets = services.resolve(Assets.class);
         spriteBatch = new DefaultSpriteBatch(
                 assets.load("progs/sprite-batch.conf", ProgramObject.class)
@@ -147,20 +167,36 @@ public final class AppConsole implements UiLayer, AutoCloseable {
 
     private void drawConsole(int x0, int y0, int width, int height) {
         final int lines = buffer.copyTo(snapshot);
+        if (textBuilder.font() == null) {
+            textBuilder.font(font.value());
+            textBuilder.alignment(TextAlignment.LEFT);
+        }
+        textBuilder.maxWidth(width);
         spriteBatch.begin(x0, y0, width, (int) consoleHeight, true);
         // todo - it's upside down!
         spriteBatch.draw(cuddles.value(), x0, y0, width, height, backgroundColor);
         final SpriteFont font = this.font.value();
+        long t0 = System.nanoTime();
         for (int i = lines - 1, y = y0; i >= 0; i--) {
             final String line = snapshot[i];
-            final int lineHeight = font.height(line, width);
-            y += lineHeight;
-            spriteBatch.draw(font, x0, y, width, line, textColor);
+            if (true) {
+                textBuilder.clear();
+                final int lineHeight = textBuilder.draw(line);
+                y += lineHeight;
+                spriteBatch.draw(textBuilder, x0, y);
+            } else {
+                final int lineHeight = font.height(line, width);
+                y += lineHeight;
+                spriteBatch.draw(font, x0, y, width, line, textColor);
+            }
             if (y >= height) {
                 break;
             }
         }
         spriteBatch.end();
+        long t1 = System.nanoTime();
+        totalTime += t1 - t0;
+        frames++;
     }
 
     @Override

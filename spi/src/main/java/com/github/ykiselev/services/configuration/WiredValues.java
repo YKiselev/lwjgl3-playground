@@ -75,7 +75,7 @@ public final class WiredValues {
     }
 
     public WiredValues withInt(String path, IntSupplier getter, IntConsumer setter, boolean persisted) {
-        return add(path, new Values.WiredLong(persisted, getter::getAsInt, v -> setter.accept(Math.toIntExact(v))));
+        return add(path, new Values.WiredLong(persisted, getter::getAsInt, v -> setter.accept(toInt(v))));
     }
 
     public WiredValues withInt(String path, IntSupplier getter, boolean persisted) {
@@ -110,4 +110,10 @@ public final class WiredValues {
         return cfg.wire(toMap());
     }
 
+    private static int toInt(long value) {
+        if ((int) value != value && (value & 0xffffffffL) != value) {
+            throw new ArithmeticException("integer overflow");
+        }
+        return (int) value;
+    }
 }

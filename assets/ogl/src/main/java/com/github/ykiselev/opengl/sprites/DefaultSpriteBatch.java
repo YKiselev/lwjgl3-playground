@@ -78,7 +78,7 @@ public final class DefaultSpriteBatch implements SpriteBatch {
         final int dy = font.height() + font.glyphYBorder();
         final int maxX = x + maxWidth;
         int fx = lineStart.calculate(x, font, text, 0, maxWidth);
-        int fy = y - dy;
+        int fy = y - dy, qy = fy;
         for (int i = 0; i < text.length(); i++) {
             final char value = text.charAt(i);
 
@@ -101,11 +101,17 @@ public final class DefaultSpriteBatch implements SpriteBatch {
             final int y1 = fy + font.height();
             if (value != ' ') {
                 quads.addQuad(fx, fy, glyph.s0(), glyph.t1(), x1, y1, glyph.s1(), glyph.t0(), color);
+                qy = fy;
             }
 
             fx = x1;
         }
-        return y - fy;
+        return y - qy;
+    }
+
+    @Override
+    public void draw(TextBuilder builder, int x, int y) {
+        builder.draw(quads, x, y);
     }
 
     @Override
