@@ -63,8 +63,8 @@ public abstract class CommandException extends RuntimeException {
 
     public static final class UnknownCommandException extends CommandException {
 
-        public UnknownCommandException(String message) {
-            super(message);
+        public UnknownCommandException(String command) {
+            super(String.format("Unknown command: %s", command));
         }
     }
 }

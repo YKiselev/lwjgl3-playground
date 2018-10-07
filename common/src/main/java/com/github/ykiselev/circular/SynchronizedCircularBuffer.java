@@ -72,4 +72,11 @@ public final class SynchronizedCircularBuffer<T> implements CircularBuffer<T> {
             return delegate.copyTo(dest);
         }
     }
+
+    @Override
+    public T get(int index) {
+        synchronized (lock) {
+            return delegate.get(index);
+        }
+    }
 }

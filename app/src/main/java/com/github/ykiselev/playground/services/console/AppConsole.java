@@ -27,6 +27,7 @@ import com.github.ykiselev.opengl.textures.SimpleTexture2d;
 import com.github.ykiselev.opengl.textures.Texture2d;
 import com.github.ykiselev.services.PersistedConfiguration;
 import com.github.ykiselev.services.Services;
+import com.github.ykiselev.services.commands.Commands;
 import com.github.ykiselev.services.events.Events;
 import com.github.ykiselev.services.events.console.ToggleConsoleEvent;
 import com.github.ykiselev.services.events.menu.ShowMenuEvent;
@@ -40,6 +41,7 @@ import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 
 import static java.lang.Math.max;
@@ -69,7 +71,9 @@ public final class AppConsole implements UiLayer, AutoCloseable {
 
         @Override
         public boolean charEvent(int codePoint) {
-            commandLine.add(codePoint);
+            if (inputAllowed) {
+                commandLine.add(codePoint);
+            }
             return true;
         }
     };
@@ -78,7 +82,7 @@ public final class AppConsole implements UiLayer, AutoCloseable {
 
     private final ConsoleBuffer buffer;
 
-    private final CommandLine commandLine = new CommandLine();
+    private final CommandLine commandLine;
 
     private final DrawingContext drawingContext = new DrawingContext() {
 
@@ -101,7 +105,7 @@ public final class AppConsole implements UiLayer, AutoCloseable {
 
         @Override
         public void fill(int x, int y, int width, int height, int color) {
-            // todo
+            // todo - make it work without additional textures!
             throw new UnsupportedOperationException("not implemented");
         }
     };
@@ -116,6 +120,8 @@ public final class AppConsole implements UiLayer, AutoCloseable {
 
     private boolean showing;
 
+    private boolean inputAllowed;
+
     private double prevTime;
 
     private long totalTime;
@@ -127,9 +133,10 @@ public final class AppConsole implements UiLayer, AutoCloseable {
         return events;
     }
 
-    public AppConsole(Services services, ConsoleBuffer buffer) {
+    public AppConsole(Services services, ConsoleBuffer buffer, CommandLine commandLine) {
         this.services = requireNonNull(services);
         this.buffer = requireNonNull(buffer);
+        this.commandLine = requireNonNull(commandLine);
         this.ac = new CompositeAutoCloseable(
                 services.resolve(Events.class)
                         .subscribe(ToggleConsoleEvent.class, this::onToggleConsole),
@@ -138,6 +145,11 @@ public final class AppConsole implements UiLayer, AutoCloseable {
                         .withDouble("console.showTime", () -> showTime, v -> showTime = v, true)
                         .withInt("console.textColor", () -> textColor, v -> textColor = v, true)
                         .withInt("console.backgroundColor", () -> backgroundColor, v -> backgroundColor = v, true)
+                        .build(),
+                services.resolve(Commands.class)
+                        .add()
+                        .with("toggle-console", this::onToggleConsole)
+                        .with("echo", this::onEcho)
                         .build()
         );
         services.resolve(Schedule.class)
@@ -153,9 +165,15 @@ public final class AppConsole implements UiLayer, AutoCloseable {
         font = assets.load("fonts/Liberation Mono.sf", SpriteFont.class);
     }
 
+    private void onEcho(Collection<String> args) {
+        logger.info("{}", args);
+    }
+
     private void onToggleConsole() {
         showing = !showing;
         prevTime = glfwGetTime();
+        // Always disable input to filter out characters from toggle key (i.e. '~'). Would be enabled on next draw call (if showing).
+        inputAllowed = false;
     }
 
     private boolean onKey(int key, int scanCode, int action, int mods) {
@@ -180,6 +198,14 @@ public final class AppConsole implements UiLayer, AutoCloseable {
                     commandLine.right();
                     return true;
 
+                case GLFW.GLFW_KEY_UP:
+                    commandLine.searchHistoryBackward();
+                    return true;
+
+                case GLFW.GLFW_KEY_DOWN:
+                    commandLine.searchHistory();
+                    return true;
+
                 case GLFW.GLFW_KEY_HOME:
                     commandLine.begin();
                     return true;
@@ -189,6 +215,7 @@ public final class AppConsole implements UiLayer, AutoCloseable {
                     return true;
 
                 case GLFW.GLFW_KEY_ENTER:
+                    commandLine.execute();
                     return true;
 
                 case GLFW.GLFW_KEY_TAB:
@@ -232,6 +259,9 @@ public final class AppConsole implements UiLayer, AutoCloseable {
     }
 
     private void drawConsole(int x0, int y0, int width, int height) {
+        if (!inputAllowed && showing) {
+            inputAllowed = true;
+        }
         spriteBatch.begin(x0, y0, width, (int) consoleHeight, true);
         spriteBatch.draw(cuddles.value(), x0, y0, width, height, backgroundColor);
         buffer.draw(drawingContext, x0, y0, width, height, textColor);

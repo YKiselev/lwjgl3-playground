@@ -65,4 +65,12 @@ public interface CircularBuffer<T> {
      * @return the number of elements copied
      */
     int copyTo(T[] dest);
+
+    /**
+     * Gets the value at specified logical index.
+     *
+     * @param index the logical index 0..{@code size}
+     * @return th evalue of element.
+     */
+    T get(int index);
 }

@@ -66,6 +66,17 @@ class ArrayCircularBufferTest {
             assertEquals("c", buffer.read());
             assertTrue(buffer.isEmpty());
         }
+
+        @Test
+        void shouldGet() {
+            buffer.write("a");
+            assertEquals("a", buffer.get(0));
+            buffer.write("b");
+            assertEquals("b", buffer.get(0));
+            assertThrows(IndexOutOfBoundsException.class, () -> buffer.get(1));
+            assertThrows(IndexOutOfBoundsException.class, () -> buffer.get(-1));
+            assertThrows(IndexOutOfBoundsException.class, () -> buffer.get(2));
+        }
     }
 
     @Nested
@@ -147,6 +158,43 @@ class ArrayCircularBufferTest {
             assertEquals(3, buffer.copyTo(dest));
             assertArrayEquals(new String[]{"e", "f", "g"}, dest);
         }
-    }
 
+        @Test
+        void shouldGet() {
+            buffer.write("a");
+            assertEquals("a", buffer.get(0));
+
+            buffer.write("b");
+            assertEquals("a", buffer.get(0));
+            assertEquals("b", buffer.get(1));
+
+            buffer.write("c");
+            assertEquals("a", buffer.get(0));
+            assertEquals("b", buffer.get(1));
+            assertEquals("c", buffer.get(2));
+
+            buffer.write("d");
+            assertEquals("b", buffer.get(0));
+            assertEquals("c", buffer.get(1));
+            assertEquals("d", buffer.get(2));
+
+            buffer.write("e");
+            assertEquals("c", buffer.get(0));
+            assertEquals("d", buffer.get(1));
+            assertEquals("e", buffer.get(2));
+
+            buffer.write("f");
+            assertEquals("d", buffer.get(0));
+            assertEquals("e", buffer.get(1));
+            assertEquals("f", buffer.get(2));
+
+            buffer.write("g");
+            assertEquals("e", buffer.get(0));
+            assertEquals("f", buffer.get(1));
+            assertEquals("g", buffer.get(2));
+
+            assertThrows(IndexOutOfBoundsException.class, () -> buffer.get(3));
+            assertThrows(IndexOutOfBoundsException.class, () -> buffer.get(-3));
+        }
+    }
 }

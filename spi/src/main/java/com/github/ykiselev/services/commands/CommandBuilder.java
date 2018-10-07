@@ -32,11 +32,13 @@ public final class CommandBuilder {
 
     private final CompositeAutoCloseable ac;
 
+    @SuppressWarnings("WeakerAccess")
     public CommandBuilder(Commands commands, CompositeAutoCloseable ac) {
         this.commands = requireNonNull(commands);
         this.ac = requireNonNull(ac);
     }
 
+    @SuppressWarnings("WeakerAccess")
     public CommandBuilder(Commands commands) {
         this(commands, new CompositeAutoCloseable());
     }

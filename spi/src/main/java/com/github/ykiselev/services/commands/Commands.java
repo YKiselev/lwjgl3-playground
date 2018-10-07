@@ -136,6 +136,15 @@ public interface Commands {
         return add(command, Handlers.consumer(handler));
     }
 
+    /**
+     * Convenient method to add many commands at once.
+     *
+     * @return the command builder
+     */
+    default CommandBuilder add() {
+        return new CommandBuilder(this);
+    }
+
     @FunctionalInterface
     interface H1 {
 

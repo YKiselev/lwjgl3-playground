@@ -20,6 +20,9 @@ import java.lang.reflect.Array;
 import java.util.NoSuchElementException;
 
 /**
+ * Array-based GC-free implementation of {@link CircularBuffer}.<p/>
+ * This class is not thread-safe.
+ *
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
 public final class ArrayCircularBuffer<T> implements CircularBuffer<T> {
@@ -112,5 +115,34 @@ public final class ArrayCircularBuffer<T> implements CircularBuffer<T> {
             return t + chunk;
         }
         return 0;
+    }
+
+    @Override
+    public T get(int index) {
+        if (index < 0 || index >= count) {
+            throw new ArrayIndexOutOfBoundsException(index);
+        }
+        int h = head, t = tail;
+        if (h >= buffer.length) {
+            h = 0;
+        }
+        if (t >= buffer.length) {
+            t = 0;
+        }
+        final int i;// = (h + index) % buffer.length;
+        if (h < t) {
+            i = h + index;
+            if (i < 0 || i > t) {
+                throw new ArrayIndexOutOfBoundsException(i);
+            }
+        } else {
+            // 1 chunk: h..(buffer.length - 1)
+            // 2 chunk: 0..t-1
+            i = (h + index) % buffer.length;
+            if (i > t && i < h) {
+                throw new ArrayIndexOutOfBoundsException(i);
+            }
+        }
+        return buffer[i];
     }
 }

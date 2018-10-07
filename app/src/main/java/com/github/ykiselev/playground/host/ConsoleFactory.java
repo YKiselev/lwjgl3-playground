@@ -19,6 +19,7 @@ package com.github.ykiselev.playground.host;
 import com.github.ykiselev.circular.CircularBuffer;
 import com.github.ykiselev.playground.services.console.AppConsole;
 import com.github.ykiselev.playground.services.console.AppConsoleLog4j2Appender;
+import com.github.ykiselev.playground.services.console.CommandLine;
 import com.github.ykiselev.playground.services.console.ConsoleBuffer;
 import com.github.ykiselev.services.Services;
 import com.github.ykiselev.services.layers.UiLayers;
@@ -42,7 +43,8 @@ public final class ConsoleFactory {
     public AppConsole create() {
         final AppConsole console = new AppConsole(
                 services,
-                new ConsoleBuffer(getBuffer())
+                new ConsoleBuffer(getBuffer()),
+                new CommandLine(services, 20)
         );
         services.resolve(UiLayers.class)
                 .add(console);
