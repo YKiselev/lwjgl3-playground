@@ -17,14 +17,11 @@
 package com.github.ykiselev.playground.services.console;
 
 import com.github.ykiselev.assets.Assets;
-import com.github.ykiselev.circular.CircularBuffer;
 import com.github.ykiselev.closeables.Closeables;
 import com.github.ykiselev.closeables.CompositeAutoCloseable;
 import com.github.ykiselev.opengl.shaders.ProgramObject;
 import com.github.ykiselev.opengl.sprites.DefaultSpriteBatch;
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
-import com.github.ykiselev.opengl.sprites.TextAlignment;
-import com.github.ykiselev.opengl.sprites.TextBuilder;
 import com.github.ykiselev.opengl.text.SpriteFont;
 import com.github.ykiselev.opengl.textures.SimpleTexture2d;
 import com.github.ykiselev.opengl.textures.Texture2d;
@@ -33,6 +30,7 @@ import com.github.ykiselev.services.Services;
 import com.github.ykiselev.services.events.Events;
 import com.github.ykiselev.services.events.console.ToggleConsoleEvent;
 import com.github.ykiselev.services.events.menu.ShowMenuEvent;
+import com.github.ykiselev.services.layers.DrawingContext;
 import com.github.ykiselev.services.layers.UiLayer;
 import com.github.ykiselev.services.layers.UiLayers;
 import com.github.ykiselev.services.schedule.Schedule;
@@ -57,8 +55,6 @@ public final class AppConsole implements UiLayer, AutoCloseable {
 
     private final Services services;
 
-    private final CircularBuffer<String> buffer;
-
     private final SpriteBatch spriteBatch;
 
     private final Wrap<? extends Texture2d> cuddles;
@@ -70,13 +66,45 @@ public final class AppConsole implements UiLayer, AutoCloseable {
         public boolean keyEvent(int key, int scanCode, int action, int mods) {
             return onKey(key, scanCode, action, mods);
         }
+
+        @Override
+        public boolean charEvent(int codePoint) {
+            commandLine.add(codePoint);
+            return true;
+        }
     };
 
     private final AutoCloseable ac;
 
-    private final String[] snapshot;
+    private final ConsoleBuffer buffer;
 
-    private final TextBuilder textBuilder = new TextBuilder(200);
+    private final CommandLine commandLine = new CommandLine();
+
+    private final DrawingContext drawingContext = new DrawingContext() {
+
+        private final StringBuilder sb = new StringBuilder();
+
+        @Override
+        public SpriteFont font() {
+            return font.value();
+        }
+
+        @Override
+        public SpriteBatch batch() {
+            return spriteBatch;
+        }
+
+        @Override
+        public StringBuilder stringBuilder() {
+            return sb;
+        }
+
+        @Override
+        public void fill(int x, int y, int width, int height, int color) {
+            // todo
+            throw new UnsupportedOperationException("not implemented");
+        }
+    };
 
     private double consoleHeight;
 
@@ -99,10 +127,9 @@ public final class AppConsole implements UiLayer, AutoCloseable {
         return events;
     }
 
-    public AppConsole(Services services, CircularBuffer<String> buffer) {
+    public AppConsole(Services services, ConsoleBuffer buffer) {
         this.services = requireNonNull(services);
         this.buffer = requireNonNull(buffer);
-        this.snapshot = new String[buffer.capacity()];
         this.ac = new CompositeAutoCloseable(
                 services.resolve(Events.class)
                         .subscribe(ToggleConsoleEvent.class, this::onToggleConsole),
@@ -132,7 +159,7 @@ public final class AppConsole implements UiLayer, AutoCloseable {
     }
 
     private boolean onKey(int key, int scanCode, int action, int mods) {
-        if (action == GLFW.GLFW_PRESS) {
+        if (action != GLFW.GLFW_RELEASE) {
             switch (key) {
                 case GLFW.GLFW_KEY_ESCAPE:
                     showing = false;
@@ -143,6 +170,45 @@ public final class AppConsole implements UiLayer, AutoCloseable {
 
                 case GLFW.GLFW_KEY_GRAVE_ACCENT:
                     onToggleConsole();
+                    return true;
+
+                case GLFW.GLFW_KEY_LEFT:
+                    commandLine.left();
+                    return true;
+
+                case GLFW.GLFW_KEY_RIGHT:
+                    commandLine.right();
+                    return true;
+
+                case GLFW.GLFW_KEY_HOME:
+                    commandLine.begin();
+                    return true;
+
+                case GLFW.GLFW_KEY_END:
+                    commandLine.end();
+                    return true;
+
+                case GLFW.GLFW_KEY_ENTER:
+                    return true;
+
+                case GLFW.GLFW_KEY_TAB:
+                    commandLine.complete();
+                    return true;
+
+                case GLFW.GLFW_KEY_BACKSPACE:
+                    commandLine.removeLeft();
+                    return true;
+
+                case GLFW.GLFW_KEY_DELETE:
+                    commandLine.remove();
+                    return true;
+
+                case GLFW.GLFW_KEY_PAGE_UP:
+                    // todo
+                    return true;
+
+                case GLFW.GLFW_KEY_PAGE_DOWN:
+                    // todo
                     return true;
             }
         }
@@ -166,37 +232,11 @@ public final class AppConsole implements UiLayer, AutoCloseable {
     }
 
     private void drawConsole(int x0, int y0, int width, int height) {
-        final int lines = buffer.copyTo(snapshot);
-        if (textBuilder.font() == null) {
-            textBuilder.font(font.value());
-            textBuilder.alignment(TextAlignment.LEFT);
-        }
-        textBuilder.maxWidth(width);
         spriteBatch.begin(x0, y0, width, (int) consoleHeight, true);
-        // todo - it's upside down!
         spriteBatch.draw(cuddles.value(), x0, y0, width, height, backgroundColor);
-        final SpriteFont font = this.font.value();
-        long t0 = System.nanoTime();
-        for (int i = lines - 1, y = y0; i >= 0; i--) {
-            final String line = snapshot[i];
-            if (true) {
-                textBuilder.clear();
-                final int lineHeight = textBuilder.draw(line);
-                y += lineHeight;
-                spriteBatch.draw(textBuilder, x0, y);
-            } else {
-                final int lineHeight = font.height(line, width);
-                y += lineHeight;
-                spriteBatch.draw(font, x0, y, width, line, textColor);
-            }
-            if (y >= height) {
-                break;
-            }
-        }
+        buffer.draw(drawingContext, x0, y0, width, height, textColor);
+        commandLine.draw(drawingContext, x0, y0, width, height, textColor);
         spriteBatch.end();
-        long t1 = System.nanoTime();
-        totalTime += t1 - t0;
-        frames++;
     }
 
     @Override

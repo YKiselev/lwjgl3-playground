@@ -83,6 +83,13 @@ public final class AppWindow implements AutoCloseable {
     /**
      * Event handlers left package-private to be accessible form {@link WindowBuilder} class.
      */
+    void onChar(long window, int codePoint) {
+        windowEvents.charEvent(codePoint);
+    }
+
+    /**
+     * Event handlers left package-private to be accessible form {@link WindowBuilder} class.
+     */
     void onCursorPosition(long window, double x, double y) {
         windowEvents.cursorEvent(x, y);
     }

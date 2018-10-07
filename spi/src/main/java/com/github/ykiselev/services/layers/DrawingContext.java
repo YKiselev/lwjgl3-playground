@@ -29,11 +29,15 @@ public interface DrawingContext {
 
     SpriteBatch batch();
 
-    int draw(int x, int y, int width, CharSequence text, TextAlignment alignment, int color);
+    default int draw(int x, int y, int width, CharSequence text, TextAlignment alignment, int color) {
+        return batch().draw(font(), x, y, width, text, alignment, color);
+    }
 
     StringBuilder stringBuilder();
 
-    int draw(int x, int y, int width, CharSequence text, int color);
+    default int draw(int x, int y, int width, CharSequence text, int color) {
+        return batch().draw(font(), x, y, width, text, color);
+    }
 
     void fill(int x, int y, int width, int height, int color);
 }

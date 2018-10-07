@@ -115,11 +115,6 @@ public final class Menu implements UiLayer, AutoCloseable, Removable {
             }
 
             @Override
-            public int draw(int x, int y, int width, CharSequence text, TextAlignment alignment, int color) {
-                return spriteBatch.draw(font.value(), x, y, width, text, alignment, color);
-            }
-
-            @Override
             public StringBuilder stringBuilder() {
                 return sb;
             }

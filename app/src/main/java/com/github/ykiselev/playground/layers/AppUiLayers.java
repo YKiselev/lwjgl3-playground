@@ -24,7 +24,6 @@ import com.github.ykiselev.window.WindowEvents;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.function.Predicate;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
@@ -41,7 +40,22 @@ public final class AppUiLayers implements UiLayers {
 
         @Override
         public boolean keyEvent(int key, int scanCode, int action, int mods) {
-            return dispatch(events -> events.keyEvent(key, scanCode, action, mods));
+            for (int i = layers.size() - 1; i >= 0; i--) {
+                if (layers.get(i).events().keyEvent(key, scanCode, action, mods)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        @Override
+        public boolean charEvent(int codePoint) {
+            for (int i = layers.size() - 1; i >= 0; i--) {
+                if (layers.get(i).events().charEvent(codePoint)) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         /**
@@ -54,28 +68,39 @@ public final class AppUiLayers implements UiLayers {
          */
         @Override
         public void cursorEvent(double x, double y) {
-            dispatch(events -> {
-                events.cursorEvent(x, height - y);
-                return false;
-            });
+            for (int i = layers.size() - 1; i >= 0; i--) {
+                layers.get(i).events().cursorEvent(x, height - y);
+            }
         }
 
         @Override
         public boolean mouseButtonEvent(int button, int action, int mods) {
-            return dispatch(layer -> layer.mouseButtonEvent(button, action, mods));
+            for (int i = layers.size() - 1; i >= 0; i--) {
+                if (layers.get(i).events().mouseButtonEvent(button, action, mods)) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         @Override
+        @SuppressWarnings("ForLoopReplaceableByForEach")
         public void frameBufferResized(int width, int height) {
             resize(width, height);
-            layers.forEach(layer -> layer.events().frameBufferResized(width, height));
+            for (int i = 0; i < layers.size(); i++) {
+                layers.get(i).events().frameBufferResized(width, height);
+            }
         }
 
         @Override
         public boolean scrollEvent(double dx, double dy) {
-            return dispatch(layer -> layer.scrollEvent(dx, dy));
+            for (int i = layers.size() - 1; i >= 0; i--) {
+                if (layers.get(i).events().scrollEvent(dx, dy)) {
+                    return true;
+                }
+            }
+            return false;
         }
-
     };
 
     private int width;
@@ -141,14 +166,4 @@ public final class AppUiLayers implements UiLayers {
             layer.onPop();
         }
     }
-
-    private boolean dispatch(Predicate<WindowEvents> p) {
-        for (int i = layers.size() - 1; i >= 0; i--) {
-            if (p.test(layers.get(i).events())) {
-                return true;
-            }
-        }
-        return false;
-    }
-
 }

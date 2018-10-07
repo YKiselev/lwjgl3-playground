@@ -16,6 +16,7 @@
 
 package com.github.ykiselev.window;
 
+import org.lwjgl.glfw.GLFWCharCallbackI;
 import org.lwjgl.glfw.GLFWCursorPosCallbackI;
 import org.lwjgl.glfw.GLFWFramebufferSizeCallbackI;
 import org.lwjgl.glfw.GLFWKeyCallbackI;
@@ -32,6 +33,14 @@ public interface WindowEvents {
      * @see GLFWKeyCallbackI#invoke(long, int, int, int, int)
      */
     default boolean keyEvent(int key, int scanCode, int action, int mods) {
+        return false;
+    }
+
+    /**
+     * @param codePoint the Unicode code point of the character
+     * @see GLFWCharCallbackI#invoke(long, int)
+     */
+    default boolean charEvent(int codePoint) {
         return false;
     }
 
@@ -65,4 +74,6 @@ public interface WindowEvents {
     default boolean scrollEvent(double dx, double dy) {
         return false;
     }
+
+
 }

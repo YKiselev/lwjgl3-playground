@@ -62,7 +62,10 @@ public final class TextBuilder {
     }
 
     public void alignment(TextAlignment alignment) {
-        this.alignment = alignment;
+        if (this.alignment != alignment) {
+            this.alignment = alignment;
+            clear();
+        }
     }
 
     public SpriteFont font() {
@@ -70,7 +73,10 @@ public final class TextBuilder {
     }
 
     public void font(SpriteFont font) {
-        this.font = font;
+        if (this.font != font) {
+            this.font = font;
+            clear();
+        }
     }
 
     public int maxWidth() {

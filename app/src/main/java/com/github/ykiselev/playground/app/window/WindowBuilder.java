@@ -17,6 +17,7 @@
 package com.github.ykiselev.playground.app.window;
 
 import com.github.ykiselev.window.WindowEvents;
+import org.lwjgl.glfw.GLFWCharCallback;
 import org.lwjgl.glfw.GLFWCursorPosCallback;
 import org.lwjgl.glfw.GLFWFramebufferSizeCallback;
 import org.lwjgl.glfw.GLFWKeyCallback;
@@ -43,6 +44,7 @@ import static org.lwjgl.glfw.GLFW.glfwCreateWindow;
 import static org.lwjgl.glfw.GLFW.glfwGetPrimaryMonitor;
 import static org.lwjgl.glfw.GLFW.glfwGetWindowAttrib;
 import static org.lwjgl.glfw.GLFW.glfwMakeContextCurrent;
+import static org.lwjgl.glfw.GLFW.glfwSetCharCallback;
 import static org.lwjgl.glfw.GLFW.glfwSetCursorPosCallback;
 import static org.lwjgl.glfw.GLFW.glfwSetFramebufferSizeCallback;
 import static org.lwjgl.glfw.GLFW.glfwSetKeyCallback;
@@ -178,6 +180,7 @@ public final class WindowBuilder {
         glfwSetFramebufferSizeCallback(window, GLFWFramebufferSizeCallback.create(result::onFrameBufferSize));
         glfwSetWindowSizeCallback(window, GLFWWindowSizeCallback.create(result::onWindowSize));
         glfwSetKeyCallback(window, GLFWKeyCallback.create(result::onKey));
+        glfwSetCharCallback(window, GLFWCharCallback.create(result::onChar));
         glfwSetCursorPosCallback(window, GLFWCursorPosCallback.create(result::onCursorPosition));
         glfwSetScrollCallback(window, GLFWScrollCallback.create(result::onScroll));
         glfwSetMouseButtonCallback(window, GLFWMouseButtonCallback.create(result::onMouseButton));
