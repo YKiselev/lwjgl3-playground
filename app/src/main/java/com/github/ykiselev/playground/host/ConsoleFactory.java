@@ -19,13 +19,20 @@ package com.github.ykiselev.playground.host;
 import com.github.ykiselev.circular.CircularBuffer;
 import com.github.ykiselev.playground.services.console.AppConsole;
 import com.github.ykiselev.playground.services.console.AppConsoleLog4j2Appender;
-import com.github.ykiselev.playground.services.console.CommandLine;
 import com.github.ykiselev.playground.services.console.ConsoleBuffer;
+import com.github.ykiselev.playground.services.console.DefaultCommandLine;
+import com.github.ykiselev.services.PersistedConfiguration;
 import com.github.ykiselev.services.Services;
+import com.github.ykiselev.services.commands.Commands;
 import com.github.ykiselev.services.layers.UiLayers;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.config.Configuration;
+
+import java.util.LinkedHashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.util.Objects.requireNonNull;
 
@@ -44,11 +51,22 @@ public final class ConsoleFactory {
         final AppConsole console = new AppConsole(
                 services,
                 new ConsoleBuffer(getBuffer()),
-                new CommandLine(services, 20)
+                new DefaultCommandLine(services, 20, this::search)
         );
         services.resolve(UiLayers.class)
                 .add(console);
         return console;
+    }
+
+    private Set<String> search(String fragment) {
+        return Stream.concat(
+                services.resolve(PersistedConfiguration.class)
+                        .root()
+                        .names(),
+                services.resolve(Commands.class)
+                        .commands()
+        ).filter(v -> v.startsWith(fragment))
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     private static CircularBuffer<String> getBuffer() {
