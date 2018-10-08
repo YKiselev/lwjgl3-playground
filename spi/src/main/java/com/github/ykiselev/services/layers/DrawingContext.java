@@ -38,6 +38,4 @@ public interface DrawingContext {
     default int draw(int x, int y, int width, CharSequence text, int color) {
         return batch().draw(font(), x, y, width, text, color);
     }
-
-    void fill(int x, int y, int width, int height, int color);
 }

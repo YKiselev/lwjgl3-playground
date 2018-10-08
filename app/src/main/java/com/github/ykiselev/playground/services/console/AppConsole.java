@@ -102,12 +102,6 @@ public final class AppConsole implements UiLayer, AutoCloseable {
         public StringBuilder stringBuilder() {
             return sb;
         }
-
-        @Override
-        public void fill(int x, int y, int width, int height, int color) {
-            // todo - make it work without additional textures!
-            throw new UnsupportedOperationException("not implemented");
-        }
     };
 
     private double consoleHeight;
@@ -159,7 +153,8 @@ public final class AppConsole implements UiLayer, AutoCloseable {
                 });
         final Assets assets = services.resolve(Assets.class);
         spriteBatch = new DefaultSpriteBatch(
-                assets.load("progs/sprite-batch.conf", ProgramObject.class)
+                assets.load("progs/sprite-batch.conf", ProgramObject.class),
+                assets.load("images/white.png", SimpleTexture2d.class)
         );
         cuddles = assets.load("images/htf-cuddles.jpg", SimpleTexture2d.class);
         font = assets.load("fonts/Liberation Mono.sf", SpriteFont.class);

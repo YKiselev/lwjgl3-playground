@@ -154,7 +154,7 @@ public final class ListMenu implements UiLayer {
     public void draw(int width, int height) {
         final SpriteBatch spriteBatch = context.batch();
         spriteBatch.begin(0, 0, width, height, true);
-        context.fill(0, 0, width, height, 0x000030df);
+        context.batch().fill(0, 0, width, height, 0x000030df);
 
         final SpriteFont font = context.font();
         final int cursorWidth;

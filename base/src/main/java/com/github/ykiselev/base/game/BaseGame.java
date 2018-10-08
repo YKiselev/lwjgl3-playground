@@ -128,7 +128,8 @@ public final class BaseGame implements Game {
         this.frameInfo = services.resolve(FrameInfo.class);
         final Assets assets = services.resolve(Assets.class);
         spriteBatch = new DefaultSpriteBatch(
-                assets.load("progs/sprite-batch.conf", ProgramObject.class)
+                assets.load("progs/sprite-batch.conf", ProgramObject.class),
+                assets.load("images/white.png", SimpleTexture2d.class)
         );
         cuddles = assets.load("images/htf-cuddles.jpg", SimpleTexture2d.class);
         liberationMono = assets.load("fonts/Liberation Mono.sf", SpriteFont.class);

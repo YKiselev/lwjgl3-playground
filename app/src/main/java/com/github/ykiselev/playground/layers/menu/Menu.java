@@ -20,10 +20,8 @@ import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.opengl.shaders.ProgramObject;
 import com.github.ykiselev.opengl.sprites.DefaultSpriteBatch;
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
-import com.github.ykiselev.opengl.sprites.TextAlignment;
 import com.github.ykiselev.opengl.text.SpriteFont;
 import com.github.ykiselev.opengl.textures.SimpleTexture2d;
-import com.github.ykiselev.opengl.textures.Texture2d;
 import com.github.ykiselev.playground.ui.elements.CheckBox;
 import com.github.ykiselev.playground.ui.elements.Link;
 import com.github.ykiselev.playground.ui.elements.Slider;
@@ -64,8 +62,6 @@ public final class Menu implements UiLayer, AutoCloseable, Removable {
 
     private final SpriteBatch spriteBatch;
 
-    private final Wrap<? extends Texture2d> white;
-
     private final Wrap<SpriteFont> font;
 
     @Override
@@ -82,9 +78,9 @@ public final class Menu implements UiLayer, AutoCloseable, Removable {
         this.services = services;
         final Assets assets = services.resolve(Assets.class);
         spriteBatch = new DefaultSpriteBatch(
-                assets.load("progs/sprite-batch.conf", ProgramObject.class)
+                assets.load("progs/sprite-batch.conf", ProgramObject.class),
+                assets.load("images/white.png", SimpleTexture2d.class)
         );
-        white = assets.load("images/white.png", SimpleTexture2d.class);
         font = assets.load("fonts/Liberation Mono 22.sf", SpriteFont.class);
         final Events events = services.resolve(Events.class);
         final PersistedConfiguration configuration = services.resolve(PersistedConfiguration.class);
@@ -117,11 +113,6 @@ public final class Menu implements UiLayer, AutoCloseable, Removable {
             @Override
             public StringBuilder stringBuilder() {
                 return sb;
-            }
-
-            @Override
-            public void fill(int x, int y, int width, int height, int color) {
-                spriteBatch.draw(white.value(), x, y, width, height, color);
             }
         };
         this.listMenu = new ListMenu(
@@ -198,7 +189,6 @@ public final class Menu implements UiLayer, AutoCloseable, Removable {
     @Override
     public void close() throws Exception {
         spriteBatch.close();
-        white.close();
         font.close();
     }
 

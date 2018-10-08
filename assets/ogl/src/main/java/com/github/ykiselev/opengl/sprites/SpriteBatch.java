@@ -97,5 +97,7 @@ public interface SpriteBatch extends AutoCloseable {
 
     void draw(Texture2d texture, int x, int y, int width, int height, float s0, float t0, float s1, float t1, int color);
 
+    void fill(int x, int y, int width, int height, int color);
+
     void end();
 }

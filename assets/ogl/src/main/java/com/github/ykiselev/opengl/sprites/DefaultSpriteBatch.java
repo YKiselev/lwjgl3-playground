@@ -31,6 +31,8 @@ public final class DefaultSpriteBatch implements SpriteBatch {
 
     private final TexturedQuads quads;
 
+    private final Wrap<? extends Texture2d> white;
+
     @Override
     public int width() {
         return quads.width();
@@ -48,21 +50,25 @@ public final class DefaultSpriteBatch implements SpriteBatch {
 
     /**
      * @param quads the textured quads to use
+     * @param white the white texture (usually 1x1) for drawing solid color rectangles.
      */
-    public DefaultSpriteBatch(TexturedQuads quads) {
+    public DefaultSpriteBatch(TexturedQuads quads, Wrap<? extends Texture2d> white) {
         this.quads = requireNonNull(quads);
+        this.white = requireNonNull(white);
     }
 
     /**
      * @param program the program to use
+     * @param white   the white texture (usually 1x1) for drawing solid color rectangles.
      */
-    public DefaultSpriteBatch(Wrap<ProgramObject> program) {
-        this(new TexturedQuads(program));
+    public DefaultSpriteBatch(Wrap<ProgramObject> program, Wrap<? extends Texture2d> white) {
+        this(new TexturedQuads(program), white);
     }
 
     @Override
     public void close() {
         quads.close();
+        white.close();
     }
 
     @Override
@@ -118,6 +124,11 @@ public final class DefaultSpriteBatch implements SpriteBatch {
     public void draw(Texture2d texture, int x, int y, int width, int height, float s0, float t0, float s1, float t1, int color) {
         quads.use(texture);
         quads.addQuad(x, y, s0, t0, x + width, y + height, s1, t1, color);
+    }
+
+    @Override
+    public void fill(int x, int y, int width, int height, int color) {
+        draw(white.value(), x, y, width, height, color);
     }
 
     @Override
