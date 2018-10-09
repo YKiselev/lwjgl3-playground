@@ -33,6 +33,39 @@ import java.util.stream.Stream;
  */
 public interface Commands {
 
+    interface ExecutionContext {
+
+        void onException(RuntimeException ex);
+
+        void onUnknownCommand(List<String> args);
+    }
+
+    final class ThrowingExecutionContext implements ExecutionContext {
+
+        public static final ExecutionContext INSTANCE = new ThrowingExecutionContext();
+
+        private ThrowingExecutionContext() {
+        }
+
+        @Override
+        public void onException(RuntimeException ex) {
+            throw ex;
+        }
+
+        @Override
+        public void onUnknownCommand(List<String> args) {
+            throw new UnknownCommandException(args.get(0));
+        }
+    }
+
+    /**
+     * Splits passed command line into tokens using configured tokenizer and executes separate commands.
+     *
+     * @param commandLine the command line to execute.
+     * @param context     the execution context to deal with exceptional cases
+     */
+    void execute(String commandLine, ExecutionContext context);
+
     /**
      * Splits passed command line into tokens using configured tokenizer and executes separate commands.
      *
@@ -41,7 +74,9 @@ public interface Commands {
      * @throws CommandExecutionFailedException if command execution has failed.
      * @throws UnknownCommandException         if unknown command is present in passed command line.
      */
-    void execute(String commandLine) throws CommandStackOverflowException, CommandExecutionFailedException, UnknownCommandException;
+    default void execute(String commandLine) throws CommandStackOverflowException, CommandExecutionFailedException, UnknownCommandException {
+        execute(commandLine, ThrowingExecutionContext.INSTANCE);
+    }
 
     /**
      * @return all registered commands

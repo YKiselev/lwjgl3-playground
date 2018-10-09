@@ -30,7 +30,6 @@ import org.slf4j.LoggerFactory;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -54,7 +53,7 @@ public final class AppConfig implements PersistedConfiguration, AutoCloseable {
     private final Config root = new Config() {
 
         private final Predicate<Object> varFilter = obj ->
-                obj instanceof ConfigValue || obj instanceof ConstantList;
+                obj instanceof ConfigValue;
 
         @SuppressWarnings("unchecked")
         @Override
@@ -75,18 +74,6 @@ public final class AppConfig implements PersistedConfiguration, AutoCloseable {
             final V result = Values.simpleValue(clazz);
             merge(Collections.singletonMap(path, result));
             return result;
-        }
-
-        @Override
-        public <T> List<T> getList(String path, Class<T> clazz) {
-            final Object raw = getRawValue(path);
-            if (raw instanceof ConstantList) {
-                return ((ConstantList) raw).toUniformList(clazz);
-            } else if (raw == null) {
-                throw new ConfigurationException.VariableNotFoundException(path);
-            } else {
-                throw new ClassCastException("Cannot cast " + raw.getClass().getName() + " to " + clazz.getName());
-            }
         }
 
         @Override

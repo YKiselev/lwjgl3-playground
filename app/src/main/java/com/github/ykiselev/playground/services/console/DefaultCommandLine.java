@@ -20,9 +20,11 @@ import com.github.ykiselev.circular.ArrayCircularBuffer;
 import com.github.ykiselev.circular.CircularBuffer;
 import com.github.ykiselev.iterators.EndlessIterator;
 import com.github.ykiselev.opengl.sprites.Colors;
+import com.github.ykiselev.services.PersistedConfiguration;
 import com.github.ykiselev.services.Services;
 import com.github.ykiselev.services.commands.CommandException;
 import com.github.ykiselev.services.commands.Commands;
+import com.github.ykiselev.services.configuration.Config;
 import com.github.ykiselev.services.layers.DrawingContext;
 import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
@@ -30,6 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -220,6 +223,30 @@ public final class DefaultCommandLine implements CommandLine {
         } catch (CommandException ex) {
             logger.error(MARKER, ex.getMessage());
         }
+    }
+
+    private void execute(String commandLine) {
+        services.resolve(Commands.class).execute(commandLine, new Commands.ExecutionContext() {
+            @Override
+            public void onException(RuntimeException ex) {
+                logger.error(ex.toString());
+            }
+
+            @Override
+            public void onUnknownCommand(List<String> args) {
+                final Config cfg = services.resolve(PersistedConfiguration.class).root();
+                final String name = args.get(0);
+                if (cfg.hasVariable(name)) {
+                    try {
+                        // todo ctx.onConfigValue(args, cfg.getValue(name, ConfigValue.class));
+                    } catch (RuntimeException ex) {
+                        logger.error(ex.toString());
+                    }
+                } else {
+                    logger.error("Unknown command: {}", name);
+                }
+            }
+        });
     }
 
     private void set(String commandLine) {

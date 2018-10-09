@@ -24,6 +24,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
@@ -66,9 +67,11 @@ class ParallelRunnerTest {
                 sleep(50);
             }
         };
-        assertTimeoutPreemptively(Duration.ofMillis(5_000L), () -> {
-            ParallelRunner.fromRunnable(1000, s)
-                    .call();
-        });
+        assertTimeoutPreemptively(Duration.ofMillis(5_000L), () ->
+                assertThrows(IllegalStateException.class, () ->
+                        ParallelRunner.fromRunnable(1000, s)
+                                .call()
+                )
+        );
     }
 }

@@ -14,29 +14,16 @@
  * limitations under the License.
  */
 
-package com.github.ykiselev.playground.services.config;
+package com.github.ykiselev.services.configuration;
+
+import com.github.ykiselev.services.configuration.values.ConfigValue;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
-import static java.util.Objects.requireNonNull;
+/**
+ * @author Yuriy Kiselev (uze@yandex.ru).
+ */
+public interface ConstantList extends ConfigValue {
 
-final class ConstantList {
-
-    private final List<?> list;
-
-    List<?> list() {
-        return list;
-    }
-
-    ConstantList(List<?> list) {
-        this.list = requireNonNull(list);
-    }
-
-    <T> List<T> toUniformList(Class<T> itemClass) {
-        return list.stream()
-                .map(itemClass::cast)
-                .collect(Collectors.toList());
-    }
+    <T> List<T> toList();
 }
-

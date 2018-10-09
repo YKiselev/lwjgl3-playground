@@ -122,7 +122,7 @@ final class ConfigFromFile implements Supplier<Map<String, Object>> {
             return value;
         }
         if (value instanceof List) {
-            return new ConstantList((List<?>) value);
+            return new ArrayBasedConstantList((List<?>) value);
         }
         return Values.toSimpleValue(value);
     }

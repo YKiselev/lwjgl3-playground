@@ -122,7 +122,7 @@ class AppConfigTest {
             map.put("a.long", Values.toSimpleValue(999999999999999999L));
             map.put("a.float", Values.toSimpleValue(3.14f));
             map.put("a.double", Values.toSimpleValue(Math.PI));
-            map.put("b.stringList", new ConstantList(Arrays.asList("x", "y", "z")));
+            map.put("b.stringList", new ArrayBasedConstantList(Arrays.asList("x", "y", "z")));
             this.cfg = new AppConfig(() -> map, writer);
         }
 
@@ -230,8 +230,6 @@ class AppConfigTest {
                     cfg.root().getDouble("a.string"));
             assertThrows(ClassCastException.class, () ->
                     cfg.root().getStringList("a.string"));
-            assertThrows(ClassCastException.class, () ->
-                    cfg.root().getList("b.stringList", Number.class));
         }
 
         @Test

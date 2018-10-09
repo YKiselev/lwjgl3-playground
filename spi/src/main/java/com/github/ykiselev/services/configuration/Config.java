@@ -57,18 +57,6 @@ public interface Config {
     <V extends ConfigValue> V getOrCreateValue(String path, Class<V> clazz) throws ClassCastException;
 
     /**
-     * Returns list of elements of specified type.
-     *
-     * @param path  the variable path.
-     * @param clazz the class of list element.
-     * @param <T>   the type parameter.
-     * @return list of elements of specified type.
-     * @throws ClassCastException        if variable exists but is not a list or it's element type cannot be cast to {@code clazz}.
-     * @throws VariableNotFoundException if variable does not exists.
-     */
-    <T> List<T> getList(String path, Class<T> clazz) throws ClassCastException, VariableNotFoundException;
-
-    /**
      * Checks if there is any variable at specified path.
      *
      * @param path the path to check
@@ -222,6 +210,6 @@ public interface Config {
      * @see Config#getList(java.lang.String, java.lang.Class)
      */
     default List<String> getStringList(String path) throws ClassCastException {
-        return getList(path, String.class);
+        return getValue(path, ConstantList.class).toList();
     }
 }

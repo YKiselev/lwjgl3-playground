@@ -18,7 +18,6 @@ package com.github.ykiselev.services.configuration;
 
 import com.github.ykiselev.services.configuration.values.ConfigValue;
 
-import java.util.List;
 import java.util.stream.Stream;
 
 import static java.util.Objects.requireNonNull;
@@ -49,11 +48,6 @@ public final class RelativeConfig implements Config {
     @Override
     public <V extends ConfigValue> V getOrCreateValue(String path, Class<V> clazz) {
         return delegate.getOrCreateValue(path(path), clazz);
-    }
-
-    @Override
-    public <T> List<T> getList(String path, Class<T> clazz) {
-        return delegate.getList(path(path), clazz);
     }
 
     @Override

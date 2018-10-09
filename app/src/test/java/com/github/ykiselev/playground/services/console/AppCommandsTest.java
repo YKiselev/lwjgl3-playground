@@ -32,7 +32,6 @@ import java.util.function.Supplier;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -57,7 +56,7 @@ class AppCommandsTest {
             throw new RuntimeException("Oops!");
         });
         assertThrows(CommandExecutionFailedException.class, () ->
-                commands.execute("fail now"));
+                commands.execute("fail"));
     }
 
     @Test
