@@ -14,13 +14,16 @@
  * limitations under the License.
  */
 
-package com.github.ykiselev.opengl.textures;
+package com.github.ykiselev.services.layers;
+
+import com.github.ykiselev.opengl.sprites.SpriteBatch;
 
 /**
- * Non mip-mapped texture
- * <p>
- * Created by Y.Kiselev on 05.06.2016.
+ * Provider of composite objects like {@link SpriteBatch}.
+ *
+ * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public interface SimpleTexture2d extends Texture2d {
+public interface Sprites {
 
+    SpriteBatch newBatch();
 }

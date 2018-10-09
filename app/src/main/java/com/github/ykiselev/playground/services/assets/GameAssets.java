@@ -34,9 +34,9 @@ import com.github.ykiselev.closeables.Closeables;
 import com.github.ykiselev.opengl.shaders.ProgramObject;
 import com.github.ykiselev.opengl.text.SpriteFont;
 import com.github.ykiselev.opengl.textures.DefaultMipMappedTexture2d;
-import com.github.ykiselev.opengl.textures.DefaultSimpleTexture2d;
+import com.github.ykiselev.opengl.textures.DefaultSprite;
 import com.github.ykiselev.opengl.textures.MipMappedTexture2d;
-import com.github.ykiselev.opengl.textures.SimpleTexture2d;
+import com.github.ykiselev.opengl.textures.Sprite;
 import com.github.ykiselev.wrap.Wrap;
 import com.google.common.collect.ImmutableMap;
 import com.typesafe.config.Config;
@@ -75,7 +75,7 @@ public final class GameAssets implements Assets, AutoCloseable {
     public static Assets create(Resources resources) {
         final ReadableConfig readableConfig = new ReadableConfig();
         final ReadableTexture2d simpleReadableTexture2d = new ReadableTexture2d(
-                DefaultSimpleTexture2d::new, false
+                DefaultSprite::new, false
         );
         final ReadableTexture2d mipMappedReadableTexture2d = new ReadableTexture2d(
                 DefaultMipMappedTexture2d::new, true
@@ -84,7 +84,7 @@ public final class GameAssets implements Assets, AutoCloseable {
                 .put(Config.class, readableConfig)
                 .put(ProgramObject.class, new ReadableProgramObject())
                 .put(SpriteFont.class, new ReadableSpriteFont())
-                .put(SimpleTexture2d.class, simpleReadableTexture2d)
+                .put(Sprite.class, simpleReadableTexture2d)
                 .put(MipMappedTexture2d.class, mipMappedReadableTexture2d)
                 .put(ObjModel.class, new ReadableObjModel())
                 .build();

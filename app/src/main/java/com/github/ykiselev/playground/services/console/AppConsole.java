@@ -19,11 +19,9 @@ package com.github.ykiselev.playground.services.console;
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.closeables.Closeables;
 import com.github.ykiselev.closeables.CompositeAutoCloseable;
-import com.github.ykiselev.opengl.shaders.ProgramObject;
-import com.github.ykiselev.opengl.sprites.DefaultSpriteBatch;
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
 import com.github.ykiselev.opengl.text.SpriteFont;
-import com.github.ykiselev.opengl.textures.SimpleTexture2d;
+import com.github.ykiselev.opengl.textures.Sprite;
 import com.github.ykiselev.opengl.textures.Texture2d;
 import com.github.ykiselev.services.PersistedConfiguration;
 import com.github.ykiselev.services.Services;
@@ -32,6 +30,7 @@ import com.github.ykiselev.services.events.Events;
 import com.github.ykiselev.services.events.console.ToggleConsoleEvent;
 import com.github.ykiselev.services.events.menu.ShowMenuEvent;
 import com.github.ykiselev.services.layers.DrawingContext;
+import com.github.ykiselev.services.layers.Sprites;
 import com.github.ykiselev.services.layers.UiLayer;
 import com.github.ykiselev.services.layers.UiLayers;
 import com.github.ykiselev.services.schedule.Schedule;
@@ -152,11 +151,9 @@ public final class AppConsole implements UiLayer, AutoCloseable {
                     return true;
                 });
         final Assets assets = services.resolve(Assets.class);
-        spriteBatch = new DefaultSpriteBatch(
-                assets.load("progs/sprite-batch.conf", ProgramObject.class),
-                assets.load("images/white.png", SimpleTexture2d.class)
-        );
-        cuddles = assets.load("images/htf-cuddles.jpg", SimpleTexture2d.class);
+        spriteBatch = services.resolve(Sprites.class)
+                .newBatch();
+        cuddles = assets.load("images/htf-cuddles.jpg", Sprite.class);
         font = assets.load("fonts/Liberation Mono.sf", SpriteFont.class);
     }
 

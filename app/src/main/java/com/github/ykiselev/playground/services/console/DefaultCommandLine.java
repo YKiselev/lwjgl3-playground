@@ -168,11 +168,15 @@ public final class DefaultCommandLine implements CommandLine {
             final Set<String> names = searchProvider.apply(buf.toString());
             if (names.isEmpty()) {
                 found = Collections.emptyIterator();
-            } else if (names.size() > 16) {
-                found = Collections.emptyIterator();
-                logger.info("{} names found, please narrow the search", names.size());
             } else {
                 found = new EndlessIterator<>(names);
+                final Iterator<String> it = names.iterator();
+                for (int i = 0; i < 8 && it.hasNext(); i++) {
+                    logger.info(MARKER, "  {}", it.next());
+                }
+                if (names.size() > 8) {
+                    logger.info(MARKER, "...and {} more.", names.size() - 8);
+                }
             }
         }
         if (found.hasNext()) {
@@ -214,7 +218,7 @@ public final class DefaultCommandLine implements CommandLine {
                     .execute(commandLine);
             addToHistory(commandLine);
         } catch (CommandException ex) {
-            logger.error("Command failed: {}", ex.toString());
+            logger.error(MARKER, ex.getMessage());
         }
     }
 

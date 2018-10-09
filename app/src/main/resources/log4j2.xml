@@ -37,7 +37,7 @@
             <DefaultRolloverStrategy max="5"/>
         </RollingFile>
         <AppConsole name="AppConsole" bufferSize="300">
-            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %c{1.} - %msg%n"/>
+            <PatternLayout pattern="%-5level %c{1.} - %msg%n"/>
         </AppConsole>
         <Async name="Async">
             <AppenderRef ref="Console"/>

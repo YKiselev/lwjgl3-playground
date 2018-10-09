@@ -19,6 +19,7 @@ package com.github.ykiselev.playground.services.console;
 import com.github.ykiselev.circular.ArrayCircularBuffer;
 import com.github.ykiselev.circular.CircularBuffer;
 import com.github.ykiselev.circular.SynchronizedCircularBuffer;
+import org.apache.logging.log4j.Marker;
 import org.apache.logging.log4j.core.Appender;
 import org.apache.logging.log4j.core.Core;
 import org.apache.logging.log4j.core.Filter;
@@ -52,8 +53,14 @@ public final class AppConsoleLog4j2Appender extends AbstractAppender {
 
     @Override
     public void append(LogEvent logEvent) {
-        Serializable s = getLayout().toSerializable(logEvent);
-        buffer.write(s.toString());
+        final Marker marker = logEvent.getMarker();
+        if (marker != null) {
+            if (marker.isInstanceOf(CommandLine.MARKER.getName())) {
+                buffer.write(logEvent.getMessage().getFormattedMessage());
+                return;
+            }
+        }
+        buffer.write(getLayout().toSerializable(logEvent).toString());
     }
 
     @PluginBuilderFactory

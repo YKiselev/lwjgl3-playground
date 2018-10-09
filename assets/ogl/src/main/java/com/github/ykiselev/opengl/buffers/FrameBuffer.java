@@ -16,7 +16,7 @@
 
 package com.github.ykiselev.opengl.buffers;
 
-import com.github.ykiselev.opengl.textures.DefaultSimpleTexture2d;
+import com.github.ykiselev.opengl.textures.DefaultSprite;
 import com.github.ykiselev.opengl.textures.Texture2d;
 
 import static org.lwjgl.opengl.GL11.GL_NEAREST;
@@ -60,8 +60,8 @@ public final class FrameBuffer implements AutoCloseable {
 
     public FrameBuffer() {
         fbo = new FrameBufferObject();
-        color = new DefaultSimpleTexture2d();
-        depth = new DefaultSimpleTexture2d();
+        color = new DefaultSprite();
+        depth = new DefaultSprite();
     }
 
     /**

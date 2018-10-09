@@ -17,11 +17,8 @@
 package com.github.ykiselev.playground.layers.menu;
 
 import com.github.ykiselev.assets.Assets;
-import com.github.ykiselev.opengl.shaders.ProgramObject;
-import com.github.ykiselev.opengl.sprites.DefaultSpriteBatch;
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
 import com.github.ykiselev.opengl.text.SpriteFont;
-import com.github.ykiselev.opengl.textures.SimpleTexture2d;
 import com.github.ykiselev.playground.ui.elements.CheckBox;
 import com.github.ykiselev.playground.ui.elements.Link;
 import com.github.ykiselev.playground.ui.elements.Slider;
@@ -38,6 +35,7 @@ import com.github.ykiselev.services.events.Events;
 import com.github.ykiselev.services.events.game.NewGameEvent;
 import com.github.ykiselev.services.events.game.QuitEvent;
 import com.github.ykiselev.services.layers.DrawingContext;
+import com.github.ykiselev.services.layers.Sprites;
 import com.github.ykiselev.services.layers.UiLayer;
 import com.github.ykiselev.services.layers.UiLayers;
 import com.github.ykiselev.window.DelegatingWindowEvents;
@@ -77,10 +75,7 @@ public final class Menu implements UiLayer, AutoCloseable, Removable {
     public Menu(Services services) {
         this.services = services;
         final Assets assets = services.resolve(Assets.class);
-        spriteBatch = new DefaultSpriteBatch(
-                assets.load("progs/sprite-batch.conf", ProgramObject.class),
-                assets.load("images/white.png", SimpleTexture2d.class)
-        );
+        spriteBatch = services.resolve(Sprites.class).newBatch();
         font = assets.load("fonts/Liberation Mono 22.sf", SpriteFont.class);
         final Events events = services.resolve(Events.class);
         final PersistedConfiguration configuration = services.resolve(PersistedConfiguration.class);

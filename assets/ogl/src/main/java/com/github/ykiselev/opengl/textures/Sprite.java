@@ -16,25 +16,11 @@
 
 package com.github.ykiselev.opengl.textures;
 
-import static org.lwjgl.opengl.GL11.glGenTextures;
-
 /**
- * @author Yuriy Kiselev (uze@yandex.ru).
+ * Non mip-mapped texture
+ * <p>
+ * Created by Y.Kiselev on 05.06.2016.
  */
-public final class DefaultSimpleTexture2d implements SimpleTexture2d {
+public interface Sprite extends Texture2d {
 
-    private final int id;
-
-    public DefaultSimpleTexture2d(int id) {
-        this.id = id;
-    }
-
-    public DefaultSimpleTexture2d() {
-        this(glGenTextures());
-    }
-
-    @Override
-    public int id() {
-        return id;
-    }
 }

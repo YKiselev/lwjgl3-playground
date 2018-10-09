@@ -14,40 +14,27 @@
  * limitations under the License.
  */
 
-package com.github.ykiselev.playground.services.console;
+package com.github.ykiselev.opengl.textures;
 
-import com.github.ykiselev.services.layers.DrawingContext;
-import org.slf4j.Marker;
-import org.slf4j.MarkerFactory;
+import static org.lwjgl.opengl.GL11.glGenTextures;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public interface CommandLine {
+public final class DefaultSprite implements Sprite {
 
-    Marker MARKER = MarkerFactory.getMarker("COMMAND_LINE");
+    private final int id;
 
-    void add(int codePoint);
+    public DefaultSprite(int id) {
+        this.id = id;
+    }
 
-    void removeLeft();
+    public DefaultSprite() {
+        this(glGenTextures());
+    }
 
-    void remove();
-
-    void left();
-
-    void right();
-
-    void draw(DrawingContext ctx, int x0, int y0, int width, int height, int color);
-
-    void begin();
-
-    void end();
-
-    void complete();
-
-    void execute();
-
-    void searchHistoryBackward();
-
-    void searchHistory();
+    @Override
+    public int id() {
+        return id;
+    }
 }

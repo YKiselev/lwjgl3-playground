@@ -22,18 +22,17 @@ import com.github.ykiselev.components.Game;
 import com.github.ykiselev.opengl.buffers.FrameBuffer;
 import com.github.ykiselev.opengl.matrices.Matrix;
 import com.github.ykiselev.opengl.matrices.Vector3f;
-import com.github.ykiselev.opengl.shaders.ProgramObject;
-import com.github.ykiselev.opengl.sprites.DefaultSpriteBatch;
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
 import com.github.ykiselev.opengl.text.SpriteFont;
 import com.github.ykiselev.opengl.textures.CurrentTexture2dAsBytes;
-import com.github.ykiselev.opengl.textures.SimpleTexture2d;
+import com.github.ykiselev.opengl.textures.Sprite;
 import com.github.ykiselev.opengl.textures.Texture2d;
 import com.github.ykiselev.services.FileSystem;
 import com.github.ykiselev.services.Services;
 import com.github.ykiselev.services.events.Events;
 import com.github.ykiselev.services.events.console.ToggleConsoleEvent;
 import com.github.ykiselev.services.events.menu.ShowMenuEvent;
+import com.github.ykiselev.services.layers.Sprites;
 import com.github.ykiselev.trigger.Trigger;
 import com.github.ykiselev.window.WindowEvents;
 import com.github.ykiselev.wrap.Wrap;
@@ -127,11 +126,8 @@ public final class BaseGame implements Game {
         this.services = requireNonNull(services);
         this.frameInfo = services.resolve(FrameInfo.class);
         final Assets assets = services.resolve(Assets.class);
-        spriteBatch = new DefaultSpriteBatch(
-                assets.load("progs/sprite-batch.conf", ProgramObject.class),
-                assets.load("images/white.png", SimpleTexture2d.class)
-        );
-        cuddles = assets.load("images/htf-cuddles.jpg", SimpleTexture2d.class);
+        spriteBatch = services.resolve(Sprites.class).newBatch();
+        cuddles = assets.load("images/htf-cuddles.jpg", Sprite.class);
         liberationMono = assets.load("fonts/Liberation Mono.sf", SpriteFont.class);
         cubes = new Cubes(assets);
         pyramids = new Pyramids(assets);

@@ -24,7 +24,7 @@ import com.github.ykiselev.opengl.text.DefaultSpriteFont;
 import com.github.ykiselev.opengl.text.Glyph;
 import com.github.ykiselev.opengl.text.GlyphRanges;
 import com.github.ykiselev.opengl.text.SpriteFont;
-import com.github.ykiselev.opengl.textures.SimpleTexture2d;
+import com.github.ykiselev.opengl.textures.Sprite;
 import com.github.ykiselev.opengl.textures.Texture2d;
 import com.github.ykiselev.wrap.Wrap;
 import com.github.ykiselev.wrap.Wraps;
@@ -138,7 +138,7 @@ public final class ReadableSpriteFont implements ReadableAsset<SpriteFont> {
 
     private Wrap<? extends Texture2d> readSpriteFontTexture(Assets assets, com.github.ykiselev.gfx.font.SpriteFont spriteFont) {
         try (ReadableByteChannel bc = Channels.newChannel(new ByteArrayInputStream(spriteFont.image()))) {
-            return assets.resolve(SimpleTexture2d.class)
+            return assets.resolve(Sprite.class)
                     .read(bc, assets);
         } catch (IOException e) {
             throw new ResourceException(e);

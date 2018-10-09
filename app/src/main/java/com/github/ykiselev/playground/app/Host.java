@@ -22,6 +22,7 @@ import com.github.ykiselev.common.ThrowingRunnable;
 import com.github.ykiselev.playground.events.AppEvents;
 import com.github.ykiselev.playground.host.ProgramArguments;
 import com.github.ykiselev.playground.layers.AppUiLayers;
+import com.github.ykiselev.playground.services.AppSprites;
 import com.github.ykiselev.playground.services.MapBasedServices;
 import com.github.ykiselev.playground.services.assets.GameAssets;
 import com.github.ykiselev.playground.services.config.AppConfig;
@@ -39,6 +40,7 @@ import com.github.ykiselev.services.Services;
 import com.github.ykiselev.services.SoundEffects;
 import com.github.ykiselev.services.commands.Commands;
 import com.github.ykiselev.services.events.Events;
+import com.github.ykiselev.services.layers.Sprites;
 import com.github.ykiselev.services.layers.UiLayers;
 import com.github.ykiselev.services.schedule.Schedule;
 
@@ -85,6 +87,7 @@ public final class Host implements ThrowingRunnable {
                 .add(Schedule.class, new AppSchedule())
                 .add(UiLayers.class, new AppUiLayers())
                 .add(Assets.class, GameAssets.create(fileSystem))
+                .add(Sprites.class, new AppSprites(services))
                 .add(SoundEffects.class, new AppSoundEffects(services))
                 .build();
     }
