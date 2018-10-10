@@ -25,11 +25,13 @@ import com.github.ykiselev.services.commands.Tokenizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
@@ -48,7 +50,7 @@ public final class AppCommands implements Commands {
 
     private final CopyOnModify<Map<String, Consumer<List<String>>>> handlers = new CopyOnModify<>(Collections.emptyMap());
 
-    private final ThreadLocal<ThreadContext> context = ThreadLocal.withInitial(ThreadContext::new);
+    private final ThreadLocal<ThreadContext> context;
 
     /**
      * Primary ctor.
@@ -59,6 +61,7 @@ public final class AppCommands implements Commands {
     public AppCommands(Tokenizer tokenizer, int maxDepth) {
         this.tokenizer = requireNonNull(tokenizer);
         this.maxDepth = maxDepth;
+        this.context = ThreadLocal.withInitial(() -> new ThreadContext(maxDepth));
     }
 
     /**
@@ -76,7 +79,7 @@ public final class AppCommands implements Commands {
             return;
         }
         final ThreadContext tc = context.get();
-        tc.enter(maxDepth, ctx);
+        tc.enter(ctx);
         try {
             final List<String> args = tc.args();
             args.clear();
@@ -144,33 +147,32 @@ public final class AppCommands implements Commands {
 
         private final List<String> args = new ArrayList<>();
 
-        private ExecutionContext context;
+        private final int maxDepth;
 
-        private int depth;
+        private final Queue<ExecutionContext> queue;
 
         List<String> args() {
             return args;
         }
 
-        public ExecutionContext context() {
-            return context;
+        ExecutionContext context() {
+            return queue.element();
         }
 
-        void enter(int limit, ExecutionContext context) {
-            depth++;
-            if (depth == 1) {
-                this.context = requireNonNull(context);
+        ThreadContext(int maxDepth) {
+            this.maxDepth = maxDepth;
+            this.queue = new ArrayDeque<>(maxDepth);
+        }
+
+        void enter(ExecutionContext context) {
+            if (queue.size() >= maxDepth) {
+                throw new CommandStackOverflowException(maxDepth);
             }
-            if (depth > limit) {
-                throw new CommandStackOverflowException(limit);
-            }
+            queue.add(context);
         }
 
         void leave() {
-            depth--;
-            if (depth == 0) {
-                context = null;
-            }
+            queue.remove();
         }
     }
 }
