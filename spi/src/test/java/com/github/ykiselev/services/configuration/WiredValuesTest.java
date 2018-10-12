@@ -16,14 +16,14 @@
 
 package com.github.ykiselev.services.configuration;
 
-import com.github.ykiselev.services.PersistedConfiguration;
 import com.github.ykiselev.services.configuration.values.ConfigValue;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-import java.util.Map;
+import java.util.Collection;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -37,17 +37,18 @@ class WiredValuesTest {
     private final PersistedConfiguration cfg = mock(PersistedConfiguration.class);
 
     @Test
-    void shouldCheckForIntOverflow() {
+    void shouldWireIntAndCheckForOverflow() {
         final AtomicInteger value = new AtomicInteger();
         new WiredValues(cfg)
                 .withInt("a", () -> 1, value::set, false)
                 .build();
-        ArgumentCaptor<Map<String, ConfigValue>> captor = ArgumentCaptor.forClass(Map.class);
+        ArgumentCaptor<Collection<ConfigValue>> captor = ArgumentCaptor.forClass(Collection.class);
         verify(cfg, times(1)).wire(captor.capture());
-        Map<String, ConfigValue> map = captor.getValue();
-        ConfigValue configValue = map.get("a");
+        Collection<ConfigValue> r = captor.getValue();
+        ConfigValue v = r.iterator().next();
+        assertEquals("a", v.name());
         assertThrows(ArithmeticException.class, () ->
-                configValue.setString("999999999999999999"));
-        configValue.setString("2694881535");
+                v.setString("999999999999999999"));
+        v.setString("2694881535");
     }
 }

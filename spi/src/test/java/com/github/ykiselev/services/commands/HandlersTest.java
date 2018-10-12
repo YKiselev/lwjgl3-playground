@@ -16,12 +16,11 @@
 
 package com.github.ykiselev.services.commands;
 
+import com.github.ykiselev.common.ThrowingRunnable;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
-import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
@@ -35,146 +34,146 @@ class HandlersTest {
 
     @Test
     void shouldFailIfEmpty() {
-        assertThrows(IllegalArgumentException.class, () -> Handlers.consumer(a1 -> {
-                }).accept(Collections.emptyList())
+        assertThrows(IllegalArgumentException.class, () -> Handlers.command("", a1 -> {
+                }).run(Collections.emptyList())
         );
-        assertThrows(IllegalArgumentException.class, () -> Handlers.consumer((a1, a2) -> {
-                }).accept(Collections.emptyList())
+        assertThrows(IllegalArgumentException.class, () -> Handlers.command("", (a1, a2) -> {
+                }).run(Collections.emptyList())
         );
-        assertThrows(IllegalArgumentException.class, () -> Handlers.consumer((a1, a2, a3) -> {
-                }).accept(Collections.emptyList())
+        assertThrows(IllegalArgumentException.class, () -> Handlers.command("", (a1, a2, a3) -> {
+                }).run(Collections.emptyList())
         );
-        assertThrows(IllegalArgumentException.class, () -> Handlers.consumer((a1, a2, a3, a4) -> {
-                }).accept(Collections.emptyList())
+        assertThrows(IllegalArgumentException.class, () -> Handlers.command("", (a1, a2, a3, a4) -> {
+                }).run(Collections.emptyList())
         );
-        assertThrows(IllegalArgumentException.class, () -> Handlers.consumer((a1, a2, a3, a4, a5) -> {
-                }).accept(Collections.emptyList())
+        assertThrows(IllegalArgumentException.class, () -> Handlers.command("", (a1, a2, a3, a4, a5) -> {
+                }).run(Collections.emptyList())
         );
-        assertThrows(IllegalArgumentException.class, () -> Handlers.consumer((a1, a2, a3, a4, a5, a6) -> {
-                }).accept(Collections.emptyList())
+        assertThrows(IllegalArgumentException.class, () -> Handlers.command("", (a1, a2, a3, a4, a5, a6) -> {
+                }).run(Collections.emptyList())
         );
     }
 
     @Test
-    void consumer0() {
-        Runnable h = mock(Runnable.class);
-        Consumer<List<String>> c = Handlers.consumer(h);
+    void consumer0() throws Exception {
+        ThrowingRunnable h = mock(ThrowingRunnable.class);
+        Command c = Handlers.command("", h);
 
-        c.accept(Collections.singletonList("1"));
+        c.run(Collections.singletonList("1"));
         verify(h, times(1)).run();
 
-        assertThrows(IllegalArgumentException.class, () -> c.accept(Arrays.asList("1", "2")));
+        assertThrows(IllegalArgumentException.class, () -> c.run(Arrays.asList("1", "2")));
     }
 
     @Test
-    void consumer1() {
+    void consumer1() throws Exception {
         Commands.H1 h = mock(Commands.H1.class);
-        Consumer<List<String>> c = Handlers.consumer(h);
+        Command c = Handlers.command("", h);
 
-        c.accept(Collections.singletonList("1"));
+        c.run(Collections.singletonList("1"));
         verify(h, times(1)).handle("1");
 
-        assertThrows(IllegalArgumentException.class, () -> c.accept(Arrays.asList("1", "2")));
+        assertThrows(IllegalArgumentException.class, () -> c.run(Arrays.asList("1", "2")));
     }
 
     @Test
-    void consumer2() {
+    void consumer2() throws Exception {
         Commands.H2 h = mock(Commands.H2.class);
-        Consumer<List<String>> c = Handlers.consumer(h);
+        Command c = Handlers.command("", h);
 
-        c.accept(Collections.singletonList("1"));
+        c.run(Collections.singletonList("1"));
         verify(h, times(1)).handle("1", null);
 
-        c.accept(Arrays.asList("1", "2"));
+        c.run(Arrays.asList("1", "2"));
         verify(h, times(1)).handle("1", "2");
 
-        assertThrows(IllegalArgumentException.class, () -> c.accept(Arrays.asList("1", "2", "3")));
+        assertThrows(IllegalArgumentException.class, () -> c.run(Arrays.asList("1", "2", "3")));
     }
 
     @Test
-    void consumer3() {
+    void consumer3() throws Exception {
         Commands.H3 h = mock(Commands.H3.class);
-        Consumer<List<String>> c = Handlers.consumer(h);
+        Command c = Handlers.command("", h);
 
-        c.accept(Collections.singletonList("1"));
+        c.run(Collections.singletonList("1"));
         verify(h, times(1)).handle("1", null, null);
 
-        c.accept(Arrays.asList("1", "2"));
+        c.run(Arrays.asList("1", "2"));
         verify(h, times(1)).handle("1", "2", null);
 
-        c.accept(Arrays.asList("1", "2", "3"));
+        c.run(Arrays.asList("1", "2", "3"));
         verify(h, times(1)).handle("1", "2", "3");
 
-        assertThrows(IllegalArgumentException.class, () -> c.accept(Arrays.asList("1", "2", "3", "4")));
+        assertThrows(IllegalArgumentException.class, () -> c.run(Arrays.asList("1", "2", "3", "4")));
     }
 
     @Test
-    void consumer4() {
+    void consumer4() throws Exception {
         Commands.H4 h = mock(Commands.H4.class);
-        Consumer<List<String>> c = Handlers.consumer(h);
+        Command c = Handlers.command("", h);
 
-        c.accept(Collections.singletonList("1"));
+        c.run(Collections.singletonList("1"));
         verify(h, times(1)).handle("1", null, null, null);
 
-        c.accept(Arrays.asList("1", "2"));
+        c.run(Arrays.asList("1", "2"));
         verify(h, times(1)).handle("1", "2", null, null);
 
-        c.accept(Arrays.asList("1", "2", "3"));
+        c.run(Arrays.asList("1", "2", "3"));
         verify(h, times(1)).handle("1", "2", "3", null);
 
-        c.accept(Arrays.asList("1", "2", "3", "4"));
+        c.run(Arrays.asList("1", "2", "3", "4"));
         verify(h, times(1)).handle("1", "2", "3", "4");
 
-        assertThrows(IllegalArgumentException.class, () -> c.accept(Arrays.asList("1", "2", "3", "4", "5")));
+        assertThrows(IllegalArgumentException.class, () -> c.run(Arrays.asList("1", "2", "3", "4", "5")));
     }
 
     @Test
-    void consumer5() {
+    void consumer5() throws Exception {
         Commands.H5 h = mock(Commands.H5.class);
-        Consumer<List<String>> c = Handlers.consumer(h);
+        Command c = Handlers.command("", h);
 
-        c.accept(Collections.singletonList("1"));
+        c.run(Collections.singletonList("1"));
         verify(h, times(1)).handle("1", null, null, null, null);
 
-        c.accept(Arrays.asList("1", "2"));
+        c.run(Arrays.asList("1", "2"));
         verify(h, times(1)).handle("1", "2", null, null, null);
 
-        c.accept(Arrays.asList("1", "2", "3"));
+        c.run(Arrays.asList("1", "2", "3"));
         verify(h, times(1)).handle("1", "2", "3", null, null);
 
-        c.accept(Arrays.asList("1", "2", "3", "4"));
+        c.run(Arrays.asList("1", "2", "3", "4"));
         verify(h, times(1)).handle("1", "2", "3", "4", null);
 
-        c.accept(Arrays.asList("1", "2", "3", "4", "5"));
+        c.run(Arrays.asList("1", "2", "3", "4", "5"));
         verify(h, times(1)).handle("1", "2", "3", "4", "5");
 
-        assertThrows(IllegalArgumentException.class, () -> c.accept(Arrays.asList("1", "2", "3", "4", "5", "6")));
+        assertThrows(IllegalArgumentException.class, () -> c.run(Arrays.asList("1", "2", "3", "4", "5", "6")));
     }
 
     @Test
-    void consumer6() {
+    void consumer6() throws Exception {
         Commands.H6 h = mock(Commands.H6.class);
-        Consumer<List<String>> c = Handlers.consumer(h);
+        Command c = Handlers.command("", h);
 
-        c.accept(Collections.singletonList("1"));
+        c.run(Collections.singletonList("1"));
         verify(h, times(1)).handle("1", null, null, null, null, null);
 
-        c.accept(Arrays.asList("1", "2"));
+        c.run(Arrays.asList("1", "2"));
         verify(h, times(1)).handle("1", "2", null, null, null, null);
 
-        c.accept(Arrays.asList("1", "2", "3"));
+        c.run(Arrays.asList("1", "2", "3"));
         verify(h, times(1)).handle("1", "2", "3", null, null, null);
 
-        c.accept(Arrays.asList("1", "2", "3", "4"));
+        c.run(Arrays.asList("1", "2", "3", "4"));
         verify(h, times(1)).handle("1", "2", "3", "4", null, null);
 
-        c.accept(Arrays.asList("1", "2", "3", "4", "5"));
+        c.run(Arrays.asList("1", "2", "3", "4", "5"));
         verify(h, times(1)).handle("1", "2", "3", "4", "5", null);
 
-        c.accept(Arrays.asList("1", "2", "3", "4", "5", "6"));
+        c.run(Arrays.asList("1", "2", "3", "4", "5", "6"));
         verify(h, times(1)).handle("1", "2", "3", "4", "5", "6");
 
-        assertThrows(IllegalArgumentException.class, () -> c.accept(Arrays.asList("1", "2", "3", "4", "5", "6", "7")));
+        assertThrows(IllegalArgumentException.class, () -> c.run(Arrays.asList("1", "2", "3", "4", "5", "6", "7")));
     }
 
 }

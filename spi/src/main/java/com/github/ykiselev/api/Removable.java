@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.github.ykiselev.services;
+package com.github.ykiselev.api;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).

@@ -20,7 +20,7 @@ import com.github.ykiselev.circular.ArrayCircularBuffer;
 import com.github.ykiselev.circular.CircularBuffer;
 import com.github.ykiselev.iterators.EndlessIterator;
 import com.github.ykiselev.opengl.sprites.Colors;
-import com.github.ykiselev.services.PersistedConfiguration;
+import com.github.ykiselev.services.configuration.PersistedConfiguration;
 import com.github.ykiselev.services.Services;
 import com.github.ykiselev.services.commands.CommandException;
 import com.github.ykiselev.services.commands.Commands;
@@ -57,7 +57,7 @@ public final class DefaultCommandLine implements CommandLine {
     private final ExecutionContext context = new ExecutionContext() {
         @Override
         public void onException(RuntimeException ex) {
-            logger.error(ex.toString());
+            logger.error(MARKER, ex.toString());
         }
 
         @Override
@@ -66,10 +66,13 @@ public final class DefaultCommandLine implements CommandLine {
             final String name = args.get(0);
             if (cfg.hasVariable(name)) {
                 try {
-                    logger.info(MARKER, "{}={}", name,
-                            cfg.getValue(name, ConfigValue.class).getString());
+                    final ConfigValue value = cfg.getValue(name, ConfigValue.class);
+                    if (args.size() == 2) {
+                        value.setString(args.get(1));
+                    }
+                    logger.info(MARKER, "{}={}", name, value.getString());
                 } catch (RuntimeException ex) {
-                    logger.error(ex.toString());
+                    logger.error(MARKER, ex.toString());
                 }
             } else {
                 logger.error(MARKER, "Unknown command: {}", name);

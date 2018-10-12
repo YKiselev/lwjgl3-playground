@@ -16,6 +16,7 @@
 
 package com.github.ykiselev.circular;
 
+import com.github.ykiselev.common.ThrowingRunnable;
 import com.github.ykiselev.test.ParallelRunner;
 import org.junit.jupiter.api.Test;
 
@@ -36,7 +37,7 @@ class SynchronizedCircularBufferTest {
     @Test
     void shouldBeThreadSafe() throws Exception {
         final AtomicInteger counter = new AtomicInteger();
-        Supplier<Runnable> s = () ->
+        Supplier<ThrowingRunnable> s = () ->
                 () -> ints.write(counter.incrementAndGet());
         ParallelRunner.fromRunnable(1000, s)
                 .call();

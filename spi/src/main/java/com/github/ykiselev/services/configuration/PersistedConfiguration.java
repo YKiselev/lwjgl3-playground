@@ -14,13 +14,11 @@
  * limitations under the License.
  */
 
-package com.github.ykiselev.services;
+package com.github.ykiselev.services.configuration;
 
-import com.github.ykiselev.services.configuration.Config;
-import com.github.ykiselev.services.configuration.WiredValues;
 import com.github.ykiselev.services.configuration.values.ConfigValue;
 
-import java.util.Map;
+import java.util.Collection;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
@@ -38,7 +36,7 @@ public interface PersistedConfiguration {
      * @param values the config values to vire to this config.
      * @return the handle to the wired variable.
      */
-    AutoCloseable wire(Map<String, ConfigValue> values);
+    AutoCloseable wire(Collection<ConfigValue> values);
 
     /**
      * Convenient method to wire many variables at once.

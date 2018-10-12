@@ -17,14 +17,11 @@
 package com.github.ykiselev.services.configuration;
 
 import com.github.ykiselev.common.BooleanConsumer;
-import com.github.ykiselev.services.PersistedConfiguration;
 import com.github.ykiselev.services.configuration.values.ConfigValue;
 import com.github.ykiselev.services.configuration.values.Values;
 
-import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.DoubleConsumer;
@@ -34,7 +31,6 @@ import java.util.function.IntSupplier;
 import java.util.function.LongConsumer;
 import java.util.function.LongSupplier;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 import static java.util.Objects.requireNonNull;
 
@@ -47,67 +43,59 @@ public final class WiredValues {
 
     private final PersistedConfiguration cfg;
 
-    private final List<Map.Entry<String, ConfigValue>> values = new ArrayList<>();
+    private final List<ConfigValue> values = new ArrayList<>();
 
     public WiredValues(PersistedConfiguration cfg) {
         this.cfg = requireNonNull(cfg);
     }
 
-    private WiredValues add(String path, ConfigValue value) {
-        values.add(new AbstractMap.SimpleImmutableEntry<>(path, value));
+    private WiredValues add(ConfigValue value) {
+        values.add(value);
         return this;
     }
 
-    public WiredValues withString(String path, Supplier<String> getter, Consumer<String> setter, boolean persisted) {
-        return add(path, new Values.WiredString(persisted, getter, setter));
+    public WiredValues withString(String name, Supplier<String> getter, Consumer<String> setter, boolean persisted) {
+        return add(new Values.WiredString(name, persisted, getter, setter));
     }
 
-    public WiredValues withString(String path, Supplier<String> getter, boolean persisted) {
-        return withString(path, getter, null, persisted);
+    public WiredValues withString(String name, Supplier<String> getter, boolean persisted) {
+        return withString(name, getter, null, persisted);
     }
 
-    public WiredValues withBoolean(String path, BooleanSupplier getter, BooleanConsumer setter, boolean persisted) {
-        return add(path, new Values.WiredBoolean(persisted, getter, setter));
+    public WiredValues withBoolean(String name, BooleanSupplier getter, BooleanConsumer setter, boolean persisted) {
+        return add(new Values.WiredBoolean(name, persisted, getter, setter));
     }
 
-    public WiredValues withBoolean(String path, BooleanSupplier getter, boolean persisted) {
-        return withBoolean(path, getter, null, persisted);
+    public WiredValues withBoolean(String name, BooleanSupplier getter, boolean persisted) {
+        return withBoolean(name, getter, null, persisted);
     }
 
-    public WiredValues withInt(String path, IntSupplier getter, IntConsumer setter, boolean persisted) {
-        return add(path, new Values.WiredLong(persisted, getter::getAsInt, v -> setter.accept(toInt(v))));
+    public WiredValues withInt(String name, IntSupplier getter, IntConsumer setter, boolean persisted) {
+        return add(new Values.WiredLong(name, persisted, getter::getAsInt, v -> setter.accept(toInt(v))));
     }
 
-    public WiredValues withInt(String path, IntSupplier getter, boolean persisted) {
-        return withInt(path, getter, null, persisted);
+    public WiredValues withInt(String name, IntSupplier getter, boolean persisted) {
+        return withInt(name, getter, null, persisted);
     }
 
-    public WiredValues withLong(String path, LongSupplier getter, LongConsumer setter, boolean persisted) {
-        return add(path, new Values.WiredLong(persisted, getter, setter));
+    public WiredValues withLong(String name, LongSupplier getter, LongConsumer setter, boolean persisted) {
+        return add(new Values.WiredLong(name, persisted, getter, setter));
     }
 
-    public WiredValues withLong(String path, LongSupplier getter, boolean persisted) {
-        return withLong(path, getter, null, persisted);
+    public WiredValues withLong(String name, LongSupplier getter, boolean persisted) {
+        return withLong(name, getter, null, persisted);
     }
 
-    public WiredValues withDouble(String path, DoubleSupplier getter, DoubleConsumer setter, boolean persisted) {
-        return add(path, new Values.WiredDouble(persisted, getter, setter));
+    public WiredValues withDouble(String name, DoubleSupplier getter, DoubleConsumer setter, boolean persisted) {
+        return add(new Values.WiredDouble(name, persisted, getter, setter));
     }
 
-    public WiredValues withDouble(String path, DoubleSupplier getter, boolean persisted) {
-        return withDouble(path, getter, null, persisted);
-    }
-
-    private Map<String, ConfigValue> toMap() {
-        return values.stream()
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        Map.Entry::getValue
-                ));
+    public WiredValues withDouble(String name, DoubleSupplier getter, boolean persisted) {
+        return withDouble(name, getter, null, persisted);
     }
 
     public AutoCloseable build() {
-        return cfg.wire(toMap());
+        return cfg.wire(values);
     }
 
     private static int toInt(long value) {

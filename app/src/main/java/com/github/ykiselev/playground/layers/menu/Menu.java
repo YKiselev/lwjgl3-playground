@@ -28,8 +28,8 @@ import com.github.ykiselev.playground.ui.models.checkbox.ConfigurationBoundCheck
 import com.github.ykiselev.playground.ui.models.checkbox.SimpleCheckBoxModel;
 import com.github.ykiselev.playground.ui.models.slider.ConfigurationBoundSliderModel;
 import com.github.ykiselev.playground.ui.models.slider.SliderDefinition;
-import com.github.ykiselev.services.PersistedConfiguration;
-import com.github.ykiselev.services.Removable;
+import com.github.ykiselev.services.configuration.PersistedConfiguration;
+import com.github.ykiselev.api.Removable;
 import com.github.ykiselev.services.Services;
 import com.github.ykiselev.services.events.Events;
 import com.github.ykiselev.services.events.game.NewGameEvent;

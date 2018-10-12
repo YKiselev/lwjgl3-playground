@@ -19,6 +19,7 @@ package com.github.ykiselev.services.configuration;
 import com.github.ykiselev.services.configuration.ConfigurationException.VariableNotFoundException;
 import com.github.ykiselev.services.configuration.values.BooleanValue;
 import com.github.ykiselev.services.configuration.values.ConfigValue;
+import com.github.ykiselev.services.configuration.values.ConstantList;
 import com.github.ykiselev.services.configuration.values.DoubleValue;
 import com.github.ykiselev.services.configuration.values.LongValue;
 import com.github.ykiselev.services.configuration.values.StringValue;
@@ -206,10 +207,8 @@ public interface Config {
      * Gets value of string list variable at specified path.
      *
      * @param path the variable path
-     * @throws ClassCastException if variable is not a list or element type cannot be cast to {@link String} class.
-     * @see Config#getList(java.lang.String, java.lang.Class)
      */
-    default List<String> getStringList(String path) throws ClassCastException {
+    default List<String> getStringList(String path) {
         return getValue(path, ConstantList.class).toList();
     }
 }

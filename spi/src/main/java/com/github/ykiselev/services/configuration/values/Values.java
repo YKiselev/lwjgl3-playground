@@ -18,6 +18,8 @@ package com.github.ykiselev.services.configuration.values;
 
 import com.github.ykiselev.common.BooleanConsumer;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.DoubleConsumer;
@@ -38,9 +40,12 @@ public final class Values {
 
     private static abstract class AbstractValue implements ConfigValue {
 
+        private final String name;
+
         private final boolean persisted;
 
-        AbstractValue(boolean persisted) {
+        AbstractValue(String name, boolean persisted) {
+            this.name = requireNonNull(name);
             this.persisted = persisted;
         }
 
@@ -48,27 +53,32 @@ public final class Values {
         public boolean isPersisted() {
             return persisted;
         }
+
+        @Override
+        public String name() {
+            return name;
+        }
     }
 
     public static final class SimpleString extends AbstractValue implements StringValue {
 
         private volatile String value;
 
-        public SimpleString(boolean persisted, String value) {
-            super(persisted);
+        public SimpleString(String name, boolean persisted, String value) {
+            super(name, persisted);
             this.value = value;
         }
 
-        public SimpleString() {
-            super(false);
+        public SimpleString(String name) {
+            super(name, false);
         }
 
-        public SimpleString(String value) {
-            this(false, value);
+        public SimpleString(String name, String value) {
+            this(name, false, value);
         }
 
         public SimpleString(WiredString src) {
-            this(src.isPersisted(), src.value());
+            this(src.name(), src.isPersisted(), src.value());
         }
 
         @Override
@@ -88,8 +98,8 @@ public final class Values {
 
         private final Consumer<String> setter;
 
-        public WiredString(boolean persisted, Supplier<String> getter, Consumer<String> setter) {
-            super(persisted);
+        public WiredString(String name, boolean persisted, Supplier<String> getter, Consumer<String> setter) {
+            super(name, persisted);
             this.getter = requireNonNull(getter);
             this.setter = setter;
         }
@@ -116,21 +126,21 @@ public final class Values {
 
         private volatile boolean value;
 
-        public SimpleBoolean(boolean persisted, boolean value) {
-            super(persisted);
+        public SimpleBoolean(String name, boolean persisted, boolean value) {
+            super(name, persisted);
             this.value = value;
         }
 
-        public SimpleBoolean() {
-            super(false);
+        public SimpleBoolean(String name) {
+            super(name, false);
         }
 
-        public SimpleBoolean(boolean value) {
-            this(false, value);
+        public SimpleBoolean(String name, boolean value) {
+            this(name, false, value);
         }
 
         public SimpleBoolean(WiredBoolean src) {
-            this(src.isPersisted(), src.value());
+            this(src.name(), src.isPersisted(), src.value());
         }
 
         @Override
@@ -150,8 +160,8 @@ public final class Values {
 
         private final BooleanConsumer setter;
 
-        public WiredBoolean(boolean persisted, BooleanSupplier getter, BooleanConsumer setter) {
-            super(persisted);
+        public WiredBoolean(String name, boolean persisted, BooleanSupplier getter, BooleanConsumer setter) {
+            super(name, persisted);
             this.getter = requireNonNull(getter);
             this.setter = setter;
         }
@@ -178,21 +188,21 @@ public final class Values {
 
         private volatile long value;
 
-        public SimpleLong(boolean persisted, long value) {
-            super(persisted);
+        public SimpleLong(String name, boolean persisted, long value) {
+            super(name, persisted);
             this.value = value;
         }
 
-        public SimpleLong() {
-            super(false);
+        public SimpleLong(String name) {
+            super(name, false);
         }
 
-        public SimpleLong(long value) {
-            this(false, value);
+        public SimpleLong(String name, long value) {
+            this(name, false, value);
         }
 
         public SimpleLong(WiredLong src) {
-            this(src.isPersisted(), src.value());
+            this(src.name(), src.isPersisted(), src.value());
         }
 
         @Override
@@ -212,8 +222,8 @@ public final class Values {
 
         private final LongConsumer setter;
 
-        public WiredLong(boolean persisted, LongSupplier getter, LongConsumer setter) {
-            super(persisted);
+        public WiredLong(String name, boolean persisted, LongSupplier getter, LongConsumer setter) {
+            super(name, persisted);
             this.getter = getter;
             this.setter = setter;
         }
@@ -240,21 +250,21 @@ public final class Values {
 
         private volatile double value;
 
-        public SimpleDouble(boolean persisted, double value) {
-            super(persisted);
+        public SimpleDouble(String name, boolean persisted, double value) {
+            super(name, persisted);
             this.value = value;
         }
 
-        public SimpleDouble() {
-            super(false);
+        public SimpleDouble(String name) {
+            super(name, false);
         }
 
-        public SimpleDouble(double value) {
-            this(false, value);
+        public SimpleDouble(String name, double value) {
+            this(name, false, value);
         }
 
         public SimpleDouble(WiredDouble src) {
-            this(src.isPersisted(), src.value());
+            this(src.name(), src.isPersisted(), src.value());
         }
 
         @Override
@@ -274,8 +284,8 @@ public final class Values {
 
         private final DoubleConsumer setter;
 
-        public WiredDouble(boolean persisted, DoubleSupplier getter, DoubleConsumer setter) {
-            super(persisted);
+        public WiredDouble(String name, boolean persisted, DoubleSupplier getter, DoubleConsumer setter) {
+            super(name, persisted);
             this.getter = getter;
             this.setter = setter;
         }
@@ -298,36 +308,74 @@ public final class Values {
         }
     }
 
-    public static <T extends ConfigValue> T simpleValue(Class<T> clazz) {
+    public static final class ArrayBasedConstantList extends AbstractValue implements ConstantList {
+
+        private final Object[] values;
+
+        ArrayBasedConstantList(String name, List<?> list) {
+            super(name, false);
+            this.values = list.toArray();
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public <T> List<T> toList() {
+            return List.of((T[]) values);
+        }
+
+        @Override
+        public String getString() {
+            return Arrays.toString(values);
+        }
+
+        @Override
+        public void setString(String value) {
+            throw new UnsupportedOperationException("Collection is read-only!");
+        }
+
+        @Override
+        public Object boxed() {
+            return List.of(values);
+        }
+
+        @Override
+        public boolean isReadOnly() {
+            return true;
+        }
+    }
+
+    public static <T extends ConfigValue> T simpleValue(String name, Class<T> clazz) {
         final ConfigValue result;
         if (clazz == StringValue.class) {
-            result = new SimpleString();
+            result = new SimpleString(name);
         } else if (clazz == LongValue.class) {
-            result = new SimpleLong();
+            result = new SimpleLong(name);
         } else if (clazz == DoubleValue.class) {
-            result = new SimpleDouble();
+            result = new SimpleDouble(name);
         } else if (clazz == BooleanValue.class) {
-            result = new SimpleBoolean();
+            result = new SimpleBoolean(name);
         } else {
             throw new IllegalArgumentException("Unknown type: " + clazz);
         }
         return clazz.cast(result);
     }
 
-    public static Object toSimpleValue(Object value) {
-        final Object result;
+    public static ConfigValue toSimpleValue(String name, Object value) {
+        final ConfigValue result;
         if (value == null || value instanceof String) {
-            result = new SimpleString((String) value);
+            result = new SimpleString(name, (String) value);
         } else if (value instanceof Long) {
-            result = new SimpleLong((long) value);
+            result = new SimpleLong(name, (long) value);
         } else if (value instanceof Integer) {
-            result = new SimpleLong((int) value);
+            result = new SimpleLong(name, (int) value);
         } else if (value instanceof Double) {
-            result = new SimpleDouble((double) value);
+            result = new SimpleDouble(name, (double) value);
         } else if (value instanceof Float) {
-            result = new SimpleDouble((float) value);
+            result = new SimpleDouble(name, (float) value);
         } else if (value instanceof Boolean) {
-            result = new SimpleBoolean((boolean) value);
+            result = new SimpleBoolean(name, (boolean) value);
+        } else if (value instanceof List) {
+            return new ArrayBasedConstantList(name, (List<?>) value);
         } else {
             throw new IllegalArgumentException("Unsupported value type: " + value);
         }

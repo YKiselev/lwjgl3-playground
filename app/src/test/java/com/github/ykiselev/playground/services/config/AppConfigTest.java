@@ -16,8 +16,9 @@
 
 package com.github.ykiselev.playground.services.config;
 
-import com.github.ykiselev.services.PersistedConfiguration;
+import com.github.ykiselev.services.configuration.PersistedConfiguration;
 import com.github.ykiselev.services.configuration.ConfigurationException.VariableNotFoundException;
+import com.github.ykiselev.services.configuration.values.ConfigValue;
 import com.github.ykiselev.services.configuration.values.StringValue;
 import com.github.ykiselev.services.configuration.values.Values;
 import org.junit.jupiter.api.BeforeEach;
@@ -115,14 +116,15 @@ class AppConfigTest {
         @BeforeEach
         void setUp() {
             Map<String, Object> map = new HashMap<>();
-            map.put("a.string", Values.toSimpleValue("abc"));
-            map.put("a.boolean1", Values.toSimpleValue(Boolean.TRUE));
-            map.put("a.boolean2", Values.toSimpleValue(Boolean.FALSE));
-            map.put("a.int", Values.toSimpleValue(123));
-            map.put("a.long", Values.toSimpleValue(999999999999999999L));
-            map.put("a.float", Values.toSimpleValue(3.14f));
-            map.put("a.double", Values.toSimpleValue(Math.PI));
-            map.put("b.stringList", new ArrayBasedConstantList(Arrays.asList("x", "y", "z")));
+            Consumer<ConfigValue> c = v -> map.put(v.name(), v);
+            c.accept(Values.toSimpleValue("a.string", "abc"));
+            c.accept(Values.toSimpleValue("a.boolean1", Boolean.TRUE));
+            c.accept(Values.toSimpleValue("a.boolean2", Boolean.FALSE));
+            c.accept(Values.toSimpleValue("a.int", 123));
+            c.accept(Values.toSimpleValue("a.long", 999999999999999999L));
+            c.accept(Values.toSimpleValue("a.float", 3.14f));
+            c.accept(Values.toSimpleValue("a.double", Math.PI));
+            c.accept(Values.toSimpleValue("b.stringList", Arrays.asList("x", "y", "z")));
             this.cfg = new AppConfig(() -> map, writer);
         }
 

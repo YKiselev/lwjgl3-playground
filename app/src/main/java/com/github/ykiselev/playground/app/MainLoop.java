@@ -105,7 +105,7 @@ public final class MainLoop implements ThrowingRunnable {
                 services.resolve(Events.class)
                         .subscribe(QuitEvent.class, this::onQuit),
                 services.resolve(Commands.class)
-                        .add("quit", new EventFiringHandler<>(services, QuitEvent.INSTANCE)),
+                        .add(new EventFiringHandler<>("quit", services, QuitEvent.INSTANCE)),
                 new ConsoleFactory(services)
                         .create(),
                 services.add(FrameInfo.class, frameInfo)

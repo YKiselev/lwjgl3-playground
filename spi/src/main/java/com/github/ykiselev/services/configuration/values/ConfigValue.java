@@ -16,12 +16,14 @@
 
 package com.github.ykiselev.services.configuration.values;
 
+import com.github.ykiselev.api.Named;
+
 /**
  * Configuration value.
  *
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public interface ConfigValue {
+public interface ConfigValue extends Named {
 
     String getString();
 

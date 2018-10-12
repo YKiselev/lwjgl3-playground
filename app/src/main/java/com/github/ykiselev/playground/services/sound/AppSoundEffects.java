@@ -16,7 +16,7 @@
 
 package com.github.ykiselev.playground.services.sound;
 
-import com.github.ykiselev.services.PersistedConfiguration;
+import com.github.ykiselev.services.configuration.PersistedConfiguration;
 import com.github.ykiselev.services.Services;
 import com.github.ykiselev.services.SoundEffects;
 import org.apache.commons.lang3.StringUtils;

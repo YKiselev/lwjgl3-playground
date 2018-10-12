@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-package com.github.ykiselev.services.events;
+package com.github.ykiselev.services.commands;
 
-import java.util.Collection;
+import com.github.ykiselev.api.Named;
+
+import java.util.List;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public interface EventFromCommand<E> {
+public interface Command extends Named {
 
-    E fromCommand(Collection<String> args) throws Exception;
+    void run(List<String> args) throws Exception;
 }

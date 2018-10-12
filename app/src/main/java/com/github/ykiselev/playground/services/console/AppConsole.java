@@ -23,9 +23,9 @@ import com.github.ykiselev.opengl.sprites.SpriteBatch;
 import com.github.ykiselev.opengl.text.SpriteFont;
 import com.github.ykiselev.opengl.textures.Sprite;
 import com.github.ykiselev.opengl.textures.Texture2d;
-import com.github.ykiselev.services.PersistedConfiguration;
 import com.github.ykiselev.services.Services;
 import com.github.ykiselev.services.commands.Commands;
+import com.github.ykiselev.services.configuration.PersistedConfiguration;
 import com.github.ykiselev.services.events.Events;
 import com.github.ykiselev.services.events.console.ToggleConsoleEvent;
 import com.github.ykiselev.services.events.menu.ShowMenuEvent;
@@ -40,7 +40,7 @@ import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static java.lang.Math.max;
@@ -157,7 +157,7 @@ public final class AppConsole implements UiLayer, AutoCloseable {
         font = assets.load("fonts/Liberation Mono.sf", SpriteFont.class);
     }
 
-    private void onEcho(Collection<String> args) {
+    private void onEcho(List<String> args) {
         logger.info("{}", args);
     }
 

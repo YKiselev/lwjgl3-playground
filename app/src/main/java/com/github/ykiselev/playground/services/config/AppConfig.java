@@ -18,23 +18,26 @@ package com.github.ykiselev.playground.services.config;
 
 import com.github.ykiselev.cow.CopyOnModify;
 import com.github.ykiselev.services.FileSystem;
-import com.github.ykiselev.services.PersistedConfiguration;
 import com.github.ykiselev.services.Services;
 import com.github.ykiselev.services.configuration.Config;
 import com.github.ykiselev.services.configuration.ConfigurationException;
+import com.github.ykiselev.services.configuration.PersistedConfiguration;
 import com.github.ykiselev.services.configuration.values.ConfigValue;
 import com.github.ykiselev.services.configuration.values.Values;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.Objects.requireNonNull;
@@ -71,7 +74,7 @@ public final class AppConfig implements PersistedConfiguration, AutoCloseable {
             if (raw != null) {
                 return clazz.cast(raw);
             }
-            final V result = Values.simpleValue(clazz);
+            final V result = Values.simpleValue(path, clazz);
             merge(Collections.singletonMap(path, result));
             return result;
         }
@@ -111,18 +114,19 @@ public final class AppConfig implements PersistedConfiguration, AutoCloseable {
     }
 
     @Override
-    public AutoCloseable wire(Map<String, ConfigValue> values) {
-        if (values.isEmpty()) {
+    public AutoCloseable wire(Collection<ConfigValue> values) {
+        final Map<String, ConfigValue> toWire = toMap(values);
+        if (toWire.isEmpty()) {
             throw new IllegalArgumentException("Nothing to wire!");
         }
-        final Map<String, Object> previous = merge(values);
-        values.forEach((key, value) -> {
+        final Map<String, Object> previous = merge(toWire);
+        toWire.forEach((key, value) -> {
             final Object raw = previous.get(key);
             if (raw instanceof ConfigValue) {
                 value.setString(((ConfigValue) raw).getString());
             }
         });
-        final Set<String> keysToRemove = new HashSet<>(values.keySet());
+        final Set<String> keysToRemove = new HashSet<>(toWire.keySet());
         return () -> {
             final Map<String, ConfigValue> modified = unwire(keysToRemove);
             if (modified.size() != keysToRemove.size()) {
@@ -132,6 +136,21 @@ public final class AppConfig implements PersistedConfiguration, AutoCloseable {
         };
     }
 
+    private Map<String, ConfigValue> toMap(Collection<ConfigValue> values) {
+        return values.stream().collect(Collectors.toMap(
+                ConfigValue::name,
+                Function.identity()
+        ));
+    }
+
+    /**
+     * For each supplied key extracts wired value from current map, creates simple (non-wired) version of that value and
+     * puts that simple value in result map.
+     * Note: resulting map is not a full copy of current map, it contains entries only for supplied {@code keys}!
+     *
+     * @param keys the keys to unwire
+     * @return the result map with simple values
+     */
     private Map<String, ConfigValue> unwire(Set<String> keys) {
         final Map<String, Object> current = config.value();
         final Map<String, ConfigValue> result = new HashMap<>();
@@ -145,6 +164,8 @@ public final class AppConfig implements PersistedConfiguration, AutoCloseable {
     }
 
     /**
+     * Replaces current map with new version which is a result of merge of two maps (current and {@code value}).
+     *
      * @param values the values to merge with current map
      * @return the previous map
      */

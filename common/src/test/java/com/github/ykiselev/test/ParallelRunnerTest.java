@@ -16,11 +16,10 @@
 
 package com.github.ykiselev.test;
 
-import org.junit.jupiter.api.Disabled;
+import com.github.ykiselev.common.ThrowingRunnable;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
@@ -33,38 +32,15 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
  */
 class ParallelRunnerTest {
 
-    private void sleep(long millis) {
-        try {
-            Thread.sleep(millis);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Test
-    @Disabled
-    void shouldRunInParallel() throws Exception {
-        Supplier<Runnable> s = () -> {
-            System.out.println("Preparing from " + Thread.currentThread());
-            sleep(ThreadLocalRandom.current().nextLong(100, 250));
-            return () -> {
-                System.out.println("Running in " + Thread.currentThread());
-                sleep(ThreadLocalRandom.current().nextLong(100, 250));
-            };
-        };
-        ParallelRunner.fromRunnable(3, s)
-                .call();
-    }
-
     @Test
     void shouldRunWhenSomeThreadsFailed() {
         assumeTrue(Runtime.getRuntime().availableProcessors() > 1);
         final AtomicBoolean fired = new AtomicBoolean(false);
-        Supplier<Runnable> s = () -> () -> {
+        Supplier<ThrowingRunnable> s = () -> () -> {
             if (fired.compareAndSet(false, true)) {
                 throw new RuntimeException("Oops!");
             } else {
-                sleep(50);
+                Thread.sleep(50);
             }
         };
         assertTimeoutPreemptively(Duration.ofMillis(5_000L), () ->

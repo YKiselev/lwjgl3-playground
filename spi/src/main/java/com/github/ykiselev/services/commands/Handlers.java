@@ -16,8 +16,9 @@
 
 package com.github.ykiselev.services.commands;
 
+import com.github.ykiselev.common.ThrowingRunnable;
+
 import java.util.List;
-import java.util.function.Consumer;
 
 /**
  * This class is a collection of command handler adaptors.
@@ -35,102 +36,158 @@ final class Handlers {
         }
     }
 
-    static Consumer<List<String>> consumer(Runnable handler) {
-        return args -> {
-            assertArgs(args, 1);
-            handler.run();
-        };
-    }
-
-    static Consumer<List<String>> consumer(Commands.H1 handler) {
-        return args -> {
-            assertArgs(args, 1);
-            handler.handle(args.get(0));
-        };
-    }
-
-    static Consumer<List<String>> consumer(Commands.H2 handler) {
-        return args -> {
-            assertArgs(args, 2);
-            String a2 = null;
-            if (args.size() > 1) {
-                a2 = args.get(1);
+    static Command command(String name, ThrowingRunnable handler) {
+        return new Command() {
+            @Override
+            public void run(List<String> args) throws Exception {
+                assertArgs(args, 1);
+                handler.run();
             }
-            handler.handle(args.get(0), a2);
+
+            @Override
+            public String name() {
+                return name;
+            }
         };
     }
 
-    static Consumer<List<String>> consumer(Commands.H3 handler) {
-        return args -> {
-            assertArgs(args, 3);
-            String a2 = null, a3 = null;
-            if (args.size() > 1) {
-                a2 = args.get(1);
-                if (args.size() > 2) {
-                    a3 = args.get(2);
+    static Command command(String name, Commands.H1 handler) {
+        return new Command() {
+            @Override
+            public void run(List<String> args) throws Exception {
+                assertArgs(args, 1);
+                handler.handle(args.get(0));
+            }
+
+            @Override
+            public String name() {
+                return name;
+            }
+        };
+    }
+
+    static Command command(String name, Commands.H2 handler) {
+        return new Command() {
+            @Override
+            public void run(List<String> args) throws Exception {
+                assertArgs(args, 2);
+                String a2 = null;
+                if (args.size() > 1) {
+                    a2 = args.get(1);
                 }
+                handler.handle(args.get(0), a2);
             }
-            handler.handle(args.get(0), a2, a3);
+
+            @Override
+            public String name() {
+                return name;
+            }
         };
     }
 
-    static Consumer<List<String>> consumer(Commands.H4 handler) {
-        return args -> {
-            assertArgs(args, 4);
-            String a2 = null, a3 = null, a4 = null;
-            if (args.size() > 1) {
-                a2 = args.get(1);
-                if (args.size() > 2) {
-                    a3 = args.get(2);
-                    if (args.size() > 3) {
-                        a4 = args.get(3);
+    static Command command(String name, Commands.H3 handler) {
+        return new Command() {
+            @Override
+            public void run(List<String> args) throws Exception {
+                assertArgs(args, 3);
+                String a2 = null, a3 = null;
+                if (args.size() > 1) {
+                    a2 = args.get(1);
+                    if (args.size() > 2) {
+                        a3 = args.get(2);
                     }
                 }
+                handler.handle(args.get(0), a2, a3);
             }
-            handler.handle(args.get(0), a2, a3, a4);
+
+            @Override
+            public String name() {
+                return name;
+            }
         };
     }
 
-    static Consumer<List<String>> consumer(Commands.H5 handler) {
-        return args -> {
-            assertArgs(args, 5);
-            String a2 = null, a3 = null, a4 = null, a5 = null;
-            if (args.size() > 1) {
-                a2 = args.get(1);
-                if (args.size() > 2) {
-                    a3 = args.get(2);
-                    if (args.size() > 3) {
-                        a4 = args.get(3);
-                        if (args.size() > 4) {
-                            a5 = args.get(4);
+    static Command command(String name, Commands.H4 handler) {
+        return new Command() {
+            @Override
+            public void run(List<String> args) throws Exception {
+                assertArgs(args, 4);
+                String a2 = null, a3 = null, a4 = null;
+                if (args.size() > 1) {
+                    a2 = args.get(1);
+                    if (args.size() > 2) {
+                        a3 = args.get(2);
+                        if (args.size() > 3) {
+                            a4 = args.get(3);
                         }
                     }
                 }
+                handler.handle(args.get(0), a2, a3, a4);
             }
-            handler.handle(args.get(0), a2, a3, a4, a5);
+
+            @Override
+            public String name() {
+                return name;
+            }
         };
     }
 
-    static Consumer<List<String>> consumer(Commands.H6 handler) {
-        return args -> {
-            assertArgs(args, 6);
-            String a2 = null, a3 = null, a4 = null, a5 = null, a6 = null;
-            if (args.size() > 1) {
-                a2 = args.get(1);
-                if (args.size() > 2) {
-                    a3 = args.get(2);
-                    if (args.size() > 3) {
-                        a4 = args.get(3);
-                        if (args.size() > 4) {
-                            a5 = args.get(4);
-                            if (args.size() > 5) {
-                                a6 = args.get(5);
+    static Command command(String name, Commands.H5 handler) {
+        return new Command() {
+            @Override
+            public void run(List<String> args) throws Exception {
+                assertArgs(args, 5);
+                String a2 = null, a3 = null, a4 = null, a5 = null;
+                if (args.size() > 1) {
+                    a2 = args.get(1);
+                    if (args.size() > 2) {
+                        a3 = args.get(2);
+                        if (args.size() > 3) {
+                            a4 = args.get(3);
+                            if (args.size() > 4) {
+                                a5 = args.get(4);
                             }
                         }
                     }
                 }
+                handler.handle(args.get(0), a2, a3, a4, a5);
             }
-            handler.handle(args.get(0), a2, a3, a4, a5, a6);
+
+            @Override
+            public String name() {
+                return name;
+            }
+        };
+    }
+
+    static Command command(String name, Commands.H6 handler) {
+        return new Command() {
+            @Override
+            public void run(List<String> args) throws Exception {
+                assertArgs(args, 6);
+                String a2 = null, a3 = null, a4 = null, a5 = null, a6 = null;
+                if (args.size() > 1) {
+                    a2 = args.get(1);
+                    if (args.size() > 2) {
+                        a3 = args.get(2);
+                        if (args.size() > 3) {
+                            a4 = args.get(3);
+                            if (args.size() > 4) {
+                                a5 = args.get(4);
+                                if (args.size() > 5) {
+                                    a6 = args.get(5);
+                                }
+                            }
+                        }
+                    }
+                }
+                handler.handle(args.get(0), a2, a3, a4, a5, a6);
+            }
+
+            @Override
+            public String name() {
+                return name;
+            }
         };
     }
 }

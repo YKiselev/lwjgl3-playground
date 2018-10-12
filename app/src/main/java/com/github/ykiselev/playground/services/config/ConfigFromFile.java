@@ -31,7 +31,6 @@ import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.util.AbstractMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -66,7 +65,7 @@ final class ConfigFromFile implements Supplier<Map<String, Object>> {
                 .flatMap(k -> denormalize(k, obj.get(k).unwrapped()))
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
-                        e -> value(e.getValue())
+                        e -> value(e.getKey(), e.getValue())
                 ));
     }
 
@@ -117,14 +116,11 @@ final class ConfigFromFile implements Supplier<Map<String, Object>> {
     }
 
     @SuppressWarnings("unchecked")
-    public static Object value(Object value) {
+    private static Object value(String name, Object value) {
         if (value instanceof Section) {
             return value;
         }
-        if (value instanceof List) {
-            return new ArrayBasedConstantList((List<?>) value);
-        }
-        return Values.toSimpleValue(value);
+        return Values.toSimpleValue(name, value);
     }
 
 }

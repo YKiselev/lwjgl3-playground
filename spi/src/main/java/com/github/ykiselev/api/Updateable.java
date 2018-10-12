@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package com.github.ykiselev.services.events;
-
-import java.util.Collection;
+package com.github.ykiselev.api;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public interface EventFromCommand<E> {
+public interface Updateable {
 
-    E fromCommand(Collection<String> args) throws Exception;
+    void update();
 }

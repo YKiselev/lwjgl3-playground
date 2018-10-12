@@ -21,25 +21,34 @@ import com.github.ykiselev.services.events.EventFromCommand;
 import com.github.ykiselev.services.events.Events;
 
 import java.util.List;
-import java.util.function.Consumer;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class EventFiringHandler<E> implements Consumer<List<String>> {
+public final class EventFiringHandler<E> implements Command {
+
+    private final String name;
 
     private final Services services;
 
     private final EventFromCommand<E> factory;
 
-    public EventFiringHandler(Services services, EventFromCommand<E> factory) {
-        this.services = services;
-        this.factory = factory;
+    public EventFiringHandler(String name, Services services, EventFromCommand<E> factory) {
+        this.name = requireNonNull(name);
+        this.services = requireNonNull(services);
+        this.factory = requireNonNull(factory);
     }
 
     @Override
-    public void accept(List<String> args) {
+    public void run(List<String> args) throws Exception {
         services.resolve(Events.class)
                 .fire(factory.fromCommand(args));
+    }
+
+    @Override
+    public String name() {
+        return name;
     }
 }

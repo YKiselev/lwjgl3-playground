@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.github.ykiselev.services.configuration;
+package com.github.ykiselev.services.configuration.values;
 
 import com.github.ykiselev.services.configuration.values.ConfigValue;
 

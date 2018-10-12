@@ -16,15 +16,15 @@
 
 package com.github.ykiselev.playground.host;
 
+import com.github.ykiselev.api.Updateable;
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.closeables.Closeables;
 import com.github.ykiselev.closeables.CompositeAutoCloseable;
 import com.github.ykiselev.components.Game;
-import com.github.ykiselev.services.PersistedConfiguration;
 import com.github.ykiselev.services.Services;
-import com.github.ykiselev.services.Updateable;
 import com.github.ykiselev.services.commands.Commands;
 import com.github.ykiselev.services.commands.EventFiringHandler;
+import com.github.ykiselev.services.configuration.PersistedConfiguration;
 import com.github.ykiselev.services.events.Events;
 import com.github.ykiselev.services.events.game.NewGameEvent;
 import com.github.ykiselev.services.layers.UiLayers;
@@ -54,7 +54,7 @@ public final class GameEvents implements AutoCloseable, Updateable {
                 services.resolve(Events.class)
                         .subscribe(NewGameEvent.class, this::onNewGame),
                 services.resolve(Commands.class)
-                        .add("new-game", new EventFiringHandler<>(services, NewGameEvent.INSTANCE)),
+                        .add(new EventFiringHandler<>("new-game", services, NewGameEvent.INSTANCE)),
                 services.resolve(PersistedConfiguration.class)
                         .wire()
                         .withBoolean("game.isPresent", () -> game != null, false)

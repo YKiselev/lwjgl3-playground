@@ -21,7 +21,7 @@ import com.github.ykiselev.playground.services.console.AppConsole;
 import com.github.ykiselev.playground.services.console.AppConsoleLog4j2Appender;
 import com.github.ykiselev.playground.services.console.ConsoleBuffer;
 import com.github.ykiselev.playground.services.console.DefaultCommandLine;
-import com.github.ykiselev.services.PersistedConfiguration;
+import com.github.ykiselev.services.configuration.PersistedConfiguration;
 import com.github.ykiselev.services.Services;
 import com.github.ykiselev.services.commands.Commands;
 import com.github.ykiselev.services.layers.UiLayers;

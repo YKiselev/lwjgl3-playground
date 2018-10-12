@@ -16,6 +16,7 @@
 
 package com.github.ykiselev.playground.services.console;
 
+import com.github.ykiselev.common.ThrowingRunnable;
 import com.github.ykiselev.services.commands.CommandException.CommandExecutionFailedException;
 import com.github.ykiselev.services.commands.CommandException.CommandStackOverflowException;
 import com.github.ykiselev.services.commands.CommandException.UnknownCommandException;
@@ -26,7 +27,6 @@ import org.mockito.Mockito;
 
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Supplier;
 
@@ -60,8 +60,8 @@ class AppCommandsTest {
     }
 
     @Test
-    void shouldOverflow() {
-        Runnable h = Mockito.mock(Runnable.class);
+    void shouldOverflow() throws Exception {
+        ThrowingRunnable h = Mockito.mock(ThrowingRunnable.class);
         commands.add("overflow", h);
 
         final Iterator<String> it = Collections.singletonList("overflow").iterator();
@@ -79,31 +79,31 @@ class AppCommandsTest {
     }
 
     @Test
-    void shouldExecute() {
-        Runnable h = mock(Runnable.class);
+    void shouldExecute() throws Exception {
+        ThrowingRunnable h = mock(ThrowingRunnable.class);
         commands.add("cmd", h);
         commands.execute("cmd");
         verify(h, times(1)).run();
     }
 
     @Test
-    void shouldExecuteSeparatedBySemicolon() {
-        Runnable h = mock(Runnable.class);
+    void shouldExecuteSeparatedBySemicolon() throws Exception {
+        ThrowingRunnable h = mock(ThrowingRunnable.class);
         commands.add("cmd", h);
         commands.execute("cmd;cmd");
         verify(h, times(2)).run();
     }
 
     @Test
-    void shouldExecuteMultiLine() {
-        Runnable h = mock(Runnable.class);
+    void shouldExecuteMultiLine() throws Exception {
+        ThrowingRunnable h = mock(ThrowingRunnable.class);
         commands.add("cmd", h);
         commands.execute("cmd\rcmd\ncmd\r\ncmd");
         verify(h, times(4)).run();
     }
 
     @Test
-    void shouldPassArgs() {
+    void shouldPassArgs() throws Exception {
         Commands.H2 h = mock(Commands.H2.class);
         commands.add("cmd", h);
         commands.execute("cmd 1");
@@ -113,13 +113,9 @@ class AppCommandsTest {
     @Test
     void shouldBeThreadSafe() throws Exception {
         final ThreadLocal<String[]> savedArgs = new ThreadLocal<>();
-        commands.add("a", (List<String> args) -> {
-            savedArgs.set(args.toArray(new String[0]));
-        });
-        commands.add("b", (List<String> args) -> {
-            savedArgs.set(args.toArray(new String[0]));
-        });
-        Supplier<Runnable> s = () -> () -> {
+        commands.add("a", (a, b) -> savedArgs.set(new String[]{a, b}));
+        commands.add("b", (a, b) -> savedArgs.set(new String[]{a, b}));
+        Supplier<ThrowingRunnable> s = () -> () -> {
             ThreadLocalRandom rnd = ThreadLocalRandom.current();
             String cmd = rnd.nextBoolean() ? "a" : "b";
             String arg = Long.toString(rnd.nextLong());

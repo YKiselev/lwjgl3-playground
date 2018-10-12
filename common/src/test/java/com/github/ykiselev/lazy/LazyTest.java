@@ -16,6 +16,7 @@
 
 package com.github.ykiselev.lazy;
 
+import com.github.ykiselev.common.ThrowingRunnable;
 import com.github.ykiselev.test.ParallelRunner;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -97,7 +98,7 @@ class LazyTest {
 
     private <T> void runParallel(Supplier<T> lazy, Predicate<T> validator) throws Exception {
         final AtomicLong errors = new AtomicLong();
-        Supplier<Runnable> f = () -> () -> {
+        Supplier<ThrowingRunnable> f = () -> () -> {
             if (!validator.test(lazy.get())) {
                 errors.incrementAndGet();
             }

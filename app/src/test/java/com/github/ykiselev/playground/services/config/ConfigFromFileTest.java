@@ -17,7 +17,7 @@
 package com.github.ykiselev.playground.services.config;
 
 import com.github.ykiselev.services.FileSystem;
-import com.github.ykiselev.services.configuration.ConstantList;
+import com.github.ykiselev.services.configuration.values.ConstantList;
 import com.github.ykiselev.services.configuration.values.BooleanValue;
 import com.github.ykiselev.services.configuration.values.DoubleValue;
 import com.github.ykiselev.services.configuration.values.LongValue;

@@ -17,6 +17,7 @@
 package com.github.ykiselev.playground.services.console;
 
 import com.github.ykiselev.cow.CopyOnModify;
+import com.github.ykiselev.services.commands.Command;
 import com.github.ykiselev.services.commands.CommandException.CommandAlreadyRegisteredException;
 import com.github.ykiselev.services.commands.CommandException.CommandExecutionFailedException;
 import com.github.ykiselev.services.commands.CommandException.CommandStackOverflowException;
@@ -32,7 +33,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
-import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import static java.util.Objects.requireNonNull;
@@ -46,9 +46,7 @@ public final class AppCommands implements Commands {
 
     private final Tokenizer tokenizer;
 
-    private final int maxDepth;
-
-    private final CopyOnModify<Map<String, Consumer<List<String>>>> handlers = new CopyOnModify<>(Collections.emptyMap());
+    private final CopyOnModify<Map<String, Command>> handlers = new CopyOnModify<>(Collections.emptyMap());
 
     private final ThreadLocal<ThreadContext> context;
 
@@ -60,7 +58,6 @@ public final class AppCommands implements Commands {
      */
     public AppCommands(Tokenizer tokenizer, int maxDepth) {
         this.tokenizer = requireNonNull(tokenizer);
-        this.maxDepth = maxDepth;
         this.context = ThreadLocal.withInitial(() -> new ThreadContext(maxDepth));
     }
 
@@ -93,20 +90,20 @@ public final class AppCommands implements Commands {
         }
     }
 
-    private Consumer<List<String>> handler(String command) {
+    private Command handler(String command) {
         return handlers.value().get(command);
     }
 
     private int execute(String commandLine, int fromIndex, List<String> args, ExecutionContext ctx) {
         final int result = tokenizer.tokenize(commandLine, fromIndex, args);
         if (!args.isEmpty()) {
-            final Consumer<List<String>> handler = handler(args.get(0));
+            final Command handler = handler(args.get(0));
             if (handler != null) {
                 try {
-                    handler.accept(args);
+                    handler.run(args);
                 } catch (CommandStackOverflowException | CommandExecutionFailedException e) {
                     ctx.onException(e);
-                } catch (RuntimeException e) {
+                } catch (Exception e) {
                     ctx.onException(new CommandExecutionFailedException(commandLine, e));
                 }
             } else {
@@ -122,20 +119,20 @@ public final class AppCommands implements Commands {
     }
 
     @Override
-    public AutoCloseable add(String command, Consumer<List<String>> handler) throws CommandAlreadyRegisteredException {
+    public AutoCloseable add(Command handler) throws CommandAlreadyRegisteredException {
         handlers.modify(before -> {
-            final Map<String, Consumer<List<String>>> after = new HashMap<>(before);
-            if (after.putIfAbsent(command, handler) != null) {
-                throw new CommandAlreadyRegisteredException(command);
+            final Map<String, Command> after = new HashMap<>(before);
+            if (after.putIfAbsent(handler.name(), handler) != null) {
+                throw new CommandAlreadyRegisteredException(handler.name());
             }
             return after;
         });
-        return () -> remove(command);
+        return () -> remove(handler.name());
     }
 
     private void remove(String command) {
         handlers.modify(before -> {
-            final Map<String, Consumer<List<String>>> after = new HashMap<>(before);
+            final Map<String, Command> after = new HashMap<>(before);
             if (after.remove(command) == null) {
                 logger.warn("Unable to remove (not found): {}", command);
             }

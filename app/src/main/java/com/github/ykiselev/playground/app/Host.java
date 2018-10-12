@@ -34,7 +34,7 @@ import com.github.ykiselev.playground.services.fs.DiskResources;
 import com.github.ykiselev.playground.services.schedule.AppSchedule;
 import com.github.ykiselev.playground.services.sound.AppSoundEffects;
 import com.github.ykiselev.services.FileSystem;
-import com.github.ykiselev.services.PersistedConfiguration;
+import com.github.ykiselev.services.configuration.PersistedConfiguration;
 import com.github.ykiselev.services.ServiceGroupBuilder;
 import com.github.ykiselev.services.Services;
 import com.github.ykiselev.services.SoundEffects;

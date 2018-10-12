@@ -16,6 +16,7 @@
 
 package com.github.ykiselev.services.commands;
 
+import com.github.ykiselev.common.ThrowingRunnable;
 import com.github.ykiselev.services.commands.CommandException.CommandAlreadyRegisteredException;
 import com.github.ykiselev.services.commands.CommandException.CommandExecutionFailedException;
 import com.github.ykiselev.services.commands.CommandException.CommandStackOverflowException;
@@ -87,12 +88,11 @@ public interface Commands {
      * Registers passed command handler for specified command. The handler will receive a list of command arguments where
      * first element is always a command itself.
      *
-     * @param command the command to bind handler to.
      * @param handler the handler to call to execute command.
      * @return the handle to unbind handler.
      * @throws CommandAlreadyRegisteredException if specified command is already registered.
      */
-    AutoCloseable add(String command, Consumer<List<String>> handler) throws CommandAlreadyRegisteredException;
+    AutoCloseable add(Command handler) throws CommandAlreadyRegisteredException;
 
     /**
      * Convenient method for commands without arguments.
@@ -101,8 +101,31 @@ public interface Commands {
      * @param handler the handler.
      * @return the handle to unbind handler.
      */
-    default AutoCloseable add(String command, Runnable handler) {
-        return add(command, Handlers.consumer(handler));
+    default AutoCloseable add(String command, Consumer<List<String>> handler) {
+        return add(
+                new Command() {
+                    @Override
+                    public void run(List<String> args) {
+                        handler.accept(args);
+                    }
+
+                    @Override
+                    public String name() {
+                        return command;
+                    }
+                }
+        );
+    }
+
+    /**
+     * Convenient method for commands without arguments.
+     *
+     * @param command the command to bind handler to.
+     * @param handler the handler.
+     * @return the handle to unbind handler.
+     */
+    default AutoCloseable add(String command, ThrowingRunnable handler) {
+        return add(Handlers.command(command, handler));
     }
 
     /**
@@ -113,7 +136,7 @@ public interface Commands {
      * @return the handle to unbind handler.
      */
     default AutoCloseable add(String command, H1 handler) {
-        return add(command, Handlers.consumer(handler));
+        return add(Handlers.command(command, handler));
     }
 
     /**
@@ -124,7 +147,7 @@ public interface Commands {
      * @return the handle to unbind handler.
      */
     default AutoCloseable add(String command, H2 handler) {
-        return add(command, Handlers.consumer(handler));
+        return add(Handlers.command(command, handler));
     }
 
     /**
@@ -135,7 +158,7 @@ public interface Commands {
      * @return the handle to unbind handler.
      */
     default AutoCloseable add(String command, H3 handler) {
-        return add(command, Handlers.consumer(handler));
+        return add(Handlers.command(command, handler));
     }
 
     /**
@@ -146,7 +169,7 @@ public interface Commands {
      * @return the handle to unbind handler.
      */
     default AutoCloseable add(String command, H4 handler) {
-        return add(command, Handlers.consumer(handler));
+        return add(Handlers.command(command, handler));
     }
 
     /**
@@ -157,7 +180,7 @@ public interface Commands {
      * @return the handle to unbind handler.
      */
     default AutoCloseable add(String command, H5 handler) {
-        return add(command, Handlers.consumer(handler));
+        return add(Handlers.command(command, handler));
     }
 
     /**
@@ -168,7 +191,7 @@ public interface Commands {
      * @return the handle to unbind handler.
      */
     default AutoCloseable add(String command, H6 handler) {
-        return add(command, Handlers.consumer(handler));
+        return add(Handlers.command(command, handler));
     }
 
     /**
@@ -183,36 +206,36 @@ public interface Commands {
     @FunctionalInterface
     interface H1 {
 
-        void handle(String a1);
+        void handle(String a1) throws Exception;
     }
 
     @FunctionalInterface
     interface H2 {
 
-        void handle(String a1, String a2);
+        void handle(String a1, String a2) throws Exception;
     }
 
     @FunctionalInterface
     interface H3 {
 
-        void handle(String a1, String a2, String a3);
+        void handle(String a1, String a2, String a3) throws Exception;
     }
 
     @FunctionalInterface
     interface H4 {
 
-        void handle(String a1, String a2, String a3, String a4);
+        void handle(String a1, String a2, String a3, String a4) throws Exception;
     }
 
     @FunctionalInterface
     interface H5 {
 
-        void handle(String a1, String a2, String a3, String a4, String a5);
+        void handle(String a1, String a2, String a3, String a4, String a5) throws Exception;
     }
 
     @FunctionalInterface
     interface H6 {
 
-        void handle(String a1, String a2, String a3, String a4, String a5, String a6);
+        void handle(String a1, String a2, String a3, String a4, String a5, String a6) throws Exception;
     }
 }

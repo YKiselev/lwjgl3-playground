@@ -16,6 +16,8 @@
 
 package com.github.ykiselev.test;
 
+import com.github.ykiselev.common.ThrowingRunnable;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -133,19 +135,19 @@ public final class ParallelRunner<V> implements Callable<Collection<Collection<V
         return results;
     }
 
-    private static Supplier<Callable<Void>> callable(Supplier<Runnable> s) {
+    private static Supplier<Callable<Void>> callable(Supplier<ThrowingRunnable> s) {
         return () -> () -> {
             s.get().run();
             return null;
         };
     }
 
-    public static Callable<Void> fromRunnable(int iterations, Supplier<Runnable> supplier) {
+    public static Callable<Void> fromRunnable(int iterations, Supplier<ThrowingRunnable> supplier) {
         return fromRunnable(iterations, Runtime.getRuntime().availableProcessors(), supplier);
     }
 
     @SuppressWarnings("unchecked")
-    public static Callable<Void> fromRunnable(int iterations, int parallelism, Supplier<Runnable> supplier) {
+    public static Callable<Void> fromRunnable(int iterations, int parallelism, Supplier<ThrowingRunnable> supplier) {
         return () -> {
             new ParallelRunner<>(
                     iterations,

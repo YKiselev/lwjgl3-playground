@@ -17,6 +17,7 @@
 package com.github.ykiselev.services.commands;
 
 import com.github.ykiselev.closeables.CompositeAutoCloseable;
+import com.github.ykiselev.common.ThrowingRunnable;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -43,6 +44,13 @@ public final class CommandBuilder {
         this(commands, new CompositeAutoCloseable());
     }
 
+    public CommandBuilder with(Command handler) {
+        return new CommandBuilder(
+                commands,
+                ac.and(commands.add(handler))
+        );
+    }
+
     public CommandBuilder with(String command, Consumer<List<String>> handler) {
         return new CommandBuilder(
                 commands,
@@ -50,52 +58,52 @@ public final class CommandBuilder {
         );
     }
 
-    public CommandBuilder with(String command, Runnable handler) {
+    public CommandBuilder with(String command, ThrowingRunnable handler) {
         return new CommandBuilder(
                 commands,
-                ac.and(commands.add(command, Handlers.consumer(handler)))
+                ac.and(commands.add(Handlers.command(command, handler)))
         );
     }
 
     public CommandBuilder with(String command, Commands.H1 handler) {
         return new CommandBuilder(
                 commands,
-                ac.and(commands.add(command, Handlers.consumer(handler)))
+                ac.and(commands.add(Handlers.command(command, handler)))
         );
     }
 
     public CommandBuilder with(String command, Commands.H2 handler) {
         return new CommandBuilder(
                 commands,
-                ac.and(commands.add(command, Handlers.consumer(handler)))
+                ac.and(commands.add(Handlers.command(command, handler)))
         );
     }
 
     public CommandBuilder with(String command, Commands.H3 handler) {
         return new CommandBuilder(
                 commands,
-                ac.and(commands.add(command, Handlers.consumer(handler)))
+                ac.and(commands.add(Handlers.command(command, handler)))
         );
     }
 
     public CommandBuilder with(String command, Commands.H4 handler) {
         return new CommandBuilder(
                 commands,
-                ac.and(commands.add(command, Handlers.consumer(handler)))
+                ac.and(commands.add(Handlers.command(command, handler)))
         );
     }
 
     public CommandBuilder with(String command, Commands.H5 handler) {
         return new CommandBuilder(
                 commands,
-                ac.and(commands.add(command, Handlers.consumer(handler)))
+                ac.and(commands.add(Handlers.command(command, handler)))
         );
     }
 
     public CommandBuilder with(String command, Commands.H6 handler) {
         return new CommandBuilder(
                 commands,
-                ac.and(commands.add(command, Handlers.consumer(handler)))
+                ac.and(commands.add(Handlers.command(command, handler)))
         );
     }
 
