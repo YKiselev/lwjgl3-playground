@@ -66,6 +66,6 @@ public final class Link extends AbstractUiElement {
         if (cx > x && cx < x + width && cy < y && cy > y - ctx.font().height()) {
             color = 0xffff00ff;
         }
-        return ctx.draw(x, y, width, name, color);
+        return ctx.batch().draw(x, y, width, name, color);
     }
 }

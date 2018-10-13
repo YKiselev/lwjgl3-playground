@@ -33,6 +33,12 @@ public final class DefaultSpriteBatch implements SpriteBatch {
 
     private final Wrap<? extends Texture2d> white;
 
+    private final ColorTable colorTable;
+
+    private SpriteFont font;
+
+    private TextAlignment textAlignment = TextAlignment.LEFT;
+
     @Override
     public int width() {
         return quads.width();
@@ -48,21 +54,44 @@ public final class DefaultSpriteBatch implements SpriteBatch {
         return quads.drawCount();
     }
 
-    /**
-     * @param quads the textured quads to use
-     * @param white the white texture (usually 1x1) for drawing solid color rectangles.
-     */
-    public DefaultSpriteBatch(TexturedQuads quads, Wrap<? extends Texture2d> white) {
-        this.quads = requireNonNull(quads);
-        this.white = requireNonNull(white);
+    @Override
+    public void font(SpriteFont font) {
+        this.font = font;
+    }
+
+    @Override
+    public SpriteFont font() {
+        return font;
+    }
+
+    @Override
+    public void textAlignment(TextAlignment alignment) {
+        this.textAlignment = requireNonNull(alignment);
+    }
+
+    @Override
+    public TextAlignment textAlignment() {
+        return textAlignment;
     }
 
     /**
-     * @param program the program to use
-     * @param white   the white texture (usually 1x1) for drawing solid color rectangles.
+     * @param quads      the textured quads to use
+     * @param white      the white texture (usually 1x1) for drawing solid color rectangles.
+     * @param colorTable the color table to use with color control sequences
      */
-    public DefaultSpriteBatch(Wrap<ProgramObject> program, Wrap<? extends Texture2d> white) {
-        this(new TexturedQuads(program), white);
+    public DefaultSpriteBatch(TexturedQuads quads, Wrap<? extends Texture2d> white, ColorTable colorTable) {
+        this.quads = requireNonNull(quads);
+        this.white = requireNonNull(white);
+        this.colorTable = requireNonNull(colorTable);
+    }
+
+    /**
+     * @param program    the program to use
+     * @param white      the white texture (usually 1x1) for drawing solid color rectangles.
+     * @param colorTable the color table to use with color control sequences
+     */
+    public DefaultSpriteBatch(Wrap<ProgramObject> program, Wrap<? extends Texture2d> white, ColorTable colorTable) {
+        this(new TexturedQuads(program), white, colorTable);
     }
 
     @Override
@@ -76,17 +105,55 @@ public final class DefaultSpriteBatch implements SpriteBatch {
         quads.begin(x, y, width, height, enableAlphaBlending);
     }
 
+    /**
+     * Converts passed character value representing hexadecimal digit to it's integer value (i.e. 'A' -> 10).
+     *
+     * @param v the hexadecimal digit
+     * @return integer value
+     */
+    private static int hexDigit(char v) {
+        if (v >= '0' && v <= '9') {
+            return v - '0';
+        }
+        if (v >= 'a' && v <= 'f') {
+            return 10 + v - 'a';
+        }
+        if (v >= 'A' && v <= 'F') {
+            return 10 + v - 'A';
+        }
+        return 0;
+    }
+
+    /**
+     * Converts two-character hexadecimal sequence into index in color table and returns that color.
+     *
+     * @param c1 high digit
+     * @param c2 low digit
+     * @return the color from color table at index specified by index defined by passed characters.
+     */
+    private static int colorIndex(char c1, char c2) {
+        return 16 * hexDigit(c1) + hexDigit(c2);
+    }
+
     @Override
-    public int draw(SpriteFont font, int x, int y, int maxWidth, CharSequence text, TextAlignment alignment, int color) {
+    public int draw(int x, int y, int maxWidth, CharSequence text, int color, boolean useCcs) {
         quads.use(font.texture());
 
-        final LineStart lineStart = LineStart.from(alignment);
+        final LineStart lineStart = LineStart.from(textAlignment);
         final int dy = font.height() + font.glyphYBorder();
         final int maxX = x + maxWidth;
         int fx = lineStart.calculate(x, font, text, 0, maxWidth);
         int fy = y - dy, qy = fy;
         for (int i = 0; i < text.length(); i++) {
             final char value = text.charAt(i);
+            if (value == '^' && (i == 0 || text.charAt(i - 1) != '\\')) {
+                if (i + 2 < text.length()) {
+                    color = colorTable.color(
+                            colorIndex(text.charAt(++i), text.charAt(++i))
+                    );
+                }
+                continue;
+            }
 
             if (value == '\r') {
                 continue;
@@ -102,12 +169,11 @@ public final class DefaultSpriteBatch implements SpriteBatch {
                 fx = lineStart.calculate(x, font, text, i, maxWidth);
                 fy -= dy;
             }
-
+            qy = fy;
             final int x1 = fx + glyph.width();
             final int y1 = fy + font.height();
             if (value != ' ') {
                 quads.addQuad(fx, fy, glyph.s0(), glyph.t1(), x1, y1, glyph.s1(), glyph.t0(), color);
-                qy = fy;
             }
 
             fx = x1;
@@ -134,5 +200,6 @@ public final class DefaultSpriteBatch implements SpriteBatch {
     @Override
     public void end() {
         quads.end();
+        font = null;
     }
 }

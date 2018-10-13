@@ -30,6 +30,29 @@ public interface SpriteBatch extends AutoCloseable {
 
     int drawCount();
 
+    TextAlignment textAlignment();
+
+    /**
+     * @return current sprite font or {@code null}.
+     */
+    SpriteFont font();
+
+    /**
+     * Sets active font.<br/>
+     * Note: this value will be set to {@code null} upon call to {@link SpriteBatch#end()} method.
+     *
+     * @param font the sprite font to use for consecutive calls to text drawing methods.
+     */
+    void font(SpriteFont font);
+
+    /**
+     * Sets text alignment.
+     *
+     * @param alignment the alignemnt to use for consecutive calls to text drawing methods.
+     * @throws NullPointerException if {@code alignment} is {@code null}
+     */
+    void textAlignment(TextAlignment alignment);
+
     /**
      * @param x                   the left viewport coordinate
      * @param y                   the bottom viewport coordinate
@@ -43,7 +66,6 @@ public interface SpriteBatch extends AutoCloseable {
      * Draws text at specified location with specified sprite font, maximum width and color.
      * </p>
      *
-     * @param font     the sprite font to use
      * @param x        the left coordinate of the origin of the text bounding rectangle
      * @param y        the top coordinate of the origin of the text bounding rectangle
      * @param maxWidth the maximum width of bounding rectangle. When text width reaches this value next character is drawn as if there '\n' between next and previous characters.
@@ -51,24 +73,23 @@ public interface SpriteBatch extends AutoCloseable {
      * @param color    the RGBA color (0xff0000ff - red, 0x00ff00ff - green, 0x0000ffff - blue)
      * @return actual height of text
      */
-    default int draw(SpriteFont font, int x, int y, int maxWidth, CharSequence text, int color) {
-        return draw(font, x, y, maxWidth, text, TextAlignment.LEFT, color);
+    default int draw(int x, int y, int maxWidth, CharSequence text, int color) {
+        return draw(x, y, maxWidth, text, color, true);
     }
 
     /**
      * Draws text at specified location with specified sprite font, maximum width and color.
      * </p>
      *
-     * @param font      the sprite font to use
-     * @param x         the left coordinate of the origin of the text bounding rectangle
-     * @param y         the top coordinate of the origin of the text bounding rectangle
-     * @param maxWidth  the maximum width of bounding rectangle. When text width reaches this value next character is drawn as if there '\n' between next and previous characters.
-     * @param text      the text to draw (possibly multi-line if there is '\n' characters in text or if maxWidth exceeded)
-     * @param alignment the text alignment
-     * @param color     the RGBA color (0xff0000ff - red, 0x00ff00ff - green, 0x0000ffff - blue)
+     * @param x        the left coordinate of the origin of the text bounding rectangle
+     * @param y        the top coordinate of the origin of the text bounding rectangle
+     * @param maxWidth the maximum width of bounding rectangle. When text width reaches this value next character is drawn as if there '\n' between next and previous characters.
+     * @param text     the text to draw (possibly multi-line if there is '\n' characters in text or if maxWidth exceeded)
+     * @param color    the RGBA color (0xff0000ff - red, 0x00ff00ff - green, 0x0000ffff - blue)
+     * @param useCcs   if {@code true} Color Control Sequences embedded in text will not be printed but will affect text color, if {@code false} then CCS characters will be treated as plain text.
      * @return actual height of text
      */
-    int draw(SpriteFont font, int x, int y, int maxWidth, CharSequence text, TextAlignment alignment, int color);
+    int draw(int x, int y, int maxWidth, CharSequence text, int color, boolean useCcs);
 
     /**
      * Draws text at specified location with specified sprite font, maximum width and color.

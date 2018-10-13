@@ -77,6 +77,6 @@ public final class Slider extends AbstractUiElement {
         while (sb.length() < target) {
             sb.insert(start, ' ');
         }
-        return ctx.draw(x, y, width, sb, color);
+        return ctx.batch().draw(x, y, width, sb, color);
     }
 }

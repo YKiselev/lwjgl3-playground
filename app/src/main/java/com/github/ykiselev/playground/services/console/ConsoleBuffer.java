@@ -58,7 +58,7 @@ public final class ConsoleBuffer {
             } else {
                 final int lineHeight = font.height(line, width);
                 y += lineHeight;
-                batch.draw(font, x0, y, width, line, color);
+                batch.draw(x0, y, width, line, color);
             }
             if (y >= height) {
                 break;

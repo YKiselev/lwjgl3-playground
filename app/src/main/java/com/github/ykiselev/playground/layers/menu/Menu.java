@@ -16,6 +16,7 @@
 
 package com.github.ykiselev.playground.layers.menu;
 
+import com.github.ykiselev.api.Removable;
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
 import com.github.ykiselev.opengl.text.SpriteFont;
@@ -28,9 +29,8 @@ import com.github.ykiselev.playground.ui.models.checkbox.ConfigurationBoundCheck
 import com.github.ykiselev.playground.ui.models.checkbox.SimpleCheckBoxModel;
 import com.github.ykiselev.playground.ui.models.slider.ConfigurationBoundSliderModel;
 import com.github.ykiselev.playground.ui.models.slider.SliderDefinition;
-import com.github.ykiselev.services.configuration.PersistedConfiguration;
-import com.github.ykiselev.api.Removable;
 import com.github.ykiselev.services.Services;
+import com.github.ykiselev.services.configuration.PersistedConfiguration;
 import com.github.ykiselev.services.events.Events;
 import com.github.ykiselev.services.events.game.NewGameEvent;
 import com.github.ykiselev.services.events.game.QuitEvent;
@@ -98,11 +98,6 @@ public final class Menu implements UiLayer, AutoCloseable, Removable {
             @Override
             public SpriteBatch batch() {
                 return spriteBatch;
-            }
-
-            @Override
-            public int draw(int x, int y, int width, CharSequence text, int color) {
-                return spriteBatch.draw(font.value(), x, y, width, text, color);
             }
 
             @Override

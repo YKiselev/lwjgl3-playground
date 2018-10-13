@@ -14,19 +14,27 @@
  * limitations under the License.
  */
 
-package com.github.ykiselev.services.layers;
-
-import com.github.ykiselev.opengl.sprites.SpriteBatch;
-import com.github.ykiselev.opengl.text.SpriteFont;
+package com.github.ykiselev.opengl.sprites;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public interface DrawingContext {
+public final class SimpleColorTable implements ColorTable {
 
-    SpriteFont font();
+    private final int[] colors;
 
-    SpriteBatch batch();
+    public SimpleColorTable(int[] colors) {
+        this.colors = colors;
+    }
 
-    StringBuilder stringBuilder();
+    @Override
+    public int size() {
+        return colors.length;
+    }
+
+    @Override
+    public int color(int index) {
+        return colors[index];
+    }
+
 }

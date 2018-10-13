@@ -14,19 +14,15 @@
  * limitations under the License.
  */
 
-package com.github.ykiselev.services.layers;
+package com.github.ykiselev.opengl.sprites;
 
-import com.github.ykiselev.opengl.sprites.SpriteBatch;
-import com.github.ykiselev.opengl.text.SpriteFont;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public interface DrawingContext {
+class ColorsTest {
 
-    SpriteFont font();
-
-    SpriteBatch batch();
-
-    StringBuilder stringBuilder();
 }

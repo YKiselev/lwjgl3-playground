@@ -14,19 +14,15 @@
  * limitations under the License.
  */
 
-package com.github.ykiselev.services.layers;
-
-import com.github.ykiselev.opengl.sprites.SpriteBatch;
-import com.github.ykiselev.opengl.text.SpriteFont;
+package com.github.ykiselev.opengl.sprites;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public interface DrawingContext {
+public interface ColorTable {
 
-    SpriteFont font();
+    int size();
 
-    SpriteBatch batch();
+    int color(int index);
 
-    StringBuilder stringBuilder();
 }

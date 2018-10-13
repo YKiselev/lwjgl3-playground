@@ -21,6 +21,7 @@ import java.nio.FloatBuffer;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
+@SuppressWarnings("WeakerAccess")
 public final class Colors {
 
     public static final float COLOR_COEFF = 1.0f / 255.0f;
@@ -133,5 +134,4 @@ public final class Colors {
 
         return i;
     }
-
 }

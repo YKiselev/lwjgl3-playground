@@ -154,6 +154,7 @@ public final class ListMenu implements UiLayer {
     public void draw(int width, int height) {
         final SpriteBatch spriteBatch = context.batch();
         spriteBatch.begin(0, 0, width, height, true);
+
         context.batch().fill(0, 0, width, height, 0x000030df);
 
         final SpriteFont font = context.font();
@@ -164,24 +165,28 @@ public final class ListMenu implements UiLayer {
         } else {
             cursorWidth = 0;
         }
+        spriteBatch.font(font);
 
         final int x = 150 + cursorWidth;
         final int maxWidth = width - x;
         int y = height / 2 + items.size() * font.height() / 2 - font.height();
         int i = 0;
+        final TextAlignment prevTtextAlignment = spriteBatch.textAlignment();
         for (MenuItem item : items) {
             int dx = 0, th = 0;
             if (item.title != null) {
-                th = context.draw(x - (cursorWidth + 150), y, 150, item.title, TextAlignment.RIGHT, 0xffffffff);
+                spriteBatch.textAlignment(TextAlignment.RIGHT);
+                th = spriteBatch.draw(x - (cursorWidth + 150), y, 150, item.title, 0xffffffff);
             }
             if (i == selected) {
                 final float brightness = (System.currentTimeMillis() % 255) / 255f;
-                context.draw(x - cursorWidth, y, maxWidth, "\u23F5", Colors.fade(0xffffffff, brightness));
+                spriteBatch.draw(x - cursorWidth, y, maxWidth, "\u23F5", Colors.fade(0xffffffff, brightness));
             }
             final int eh = item.element.draw(x + dx, y, maxWidth, context);
             y -= Math.max(th, eh);
             i++;
         }
+        spriteBatch.textAlignment(prevTtextAlignment);
         spriteBatch.end();
     }
 }

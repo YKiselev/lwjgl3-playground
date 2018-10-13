@@ -22,6 +22,7 @@ import com.github.ykiselev.circular.CircularBuffer;
 import com.github.ykiselev.iterators.EndlessIterator;
 import com.github.ykiselev.iterators.MappingIterator;
 import com.github.ykiselev.opengl.sprites.Colors;
+import com.github.ykiselev.opengl.sprites.SpriteBatch;
 import com.github.ykiselev.services.Services;
 import com.github.ykiselev.services.commands.CommandException;
 import com.github.ykiselev.services.commands.Commands;
@@ -163,13 +164,14 @@ public final class DefaultCommandLine implements CommandLine {
     @Override
     public void draw(DrawingContext ctx, int x0, int y0, int width, int height, int color) {
         final int y = y0 + ctx.font().height();
-        ctx.draw(x0, y, width, buf, color);
+        final SpriteBatch batch = ctx.batch();
+        batch.draw(x0, y, width, buf, color, false);
         final int cursorWidth = ctx.font().width("_");
         final float brightness = (float) Math.sin(6 * GLFW.glfwGetTime());
         final int caretColor = Colors.fade(color, brightness);
         final int x = x0 + cursorWidth * cursorPos;
-        ctx.draw(x, y, width, "_", caretColor);
-        ctx.draw(x, y + 1, width, "_", caretColor);
+        batch.draw(x, y, width, "_", caretColor);
+        batch.draw(x, y + 1, width, "_", caretColor);
     }
 
     /**

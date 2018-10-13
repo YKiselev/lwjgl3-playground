@@ -318,6 +318,7 @@ public final class BaseGame implements Game {
         GL11.glDisable(GL11.GL_DEPTH_TEST);
 
         spriteBatch.begin(0, 0, width, height, true);
+        spriteBatch.font(liberationMono.value());
         switch (frameBufferMode) {
             case COLOR:
                 spriteBatch.draw(frameBuffer.color(), 0, 0, width, height, 0, 0, 1, 1, 0xffffffff);
@@ -327,11 +328,7 @@ public final class BaseGame implements Game {
                 spriteBatch.draw(frameBuffer.depth(), 0, 0, width, height, 0, 0, 1, 1, 0xffffffff);
                 break;
         }
-        spriteBatch.draw(
-                liberationMono.value(),
-                0,
-                height,
-                width,
+        spriteBatch.draw(0, height, width,
                 String.format("time (ms): min: %.1f, max: %.1f, avg: %.1f, fps: %.2f, frame buffer mode: %s",
                         frameInfo.min(), frameInfo.max(), frameInfo.avg(), frameInfo.fps(), frameBufferMode),
                 0xffffffff

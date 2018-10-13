@@ -17,8 +17,8 @@
 package com.github.ykiselev.playground.ui.elements;
 
 import com.github.ykiselev.playground.ui.AbstractUiElement;
-import com.github.ykiselev.services.layers.DrawingContext;
 import com.github.ykiselev.playground.ui.models.checkbox.CheckBoxModel;
+import com.github.ykiselev.services.layers.DrawingContext;
 
 import static java.util.Objects.requireNonNull;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT;
@@ -53,6 +53,6 @@ public final class CheckBox extends AbstractUiElement {
 
     @Override
     public int draw(int x, int y, int width, DrawingContext ctx) {
-        return ctx.draw(x, y, width, "[" + (model.checked() ? "X" : " ") + "]", 0xffffffff);
+        return ctx.batch().draw(x, y, width, "[" + (model.checked() ? "X" : " ") + "]", 0xffffffff);
     }
 }
