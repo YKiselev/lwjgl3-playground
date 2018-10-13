@@ -207,16 +207,18 @@ public final class DefaultCommandLine implements CommandLine {
             } else {
                 found = new MappingIterator<>(new EndlessIterator<>(names), Named::name);
                 final Iterator<Named> it = names.iterator();
-                for (int i = 0; i < 8 && it.hasNext(); i++) {
-                    final Named v = it.next();
-                    if (v instanceof ConfigValue) {
-                        logger.info(MARKER, "  {}=\"{}\"", v.name(), ((ConfigValue) v).getString());
-                    } else {
-                        logger.info(MARKER, "  {}", v.name());
+                if (names.size() > 1) {
+                    for (int i = 0; i < 8 && it.hasNext(); i++) {
+                        final Named v = it.next();
+                        if (v instanceof ConfigValue) {
+                            logger.info(MARKER, "  {}=^0b\"{}\"", v.name(), ((ConfigValue) v).getString());
+                        } else {
+                            logger.info(MARKER, "  {}", v.name());
+                        }
                     }
-                }
-                if (names.size() > 8) {
-                    logger.info(MARKER, "...and {} more.", names.size() - 8);
+                    if (names.size() > 8) {
+                        logger.info(MARKER, "...and {} more.", names.size() - 8);
+                    }
                 }
             }
         }

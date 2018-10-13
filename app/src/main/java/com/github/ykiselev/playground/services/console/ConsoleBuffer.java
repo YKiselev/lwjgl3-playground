@@ -48,6 +48,8 @@ public final class ConsoleBuffer {
         textBuilder.maxWidth(width);
         final int lines = buffer.copyTo(snapshot);
         final SpriteBatch batch = ctx.batch();
+        batch.font(ctx.font());
+        batch.useColorControlSequences(true);
         for (int i = lines - 1, y = y0 + font.height() + font.glyphYBorder(); i >= 0; i--) {
             final String line = snapshot[i];
             if (false) {
