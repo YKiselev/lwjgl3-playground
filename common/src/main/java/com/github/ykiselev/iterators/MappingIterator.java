@@ -14,42 +14,34 @@
  * limitations under the License.
  */
 
-package com.github.ykiselev.services.configuration;
+package com.github.ykiselev.iterators;
 
-import com.github.ykiselev.services.configuration.values.ConfigValue;
+import java.util.Iterator;
+import java.util.function.Function;
 
 import static java.util.Objects.requireNonNull;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class RelativeConfig implements Config {
+public final class MappingIterator<I, O> implements Iterator<O> {
 
-    private final Config delegate;
+    private final Iterator<I> delegate;
 
-    private final String base;
+    private final Function<I, O> mapping;
 
-    public RelativeConfig(Config delegate, String base) {
+    public MappingIterator(Iterator<I> delegate, Function<I, O> mapping) {
         this.delegate = requireNonNull(delegate);
-        this.base = requireNonNull(base);
-    }
-
-    private String path(String path) {
-        return base + "." + path;
+        this.mapping = requireNonNull(mapping);
     }
 
     @Override
-    public <V extends ConfigValue> V getValue(String path, Class<V> clazz) {
-        return delegate.getValue(path(path), clazz);
+    public boolean hasNext() {
+        return delegate.hasNext();
     }
 
     @Override
-    public <V extends ConfigValue> V getOrCreateValue(String path, Class<V> clazz) {
-        return delegate.getOrCreateValue(path(path), clazz);
-    }
-
-    @Override
-    public boolean hasVariable(String path) {
-        return delegate.hasVariable(path(path));
+    public O next() {
+        return mapping.apply(delegate.next());
     }
 }

@@ -114,8 +114,11 @@ public final class AppCommands implements Commands {
     }
 
     @Override
-    public Stream<String> commands() {
-        return handlers.value().keySet().stream();
+    public Stream<Command> commands() {
+        return handlers.value()
+                .entrySet()
+                .stream()
+                .map(Map.Entry::getValue);
     }
 
     @Override

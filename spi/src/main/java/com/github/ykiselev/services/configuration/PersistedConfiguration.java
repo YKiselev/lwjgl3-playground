@@ -19,6 +19,7 @@ package com.github.ykiselev.services.configuration;
 import com.github.ykiselev.services.configuration.values.ConfigValue;
 
 import java.util.Collection;
+import java.util.stream.Stream;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
@@ -46,4 +47,11 @@ public interface PersistedConfiguration {
     default WiredValues wire() {
         return new WiredValues(this);
     }
+
+    /**
+     * @return all registered variables
+     */
+    Stream<String> names();
+
+    Stream<ConfigValue> values();
 }

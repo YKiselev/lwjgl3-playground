@@ -82,7 +82,7 @@ public interface Commands {
     /**
      * @return all registered commands
      */
-    Stream<String> commands();
+    Stream<Command> commands();
 
     /**
      * Registers passed command handler for specified command. The handler will receive a list of command arguments where

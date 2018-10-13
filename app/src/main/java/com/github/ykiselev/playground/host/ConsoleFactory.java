@@ -16,21 +16,22 @@
 
 package com.github.ykiselev.playground.host;
 
+import com.github.ykiselev.api.Named;
 import com.github.ykiselev.circular.CircularBuffer;
 import com.github.ykiselev.playground.services.console.AppConsole;
 import com.github.ykiselev.playground.services.console.AppConsoleLog4j2Appender;
 import com.github.ykiselev.playground.services.console.ConsoleBuffer;
 import com.github.ykiselev.playground.services.console.DefaultCommandLine;
-import com.github.ykiselev.services.configuration.PersistedConfiguration;
 import com.github.ykiselev.services.Services;
 import com.github.ykiselev.services.commands.Commands;
+import com.github.ykiselev.services.configuration.PersistedConfiguration;
 import com.github.ykiselev.services.layers.UiLayers;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.config.Configuration;
 
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.Collection;
+import java.util.Comparator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -58,15 +59,15 @@ public final class ConsoleFactory {
         return console;
     }
 
-    private Set<String> search(String fragment) {
+    private Collection<Named> search(String fragment) {
         return Stream.concat(
                 services.resolve(PersistedConfiguration.class)
-                        .root()
-                        .names(),
+                        .values(),
                 services.resolve(Commands.class)
                         .commands()
-        ).filter(v -> v.startsWith(fragment))
-                .collect(Collectors.toCollection(LinkedHashSet::new));
+        ).filter(v -> v.name().startsWith(fragment))
+                .sorted(Comparator.comparing(Named::name))
+                .collect(Collectors.toList());
     }
 
     private static CircularBuffer<String> getBuffer() {

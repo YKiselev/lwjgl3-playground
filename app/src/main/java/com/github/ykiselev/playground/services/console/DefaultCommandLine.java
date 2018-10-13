@@ -16,26 +16,28 @@
 
 package com.github.ykiselev.playground.services.console;
 
+import com.github.ykiselev.api.Named;
 import com.github.ykiselev.circular.ArrayCircularBuffer;
 import com.github.ykiselev.circular.CircularBuffer;
 import com.github.ykiselev.iterators.EndlessIterator;
+import com.github.ykiselev.iterators.MappingIterator;
 import com.github.ykiselev.opengl.sprites.Colors;
-import com.github.ykiselev.services.configuration.PersistedConfiguration;
 import com.github.ykiselev.services.Services;
 import com.github.ykiselev.services.commands.CommandException;
 import com.github.ykiselev.services.commands.Commands;
 import com.github.ykiselev.services.commands.Commands.ExecutionContext;
 import com.github.ykiselev.services.configuration.Config;
+import com.github.ykiselev.services.configuration.PersistedConfiguration;
 import com.github.ykiselev.services.configuration.values.ConfigValue;
 import com.github.ykiselev.services.layers.DrawingContext;
 import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -70,7 +72,7 @@ public final class DefaultCommandLine implements CommandLine {
                     if (args.size() == 2) {
                         value.setString(args.get(1));
                     }
-                    logger.info(MARKER, "{}={}", name, value.getString());
+                    logger.info(MARKER, "{}=\"{}\"", name, value.getString());
                 } catch (RuntimeException ex) {
                     logger.error(MARKER, ex.toString());
                 }
@@ -80,7 +82,7 @@ public final class DefaultCommandLine implements CommandLine {
         }
     };
 
-    private final Function<String, Set<String>> searchProvider;
+    private final Function<String, Collection<Named>> searchProvider;
 
     private int cursorPos;
 
@@ -97,7 +99,7 @@ public final class DefaultCommandLine implements CommandLine {
      */
     private String fragment;
 
-    public DefaultCommandLine(Services services, int historySize, Function<String, Set<String>> searchProvider) {
+    public DefaultCommandLine(Services services, int historySize, Function<String, Collection<Named>> searchProvider) {
         this.services = requireNonNull(services);
         this.history = new ArrayCircularBuffer<>(String.class, historySize);
         this.searchProvider = requireNonNull(searchProvider);
@@ -196,14 +198,19 @@ public final class DefaultCommandLine implements CommandLine {
                 return;
             }
             search = true;
-            final Set<String> names = searchProvider.apply(buf.toString());
+            final Collection<Named> names = searchProvider.apply(buf.toString());
             if (names.isEmpty()) {
                 found = Collections.emptyIterator();
             } else {
-                found = new EndlessIterator<>(names);
-                final Iterator<String> it = names.iterator();
+                found = new MappingIterator<>(new EndlessIterator<>(names), Named::name);
+                final Iterator<Named> it = names.iterator();
                 for (int i = 0; i < 8 && it.hasNext(); i++) {
-                    logger.info(MARKER, "  {}", it.next());
+                    final Named v = it.next();
+                    if (v instanceof ConfigValue) {
+                        logger.info(MARKER, "  {}=\"{}\"", v.name(), ((ConfigValue) v).getString());
+                    } else {
+                        logger.info(MARKER, "  {}", v.name());
+                    }
                 }
                 if (names.size() > 8) {
                     logger.info(MARKER, "...and {} more.", names.size() - 8);

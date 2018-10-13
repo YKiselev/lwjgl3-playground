@@ -53,10 +53,10 @@ public final class AppConfig implements PersistedConfiguration, AutoCloseable {
 
     private final Consumer<Map<String, Object>> writer;
 
-    private final Config root = new Config() {
+    private final Predicate<Object> varFilter = obj ->
+            obj instanceof ConfigValue;
 
-        private final Predicate<Object> varFilter = obj ->
-                obj instanceof ConfigValue;
+    private final Config root = new Config() {
 
         @SuppressWarnings("unchecked")
         @Override
@@ -84,14 +84,6 @@ public final class AppConfig implements PersistedConfiguration, AutoCloseable {
             return varFilter.test(getRawValue(path));
         }
 
-        @Override
-        public Stream<String> names() {
-            return config.value()
-                    .entrySet()
-                    .stream()
-                    .filter(e -> varFilter.test(e.getValue()))
-                    .map(Map.Entry::getKey);
-        }
     };
 
     public AppConfig(Supplier<Map<String, Object>> reader, Consumer<Map<String, Object>> writer) {
@@ -102,6 +94,24 @@ public final class AppConfig implements PersistedConfiguration, AutoCloseable {
     public AppConfig(Services services) {
         this(new ConfigFromFile(services.resolve(FileSystem.class)),
                 new ConfigToFile(services.resolve(FileSystem.class)));
+    }
+
+    @Override
+    public Stream<String> names() {
+        return config.value()
+                .entrySet()
+                .stream()
+                .filter(e -> varFilter.test(e.getValue()))
+                .map(Map.Entry::getKey);
+    }
+
+    @Override
+    public Stream<ConfigValue> values() {
+        return config.value()
+                .entrySet()
+                .stream()
+                .filter(e -> varFilter.test(e.getValue()))
+                .map(e -> (ConfigValue) e.getValue());
     }
 
     @Override

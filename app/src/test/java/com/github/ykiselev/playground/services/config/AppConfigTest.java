@@ -16,8 +16,8 @@
 
 package com.github.ykiselev.playground.services.config;
 
-import com.github.ykiselev.services.configuration.PersistedConfiguration;
 import com.github.ykiselev.services.configuration.ConfigurationException.VariableNotFoundException;
+import com.github.ykiselev.services.configuration.PersistedConfiguration;
 import com.github.ykiselev.services.configuration.values.ConfigValue;
 import com.github.ykiselev.services.configuration.values.StringValue;
 import com.github.ykiselev.services.configuration.values.Values;
@@ -247,7 +247,8 @@ class AppConfigTest {
                             "a.string",
                             "b.stringList"
                     },
-                    cfg.root().names()
+                    cfg.values()
+                            .map(ConfigValue::name)
                             .sorted()
                             .toArray()
             );

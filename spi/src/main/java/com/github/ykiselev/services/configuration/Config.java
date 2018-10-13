@@ -25,7 +25,6 @@ import com.github.ykiselev.services.configuration.values.LongValue;
 import com.github.ykiselev.services.configuration.values.StringValue;
 
 import java.util.List;
-import java.util.stream.Stream;
 
 /**
  * Mutable configuration.
@@ -64,11 +63,6 @@ public interface Config {
      * @return {@code true} if there is variable at the specified path.
      */
     boolean hasVariable(String path);
-
-    /**
-     * @return all registered variables
-     */
-    Stream<String> names();
 
     /**
      * Returns value of string variable at specified path.

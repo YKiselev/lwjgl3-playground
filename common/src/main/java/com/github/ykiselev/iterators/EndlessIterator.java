@@ -16,7 +16,6 @@
 
 package com.github.ykiselev.iterators;
 
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Objects;
@@ -26,17 +25,17 @@ import java.util.Objects;
  */
 public final class EndlessIterator<T> implements Iterator<T> {
 
-    private final Collection<T> collection;
+    private final Iterable<T> collection;
 
     private Iterator<T> it;
 
-    public EndlessIterator(Collection<T> collection) {
+    public EndlessIterator(Iterable<T> collection) {
         this.collection = Objects.requireNonNull(collection);
     }
 
     @Override
     public boolean hasNext() {
-        if (it == null || (!it.hasNext() && !collection.isEmpty())) {
+        if (it == null || !it.hasNext()) {
             it = collection.iterator();
         }
         return it.hasNext();
