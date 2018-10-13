@@ -30,6 +30,13 @@ public interface SpriteBatch extends AutoCloseable {
 
     int drawCount();
 
+    /**
+     * @param value if {@code true} Color Control Sequences embedded in text will not be printed but will affect text color, if {@code false} then CCS characters will be treated as plain text.
+     */
+    void useColorControlSequences(boolean value);
+
+    boolean useColorControlSequences();
+
     TextAlignment textAlignment();
 
     /**
@@ -73,23 +80,7 @@ public interface SpriteBatch extends AutoCloseable {
      * @param color    the RGBA color (0xff0000ff - red, 0x00ff00ff - green, 0x0000ffff - blue)
      * @return actual height of text
      */
-    default int draw(int x, int y, int maxWidth, CharSequence text, int color) {
-        return draw(x, y, maxWidth, text, color, true);
-    }
-
-    /**
-     * Draws text at specified location with specified sprite font, maximum width and color.
-     * </p>
-     *
-     * @param x        the left coordinate of the origin of the text bounding rectangle
-     * @param y        the top coordinate of the origin of the text bounding rectangle
-     * @param maxWidth the maximum width of bounding rectangle. When text width reaches this value next character is drawn as if there '\n' between next and previous characters.
-     * @param text     the text to draw (possibly multi-line if there is '\n' characters in text or if maxWidth exceeded)
-     * @param color    the RGBA color (0xff0000ff - red, 0x00ff00ff - green, 0x0000ffff - blue)
-     * @param useCcs   if {@code true} Color Control Sequences embedded in text will not be printed but will affect text color, if {@code false} then CCS characters will be treated as plain text.
-     * @return actual height of text
-     */
-    int draw(int x, int y, int maxWidth, CharSequence text, int color, boolean useCcs);
+    int draw(int x, int y, int maxWidth, CharSequence text, int color);
 
     /**
      * Draws text at specified location with specified sprite font, maximum width and color.

@@ -165,7 +165,8 @@ public final class DefaultCommandLine implements CommandLine {
     public void draw(DrawingContext ctx, int x0, int y0, int width, int height, int color) {
         final int y = y0 + ctx.font().height();
         final SpriteBatch batch = ctx.batch();
-        batch.draw(x0, y, width, buf, color, false);
+        batch.useColorControlSequences(false);
+        batch.draw(x0, y, width, buf, color);
         final int cursorWidth = ctx.font().width("_");
         final float brightness = (float) Math.sin(6 * GLFW.glfwGetTime());
         final int caretColor = Colors.fade(color, brightness);

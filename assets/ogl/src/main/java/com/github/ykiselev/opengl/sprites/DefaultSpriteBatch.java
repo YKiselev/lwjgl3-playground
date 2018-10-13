@@ -39,6 +39,18 @@ public final class DefaultSpriteBatch implements SpriteBatch {
 
     private TextAlignment textAlignment = TextAlignment.LEFT;
 
+    private boolean useColorControlSequences = true;
+
+    @Override
+    public void useColorControlSequences(boolean value) {
+        this.useColorControlSequences = value;
+    }
+
+    @Override
+    public boolean useColorControlSequences() {
+        return useColorControlSequences;
+    }
+
     @Override
     public int width() {
         return quads.width();
@@ -136,7 +148,7 @@ public final class DefaultSpriteBatch implements SpriteBatch {
     }
 
     @Override
-    public int draw(int x, int y, int maxWidth, CharSequence text, int color, boolean useCcs) {
+    public int draw(int x, int y, int maxWidth, CharSequence text, int color) {
         quads.use(font.texture());
 
         final LineStart lineStart = LineStart.from(textAlignment);
@@ -146,7 +158,7 @@ public final class DefaultSpriteBatch implements SpriteBatch {
         int fy = y - dy, qy = fy;
         for (int i = 0; i < text.length(); i++) {
             final char value = text.charAt(i);
-            if (value == '^' && (i == 0 || text.charAt(i - 1) != '\\')) {
+            if (useColorControlSequences && value == '^' && (i == 0 || text.charAt(i - 1) != '\\')) {
                 if (i + 2 < text.length()) {
                     color = colorTable.color(
                             colorIndex(text.charAt(++i), text.charAt(++i))
