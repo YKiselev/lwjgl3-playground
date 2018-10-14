@@ -14,14 +14,10 @@
  * limitations under the License.
  */
 
-package com.github.ykiselev.playground.host;
+package com.github.ykiselev.playground.services.console;
 
 import com.github.ykiselev.api.Named;
 import com.github.ykiselev.circular.CircularBuffer;
-import com.github.ykiselev.playground.services.console.AppConsole;
-import com.github.ykiselev.playground.services.console.AppConsoleLog4j2Appender;
-import com.github.ykiselev.playground.services.console.ConsoleBuffer;
-import com.github.ykiselev.playground.services.console.DefaultCommandLine;
 import com.github.ykiselev.services.Services;
 import com.github.ykiselev.services.commands.Commands;
 import com.github.ykiselev.services.configuration.PersistedConfiguration;

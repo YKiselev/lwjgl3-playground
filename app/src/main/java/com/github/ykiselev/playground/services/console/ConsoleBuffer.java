@@ -28,7 +28,11 @@ import static java.util.Objects.requireNonNull;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class ConsoleBuffer {
+final class ConsoleBuffer {
+
+    enum ScrollAction {
+        NONE, PG_UP, PG_DOWN, SCROLL_UP, SCROLL_DOWN
+    }
 
     private final CircularBuffer<String> buffer;
 
@@ -36,20 +40,81 @@ public final class ConsoleBuffer {
 
     private final TextBuilder textBuilder = new TextBuilder(200);
 
-    public ConsoleBuffer(CircularBuffer<String> buffer) {
+    private int offset;
+
+    private ScrollAction scrollAction = ScrollAction.NONE;
+
+    ConsoleBuffer(CircularBuffer<String> buffer) {
         this.buffer = requireNonNull(buffer);
         this.snapshot = new String[buffer.capacity()];
     }
 
-    public void draw(DrawingContext ctx, int x0, int y0, int width, int height) {
+    void pageUp() {
+        scrollAction = ScrollAction.PG_UP;
+    }
+
+    void pageDown() {
+        scrollAction = ScrollAction.PG_DOWN;
+    }
+
+    void scroll(double delta) {
+        if (delta > 0) {
+            scrollAction = ScrollAction.SCROLL_UP;
+        } else if (delta < 0) {
+            scrollAction = ScrollAction.SCROLL_DOWN;
+        }
+    }
+
+    private void calculateOffset(SpriteFont font, String[] lines, int count, int viewHeight, int width) {
+        //final int lineHeight = font.height() + font.glyphYBorder();
+        final int scrollSize = Math.max(1, viewHeight / 5);
+        int totalHeight = 0;
+        for (int i = count - 1; i >= 0; i--) {
+            totalHeight += font.height(lines[i], width) + font.glyphYBorder();
+        }
+        final int maxOffset = Math.max(0, totalHeight - viewHeight);
+        switch (scrollAction) {
+            case NONE:
+                break;
+
+            case PG_UP:
+                offset += viewHeight;
+                break;
+
+            case PG_DOWN:
+                offset -= viewHeight;
+                break;
+
+            case SCROLL_UP:
+                offset += scrollSize;
+                break;
+
+            case SCROLL_DOWN:
+                offset -= scrollSize;
+                break;
+        }
+        if (offset > maxOffset) {
+            offset = maxOffset;
+        }
+        if (offset < 0) {
+            offset = 0;
+        }
+        scrollAction = ScrollAction.NONE;
+    }
+
+    void draw(DrawingContext ctx, int x0, int y0, int width, int height) {
         final SpriteFont font = ctx.font();
+        //
         textBuilder.font(font);
         textBuilder.alignment(TextAlignment.LEFT);
         textBuilder.maxWidth(width);
+        //
         final int lines = buffer.copyTo(snapshot);
-        final SpriteBatch batch = ctx.batch();
 
-        for (int i = lines - 1, y = y0 + font.height() + font.glyphYBorder(); i >= 0; i--) {
+        calculateOffset(font, snapshot, lines, height, width);
+
+        final SpriteBatch batch = ctx.batch();
+        for (int i = lines - 1, skipped = 0, y = y0 + font.height() + font.glyphYBorder(); i >= 0; i--) {
             final String line = snapshot[i];
             if (false) {
                 textBuilder.clear();
@@ -58,8 +123,12 @@ public final class ConsoleBuffer {
                 ctx.batch().draw(textBuilder, x0, y);
             } else {
                 final int lineHeight = font.height(line, width);
-                y += lineHeight;
-                batch.draw(x0, y, width, line, ctx.textAttributes());
+                if (skipped >= offset) {
+                    y += lineHeight;
+                    batch.draw(x0, y, width, line, ctx.textAttributes());
+                } else {
+                    skipped += lineHeight;
+                }
             }
             if (y >= height) {
                 break;

@@ -21,6 +21,7 @@ import com.github.ykiselev.closeables.Closeables;
 import com.github.ykiselev.closeables.CompositeAutoCloseable;
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
 import com.github.ykiselev.opengl.sprites.TextAttributes;
+import com.github.ykiselev.opengl.sprites.TextDrawingFlags;
 import com.github.ykiselev.opengl.text.SpriteFont;
 import com.github.ykiselev.opengl.textures.Sprite;
 import com.github.ykiselev.opengl.textures.Texture2d;
@@ -75,6 +76,15 @@ public final class AppConsole implements UiLayer, AutoCloseable {
                 commandLine.add(codePoint);
             }
             return true;
+        }
+
+        @Override
+        public boolean scrollEvent(double dx, double dy) {
+            if (inputAllowed) {
+                // todo
+                buffer.scroll((int) dy);
+            }
+            return showing;
         }
     };
 
@@ -140,6 +150,7 @@ public final class AppConsole implements UiLayer, AutoCloseable {
         font = assets.load("fonts/Liberation Mono.sf", SpriteFont.class);
         final TextAttributes attributes = new TextAttributes();
         attributes.font(font.value());
+        attributes.add(TextDrawingFlags.USE_COLOR_CONTROL_SEQUENCES);
         drawingContext = new DrawingContext() {
 
             private final StringBuilder sb = new StringBuilder();
@@ -232,11 +243,11 @@ public final class AppConsole implements UiLayer, AutoCloseable {
                     return true;
 
                 case GLFW.GLFW_KEY_PAGE_UP:
-                    // todo
+                    buffer.pageUp();
                     return true;
 
                 case GLFW.GLFW_KEY_PAGE_DOWN:
-                    // todo
+                    buffer.pageDown();
                     return true;
             }
         }

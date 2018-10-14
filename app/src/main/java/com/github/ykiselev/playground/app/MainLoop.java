@@ -21,7 +21,7 @@ import com.github.ykiselev.closeables.CompositeAutoCloseable;
 import com.github.ykiselev.common.ThrowingRunnable;
 import com.github.ykiselev.playground.app.window.AppWindow;
 import com.github.ykiselev.playground.app.window.WindowBuilder;
-import com.github.ykiselev.playground.host.ConsoleFactory;
+import com.github.ykiselev.playground.services.console.ConsoleFactory;
 import com.github.ykiselev.playground.host.GameEvents;
 import com.github.ykiselev.playground.host.MenuEvents;
 import com.github.ykiselev.playground.host.ProgramArguments;
