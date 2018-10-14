@@ -17,9 +17,9 @@
 package com.github.ykiselev.playground.ui.elements;
 
 import com.github.ykiselev.playground.ui.AbstractUiElement;
-import com.github.ykiselev.services.layers.DrawingContext;
 import com.github.ykiselev.playground.ui.models.slider.SliderDefinition;
 import com.github.ykiselev.playground.ui.models.slider.SliderModel;
+import com.github.ykiselev.services.layers.DrawingContext;
 
 import static java.util.Objects.requireNonNull;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT;
@@ -55,7 +55,6 @@ public final class Slider extends AbstractUiElement {
 
     @Override
     public int draw(int x, int y, int width, DrawingContext ctx) {
-        final int color = 0xffffffff;
         final StringBuilder sb = ctx.stringBuilder();
         sb.setLength(0);
         sb.append("[");
@@ -77,6 +76,6 @@ public final class Slider extends AbstractUiElement {
         while (sb.length() < target) {
             sb.insert(start, ' ');
         }
-        return ctx.batch().draw(x, y, width, sb, color);
+        return ctx.batch().draw(x, y, width, sb, ctx.textAttributes());
     }
 }

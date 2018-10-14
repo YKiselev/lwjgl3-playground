@@ -49,6 +49,12 @@ public interface SpriteFont extends AutoCloseable {
 
     int width(CharSequence text);
 
+    /**
+     * Calculates actual height of {@code text}.
+     *
+     * @param text  the text to calculate height for.
+     * @param width the maximum width to use.
+     * @return the actual text height.
+     */
     int height(CharSequence text, int width);
-
 }

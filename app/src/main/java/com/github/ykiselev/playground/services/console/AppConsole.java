@@ -20,6 +20,7 @@ import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.closeables.Closeables;
 import com.github.ykiselev.closeables.CompositeAutoCloseable;
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
+import com.github.ykiselev.opengl.sprites.TextAttributes;
 import com.github.ykiselev.opengl.text.SpriteFont;
 import com.github.ykiselev.opengl.textures.Sprite;
 import com.github.ykiselev.opengl.textures.Texture2d;
@@ -83,25 +84,7 @@ public final class AppConsole implements UiLayer, AutoCloseable {
 
     private final CommandLine commandLine;
 
-    private final DrawingContext drawingContext = new DrawingContext() {
-
-        private final StringBuilder sb = new StringBuilder();
-
-        @Override
-        public SpriteFont font() {
-            return font.value();
-        }
-
-        @Override
-        public SpriteBatch batch() {
-            return spriteBatch;
-        }
-
-        @Override
-        public StringBuilder stringBuilder() {
-            return sb;
-        }
-    };
+    private final DrawingContext drawingContext;
 
     private double consoleHeight;
 
@@ -155,6 +138,32 @@ public final class AppConsole implements UiLayer, AutoCloseable {
                 .newBatch();
         cuddles = assets.load("images/htf-cuddles.jpg", Sprite.class);
         font = assets.load("fonts/Liberation Mono.sf", SpriteFont.class);
+        final TextAttributes attributes = new TextAttributes();
+        attributes.font(font.value());
+        drawingContext = new DrawingContext() {
+
+            private final StringBuilder sb = new StringBuilder();
+
+            @Override
+            public SpriteFont font() {
+                return font.value();
+            }
+
+            @Override
+            public SpriteBatch batch() {
+                return spriteBatch;
+            }
+
+            @Override
+            public StringBuilder stringBuilder() {
+                return sb;
+            }
+
+            @Override
+            public TextAttributes textAttributes() {
+                return attributes;
+            }
+        };
     }
 
     private void onEcho(List<String> args) {
@@ -256,8 +265,9 @@ public final class AppConsole implements UiLayer, AutoCloseable {
         }
         spriteBatch.begin(x0, y0, width, (int) consoleHeight, true);
         spriteBatch.draw(cuddles.value(), x0, y0, width, height, backgroundColor);
-        buffer.draw(drawingContext, x0, y0, width, height, textColor);
-        commandLine.draw(drawingContext, x0, y0, width, height, textColor);
+        drawingContext.textAttributes().color(textColor);
+        buffer.draw(drawingContext, x0, y0, width, height);
+        commandLine.draw(drawingContext, x0, y0, width, height);
         spriteBatch.end();
     }
 

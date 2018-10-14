@@ -14,22 +14,12 @@
  * limitations under the License.
  */
 
-package com.github.ykiselev.services.layers;
-
-import com.github.ykiselev.opengl.sprites.SpriteBatch;
-import com.github.ykiselev.opengl.sprites.TextAttributes;
-import com.github.ykiselev.opengl.text.SpriteFont;
+package com.github.ykiselev.opengl.sprites;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public interface DrawingContext {
+public enum TextDrawingFlags {
 
-    SpriteFont font();
-
-    SpriteBatch batch();
-
-    StringBuilder stringBuilder();
-
-    TextAttributes textAttributes();
+    USE_COLOR_CONTROL_SEQUENCES
 }

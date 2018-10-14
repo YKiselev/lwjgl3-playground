@@ -23,6 +23,8 @@ import com.github.ykiselev.opengl.buffers.FrameBuffer;
 import com.github.ykiselev.opengl.matrices.Matrix;
 import com.github.ykiselev.opengl.matrices.Vector3f;
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
+import com.github.ykiselev.opengl.sprites.TextAlignment;
+import com.github.ykiselev.opengl.sprites.TextAttributes;
 import com.github.ykiselev.opengl.text.SpriteFont;
 import com.github.ykiselev.opengl.textures.CurrentTexture2dAsBytes;
 import com.github.ykiselev.opengl.textures.Sprite;
@@ -71,6 +73,8 @@ public final class BaseGame implements Game {
     private final Wrap<? extends Texture2d> cuddles;
 
     private final Wrap<SpriteFont> liberationMono;
+
+    private final TextAttributes textAttributes = new TextAttributes();
 
     private final FloatBuffer pv;
 
@@ -133,6 +137,9 @@ public final class BaseGame implements Game {
         pyramids = new Pyramids(assets);
         pv = MemoryUtil.memAllocFloat(16);
         frameBuffer = new FrameBuffer();
+
+        textAttributes.font(liberationMono.value());
+        textAttributes.alignment(TextAlignment.LEFT);
     }
 
     @Override
@@ -318,7 +325,6 @@ public final class BaseGame implements Game {
         GL11.glDisable(GL11.GL_DEPTH_TEST);
 
         spriteBatch.begin(0, 0, width, height, true);
-        spriteBatch.font(liberationMono.value());
         switch (frameBufferMode) {
             case COLOR:
                 spriteBatch.draw(frameBuffer.color(), 0, 0, width, height, 0, 0, 1, 1, 0xffffffff);
@@ -331,7 +337,7 @@ public final class BaseGame implements Game {
         spriteBatch.draw(0, height, width,
                 String.format("time (ms): min: %.1f, max: %.1f, avg: %.1f, fps: %.2f, frame buffer mode: %s",
                         frameInfo.min(), frameInfo.max(), frameInfo.avg(), frameInfo.fps(), frameBufferMode),
-                0xffffffff
+                textAttributes
         );
         spriteBatch.end();
     }

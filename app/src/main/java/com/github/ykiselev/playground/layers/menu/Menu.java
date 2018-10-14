@@ -19,6 +19,7 @@ package com.github.ykiselev.playground.layers.menu;
 import com.github.ykiselev.api.Removable;
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
+import com.github.ykiselev.opengl.sprites.TextAttributes;
 import com.github.ykiselev.opengl.text.SpriteFont;
 import com.github.ykiselev.playground.ui.elements.CheckBox;
 import com.github.ykiselev.playground.ui.elements.Link;
@@ -86,6 +87,8 @@ public final class Menu implements UiLayer, AutoCloseable, Removable {
                         "sound.effects.level"
                 )
         );
+        final TextAttributes attributes = new TextAttributes();
+        attributes.font(font.value());
         final DrawingContext context = new DrawingContext() {
 
             private final StringBuilder sb = new StringBuilder();
@@ -103,6 +106,11 @@ public final class Menu implements UiLayer, AutoCloseable, Removable {
             @Override
             public StringBuilder stringBuilder() {
                 return sb;
+            }
+
+            @Override
+            public TextAttributes textAttributes() {
+                return attributes;
             }
         };
         this.listMenu = new ListMenu(

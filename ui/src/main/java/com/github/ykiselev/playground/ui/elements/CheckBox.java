@@ -53,6 +53,6 @@ public final class CheckBox extends AbstractUiElement {
 
     @Override
     public int draw(int x, int y, int width, DrawingContext ctx) {
-        return ctx.batch().draw(x, y, width, "[" + (model.checked() ? "X" : " ") + "]", 0xffffffff);
+        return ctx.batch().draw(x, y, width, "[" + (model.checked() ? "X" : " ") + "]", ctx.textAttributes());
     }
 }

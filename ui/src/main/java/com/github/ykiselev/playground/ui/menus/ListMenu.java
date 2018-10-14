@@ -19,6 +19,7 @@ package com.github.ykiselev.playground.ui.menus;
 import com.github.ykiselev.opengl.sprites.Colors;
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
 import com.github.ykiselev.opengl.sprites.TextAlignment;
+import com.github.ykiselev.opengl.sprites.TextAttributes;
 import com.github.ykiselev.opengl.text.Glyph;
 import com.github.ykiselev.opengl.text.SpriteFont;
 import com.github.ykiselev.playground.ui.UiElement;
@@ -152,8 +153,8 @@ public final class ListMenu implements UiLayer {
 
     @Override
     public void draw(int width, int height) {
-        final SpriteBatch spriteBatch = context.batch();
-        spriteBatch.begin(0, 0, width, height, true);
+        final SpriteBatch batch = context.batch();
+        batch.begin(0, 0, width, height, true);
 
         context.batch().fill(0, 0, width, height, 0x000030df);
 
@@ -165,28 +166,31 @@ public final class ListMenu implements UiLayer {
         } else {
             cursorWidth = 0;
         }
-        spriteBatch.font(font);
 
         final int x = 150 + cursorWidth;
         final int maxWidth = width - x;
         int y = height / 2 + items.size() * font.height() / 2 - font.height();
         int i = 0;
-        final TextAlignment prevTtextAlignment = spriteBatch.textAlignment();
+        final TextAttributes attributes = context.textAttributes();
+        final TextAlignment prevTextAlignment = attributes.alignment();
         for (MenuItem item : items) {
             int dx = 0, th = 0;
             if (item.title != null) {
-                spriteBatch.textAlignment(TextAlignment.RIGHT);
-                th = spriteBatch.draw(x - (cursorWidth + 150), y, 150, item.title, 0xffffffff);
+                attributes.alignment(TextAlignment.RIGHT);
+                th = batch.draw(x - (cursorWidth + 150), y, 150, item.title, context.textAttributes());
+                attributes.alignment(prevTextAlignment);
             }
             if (i == selected) {
+                final int prevColor = attributes.color();
                 final float brightness = (System.currentTimeMillis() % 255) / 255f;
-                spriteBatch.draw(x - cursorWidth, y, maxWidth, "\u23F5", Colors.fade(0xffffffff, brightness));
+                attributes.color(Colors.fade(prevColor, brightness));
+                batch.draw(x - cursorWidth, y, maxWidth, "\u23F5", attributes);
+                attributes.color(prevColor);
             }
             final int eh = item.element.draw(x + dx, y, maxWidth, context);
             y -= Math.max(th, eh);
             i++;
         }
-        spriteBatch.textAlignment(prevTtextAlignment);
-        spriteBatch.end();
+        batch.end();
     }
 }

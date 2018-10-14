@@ -35,22 +35,6 @@ public final class DefaultSpriteBatch implements SpriteBatch {
 
     private final ColorTable colorTable;
 
-    private SpriteFont font;
-
-    private TextAlignment textAlignment = TextAlignment.LEFT;
-
-    private boolean useColorControlSequences = true;
-
-    @Override
-    public void useColorControlSequences(boolean value) {
-        this.useColorControlSequences = value;
-    }
-
-    @Override
-    public boolean useColorControlSequences() {
-        return useColorControlSequences;
-    }
-
     @Override
     public int width() {
         return quads.width();
@@ -64,26 +48,6 @@ public final class DefaultSpriteBatch implements SpriteBatch {
     @Override
     public int drawCount() {
         return quads.drawCount();
-    }
-
-    @Override
-    public void font(SpriteFont font) {
-        this.font = font;
-    }
-
-    @Override
-    public SpriteFont font() {
-        return font;
-    }
-
-    @Override
-    public void textAlignment(TextAlignment alignment) {
-        this.textAlignment = requireNonNull(alignment);
-    }
-
-    @Override
-    public TextAlignment textAlignment() {
-        return textAlignment;
     }
 
     /**
@@ -148,10 +112,16 @@ public final class DefaultSpriteBatch implements SpriteBatch {
     }
 
     @Override
-    public int draw(int x, int y, int maxWidth, CharSequence text, int color) {
+    public int draw(int x, int y, int maxWidth, CharSequence text, TextAttributes attributes) {
+        final SpriteFont font = attributes.font();
+        if (font == null){
+            throw new NullPointerException("Font is not set!");
+        }
         quads.use(font.texture());
 
-        final LineStart lineStart = LineStart.from(textAlignment);
+        final boolean useColorControlSequences = attributes.useColorControlSequences();
+        final LineStart lineStart = LineStart.from(attributes.alignment());
+        int color = attributes.color();
         final int dy = font.height() + font.glyphYBorder();
         final int maxX = x + maxWidth;
         int fx = lineStart.calculate(x, font, text, 0, maxWidth);
@@ -212,6 +182,5 @@ public final class DefaultSpriteBatch implements SpriteBatch {
     @Override
     public void end() {
         quads.end();
-        font = null;
     }
 }

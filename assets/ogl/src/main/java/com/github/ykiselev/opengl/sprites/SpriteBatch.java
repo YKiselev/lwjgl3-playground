@@ -16,7 +16,6 @@
 
 package com.github.ykiselev.opengl.sprites;
 
-import com.github.ykiselev.opengl.text.SpriteFont;
 import com.github.ykiselev.opengl.textures.Texture2d;
 
 /**
@@ -31,36 +30,6 @@ public interface SpriteBatch extends AutoCloseable {
     int drawCount();
 
     /**
-     * @param value if {@code true} Color Control Sequences embedded in text will not be printed but will affect text color, if {@code false} then CCS characters will be treated as plain text.
-     */
-    void useColorControlSequences(boolean value);
-
-    boolean useColorControlSequences();
-
-    TextAlignment textAlignment();
-
-    /**
-     * @return current sprite font or {@code null}.
-     */
-    SpriteFont font();
-
-    /**
-     * Sets active font.<br/>
-     * Note: this value will be set to {@code null} upon call to {@link SpriteBatch#end()} method.
-     *
-     * @param font the sprite font to use for consecutive calls to text drawing methods.
-     */
-    void font(SpriteFont font);
-
-    /**
-     * Sets text alignment.
-     *
-     * @param alignment the alignemnt to use for consecutive calls to text drawing methods.
-     * @throws NullPointerException if {@code alignment} is {@code null}
-     */
-    void textAlignment(TextAlignment alignment);
-
-    /**
      * @param x                   the left viewport coordinate
      * @param y                   the bottom viewport coordinate
      * @param width               the width of viewport
@@ -73,14 +42,14 @@ public interface SpriteBatch extends AutoCloseable {
      * Draws text at specified location with specified sprite font, maximum width and color.
      * </p>
      *
-     * @param x        the left coordinate of the origin of the text bounding rectangle
-     * @param y        the top coordinate of the origin of the text bounding rectangle
-     * @param maxWidth the maximum width of bounding rectangle. When text width reaches this value next character is drawn as if there '\n' between next and previous characters.
-     * @param text     the text to draw (possibly multi-line if there is '\n' characters in text or if maxWidth exceeded)
-     * @param color    the RGBA color (0xff0000ff - red, 0x00ff00ff - green, 0x0000ffff - blue)
+     * @param x          the left coordinate of the origin of the text bounding rectangle
+     * @param y          the top coordinate of the origin of the text bounding rectangle
+     * @param maxWidth   the maximum width of bounding rectangle. When text width reaches this value next character is drawn as if there '\n' between next and previous characters.
+     * @param text       the text to draw (possibly multi-line if there is '\n' characters in text or if maxWidth exceeded)
+     * @param attributes the attributes to use.
      * @return actual height of text
      */
-    int draw(int x, int y, int maxWidth, CharSequence text, int color);
+    int draw(int x, int y, int maxWidth, CharSequence text, TextAttributes attributes);
 
     /**
      * Draws text at specified location with specified sprite font, maximum width and color.

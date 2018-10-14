@@ -23,6 +23,8 @@ import com.github.ykiselev.iterators.EndlessIterator;
 import com.github.ykiselev.iterators.MappingIterator;
 import com.github.ykiselev.opengl.sprites.Colors;
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
+import com.github.ykiselev.opengl.sprites.TextAttributes;
+import com.github.ykiselev.opengl.sprites.TextDrawingFlags;
 import com.github.ykiselev.services.Services;
 import com.github.ykiselev.services.commands.CommandException;
 import com.github.ykiselev.services.commands.Commands;
@@ -162,17 +164,23 @@ public final class DefaultCommandLine implements CommandLine {
     }
 
     @Override
-    public void draw(DrawingContext ctx, int x0, int y0, int width, int height, int color) {
+    public void draw(DrawingContext ctx, int x0, int y0, int width, int height) {
         final int y = y0 + ctx.font().height();
         final SpriteBatch batch = ctx.batch();
-        batch.useColorControlSequences(false);
-        batch.draw(x0, y, width, buf, color);
+        final TextAttributes attributes = ctx.textAttributes();
+        final boolean restoreUseCcs = attributes.remove(TextDrawingFlags.USE_COLOR_CONTROL_SEQUENCES);
+        batch.draw(x0, y, width, buf, attributes);
         final int cursorWidth = ctx.font().width("_");
         final float brightness = (float) Math.sin(6 * GLFW.glfwGetTime());
-        final int caretColor = Colors.fade(color, brightness);
+        final int prevColor = attributes.color();
+        attributes.color(Colors.fade(prevColor, brightness));
         final int x = x0 + cursorWidth * cursorPos;
-        batch.draw(x, y, width, "_", caretColor);
-        batch.draw(x, y + 1, width, "_", caretColor);
+        batch.draw(x, y, width, "_", attributes);
+        batch.draw(x, y + 1, width, "_", attributes);
+        attributes.color(prevColor);
+        if (restoreUseCcs) {
+            attributes.add(TextDrawingFlags.USE_COLOR_CONTROL_SEQUENCES);
+        }
     }
 
     /**

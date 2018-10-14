@@ -41,15 +41,14 @@ public final class ConsoleBuffer {
         this.snapshot = new String[buffer.capacity()];
     }
 
-    public void draw(DrawingContext ctx, int x0, int y0, int width, int height, int color) {
+    public void draw(DrawingContext ctx, int x0, int y0, int width, int height) {
         final SpriteFont font = ctx.font();
         textBuilder.font(font);
         textBuilder.alignment(TextAlignment.LEFT);
         textBuilder.maxWidth(width);
         final int lines = buffer.copyTo(snapshot);
         final SpriteBatch batch = ctx.batch();
-        batch.font(ctx.font());
-        batch.useColorControlSequences(true);
+
         for (int i = lines - 1, y = y0 + font.height() + font.glyphYBorder(); i >= 0; i--) {
             final String line = snapshot[i];
             if (false) {
@@ -60,7 +59,7 @@ public final class ConsoleBuffer {
             } else {
                 final int lineHeight = font.height(line, width);
                 y += lineHeight;
-                batch.draw(x0, y, width, line, color);
+                batch.draw(x0, y, width, line, ctx.textAttributes());
             }
             if (y >= height) {
                 break;

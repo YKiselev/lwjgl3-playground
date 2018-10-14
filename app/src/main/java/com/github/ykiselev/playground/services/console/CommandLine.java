@@ -37,7 +37,7 @@ public interface CommandLine {
 
     void right();
 
-    void draw(DrawingContext ctx, int x0, int y0, int width, int height, int color);
+    void draw(DrawingContext ctx, int x0, int y0, int width, int height);
 
     void begin();
 
