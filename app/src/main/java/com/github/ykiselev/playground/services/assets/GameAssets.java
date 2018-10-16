@@ -38,7 +38,6 @@ import com.github.ykiselev.opengl.textures.DefaultSprite;
 import com.github.ykiselev.opengl.textures.MipMappedTexture2d;
 import com.github.ykiselev.opengl.textures.Sprite;
 import com.github.ykiselev.wrap.Wrap;
-import com.google.common.collect.ImmutableMap;
 import com.typesafe.config.Config;
 import org.lwjgl.opengl.GL20;
 
@@ -80,22 +79,22 @@ public final class GameAssets implements Assets, AutoCloseable {
         final ReadableTexture2d mipMappedReadableTexture2d = new ReadableTexture2d(
                 DefaultMipMappedTexture2d::new, true
         );
-        final Map<Class, ReadableAsset> byClass = ImmutableMap.<Class, ReadableAsset>builder()
-                .put(Config.class, readableConfig)
-                .put(ProgramObject.class, new ReadableProgramObject())
-                .put(SpriteFont.class, new ReadableSpriteFont())
-                .put(Sprite.class, simpleReadableTexture2d)
-                .put(MipMappedTexture2d.class, mipMappedReadableTexture2d)
-                .put(ObjModel.class, new ReadableObjModel())
-                .build();
-        final Map<String, ReadableAsset> byExtension = ImmutableMap.<String, ReadableAsset>builder()
-                .put("vs", new ReadableShaderObject(GL20.GL_VERTEX_SHADER))
-                .put("fs", new ReadableShaderObject(GL20.GL_FRAGMENT_SHADER))
-                .put("png", simpleReadableTexture2d)
-                .put("jpg", simpleReadableTexture2d)
-                .put("conf", readableConfig)
-                .put("ogg", new ReadableVorbisAudio())
-                .build();
+        final Map<Class, ReadableAsset> byClass = Map.of(
+                Config.class, readableConfig,
+                ProgramObject.class, new ReadableProgramObject(),
+                SpriteFont.class, new ReadableSpriteFont(),
+                Sprite.class, simpleReadableTexture2d,
+                MipMappedTexture2d.class, mipMappedReadableTexture2d,
+                ObjModel.class, new ReadableObjModel()
+        );
+        final Map<String, ReadableAsset> byExtension = Map.of(
+                "vs", new ReadableShaderObject(GL20.GL_VERTEX_SHADER),
+                "fs", new ReadableShaderObject(GL20.GL_FRAGMENT_SHADER),
+                "png", simpleReadableTexture2d,
+                "jpg", simpleReadableTexture2d,
+                "conf", readableConfig,
+                "ogg", new ReadableVorbisAudio()
+        );
         return new GameAssets(
                 new ManagedAssets(
                         new SimpleAssets(
