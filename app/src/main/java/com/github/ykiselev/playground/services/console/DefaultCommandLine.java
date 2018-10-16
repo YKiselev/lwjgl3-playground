@@ -131,6 +131,8 @@ public final class DefaultCommandLine implements CommandLine {
             buf.delete(cursorPos - 1, cursorPos);
             cursorPos--;
         }
+        historySearch = false;
+        search = false;
     }
 
     /**
@@ -141,6 +143,8 @@ public final class DefaultCommandLine implements CommandLine {
         if (cursorPos < buf.length()) {
             buf.delete(cursorPos, cursorPos + 1);
         }
+        historySearch = false;
+        search = false;
     }
 
     /**
@@ -235,7 +239,8 @@ public final class DefaultCommandLine implements CommandLine {
         }
     }
 
-    private void reset() {
+    @Override
+    public void reset() {
         buf.setLength(0);
         cursorPos = 0;
         historySearch = false;
@@ -280,6 +285,7 @@ public final class DefaultCommandLine implements CommandLine {
     }
 
     private void searchHistory(Supplier<String> supplier) {
+        search = false;
         if (!historySearch) {
             historySearch = true;
             fragment = buf.toString();

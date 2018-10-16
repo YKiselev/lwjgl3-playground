@@ -17,13 +17,14 @@
 package com.github.ykiselev.playground.services;
 
 import com.github.ykiselev.closeables.Closeables;
+import com.github.ykiselev.cow.CopyOnModify;
 import com.github.ykiselev.services.Services;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 import static java.util.Objects.requireNonNull;
 
@@ -34,47 +35,39 @@ public final class MapBasedServices implements Services {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final Map<Class, ServiceHandle<?>> services = new HashMap<>();
-
-    private final Object lock = new Object();
+    private final CopyOnModify<Map<Class, ServiceHandle<?>>> cow = new CopyOnModify<>(Collections.emptyMap());
 
     @Override
     public <T> AutoCloseable add(Class<T> clazz, T instance) {
         final ServiceHandle<T> handle = new ServiceHandle<>(clazz, instance);
-        final Object previous;
-        synchronized (lock) {
-            previous = services.putIfAbsent(clazz, handle);
-        }
-        if (previous != null) {
-            throw new IllegalArgumentException("Instance " + previous + " was already registered as a service type " + clazz);
-        }
+        cow.modify(before -> {
+            final Map<Class, ServiceHandle<?>> after = new HashMap<>(before);
+            final ServiceHandle<?> previous = after.putIfAbsent(clazz, handle);
+            if (previous != null) {
+                throw new IllegalArgumentException("Instance " + previous + " was already registered as a service type " + clazz);
+            }
+            return after;
+        });
         logger.debug("{} mapped to {}", clazz, instance);
         return handle;
     }
 
     @Override
-    public <T> Optional<T> tryResolve(Class<T> clazz) {
-        final ServiceHandle<?> service;
-        synchronized (lock) {
-            service = services.get(clazz);
+    public <T> T tryResolve(Class<T> clazz) {
+        final ServiceHandle<?> handle = cow.value().get(clazz);
+        if (handle != null) {
+            return clazz.cast(handle.get());
         }
-        return Optional.ofNullable(service)
-                .map(ServiceHandle::get)
-                .map(clazz::cast);
+        return null;
     }
 
     @Override
     public void close() {
-        synchronized (lock) {
-            if (!services.isEmpty()) {
-                logger.warn("Found abandoned services: {}", services.keySet());
-            }
-            services.values()
-                    .stream()
-                    .map(ServiceHandle::get)
-                    .forEach(Closeables::close);
-            services.clear();
+        final Map<Class, ServiceHandle<?>> before = cow.modify(v -> Collections.emptyMap());
+        if (!before.isEmpty()) {
+            logger.warn("Found abandoned services: {}", before.keySet());
         }
+        before.forEach((k, v) -> Closeables.close(v));
     }
 
     private final class ServiceHandle<T> implements AutoCloseable {
@@ -94,11 +87,13 @@ public final class MapBasedServices implements Services {
 
         @Override
         public void close() {
-            synchronized (lock) {
-                if (!services.remove(clazz, this)) {
+            cow.modify(before -> {
+                final Map<Class, ServiceHandle<?>> after = new HashMap<>(before);
+                if (!after.remove(clazz, this)) {
                     throw new IllegalStateException("Service instance " + instance + " is not mapped to " + clazz);
                 }
-            }
+                return after;
+            });
             logger.debug("Service {} unmapped from {}", clazz, instance);
             Closeables.close(instance);
         }

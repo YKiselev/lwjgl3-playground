@@ -16,8 +16,6 @@
 
 package com.github.ykiselev.services;
 
-import java.util.Optional;
-
 /**
  * Service registry.
  * Note: implementations are expected to call {@link AutoCloseable#close()} for each registered service implementing
@@ -47,16 +45,19 @@ public interface Services extends AutoCloseable {
      * @throws ServiceNotFoundException if service not found
      */
     default <T> T resolve(Class<T> clazz) throws ServiceNotFoundException {
-        return tryResolve(clazz)
-                .orElseThrow(() -> new ServiceNotFoundException(clazz));
+        final T svc = tryResolve(clazz);
+        if (svc == null) {
+            throw new ServiceNotFoundException(clazz);
+        }
+        return svc;
     }
 
     /**
      * Tries to resolve service instance by class.
      *
-     * @param clazz the service class
      * @param <T>   the service type
-     * @return an {@code Optional} with service instance or empty {@code Optional} if service is not found
+     * @param clazz the service class
+     * @return service instance or {@code null} if not service is found
      */
-    <T> Optional<T> tryResolve(Class<T> clazz);
+    <T> T tryResolve(Class<T> clazz);
 }

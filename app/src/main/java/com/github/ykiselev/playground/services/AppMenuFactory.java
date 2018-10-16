@@ -14,26 +14,23 @@
  * limitations under the License.
  */
 
-package com.github.ykiselev.playground.host;
+package com.github.ykiselev.playground.services;
 
 import com.github.ykiselev.closeables.Closeables;
-import com.github.ykiselev.closeables.CompositeAutoCloseable;
 import com.github.ykiselev.playground.layers.menu.Menu;
+import com.github.ykiselev.services.MenuFactory;
 import com.github.ykiselev.services.Services;
-import com.github.ykiselev.services.events.Events;
-import com.github.ykiselev.services.events.menu.ShowMenuEvent;
 import com.github.ykiselev.services.layers.UiLayers;
 import com.github.ykiselev.services.schedule.Schedule;
 
 import java.util.concurrent.TimeUnit;
-import java.util.function.UnaryOperator;
 
 import static java.util.Objects.requireNonNull;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class MenuEvents implements AutoCloseable, UnaryOperator<CompositeAutoCloseable> {
+public final class AppMenuFactory implements MenuFactory {
 
     private final Services services;
 
@@ -41,19 +38,8 @@ public final class MenuEvents implements AutoCloseable, UnaryOperator<CompositeA
 
     private final Object lock = new Object();
 
-    public MenuEvents(Services services) {
+    public AppMenuFactory(Services services) {
         this.services = requireNonNull(services);
-    }
-
-    private void onShowMenuEvent() {
-        synchronized (lock) {
-            if (menu == null) {
-                menu = new Menu(services);
-                services.resolve(Schedule.class)
-                        .schedule(10, TimeUnit.SECONDS, this::recycle);
-            }
-            services.resolve(UiLayers.class).add(menu);
-        }
     }
 
     private boolean recycle() {
@@ -77,10 +63,14 @@ public final class MenuEvents implements AutoCloseable, UnaryOperator<CompositeA
     }
 
     @Override
-    public CompositeAutoCloseable apply(CompositeAutoCloseable builder) {
-        return builder.and(
-                services.resolve(Events.class)
-                        .subscribe(ShowMenuEvent.class, this::onShowMenuEvent)
-        ).and(this);
+    public void showMenu() {
+        synchronized (lock) {
+            if (menu == null) {
+                menu = new Menu(services);
+                services.resolve(Schedule.class)
+                        .schedule(10, TimeUnit.SECONDS, this::recycle);
+            }
+            services.resolve(UiLayers.class).add(menu);
+        }
     }
 }

@@ -14,24 +14,12 @@
  * limitations under the License.
  */
 
-package com.github.ykiselev.services.events.game;
-
-import com.github.ykiselev.services.events.EventFromCommand;
-
-import java.util.Collection;
+package com.github.ykiselev.services;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class QuitEvent implements EventFromCommand<QuitEvent> {
+public interface MenuFactory extends AutoCloseable {
 
-    public static final QuitEvent INSTANCE = new QuitEvent();
-
-    private QuitEvent() {
-    }
-
-    @Override
-    public QuitEvent fromCommand(Collection<String> args) {
-        return INSTANCE;
-    }
+    void showMenu();
 }

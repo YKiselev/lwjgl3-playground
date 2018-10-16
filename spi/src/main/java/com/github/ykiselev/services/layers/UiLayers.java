@@ -46,7 +46,7 @@ public interface UiLayers {
     void removePopups();
 
     /**
-     * Adds layer to the top of current stack. If layer is not popup then stack is sorted.
+     * Adds layer to the top of current stack and sorts the stack.
      *
      * @param layer the layer to add.
      * @throws IllegalArgumentException if layer is already on stack.

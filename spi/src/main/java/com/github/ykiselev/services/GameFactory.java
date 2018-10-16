@@ -14,24 +14,14 @@
  * limitations under the License.
  */
 
-package com.github.ykiselev.services.events.game;
+package com.github.ykiselev.services;
 
-import com.github.ykiselev.services.events.EventFromCommand;
-
-import java.util.Collection;
+import com.github.ykiselev.api.Updateable;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class NewGameEvent implements EventFromCommand<NewGameEvent> {
+public interface GameFactory extends AutoCloseable, Updateable {
 
-    public static final NewGameEvent INSTANCE = new NewGameEvent();
-
-    private NewGameEvent() {
-    }
-
-    @Override
-    public NewGameEvent fromCommand(Collection<String> args) {
-        return INSTANCE;
-    }
+    void newGame();
 }

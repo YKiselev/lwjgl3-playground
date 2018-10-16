@@ -30,10 +30,9 @@ import com.github.ykiselev.opengl.textures.CurrentTexture2dAsBytes;
 import com.github.ykiselev.opengl.textures.Sprite;
 import com.github.ykiselev.opengl.textures.Texture2d;
 import com.github.ykiselev.services.FileSystem;
+import com.github.ykiselev.services.MenuFactory;
 import com.github.ykiselev.services.Services;
-import com.github.ykiselev.services.events.Events;
-import com.github.ykiselev.services.events.console.ToggleConsoleEvent;
-import com.github.ykiselev.services.events.menu.ShowMenuEvent;
+import com.github.ykiselev.services.commands.Commands;
 import com.github.ykiselev.services.layers.Sprites;
 import com.github.ykiselev.trigger.Trigger;
 import com.github.ykiselev.window.WindowEvents;
@@ -151,13 +150,13 @@ public final class BaseGame implements Game {
         if (action == GLFW.GLFW_PRESS) {
             switch (key) {
                 case GLFW.GLFW_KEY_ESCAPE:
-                    services.resolve(Events.class)
-                            .fire(ShowMenuEvent.INSTANCE);
+                    services.resolve(MenuFactory.class)
+                            .showMenu();
                     break;
 
                 case GLFW.GLFW_KEY_GRAVE_ACCENT:
-                    services.resolve(Events.class)
-                            .fire(ToggleConsoleEvent.INSTANCE);
+                    services.resolve(Commands.class)
+                            .execute("toggle-console");
                     break;
 
                 case GLFW.GLFW_KEY_PRINT_SCREEN:

@@ -45,6 +45,11 @@ public interface CommandLine {
 
     void complete();
 
+    /**
+     * Clears command buffer, moves caret to initial position, cancels history search, clears fragments
+     */
+    void reset();
+
     void execute();
 
     void searchHistoryBackward();

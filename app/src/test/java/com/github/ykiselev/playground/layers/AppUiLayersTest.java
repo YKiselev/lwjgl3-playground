@@ -76,7 +76,7 @@ class AppUiLayersTest {
     }
 
     @Test
-    void shouldFailAddAndPopInWrongOrder() {
+    void shouldFailIfAddAndPopInWrongOrder() {
         layers.add(layer1);
         layers.add(layer2);
         verify(layer1, times(1)).onPush();

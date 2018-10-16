@@ -156,6 +156,7 @@ public final class AppUiLayers implements UiLayers {
             throw new IllegalArgumentException("Already on stack:" + layer);
         }
         layers.add(layer);
+        // Note: sort is expected to be stable!
         layers.sort(LAYER_COMPARATOR);
         layer.onPush();
     }

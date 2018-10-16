@@ -25,12 +25,10 @@ import com.github.ykiselev.opengl.sprites.TextDrawingFlags;
 import com.github.ykiselev.opengl.text.SpriteFont;
 import com.github.ykiselev.opengl.textures.Sprite;
 import com.github.ykiselev.opengl.textures.Texture2d;
+import com.github.ykiselev.services.MenuFactory;
 import com.github.ykiselev.services.Services;
 import com.github.ykiselev.services.commands.Commands;
 import com.github.ykiselev.services.configuration.PersistedConfiguration;
-import com.github.ykiselev.services.events.Events;
-import com.github.ykiselev.services.events.console.ToggleConsoleEvent;
-import com.github.ykiselev.services.events.menu.ShowMenuEvent;
 import com.github.ykiselev.services.layers.DrawingContext;
 import com.github.ykiselev.services.layers.Sprites;
 import com.github.ykiselev.services.layers.UiLayer;
@@ -124,8 +122,6 @@ public final class AppConsole implements UiLayer, AutoCloseable {
         this.buffer = requireNonNull(buffer);
         this.commandLine = requireNonNull(commandLine);
         this.ac = new CompositeAutoCloseable(
-                services.resolve(Events.class)
-                        .subscribe(ToggleConsoleEvent.class, this::onToggleConsole),
                 services.resolve(PersistedConfiguration.class)
                         .wire()
                         .withDouble("console.showTime", () -> showTime, v -> showTime = v, true)
@@ -194,8 +190,9 @@ public final class AppConsole implements UiLayer, AutoCloseable {
                 case GLFW.GLFW_KEY_ESCAPE:
                     showing = false;
                     consoleHeight = 0;
-                    services.resolve(Events.class)
-                            .fire(ShowMenuEvent.INSTANCE);
+                    inputAllowed = false;
+                    services.resolve(MenuFactory.class)
+                            .showMenu();
                     return true;
 
                 case GLFW.GLFW_KEY_GRAVE_ACCENT:

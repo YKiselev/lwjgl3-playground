@@ -21,16 +21,14 @@ import com.github.ykiselev.closeables.CompositeAutoCloseable;
 import com.github.ykiselev.common.ThrowingRunnable;
 import com.github.ykiselev.playground.app.window.AppWindow;
 import com.github.ykiselev.playground.app.window.WindowBuilder;
-import com.github.ykiselev.playground.services.console.ConsoleFactory;
-import com.github.ykiselev.playground.host.GameEvents;
-import com.github.ykiselev.playground.host.MenuEvents;
 import com.github.ykiselev.playground.host.ProgramArguments;
+import com.github.ykiselev.playground.services.AppGameFactory;
+import com.github.ykiselev.playground.services.AppMenuFactory;
+import com.github.ykiselev.playground.services.console.ConsoleFactory;
+import com.github.ykiselev.services.GameFactory;
+import com.github.ykiselev.services.MenuFactory;
 import com.github.ykiselev.services.Services;
 import com.github.ykiselev.services.commands.Commands;
-import com.github.ykiselev.services.commands.EventFiringHandler;
-import com.github.ykiselev.services.events.Events;
-import com.github.ykiselev.services.events.game.NewGameEvent;
-import com.github.ykiselev.services.events.game.QuitEvent;
 import com.github.ykiselev.services.layers.UiLayers;
 import com.github.ykiselev.services.schedule.Schedule;
 import org.slf4j.Logger;
@@ -63,21 +61,20 @@ public final class MainLoop implements ThrowingRunnable {
     @Override
     public void run() throws Exception {
         try (AppWindow window = createWindow(services);
-             AutoCloseable ac = subscribe();
-             GameEvents gameEvents = new GameEvents(services)
+             AutoCloseable ac = subscribe()
         ) {
             window.show();
-            // todo - remove that
-            services.resolve(Events.class)
-                    .fire(NewGameEvent.INSTANCE);
-            //
             glfwSwapInterval(args.swapInterval());
             logger.info("Entering main loop...");
+            final GameFactory gameFactory = services.resolve(GameFactory.class);
             final Schedule schedule = services.resolve(Schedule.class);
             final UiLayers layers = services.resolve(UiLayers.class);
+            // todo - remove that
+            gameFactory.newGame();
+            //
             while (!window.shouldClose() && !exitFlag) {
                 final double t0 = glfwGetTime();
-                gameEvents.update();
+                gameFactory.update();
                 window.checkEvents();
                 layers.draw();
                 window.swapBuffers();
@@ -102,17 +99,13 @@ public final class MainLoop implements ThrowingRunnable {
 
     private CompositeAutoCloseable subscribe() {
         return new CompositeAutoCloseable(
-                services.resolve(Events.class)
-                        .subscribe(QuitEvent.class, this::onQuit),
                 services.resolve(Commands.class)
-                        .add(new EventFiringHandler<>("quit", services, QuitEvent.INSTANCE)),
+                        .add("quit", () -> exitFlag = true),
                 new ConsoleFactory(services)
                         .create(),
-                services.add(FrameInfo.class, frameInfo)
-        ).with(new MenuEvents(services));
-    }
-
-    private void onQuit() {
-        exitFlag = true;
+                services.add(FrameInfo.class, frameInfo),
+                services.add(MenuFactory.class, new AppMenuFactory(services)),
+                services.add(GameFactory.class, new AppGameFactory(services))
+        );
     }
 }

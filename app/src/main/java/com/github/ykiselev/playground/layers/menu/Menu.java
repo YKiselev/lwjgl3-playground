@@ -30,11 +30,11 @@ import com.github.ykiselev.playground.ui.models.checkbox.ConfigurationBoundCheck
 import com.github.ykiselev.playground.ui.models.checkbox.SimpleCheckBoxModel;
 import com.github.ykiselev.playground.ui.models.slider.ConfigurationBoundSliderModel;
 import com.github.ykiselev.playground.ui.models.slider.SliderDefinition;
+import com.github.ykiselev.services.GameFactory;
 import com.github.ykiselev.services.Services;
+import com.github.ykiselev.services.commands.Commands;
 import com.github.ykiselev.services.configuration.PersistedConfiguration;
 import com.github.ykiselev.services.events.Events;
-import com.github.ykiselev.services.events.game.NewGameEvent;
-import com.github.ykiselev.services.events.game.QuitEvent;
 import com.github.ykiselev.services.layers.DrawingContext;
 import com.github.ykiselev.services.layers.Sprites;
 import com.github.ykiselev.services.layers.UiLayer;
@@ -78,7 +78,6 @@ public final class Menu implements UiLayer, AutoCloseable, Removable {
         final Assets assets = services.resolve(Assets.class);
         spriteBatch = services.resolve(Sprites.class).newBatch();
         font = assets.load("fonts/Liberation Mono 22.sf", SpriteFont.class);
-        final Events events = services.resolve(Events.class);
         final PersistedConfiguration configuration = services.resolve(PersistedConfiguration.class);
         final Slider effectsSlider = new Slider(
                 new ConfigurationBoundSliderModel(
@@ -118,7 +117,7 @@ public final class Menu implements UiLayer, AutoCloseable, Removable {
                 new MenuItem(
                         new Link(
                                 "New",
-                                () -> events.fire(NewGameEvent.INSTANCE)
+                                () -> services.resolve(GameFactory.class).newGame()
                         )
                 ),
                 new MenuItem(
@@ -149,7 +148,8 @@ public final class Menu implements UiLayer, AutoCloseable, Removable {
                 new MenuItem(
                         new Link(
                                 "Exit",
-                                () -> events.fire(QuitEvent.INSTANCE)
+                                () -> services.resolve(Commands.class)
+                                        .execute("quit")
                         )
                 )
         );
