@@ -48,10 +48,5 @@ public interface PersistedConfiguration {
         return new WiredValues(this);
     }
 
-    /**
-     * @return all registered variables
-     */
-    Stream<String> names();
-
     Stream<ConfigValue> values();
 }
