@@ -17,6 +17,7 @@
 package com.github.ykiselev.services.configuration;
 
 import com.github.ykiselev.services.configuration.values.ConfigValue;
+import com.github.ykiselev.services.configuration.values.LongFormat;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -40,7 +41,7 @@ class WiredValuesTest {
     void shouldWireIntAndCheckForOverflow() {
         final AtomicInteger value = new AtomicInteger();
         new WiredValues(cfg)
-                .withInt("a", () -> 1, value::set, false)
+                .withInt("a", () -> 1, value::set, false, LongFormat.DECIMAL)
                 .build();
         ArgumentCaptor<Collection<ConfigValue>> captor = ArgumentCaptor.forClass(Collection.class);
         verify(cfg, times(1)).wire(captor.capture());

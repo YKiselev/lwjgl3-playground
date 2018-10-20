@@ -36,6 +36,9 @@ public final class ResourceByClass implements ReadableAssets {
     @Override
     @SuppressWarnings("unchecked")
     public <T> ReadableAsset<T> resolve(String resource, Class<T> clazz) throws ResourceException {
+        if (clazz == null) {
+            return null;
+        }
         return map.get(clazz);
     }
 }

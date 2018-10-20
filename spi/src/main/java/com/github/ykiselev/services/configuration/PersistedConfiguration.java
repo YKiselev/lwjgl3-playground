@@ -16,6 +16,7 @@
 
 package com.github.ykiselev.services.configuration;
 
+import com.github.ykiselev.services.configuration.ConfigurationException.VariableAlreadyExistsException;
 import com.github.ykiselev.services.configuration.values.ConfigValue;
 
 import java.util.Collection;
@@ -37,7 +38,7 @@ public interface PersistedConfiguration {
      * @param values the config values to vire to this config.
      * @return the handle to the wired variable.
      */
-    AutoCloseable wire(Collection<ConfigValue> values);
+    AutoCloseable wire(Collection<ConfigValue> values) throws VariableAlreadyExistsException;
 
     /**
      * Convenient method to wire many variables at once.
@@ -49,4 +50,32 @@ public interface PersistedConfiguration {
     }
 
     Stream<ConfigValue> values();
+
+    /**
+     * Saves current configuration to file.
+     *
+     * @param name the file name (should be relative to writable directory).
+     */
+    void persist(String name);
+
+    /**
+     * Saves current config to file "app.conf".
+     */
+    default void persist() {
+        persist("app.conf");
+    }
+
+    /**
+     * Loads configuration from file.
+     *
+     * @param name the file name (relative to resource directory).
+     */
+    void load(String name);
+
+    /**
+     * Loads configuration from all files with such name found in resource folders.
+     *
+     * @param name the file name (relative to resource directory).
+     */
+    void loadAll(String name);
 }

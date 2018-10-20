@@ -55,4 +55,15 @@ public abstract class ConfigurationException extends RuntimeException {
             super(message);
         }
     }
+
+    /**
+     *
+     */
+    public static final class VariableAlreadyExistsException extends ConfigurationException {
+
+        public VariableAlreadyExistsException(String message) {
+            super(message);
+        }
+    }
+
 }

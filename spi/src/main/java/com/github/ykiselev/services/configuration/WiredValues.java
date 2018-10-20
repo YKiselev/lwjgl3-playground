@@ -18,6 +18,7 @@ package com.github.ykiselev.services.configuration;
 
 import com.github.ykiselev.common.BooleanConsumer;
 import com.github.ykiselev.services.configuration.values.ConfigValue;
+import com.github.ykiselev.services.configuration.values.LongFormat;
 import com.github.ykiselev.services.configuration.values.Values;
 
 import java.util.ArrayList;
@@ -70,20 +71,52 @@ public final class WiredValues {
         return withBoolean(name, getter, null, persisted);
     }
 
+    public WiredValues withInt(String name, IntSupplier getter, IntConsumer setter, boolean persisted, LongFormat format) {
+        return add(new Values.WiredLong(name, persisted, format, () -> toLong(getter.getAsInt()), v -> setter.accept(toInt(v))));
+    }
+
     public WiredValues withInt(String name, IntSupplier getter, IntConsumer setter, boolean persisted) {
-        return add(new Values.WiredLong(name, persisted, getter::getAsInt, v -> setter.accept(toInt(v))));
+        return add(new Values.WiredLong(name, persisted, LongFormat.DECIMAL, () -> toLong(getter.getAsInt()), v -> setter.accept(toInt(v))));
+    }
+
+    public WiredValues withHexInt(String name, IntSupplier getter, IntConsumer setter, boolean persisted) {
+        return add(new Values.WiredLong(name, persisted, LongFormat.HEXADECIMAL, () -> toLong(getter.getAsInt()), v -> setter.accept(toInt(v))));
+    }
+
+    public WiredValues withInt(String name, IntSupplier getter, boolean persisted, LongFormat format) {
+        return withInt(name, getter, null, persisted, format);
     }
 
     public WiredValues withInt(String name, IntSupplier getter, boolean persisted) {
         return withInt(name, getter, null, persisted);
     }
 
+    public WiredValues withHexInt(String name, IntSupplier getter, boolean persisted) {
+        return withHexInt(name, getter, null, persisted);
+    }
+
+    public WiredValues withLong(String name, LongSupplier getter, LongConsumer setter, boolean persisted, LongFormat format) {
+        return add(new Values.WiredLong(name, persisted, format, getter, setter));
+    }
+
     public WiredValues withLong(String name, LongSupplier getter, LongConsumer setter, boolean persisted) {
-        return add(new Values.WiredLong(name, persisted, getter, setter));
+        return add(new Values.WiredLong(name, persisted, LongFormat.DECIMAL, getter, setter));
+    }
+
+    public WiredValues withHexLong(String name, LongSupplier getter, LongConsumer setter, boolean persisted) {
+        return add(new Values.WiredLong(name, persisted, LongFormat.HEXADECIMAL, getter, setter));
+    }
+
+    public WiredValues withLong(String name, LongSupplier getter, boolean persisted, LongFormat format) {
+        return withLong(name, getter, null, persisted, format);
     }
 
     public WiredValues withLong(String name, LongSupplier getter, boolean persisted) {
         return withLong(name, getter, null, persisted);
+    }
+
+    public WiredValues withHexLong(String name, LongSupplier getter, boolean persisted) {
+        return withHexLong(name, getter, null, persisted);
     }
 
     public WiredValues withDouble(String name, DoubleSupplier getter, DoubleConsumer setter, boolean persisted) {
@@ -96,6 +129,10 @@ public final class WiredValues {
 
     public AutoCloseable build() {
         return cfg.wire(values);
+    }
+
+    private static long toLong(int value) {
+        return value & 0x00000000ffffffffL;
     }
 
     private static int toInt(long value) {

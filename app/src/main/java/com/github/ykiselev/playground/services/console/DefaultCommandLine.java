@@ -75,7 +75,7 @@ public final class DefaultCommandLine implements CommandLine {
                     if (args.size() == 2) {
                         value.setString(args.get(1));
                     }
-                    logger.info(MARKER, "{}=\"{}\"", name, value.getString());
+                    logger.info(MARKER, "{}=\"{}\"", name, value.toString());
                 } catch (RuntimeException ex) {
                     logger.error(MARKER, ex.toString());
                 }
@@ -223,7 +223,7 @@ public final class DefaultCommandLine implements CommandLine {
                     for (int i = 0; i < 8 && it.hasNext(); i++) {
                         final Named v = it.next();
                         if (v instanceof ConfigValue) {
-                            logger.info(MARKER, "  {}=^0b\"{}\"", v.name(), ((ConfigValue) v).getString());
+                            logger.info(MARKER, "  {}=^0b\"{}\"", v.name(), ((ConfigValue) v).toString());
                         } else {
                             logger.info(MARKER, "  {}", v.name());
                         }

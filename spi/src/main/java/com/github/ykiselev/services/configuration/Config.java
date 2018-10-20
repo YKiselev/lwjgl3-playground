@@ -17,14 +17,11 @@
 package com.github.ykiselev.services.configuration;
 
 import com.github.ykiselev.services.configuration.ConfigurationException.VariableNotFoundException;
-import com.github.ykiselev.services.configuration.values.BooleanValue;
 import com.github.ykiselev.services.configuration.values.ConfigValue;
-import com.github.ykiselev.services.configuration.values.ConstantList;
-import com.github.ykiselev.services.configuration.values.DoubleValue;
-import com.github.ykiselev.services.configuration.values.LongValue;
-import com.github.ykiselev.services.configuration.values.StringValue;
-
-import java.util.List;
+import com.github.ykiselev.services.configuration.values.Values.WiredBoolean;
+import com.github.ykiselev.services.configuration.values.Values.WiredDouble;
+import com.github.ykiselev.services.configuration.values.Values.WiredLong;
+import com.github.ykiselev.services.configuration.values.Values.WiredString;
 
 /**
  * Mutable configuration.
@@ -46,17 +43,6 @@ public interface Config {
     <V extends ConfigValue> V getValue(String path, Class<V> clazz) throws ClassCastException, VariableNotFoundException;
 
     /**
-     * Gets or creates variable. If variable exists and have the same type it is retured. If there is no variable at specified path - new variable is created.
-     *
-     * @param path  the variable path
-     * @param clazz the type variable expected to be of
-     * @param <V>   type parameter
-     * @return the config variable
-     * @throws ClassCastException if existing variable type does not match
-     */
-    <V extends ConfigValue> V getOrCreateValue(String path, Class<V> clazz) throws ClassCastException;
-
-    /**
      * Checks if there is any variable at specified path.
      *
      * @param path the path to check
@@ -73,7 +59,7 @@ public interface Config {
      * @throws VariableNotFoundException if there is no variable at specified path
      */
     default String getString(String path) throws ClassCastException, VariableNotFoundException {
-        return getValue(path, ConfigValue.class).getString();
+        return getValue(path, ConfigValue.class).toString();
     }
 
     /**
@@ -85,7 +71,7 @@ public interface Config {
      * @throws VariableNotFoundException if there is no variable at specified path
      */
     default boolean getBoolean(String path) throws ClassCastException, VariableNotFoundException {
-        return getValue(path, BooleanValue.class).value();
+        return getValue(path, WiredBoolean.class).value();
     }
 
     /**
@@ -110,7 +96,7 @@ public interface Config {
      * @throws VariableNotFoundException if there is no variable at specified path
      */
     default long getLong(String path) throws ClassCastException, VariableNotFoundException {
-        return getValue(path, LongValue.class).value();
+        return getValue(path, WiredLong.class).value();
     }
 
     /**
@@ -139,70 +125,66 @@ public interface Config {
      * @throws VariableNotFoundException if there is no variable at specified path
      */
     default double getDouble(String path) throws ClassCastException, VariableNotFoundException {
-        return getValue(path, DoubleValue.class).value();
+        return getValue(path, WiredDouble.class).value();
     }
 
     /**
-     * Sets value of string variable at specified path (or creates new if does not exists).
+     * Sets value of string variable at specified path.
      *
      * @param path  the variable path
      * @param value the value to set
-     * @throws ClassCastException if variable type does not match
+     * @throws ClassCastException        if variable type does not match
+     * @throws VariableNotFoundException if there is no variable at specified path
      */
-    default void set(String path, String value) throws ClassCastException {
-        getOrCreateValue(path, StringValue.class).setString(value);
+    default void set(String path, String value) throws ClassCastException, VariableNotFoundException {
+        getValue(path, WiredString.class).setString(value);
     }
 
     /**
-     * Sets value of boolean variable at specified path (or creates new if does not exists).
+     * Sets value of boolean variable at specified path.
      *
      * @param path  the variable path
      * @param value the value to set
-     * @throws ClassCastException if variable type does not match
+     * @throws ClassCastException        if variable type does not match
+     * @throws VariableNotFoundException if there is no variable at specified path
      */
-    default void set(String path, boolean value) throws ClassCastException {
-        getOrCreateValue(path, BooleanValue.class).value(value);
+    default void set(String path, boolean value) throws ClassCastException, VariableNotFoundException {
+        getValue(path, WiredBoolean.class).value(value);
     }
 
     /**
-     * Sets value of int variable at specified path (or creates new if does not exists).
+     * Sets value of int variable at specified path.
      *
      * @param path  the variable path
      * @param value the value to set
-     * @throws ClassCastException if variable type does not match
+     * @throws ClassCastException        if variable type does not match
+     * @throws VariableNotFoundException if there is no variable at specified path
      */
-    default void set(String path, int value) throws ClassCastException {
+    default void set(String path, int value) throws ClassCastException, VariableNotFoundException {
         set(path, (long) value);
     }
 
     /**
-     * Sets value of long variable at specified path (or creates new if does not exists).
+     * Sets value of long variable at specified path.
      *
      * @param path  the variable path
      * @param value the value to set
-     * @throws ClassCastException if variable type does not match
+     * @throws ClassCastException        if variable type does not match
+     * @throws VariableNotFoundException if there is no variable at specified path
      */
-    default void set(String path, long value) throws ClassCastException {
-        getOrCreateValue(path, LongValue.class).value(value);
+    default void set(String path, long value) throws ClassCastException, VariableNotFoundException {
+        getValue(path, WiredLong.class).value(value);
     }
 
     /**
-     * Sets value of double variable at specified path (or creates new if does not exists).
+     * Sets value of double variable at specified path.
      *
      * @param path  the variable path
      * @param value the value to set
-     * @throws ClassCastException if variable type does not match
+     * @throws ClassCastException        if variable type does not match
+     * @throws VariableNotFoundException if there is no variable at specified path
      */
-    default void set(String path, double value) throws ClassCastException {
-        getOrCreateValue(path, DoubleValue.class).value(value);
-    }
-
-    /**
-     * Gets value of string list variable at specified path.
-     *
-     * @param path the variable path
-     */
-    default List<String> getStringList(String path) {
-        return getValue(path, ConstantList.class).toList();
+    default void set(String path, double value) throws ClassCastException, VariableNotFoundException {
+        getValue(path, WiredDouble.class).value(value);
     }
 }

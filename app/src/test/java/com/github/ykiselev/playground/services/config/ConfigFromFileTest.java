@@ -17,11 +17,6 @@
 package com.github.ykiselev.playground.services.config;
 
 import com.github.ykiselev.services.FileSystem;
-import com.github.ykiselev.services.configuration.values.ConstantList;
-import com.github.ykiselev.services.configuration.values.BooleanValue;
-import com.github.ykiselev.services.configuration.values.DoubleValue;
-import com.github.ykiselev.services.configuration.values.LongValue;
-import com.github.ykiselev.services.configuration.values.StringValue;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -29,18 +24,17 @@ import java.nio.channels.Channels;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
+@Deprecated
 class ConfigFromFileTest {
 
     @Test
     void shouldRead() {
+/*
         FileSystem fs = Mockito.mock(FileSystem.class);
         ConfigFromFile fromFile = new ConfigFromFile(fs);
 
@@ -57,5 +51,6 @@ class ConfigFromFileTest {
         assertEquals(15.5, ((DoubleValue) map.get("sound.extension.spatial-sound.base")).value());
         assertEquals("b1", ((StringValue) map.get("mouse.buttons.left")).value());
         assertArrayEquals(new String[]{"a=b", "c=d"}, ((ConstantList) map.get("services")).toList().toArray());
+        */
     }
 }

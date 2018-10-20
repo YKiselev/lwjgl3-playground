@@ -29,6 +29,7 @@ import com.github.ykiselev.services.GameFactory;
 import com.github.ykiselev.services.MenuFactory;
 import com.github.ykiselev.services.Services;
 import com.github.ykiselev.services.commands.Commands;
+import com.github.ykiselev.services.configuration.PersistedConfiguration;
 import com.github.ykiselev.services.layers.UiLayers;
 import com.github.ykiselev.services.schedule.Schedule;
 import org.slf4j.Logger;
@@ -82,6 +83,9 @@ public final class MainLoop implements ThrowingRunnable {
                 final double t1 = glfwGetTime();
                 frameInfo.add((t1 - t0) * 1000.0);
             }
+
+            services.resolve(PersistedConfiguration.class)
+                    .persist();
         }
     }
 

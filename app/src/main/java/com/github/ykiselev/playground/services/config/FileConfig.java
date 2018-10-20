@@ -14,29 +14,20 @@
  * limitations under the License.
  */
 
-package com.github.ykiselev.services.configuration.values;
+package com.github.ykiselev.playground.services.config;
+
+import java.util.Map;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public interface StringValue extends ConfigValue {
+public interface FileConfig {
 
-    String value();
+    Object getValue(String name);
 
-    void value(String value);
+    void persist(String name, Map<String, Object> config);
 
-    @Override
-    default String getString() {
-        return value();
-    }
+    void load(String name);
 
-    @Override
-    default void setString(String value) {
-        value(value);
-    }
-
-    @Override
-    default Object boxed() {
-        return value();
-    }
+    void loadAll(String name);
 }

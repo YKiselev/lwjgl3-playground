@@ -18,24 +18,40 @@ package com.github.ykiselev.services.configuration.values;
 
 import com.github.ykiselev.api.Named;
 
+import static java.util.Objects.requireNonNull;
+
 /**
  * Configuration value.
  *
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public interface ConfigValue extends Named {
+public abstract class ConfigValue implements Named {
 
-    String getString();
+    private final String name;
 
-    void setString(String value);
+    private final boolean persisted;
 
-    Object boxed();
-
-    default boolean isReadOnly() {
-        return false;
+    public final boolean isPersisted() {
+        return persisted;
     }
 
-    default boolean isPersisted() {
+    @Override
+    public final String name() {
+        return name;
+    }
+
+    protected ConfigValue(String name, boolean persisted) {
+        this.name = requireNonNull(name);
+        this.persisted = persisted;
+    }
+
+    public abstract void setString(String value);
+
+    public abstract void fromObject(Object value);
+
+    public abstract Object boxed();
+
+    public boolean isReadOnly() {
         return false;
     }
 }

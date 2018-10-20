@@ -44,11 +44,6 @@ public final class RelativeConfig implements Config {
     }
 
     @Override
-    public <V extends ConfigValue> V getOrCreateValue(String path, Class<V> clazz) {
-        return delegate.getOrCreateValue(path(path), clazz);
-    }
-
-    @Override
     public boolean hasVariable(String path) {
         return delegate.hasVariable(path(path));
     }

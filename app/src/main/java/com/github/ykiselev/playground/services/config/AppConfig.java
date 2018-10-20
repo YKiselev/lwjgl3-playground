@@ -21,22 +21,19 @@ import com.github.ykiselev.services.FileSystem;
 import com.github.ykiselev.services.Services;
 import com.github.ykiselev.services.configuration.Config;
 import com.github.ykiselev.services.configuration.ConfigurationException;
+import com.github.ykiselev.services.configuration.ConfigurationException.VariableAlreadyExistsException;
 import com.github.ykiselev.services.configuration.PersistedConfiguration;
 import com.github.ykiselev.services.configuration.values.ConfigValue;
-import com.github.ykiselev.services.configuration.values.Values;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -49,9 +46,9 @@ public final class AppConfig implements PersistedConfiguration, AutoCloseable {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final CopyOnModify<Map<String, Object>> config;
+    private final CopyOnModify<Map<String, ConfigValue>> config;
 
-    private final Consumer<Map<String, Object>> writer;
+    private final FileConfig fileConfig;
 
     private final Predicate<Object> varFilter = obj ->
             obj instanceof ConfigValue;
@@ -69,31 +66,19 @@ public final class AppConfig implements PersistedConfiguration, AutoCloseable {
         }
 
         @Override
-        public <V extends ConfigValue> V getOrCreateValue(String path, Class<V> clazz) {
-            final Object raw = getRawValue(path);
-            if (raw != null) {
-                return clazz.cast(raw);
-            }
-            final V result = Values.simpleValue(path, clazz);
-            merge(Collections.singletonMap(path, result));
-            return result;
-        }
-
-        @Override
         public boolean hasVariable(String path) {
             return varFilter.test(getRawValue(path));
         }
-
     };
 
-    public AppConfig(Supplier<Map<String, Object>> reader, Consumer<Map<String, Object>> writer) {
-        this.config = new CopyOnModify<>(reader.get());
-        this.writer = requireNonNull(writer);
+    AppConfig(FileConfig fileConfig) {
+        this.fileConfig = requireNonNull(fileConfig);
+        this.config = new CopyOnModify<>(Collections.emptyMap());
+        loadAll("app.conf");
     }
 
     public AppConfig(Services services) {
-        this(new ConfigFromFile(services.resolve(FileSystem.class)),
-                new ConfigToFile(services.resolve(FileSystem.class)));
+        this(new AppFileConfig(services.resolve(FileSystem.class)));
     }
 
     @Override
@@ -115,26 +100,31 @@ public final class AppConfig implements PersistedConfiguration, AutoCloseable {
     }
 
     @Override
-    public AutoCloseable wire(Collection<ConfigValue> values) {
+    public AutoCloseable wire(Collection<ConfigValue> values) throws VariableAlreadyExistsException {
         final Map<String, ConfigValue> toWire = toMap(values);
         if (toWire.isEmpty()) {
             throw new IllegalArgumentException("Nothing to wire!");
         }
-        final Map<String, Object> previous = merge(toWire);
-        toWire.forEach((key, value) -> {
-            final Object raw = previous.get(key);
-            if (raw instanceof ConfigValue) {
-                value.setString(((ConfigValue) raw).getString());
-            }
+        config.modify(before -> {
+            final Map<String, ConfigValue> after = new HashMap<>(before);
+            toWire.forEach((k, newValue) -> {
+                if (after.containsKey(k)) {
+                    throw new VariableAlreadyExistsException(k);
+                }
+                after.put(k, newValue);
+                final Object rawValue = fileConfig.getValue(k);
+                if (rawValue != null) {
+                    newValue.fromObject(rawValue);
+                }
+            });
+            return after;
         });
-        final Set<String> keysToRemove = new HashSet<>(toWire.keySet());
-        return () -> {
-            final Map<String, ConfigValue> modified = unwire(keysToRemove);
-            if (modified.size() != keysToRemove.size()) {
-                logger.warn("Expected {} but got {}", keysToRemove, modified.keySet());
-            }
-            merge(modified);
-        };
+        final Set<String> keysToRemove = Set.of(toWire.keySet().toArray(new String[0]));
+        return () -> config.modify(before -> {
+            final Map<String, ConfigValue> result = new HashMap<>(before);
+            result.keySet().removeAll(keysToRemove);
+            return result;
+        });
     }
 
     private Map<String, ConfigValue> toMap(Collection<ConfigValue> values) {
@@ -144,42 +134,51 @@ public final class AppConfig implements PersistedConfiguration, AutoCloseable {
         ));
     }
 
-    /**
-     * For each supplied key extracts wired value from current map, creates simple (non-wired) version of that value and
-     * puts that simple value in result map.
-     * Note: resulting map is not a full copy of current map, it contains entries only for supplied {@code keys}!
-     *
-     * @param keys the keys to unwire
-     * @return the result map with simple values
-     */
-    private Map<String, ConfigValue> unwire(Set<String> keys) {
-        final Map<String, Object> current = config.value();
-        final Map<String, ConfigValue> result = new HashMap<>();
-        for (String key : keys) {
-            final Object raw = current.get(key);
-            if (raw instanceof ConfigValue) {
-                result.put(key, Values.toSimpleValue((ConfigValue) raw));
-            }
-        }
-        return result;
+    @Override
+    public void persist(String name) {
+        fileConfig.persist(
+                name,
+                config.value()
+                        .entrySet()
+                        .stream()
+                        .map(Map.Entry::getValue)
+                        .collect(
+                                Collectors.toMap(
+                                        ConfigValue::name,
+                                        ConfigValue::boxed
+                                )
+                        )
+        );
     }
 
-    /**
-     * Replaces current map with new version which is a result of merge of two maps (current and {@code value}).
-     *
-     * @param values the values to merge with current map
-     * @return the previous map
-     */
-    private Map<String, Object> merge(Map<String, ConfigValue> values) {
-        return config.modify(before -> {
-            final Map<String, Object> after = new HashMap<>(before);
-            after.putAll(values);
+    private void applyFileValues() {
+        config.modify(before -> {
+            final Map<String, ConfigValue> after = new HashMap<>(before);
+            after.forEach((k, v) -> {
+                final Object rawValue = fileConfig.getValue(k);
+                if (rawValue != null) {
+                    v.fromObject(rawValue);
+                }
+            });
             return after;
         });
     }
 
     @Override
+    public void load(String name) {
+        fileConfig.load(name);
+        applyFileValues();
+    }
+
+    @Override
+    public void loadAll(String name) {
+        fileConfig.loadAll(name);
+        applyFileValues();
+    }
+
+    @Override
     public void close() {
-        writer.accept(config.value());
+        // todo
+        //writer.accept(config.value());
     }
 }

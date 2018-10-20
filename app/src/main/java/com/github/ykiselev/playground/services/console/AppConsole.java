@@ -125,8 +125,8 @@ public final class AppConsole implements UiLayer, AutoCloseable {
                 services.resolve(PersistedConfiguration.class)
                         .wire()
                         .withDouble("console.showTime", () -> showTime, v -> showTime = v, true)
-                        .withInt("console.textColor", () -> textColor, v -> textColor = v, true)
-                        .withInt("console.backgroundColor", () -> backgroundColor, v -> backgroundColor = v, true)
+                        .withHexInt("console.textColor", () -> textColor, v -> textColor = v, true)
+                        .withHexInt("console.backgroundColor", () -> backgroundColor, v -> backgroundColor = v, true)
                         .build(),
                 services.resolve(Commands.class)
                         .add()
