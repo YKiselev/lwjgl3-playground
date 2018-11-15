@@ -30,12 +30,25 @@ final class UnsignedTest {
     @Test
     void shouldParse() {
         assertEquals(
-                new Unsigned(new int[]{12345678, 901234567, 890123456}),
+                new Unsigned(new int[]{890123456, 901234567, 12345678}),
                 Unsigned.valueOf("12345678901234567890123456")
         );
         assertEquals(
-                new Unsigned(new int[]{1234567, 890123456}),
+                new Unsigned(new int[]{890123456, 1234567}),
                 Unsigned.valueOf("1234567890123456")
+        );
+        assertEquals(
+                new Unsigned(new int[]{123456789}),
+                Unsigned.valueOf("000000000000123456789")
+        );
+
+    }
+
+    @Test
+    void shouldCreate() {
+        assertEquals(
+                Unsigned.valueOf(123456789),
+                Unsigned.valueOf("123456789")
         );
     }
 
@@ -56,6 +69,43 @@ final class UnsignedTest {
                 Unsigned.valueOf(Long.MAX_VALUE).multiply(999999999)
         );
     }
+
+    @Test
+    void shouldMultiplyByLong() {
+        //BigInteger c = BigInteger.valueOf(999999999).multiply(BigInteger.valueOf(12345678900000000L));
+        //BigInteger c2 = BigInteger.valueOf(Long.MAX_VALUE).multiply(BigInteger.valueOf(Long.MAX_VALUE));
+        assertEquals(
+                Unsigned.valueOf("12345678900000000"),
+                Unsigned.valueOf(1).multiply(12345678900000000L)
+        );
+
+        assertEquals(
+                Unsigned.valueOf("12345678887654321100000000"),
+                Unsigned.valueOf(999999999).multiply(12345678900000000L)
+        );
+        assertEquals(
+                Unsigned.valueOf("85070591730234615847396907784232501249"),
+                Unsigned.valueOf(Long.MAX_VALUE).multiply(Long.MAX_VALUE)
+        );
+    }
+
+    @Test
+    void shouldMultiplyByUnsigned() {
+        assertEquals(
+                Unsigned.valueOf("12345678900000000"),
+                Unsigned.valueOf(1).multiply(Unsigned.valueOf(12345678900000000L))
+        );
+
+        assertEquals(
+                Unsigned.valueOf("12345678887654321100000000"),
+                Unsigned.valueOf(999999999).multiply(Unsigned.valueOf(12345678900000000L))
+        );
+        assertEquals(
+                Unsigned.valueOf("85070591730234615847396907784232501249"),
+                Unsigned.valueOf(Long.MAX_VALUE).multiply(Unsigned.valueOf(Long.MAX_VALUE))
+        );
+    }
+
 }
 
 /**
@@ -77,33 +127,37 @@ final class Unsigned {
         if (value <= 0) {
             throw new ArithmeticException("Value should be positive and greater than zero!");
         }
-        int[] tmp = new int[4];
-        for (int i = tmp.length - 1; i >= 0 && value > 0; i--) {
+        final int[] tmp = new int[4];
+        for (int i = 0; i < 4 && value > 0; i++) {
             tmp[i] = (int) (value % BASE);
             value /= BASE;
         }
+        return new Unsigned(stripZeroes(tmp));
+    }
+
+    private static int[] stripZeroes(int[] src) {
         int zeroes = 0;
-        for (int i = 0; i < tmp.length; i++, zeroes++) {
-            if (tmp[i] != 0) {
+        for (int i = src.length - 1; i > 0; i--, zeroes++) {
+            if (src[i] != 0) {
                 break;
             }
         }
         if (zeroes > 0) {
-            tmp = Arrays.copyOfRange(tmp, zeroes, tmp.length);
+            src = Arrays.copyOfRange(src, 0, src.length - zeroes);
         }
-        return new Unsigned(tmp);
+        return src;
     }
 
     public static Unsigned valueOf(String v) {
         final int[] tmp = new int[(v.length() + 8) / 9];
-        for (int i = v.length(), k = tmp.length - 1; i > 0; i -= 9, k--) {
+        for (int i = v.length(), k = 0; i > 0; i -= 9, k++) {
             if (i < 9) {
                 tmp[k] = Integer.parseUnsignedInt(v, 0, i, 10);
             } else {
                 tmp[k] = Integer.parseUnsignedInt(v, i - 9, i, 10);
             }
         }
-        return new Unsigned(tmp);
+        return new Unsigned(stripZeroes(tmp));
     }
 
     public Unsigned multiply(int v) {
@@ -115,20 +169,53 @@ final class Unsigned {
         }
         long carry = 0;
         int[] tmp = Arrays.copyOf(value, value.length + 1);
-        int t = tmp.length - 1;
-        for (int i = tmp.length - 2; i >= 0; i--, t--) {
-//            if (i == tmp.length) {
-//                tmp = Arrays.copyOf(tmp, tmp.length + 1);
-//            }
+        int t = 0;
+        for (int i = 0; i < value.length; i++, t++) {
             final long cur = carry + (tmp[i] & MASK) * v;
             tmp[t] = (int) (cur % BASE);
             carry = cur / BASE;
         }
         tmp[t] = (int) carry;
-        if (tmp[tmp.length - 1] == 0) {
-            tmp = Arrays.copyOf(tmp, tmp.length - 1);
+        return new Unsigned(stripZeroes(tmp));
+    }
+
+    public Unsigned multiply(Unsigned b) {
+        final int[] other = b.value;
+        final int[] tmp = new int[value.length + other.length];
+        for (int i = 0; i < value.length; i++) {
+            for (int j = 0, carry = 0; j < other.length || carry > 0; j++) {
+                final long cur = tmp[i + j] + (value[i] & MASK) * (j < other.length ? other[j] : 0) + carry;
+                tmp[i + j] = (int) (cur % BASE);
+                carry = (int) (cur / BASE);
+            }
         }
-        return new Unsigned(tmp);
+        return new Unsigned(stripZeroes(tmp));
+    }
+
+    public Unsigned multiply(long v) {
+        if (v <= 0) {
+            throw new ArithmeticException("Multiplier should be positive!");
+        }
+        final int[] tmp = Arrays.copyOf(value, value.length + 4);
+        int part = 0;
+        while (v > 0) {
+            int t = part;
+            long carry = 0;
+            final int lo = (int) (v % BASE);
+            for (int i = 0; i < value.length; i++, t++) {
+                final long cur = carry + (tmp[i] & MASK) * lo + (t > 0 ? (tmp[t] & MASK) : 0);
+                tmp[t] = (int) (cur % BASE);
+                carry = cur / BASE;
+            }
+            tmp[t] = (int) carry;
+//            if (carry > 0) {
+//                throw new ArithmeticException("Overflow!");
+//            }
+            //tmp[t] = (int) carry;
+            v /= BASE;
+            part++;
+        }
+        return new Unsigned(stripZeroes(tmp));
     }
 
     @Override
