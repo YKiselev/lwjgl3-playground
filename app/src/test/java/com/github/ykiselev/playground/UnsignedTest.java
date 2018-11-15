@@ -183,10 +183,16 @@ final class Unsigned {
         final int[] other = b.value;
         final int[] tmp = new int[value.length + other.length];
         for (int i = 0; i < value.length; i++) {
-            for (int j = 0, carry = 0; j < other.length || carry > 0; j++) {
-                final long cur = tmp[i + j] + (value[i] & MASK) * (j < other.length ? other[j] : 0) + carry;
+            final long mine = value[i] & MASK;
+            int carry = 0, j = 0;
+            for (; j < other.length; j++) {
+                final long cur = tmp[i + j] + mine * (other[j] & MASK) + carry;
                 tmp[i + j] = (int) (cur % BASE);
                 carry = (int) (cur / BASE);
+            }
+            if (carry > 0) {
+                final long cur = tmp[i + j] + carry;
+                tmp[i + j] = (int) (cur % BASE);
             }
         }
         return new Unsigned(stripZeroes(tmp));
@@ -196,24 +202,21 @@ final class Unsigned {
         if (v <= 0) {
             throw new ArithmeticException("Multiplier should be positive!");
         }
-        final int[] tmp = Arrays.copyOf(value, value.length + 4);
-        int part = 0;
-        while (v > 0) {
-            int t = part;
-            long carry = 0;
-            final int lo = (int) (v % BASE);
-            for (int i = 0; i < value.length; i++, t++) {
-                final long cur = carry + (tmp[i] & MASK) * lo + (t > 0 ? (tmp[t] & MASK) : 0);
-                tmp[t] = (int) (cur % BASE);
-                carry = cur / BASE;
+        final int[] tmp = new int[value.length + 4];
+        for (int i = 0; i < value.length; i++) {
+            final long mine = value[i] & MASK;
+            int carry = 0, j = 0;
+            long vj = v;
+            for (; vj > 0; j++) {
+                final long cur = tmp[i + j] + mine * (vj % BASE) + carry;
+                tmp[i + j] = (int) (cur % BASE);
+                carry = (int) (cur / BASE);
+                vj /= BASE;
             }
-            tmp[t] = (int) carry;
-//            if (carry > 0) {
-//                throw new ArithmeticException("Overflow!");
-//            }
-            //tmp[t] = (int) carry;
-            v /= BASE;
-            part++;
+            if (carry > 0) {
+                final long cur = tmp[i + j] + carry;
+                tmp[i + j] = (int) (cur % BASE);
+            }
         }
         return new Unsigned(stripZeroes(tmp));
     }
