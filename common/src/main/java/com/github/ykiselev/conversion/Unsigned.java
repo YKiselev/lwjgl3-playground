@@ -14,16 +14,19 @@
  * limitations under the License.
  */
 
-package com.github.ykiselev.math;
+package com.github.ykiselev.conversion;
 
 import org.lwjgl.system.MemoryStack;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.Buffer;
+import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
 /**
  * Unsigned positive integer with arbitrary precision. Zero or negative values are not supported.
- * All methods are expected to be GC-free.
+ * All methods are expected to be GC-free unless stated otherwise.
  * Values are stored in {@link IntBuffer} allocated using {@link MemoryStack} class. Each int in buffer holds a 9-digit number.
  * Integers are stored from least significant to most (i.e. {@code value.get(0)} will return least significant part).
  *
@@ -35,7 +38,7 @@ final class Unsigned {
 
     private static final int BASE = 1000 * 1000 * 1000;
 
-    private static final int INTS_PER_LONG = (int) Math.ceil(Math.log10(Long.MAX_VALUE) / Math.log10(BASE));
+    private static final int WORDS_PER_LONG = (int) Math.ceil(Math.log10(Long.MAX_VALUE) / Math.log10(BASE));
 
     /**
      * @param value the value to store
@@ -62,7 +65,7 @@ final class Unsigned {
         if (value <= 0) {
             throw new ArithmeticException("Value should be positive and greater than zero!");
         }
-        final IntBuffer buffer = stack.mallocInt(INTS_PER_LONG);
+        final IntBuffer buffer = stack.mallocInt(WORDS_PER_LONG);
         int i = 0;
         for (; i < 4 && value > 0; i++) {
             buffer.put((int) (value % BASE));
@@ -136,7 +139,7 @@ final class Unsigned {
      * Multiplies supplied big integer value a by integer b.
      *
      * @param a     the unsigned integer value.
-     * @param b     the integer value gretare than zero and less than {@link Unsigned#BASE}
+     * @param b     the short integer value greater than zero and less than {@link Unsigned#BASE}
      * @param stack the stack to use for allocation.
      * @return the buffer with sored result.
      */
@@ -174,7 +177,7 @@ final class Unsigned {
             throw new ArithmeticException("Multiplier should be positive!");
         }
         final int len = a.limit();
-        final IntBuffer buffer = stack.callocInt(len + INTS_PER_LONG);
+        final IntBuffer buffer = stack.callocInt(len + WORDS_PER_LONG);
         for (int i = 0; i < len; i++) {
             final long mine = a.get(i) & MASK;
             int carry = 0, j = 0;
@@ -190,9 +193,115 @@ final class Unsigned {
                 buffer.put(i + j, (int) (cur % BASE));
             }
         }
-        buffer.position(len + INTS_PER_LONG);
+        buffer.position(len + WORDS_PER_LONG);
         stripExtraZeroes(buffer);
         buffer.flip();
         return buffer;
     }
+
+    /**
+     * Divides supplied big integer {@code a} in-place by short integer {@code b} (b > 0 and b < {@link Unsigned#BASE})
+     *
+     * @param a the dividend.
+     * @param b the divisor.
+     * @return the modified {@code a}
+     */
+    static IntBuffer divide(IntBuffer a, int b) {
+        if (b <= 0) {
+            throw new ArithmeticException("Divisor should be positive!");
+        }
+        if (b >= BASE) {
+            throw new ArithmeticException("Divisor should be smaller than base (" + BASE + ")");
+        }
+        final int len = a.remaining();
+        long carry = 0;
+        for (int i = len - 1; i >= 0; i--) {
+            final long cur = carry * BASE + (a.get(i) & MASK);
+            a.put(i, (int) (cur / b));
+            carry = cur % b;
+        }
+        a.position(len);
+        stripExtraZeroes(a);
+        a.flip();
+        return a;
+    }
+
+    /**
+     * Converts supplied big integer value into sequence of digits. Each digit occupies one byte.
+     *
+     * @param v     the big integer.
+     * @param stack the stack to use for memory allocations.
+     * @return the sequence of digits
+     */
+    static ByteBuffer toDigits(IntBuffer v, MemoryStack stack) {
+        final int last = v.remaining() - 1;
+        // 32 bits per integer, 30 bit is needed for 9 nines number.
+        final int words = (v.remaining() * 32 + 29) / 30;
+        final ByteBuffer buffer = stack.malloc(words * 9);
+        final ByteBuffer tmp = stack.calloc(9);
+        for (int i = last; i >= 0; i--) {
+            int part = v.get(i);
+            tmp.clear();
+            for (int k = 0; k < 9; k++) {
+                final int digit = part % 10;
+                if (digit > 0 || part > 0 || i < last) {
+                    tmp.put((byte) ('0' + digit));
+                }
+                part /= 10;
+            }
+            tmp.flip();
+            for (int k = tmp.remaining() - 1; k >= 0; k--) {
+                buffer.put(tmp.get(k));
+            }
+        }
+        buffer.flip();
+        return buffer;
+    }
+
+    /**
+     * Appends decimal string representation to the given {@link Appendable}.
+     *
+     * @param v          the big integer value to convet to string.
+     * @param appendable the appendable to append string to.
+     * @param stack      the stack to use for memory allocations.
+     */
+    static void append(IntBuffer v, Appendable appendable, MemoryStack stack) {
+        final int last = v.remaining() - 1;
+        final ByteBuffer tmp = stack.calloc(9);
+        for (int i = last; i >= 0; i--) {
+            int part = v.get(i);
+            tmp.clear();
+            for (int k = 0; k < 9; k++) {
+                final int digit = part % 10;
+                if (digit > 0 || part > 0 || i < last) {
+                    tmp.put((byte) ('0' + digit));
+                }
+                part /= 10;
+            }
+            tmp.flip();
+            for (int k = tmp.remaining() - 1; k >= 0; k--) {
+                try {
+                    appendable.append((char) tmp.get(k));
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
+            }
+        }
+    }
+
+    /**
+     * For debug purposes only.
+     * Note: this method is not gc-free!
+     *
+     * @param v the big integer
+     * @return the string representation
+     */
+    static String toString(IntBuffer v) {
+        final StringBuilder sb = new StringBuilder();
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            append(v, sb, stack);
+        }
+        return sb.toString();
+    }
+
 }
