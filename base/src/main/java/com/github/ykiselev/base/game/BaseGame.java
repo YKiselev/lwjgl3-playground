@@ -16,7 +16,7 @@
 
 package com.github.ykiselev.base.game;
 
-import com.github.ykiselev.FrameInfo;
+import com.github.ykiselev.fps.FrameInfo;
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.components.Game;
 import com.github.ykiselev.opengl.buffers.FrameBuffer;

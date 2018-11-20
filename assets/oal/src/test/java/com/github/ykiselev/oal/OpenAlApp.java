@@ -18,7 +18,7 @@ package com.github.ykiselev.oal;
 
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.assets.ReadableAsset;
-import com.github.ykiselev.assets.ReadableVorbisAudio;
+import com.github.ykiselev.openal.assets.ReadableVorbisAudio;
 import com.github.ykiselev.openal.AudioSamples;
 import com.github.ykiselev.wrap.Wrap;
 import org.junit.jupiter.api.Assertions;

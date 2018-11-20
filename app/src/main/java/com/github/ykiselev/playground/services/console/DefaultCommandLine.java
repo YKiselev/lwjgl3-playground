@@ -223,7 +223,7 @@ public final class DefaultCommandLine implements CommandLine {
                     for (int i = 0; i < 8 && it.hasNext(); i++) {
                         final Named v = it.next();
                         if (v instanceof ConfigValue) {
-                            logger.info(MARKER, "  {}=^0b\"{}\"", v.name(), ((ConfigValue) v).toString());
+                            logger.info(MARKER, "  {}=^0b\"{}\"", v.name(), v.toString());
                         } else {
                             logger.info(MARKER, "  {}", v.name());
                         }

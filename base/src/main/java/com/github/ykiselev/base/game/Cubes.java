@@ -17,7 +17,7 @@
 package com.github.ykiselev.base.game;
 
 import com.github.ykiselev.assets.Assets;
-import com.github.ykiselev.assets.formats.obj.ObjModel;
+import com.github.ykiselev.opengl.assets.formats.obj.ObjModel;
 import com.github.ykiselev.opengl.models.GenericIndexedGeometry;
 import com.github.ykiselev.opengl.shaders.ProgramObject;
 import com.github.ykiselev.opengl.shaders.uniforms.UniformVariable;

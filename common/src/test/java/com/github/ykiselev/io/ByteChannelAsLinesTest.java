@@ -41,7 +41,7 @@ class ByteChannelAsLinesTest {
     private static final Charset CHARSET = StandardCharsets.UTF_8;
 
     @Test
-    public void shouldRead() throws IOException {
+    void shouldRead() throws IOException {
         try (ByteChannelAsLines lines = new ByteChannelAsLines(
                 new ByteChannelFromArray(
                         STRINGS.stream()

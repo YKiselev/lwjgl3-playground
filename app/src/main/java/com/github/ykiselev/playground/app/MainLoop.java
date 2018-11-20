@@ -16,7 +16,7 @@
 
 package com.github.ykiselev.playground.app;
 
-import com.github.ykiselev.FrameInfo;
+import com.github.ykiselev.fps.FrameInfo;
 import com.github.ykiselev.closeables.CompositeAutoCloseable;
 import com.github.ykiselev.common.ThrowingRunnable;
 import com.github.ykiselev.playground.app.window.AppWindow;
