@@ -16,9 +16,10 @@
 
 package com.github.ykiselev.conversion;
 
+import com.github.ykiselev.memory.scrap.ScrapMemory;
+import com.github.ykiselev.memory.scrap.ThreadScrapMemory;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.lwjgl.system.MemoryStack;
 
 import java.math.BigInteger;
 
@@ -34,8 +35,11 @@ class PowersOfFiveTest {
     @ParameterizedTest
     @ValueSource(ints = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 13, 107, 503, 911, 1022, 1074})
     void shouldReturnProperValue(int exp) {
-        try (MemoryStack stack = MemoryStack.stackPush()) {
-            assertEquals(FIVE.pow(exp).toString(10), Unsigned.toString(PowersOfFive.valueOf(exp, stack)));
+        try (ScrapMemory scrap = ThreadScrapMemory.push()) {
+            assertEquals(
+                    FIVE.pow(exp).toString(10),
+                    Unsigned.toString(PowersOfFive.valueOf(exp, scrap), scrap)
+            );
         }
     }
 }

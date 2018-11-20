@@ -16,19 +16,20 @@
 
 package com.github.ykiselev.conversion;
 
+import com.github.ykiselev.memory.scrap.ByteArray;
+import com.github.ykiselev.memory.scrap.IntArray;
+import com.github.ykiselev.memory.scrap.ScrapMemory;
 import org.lwjgl.system.MemoryStack;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.Buffer;
-import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
 /**
  * Unsigned positive integer with arbitrary precision. Zero or negative values are not supported.
- * All methods are expected to be GC-free unless stated otherwise.
- * Values are stored in {@link IntBuffer} allocated using {@link MemoryStack} class. Each int in buffer holds a 9-digit number.
- * Integers are stored from least significant to most (i.e. {@code value.get(0)} will return least significant part).
+ * All methods are expected to be GC-free unless stated otherwise. Values are stored as an arrays of integers. Each integer
+ * in array holds a 9-digit number. Integers are stored from least significant to most.
  *
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
@@ -42,71 +43,69 @@ final class Unsigned {
 
     /**
      * @param value the value to store
-     * @param stack the stack to use for allocation
+     * @param scrap to use for allocation
      * @return the buffer with stored value
      */
-    static IntBuffer valueOf(int[] value, MemoryStack stack) {
+    static IntArray valueOf(int[] value, ScrapMemory scrap) {
         int i = value.length - 1;
         while (i > 0 && value[i] == 0) {
             i--;
         }
-        final IntBuffer buffer = stack.mallocInt(i + 1);
-        buffer.put(value, 0, i + 1);
-        buffer.flip();
-        return buffer;
+        final IntArray result = scrap.allocateInts(i + 1);
+        result.set(0, value, 0, i + 1);
+        return result;
     }
 
     /**
      * @param value the value to store.
-     * @param stack the memory stack to use for allocation.
+     * @param scrap to use for allocation.
      * @return the buffer with stored value
      */
-    static IntBuffer valueOf(long value, MemoryStack stack) {
+    static IntArray valueOf(long value, ScrapMemory scrap) {
         if (value <= 0) {
             throw new ArithmeticException("Value should be positive and greater than zero!");
         }
-        final IntBuffer buffer = stack.mallocInt(WORDS_PER_LONG);
+        final IntArray a = scrap.allocateInts(WORDS_PER_LONG);
         int i = 0;
-        for (; i < 4 && value > 0; i++) {
-            buffer.put((int) (value % BASE));
+        for (; i < WORDS_PER_LONG && value > 0; i++) {
+            a.set(i, (int) (value % BASE));
             value /= BASE;
         }
-        buffer.flip();
-        return buffer;
+        a.size(i);
+        return a;
     }
 
     /**
      * Converts supplied decimal string into big integer and stores it in {@link IntBuffer} allocated using supplied {@link MemoryStack}.
      *
      * @param v     the source decimal string (digits only, without extra characters).
-     * @param stack the memory stack to use for allocation.
+     * @param scrap to use for allocation.
      * @return the buffer with stored value.
      */
-    static IntBuffer valueOf(String v, MemoryStack stack) {
-        final IntBuffer buffer = stack.mallocInt((v.length() + 8) / 9);
-        for (int i = v.length(); i > 0; i -= 9) {
+    static IntArray valueOf(String v, ScrapMemory scrap) {
+        final IntArray a = scrap.allocateInts((v.length() + 8) / 9);
+        for (int i = v.length(), j = 0; i > 0; i -= 9) {
             if (i < 9) {
-                buffer.put(parseInt(v, 0, i));
+                a.set(j++, parseInt(v, 0, i));
             } else {
-                buffer.put(parseInt(v, i - 9, i));
+                a.set(j++, parseInt(v, i - 9, i));
             }
         }
-        stripExtraZeroes(buffer);
-        buffer.flip();
-        return buffer;
+        stripExtraZeroes(a);
+        return a;
     }
 
     /**
      * Strips extra zeroes starting from {@link Buffer#position()}. Note that passed buffer should be just filled, before calling {@link Buffer#flip()}
      *
-     * @param b the buffer to strip zeroes from
+     * @param a the buffer to strip zeroes from
      */
-    private static void stripExtraZeroes(IntBuffer b) {
-        int i = b.position() - 1;
-        while (i > 0 && b.get(i) == 0) {
+    private static void stripExtraZeroes(IntArray a) {
+        int i = a.size() - 1;
+        while (i > 0 && a.get(i) == 0) {
             i--;
         }
-        b.position(i + 1);
+        a.size(i + 1);
     }
 
     /**
@@ -138,29 +137,29 @@ final class Unsigned {
     /**
      * Multiplies supplied big integer value a by integer b.
      *
-     * @param a     the unsigned integer value.
+     * @param a     the unsigned integer value in array.
      * @param b     the short integer value greater than zero and less than {@link Unsigned#BASE}
-     * @param stack the stack to use for allocation.
+     * @param scrap to use for allocation.
      * @return the buffer with sored result.
      */
-    static IntBuffer multiply(IntBuffer a, int b, MemoryStack stack) {
+    static IntArray multiply(IntArray a, int b, ScrapMemory scrap) {
         if (b <= 0) {
             throw new ArithmeticException("Multiplier should be positive!");
         }
         if (b >= BASE) {
             throw new ArithmeticException("Multiplier should be smaller than base (" + BASE + ")");
         }
-        final int len = a.remaining();
-        final IntBuffer buffer = stack.callocInt(len + 1);
+        final int len = a.size();
+        final IntArray buffer = scrap.allocateInts(len + 1);
         long carry = 0;
-        for (int i = 0; i < len; i++) {
+        int i = 0;
+        for (; i < len; i++) {
             final long cur = carry + (a.get(i) & MASK) * b;
-            buffer.put((int) (cur % BASE));
+            buffer.set(i, (int) (cur % BASE));
             carry = cur / BASE;
         }
-        buffer.put((int) carry);
+        buffer.set(i, (int) carry);
         stripExtraZeroes(buffer);
-        buffer.flip();
         return buffer;
     }
 
@@ -169,33 +168,32 @@ final class Unsigned {
      *
      * @param a     the first operand (big integer).
      * @param v     the second operand.
-     * @param stack the stack to use for allocation.
+     * @param scrap to use for allocation.
      * @return the buffer with sored result.
      */
-    static IntBuffer multiply(IntBuffer a, long v, MemoryStack stack) {
+    static IntArray multiply(IntArray a, long v, ScrapMemory scrap) {
         if (v <= 0) {
             throw new ArithmeticException("Multiplier should be positive!");
         }
-        final int len = a.limit();
-        final IntBuffer buffer = stack.callocInt(len + WORDS_PER_LONG);
+        final int len = a.size();
+        final IntArray buffer = scrap.allocateInts(len + WORDS_PER_LONG);
+        buffer.fill(0);
         for (int i = 0; i < len; i++) {
             final long mine = a.get(i) & MASK;
             int carry = 0, j = 0;
             long vj = v;
             for (; vj > 0; j++) {
                 final long cur = buffer.get(i + j) + mine * (vj % BASE) + carry;
-                buffer.put(i + j, (int) (cur % BASE));
+                buffer.set(i + j, (int) (cur % BASE));
                 carry = (int) (cur / BASE);
                 vj /= BASE;
             }
             if (carry > 0) {
                 final long cur = buffer.get(i + j) + carry;
-                buffer.put(i + j, (int) (cur % BASE));
+                buffer.set(i + j, (int) (cur % BASE));
             }
         }
-        buffer.position(len + WORDS_PER_LONG);
         stripExtraZeroes(buffer);
-        buffer.flip();
         return buffer;
     }
 
@@ -206,55 +204,65 @@ final class Unsigned {
      * @param b the divisor.
      * @return the modified {@code a}
      */
-    static IntBuffer divide(IntBuffer a, int b) {
+    static IntArray divide(IntArray a, int b) {
         if (b <= 0) {
             throw new ArithmeticException("Divisor should be positive!");
         }
         if (b >= BASE) {
             throw new ArithmeticException("Divisor should be smaller than base (" + BASE + ")");
         }
-        final int len = a.remaining();
+        final int len = a.size();
         long carry = 0;
         for (int i = len - 1; i >= 0; i--) {
             final long cur = carry * BASE + (a.get(i) & MASK);
-            a.put(i, (int) (cur / b));
+            a.set(i, (int) (cur / b));
             carry = cur % b;
         }
-        a.position(len);
         stripExtraZeroes(a);
-        a.flip();
         return a;
     }
 
     /**
+     * Returns the maximum number of digits for array of such length. Note that actual number of digits in supplied array may be less.
+     *
+     * @param v the array
+     * @return the maximum number of digits for array of such length.
+     */
+    static int digits(IntArray v) {
+        // 32 bits per integer, 30 bit is needed for 9 nines number.
+        final int words = (v.size() * 32 + 29) / 30;
+        return words * 9;
+    }
+
+    /**
      * Converts supplied big integer value into sequence of digits. Each digit occupies one byte.
+     * todo - see optimization in java.text.DecimalFormat#collectIntegralDigits(int, char[], int)
      *
      * @param v     the big integer.
-     * @param stack the stack to use for memory allocations.
-     * @return the sequence of digits
+     * @param scrap to use for memory allocations.
+     * @return the number of digits written to {@code dest}
      */
-    static ByteBuffer toDigits(IntBuffer v, MemoryStack stack) {
-        final int last = v.remaining() - 1;
-        // 32 bits per integer, 30 bit is needed for 9 nines number.
-        final int words = (v.remaining() * 32 + 29) / 30;
-        final ByteBuffer buffer = stack.malloc(words * 9);
-        final ByteBuffer tmp = stack.calloc(9);
+    static ByteArray toDigits(IntArray v, ScrapMemory scrap) {
+        final int last = v.size() - 1;
+        final ByteArray buffer = scrap.allocate(digits(v));
+        final IntArray tmp = scrap.allocateInts(9);
+        int j = 0;
         for (int i = last; i >= 0; i--) {
             int part = v.get(i);
-            tmp.clear();
+            int digits = 0;
             for (int k = 0; k < 9; k++) {
                 final int digit = part % 10;
                 if (digit > 0 || part > 0 || i < last) {
-                    tmp.put((byte) ('0' + digit));
+                    tmp.set(k, '0' + digit);
+                    digits++;
                 }
                 part /= 10;
             }
-            tmp.flip();
-            for (int k = tmp.remaining() - 1; k >= 0; k--) {
-                buffer.put(tmp.get(k));
+            for (; digits > 0; digits--) {
+                buffer.set(j++, (byte) tmp.get(digits - 1));
             }
         }
-        buffer.flip();
+        buffer.size(j);
         return buffer;
     }
 
@@ -263,25 +271,25 @@ final class Unsigned {
      *
      * @param v          the big integer value to convet to string.
      * @param appendable the appendable to append string to.
-     * @param stack      the stack to use for memory allocations.
+     * @param scrap      the array mechanic
      */
-    static void append(IntBuffer v, Appendable appendable, MemoryStack stack) {
-        final int last = v.remaining() - 1;
-        final ByteBuffer tmp = stack.calloc(9);
+    static void append(IntArray v, Appendable appendable, ScrapMemory scrap) {
+        final int last = v.size() - 1;
+        final IntArray tmp = scrap.allocateInts(9);
         for (int i = last; i >= 0; i--) {
             int part = v.get(i);
-            tmp.clear();
+            int digits = 0;
             for (int k = 0; k < 9; k++) {
                 final int digit = part % 10;
                 if (digit > 0 || part > 0 || i < last) {
-                    tmp.put((byte) ('0' + digit));
+                    tmp.set(k, '0' + digit);
+                    digits++;
                 }
                 part /= 10;
             }
-            tmp.flip();
-            for (int k = tmp.remaining() - 1; k >= 0; k--) {
+            for (; digits > 0; digits--) {
                 try {
-                    appendable.append((char) tmp.get(k));
+                    appendable.append((char) tmp.get(digits - 1));
                 } catch (IOException e) {
                     throw new UncheckedIOException(e);
                 }
@@ -296,11 +304,9 @@ final class Unsigned {
      * @param v the big integer
      * @return the string representation
      */
-    static String toString(IntBuffer v) {
+    static String toString(IntArray v, ScrapMemory scrap) {
         final StringBuilder sb = new StringBuilder();
-        try (MemoryStack stack = MemoryStack.stackPush()) {
-            append(v, sb, stack);
-        }
+        append(v, sb, scrap);
         return sb.toString();
     }
 

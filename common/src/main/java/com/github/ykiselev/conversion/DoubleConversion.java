@@ -16,12 +16,13 @@
 
 package com.github.ykiselev.conversion;
 
-import org.lwjgl.system.MemoryStack;
+import com.github.ykiselev.memory.scrap.ByteArray;
+import com.github.ykiselev.memory.scrap.IntArray;
+import com.github.ykiselev.memory.scrap.ScrapMemory;
+import com.github.ykiselev.memory.scrap.ThreadScrapMemory;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
 
 /**
  * gc-free double to string conversion.
@@ -32,16 +33,15 @@ public final class DoubleConversion {
 
     private static final int EXP_MASK = 0x7ff;
 
-
     public static void append(double value, int precision, Appendable appendable) {
-        try (MemoryStack stack = MemoryStack.stackPush()) {
-            append(value, precision, appendable, stack);
+        try (ScrapMemory scrap = ThreadScrapMemory.push()) {
+            append(value, precision, appendable, scrap);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
     }
 
-    public static void append(double value, int precision, Appendable appendable, MemoryStack stack) throws IOException {
+    public static void append(double value, int precision, Appendable appendable, ScrapMemory scrap) throws IOException {
         final long bits = Double.doubleToRawLongBits(value);
         final int sign = (bits & 0x8000000000000000L) != 0 ? 1 : 0;
         final int biasedExponent = (int) ((bits >>> 52) & EXP_MASK);
@@ -71,10 +71,10 @@ public final class DoubleConversion {
             if (exp < 0) {
                 // 2^e == 5^(-e) * 10^e when e < 0
                 powerOfTen = exp - 52;
-                final IntBuffer tmp = PowersOfFive.valueOf(52 - exp, stack);
-                final IntBuffer result = Unsigned.multiply(tmp, f, stack);
-                final ByteBuffer digits = Unsigned.toDigits(result, stack);
-                int decimalPlaces = digits.remaining() + powerOfTen;
+                final IntArray tmp = PowersOfFive.valueOf(52 - exp, scrap);
+                final IntArray result = Unsigned.multiply(tmp, f, scrap);
+                final ByteArray digits = Unsigned.toDigits(result, scrap);
+                int decimalPlaces = digits.size() + powerOfTen;
                 if (decimalPlaces <= 0) {
                     appendable.append("0.");
                 }
@@ -84,15 +84,14 @@ public final class DoubleConversion {
                     decimalPlaces++;
                     p--;
                 }
-                if (p > digits.remaining()) {
-                    p = digits.remaining();
+                if (p > digits.size()) {
+                    p = digits.size();
                 }
                 while (p >= 1 && digits.get(p - 1) == '0') {
                     p--;
                 }
-                while (p > 0 && digits.hasRemaining()) {
-                    appendable.append((char) digits.get());
-                    p--;
+                for (int i = 0; p > 0 && i < digits.size(); i++, p--) {
+                    appendable.append((char) digits.get(i));
                 }
             } else {
                 //final long f = fraction + 1 << 53;

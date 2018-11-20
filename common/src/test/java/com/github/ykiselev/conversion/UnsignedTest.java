@@ -16,15 +16,17 @@
 
 package com.github.ykiselev.conversion;
 
+import com.github.ykiselev.memory.scrap.ByteArray;
+import com.github.ykiselev.memory.scrap.IntArray;
+import com.github.ykiselev.memory.scrap.ScrapMemory;
+import com.github.ykiselev.memory.scrap.ThreadScrapMemory;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.lwjgl.system.MemoryStack;
 
-import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -32,16 +34,20 @@ import java.nio.charset.StandardCharsets;
  */
 class UnsignedTest {
 
-    private final MemoryStack stack = MemoryStack.stackPush();
+    private ScrapMemory scrap;
+
+    @BeforeEach
+    void setUp() {
+        scrap = ThreadScrapMemory.push();
+    }
 
     @AfterEach
     void tearDown() {
-        stack.close();
+        scrap.pop();
     }
 
-
-    private void assertEquals(IntBuffer a, IntBuffer b) {
-        Assertions.assertEquals(Unsigned.toString(a), Unsigned.toString(b));
+    private void assertEquals(IntArray a, IntArray b) {
+        Assertions.assertEquals(Unsigned.toString(a, scrap), Unsigned.toString(b, scrap));
     }
 
     @ParameterizedTest
@@ -50,15 +56,10 @@ class UnsignedTest {
         Assertions.assertEquals(
                 expected,
                 Unsigned.toString(
-                        Unsigned.valueOf(expected, stack)
+                        Unsigned.valueOf(expected, scrap),
+                        scrap
                 )
         );
-    }
-
-    private String toString(IntBuffer v) {
-        final StringBuilder sb = new StringBuilder();
-        Unsigned.append(v, sb, stack);
-        return sb.toString();
     }
 
     @ParameterizedTest
@@ -66,14 +67,17 @@ class UnsignedTest {
     void shouldAppend(String expected) {
         Assertions.assertEquals(
                 expected,
-                toString(Unsigned.valueOf(expected, stack))
+                Unsigned.toString(
+                        Unsigned.valueOf(expected, scrap),
+                        scrap
+                )
         );
     }
 
-    private String toDigits(IntBuffer v) {
-        final ByteBuffer buffer = Unsigned.toDigits(v, stack);
-        final byte[] data = new byte[buffer.remaining()];
-        buffer.get(data);
+    private String toDigits(IntArray v) {
+        final ByteArray buffer = Unsigned.toDigits(v, scrap);
+        final byte[] data = new byte[buffer.size()];
+        buffer.get(0, data, 0, data.length);
         return new String(data, StandardCharsets.US_ASCII);
     }
 
@@ -82,83 +86,83 @@ class UnsignedTest {
     void shouldConvertToDigits(String expected) {
         Assertions.assertEquals(
                 expected,
-                toDigits(Unsigned.valueOf(expected, stack))
+                toDigits(Unsigned.valueOf(expected, scrap))
         );
     }
 
     @Test
     void shouldParse() {
         assertEquals(
-                Unsigned.valueOf(new int[]{890123456, 901234567, 12345678}, stack),
-                Unsigned.valueOf("12345678901234567890123456", stack)
+                Unsigned.valueOf(new int[]{890123456, 901234567, 12345678}, scrap),
+                Unsigned.valueOf("12345678901234567890123456", scrap)
         );
         assertEquals(
-                Unsigned.valueOf(new int[]{890123456, 1234567}, stack),
-                Unsigned.valueOf("1234567890123456", stack)
+                Unsigned.valueOf(new int[]{890123456, 1234567}, scrap),
+                Unsigned.valueOf("1234567890123456", scrap)
         );
         assertEquals(
-                Unsigned.valueOf(new int[]{123456789}, stack),
-                Unsigned.valueOf("000000000000123456789", stack)
+                Unsigned.valueOf(new int[]{123456789}, scrap),
+                Unsigned.valueOf("000000000000123456789", scrap)
         );
     }
 
     @Test
     void shouldCreate() {
         assertEquals(
-                Unsigned.valueOf(123456789, stack),
-                Unsigned.valueOf("123456789", stack)
+                Unsigned.valueOf(123456789, scrap),
+                Unsigned.valueOf("123456789", scrap)
         );
     }
 
     @Test
     void shouldMultiplyByInt() {
         assertEquals(
-                Unsigned.valueOf("15241578750190521", stack),
-                Unsigned.multiply(Unsigned.valueOf(123456789, stack), 123456789, stack)
+                Unsigned.valueOf("15241578750190521", scrap),
+                Unsigned.multiply(Unsigned.valueOf(123456789, scrap), 123456789, scrap)
         );
         assertEquals(
-                Unsigned.valueOf("2147483644852516353", stack),
-                Unsigned.multiply(Unsigned.valueOf(Integer.MAX_VALUE, stack), 999999999, stack)
+                Unsigned.valueOf("2147483644852516353", scrap),
+                Unsigned.multiply(Unsigned.valueOf(Integer.MAX_VALUE, scrap), 999999999, scrap)
         );
         assertEquals(
-                Unsigned.valueOf("9223372027631403770145224193", stack),
-                Unsigned.multiply(Unsigned.valueOf(Long.MAX_VALUE, stack), 999999999, stack)
+                Unsigned.valueOf("9223372027631403770145224193", scrap),
+                Unsigned.multiply(Unsigned.valueOf(Long.MAX_VALUE, scrap), 999999999, scrap)
         );
     }
 
     @Test
     void shouldMultiplyByLong() {
         assertEquals(
-                Unsigned.valueOf("12345678900000000", stack),
-                Unsigned.multiply(Unsigned.valueOf(1, stack), 12345678900000000L, stack)
+                Unsigned.valueOf("12345678900000000", scrap),
+                Unsigned.multiply(Unsigned.valueOf(1, scrap), 12345678900000000L, scrap)
         );
         assertEquals(
-                Unsigned.valueOf("12345678887654321100000000", stack),
-                Unsigned.multiply(Unsigned.valueOf(999999999, stack), 12345678900000000L, stack)
+                Unsigned.valueOf("12345678887654321100000000", scrap),
+                Unsigned.multiply(Unsigned.valueOf(999999999, scrap), 12345678900000000L, scrap)
         );
         assertEquals(
-                Unsigned.valueOf("85070591730234615847396907784232501249", stack),
-                Unsigned.multiply(Unsigned.valueOf(Long.MAX_VALUE, stack), Long.MAX_VALUE, stack)
+                Unsigned.valueOf("85070591730234615847396907784232501249", scrap),
+                Unsigned.multiply(Unsigned.valueOf(Long.MAX_VALUE, scrap), Long.MAX_VALUE, scrap)
         );
     }
 
     @Test
     void shouldDivideByInt() {
         assertEquals(
-                Unsigned.valueOf("123456789", stack),
-                Unsigned.divide(Unsigned.valueOf(123456789L, stack), 1)
+                Unsigned.valueOf("123456789", scrap),
+                Unsigned.divide(Unsigned.valueOf(123456789L, scrap), 1)
         );
         assertEquals(
-                Unsigned.valueOf("123456789", stack),
-                Unsigned.divide(Unsigned.valueOf(123456789000L, stack), 1_000)
+                Unsigned.valueOf("123456789", scrap),
+                Unsigned.divide(Unsigned.valueOf(123456789000L, scrap), 1_000)
         );
         assertEquals(
-                Unsigned.valueOf("246913577753", stack),
-                Unsigned.divide(Unsigned.valueOf("1234567888765432110", stack), 5_000_000)
+                Unsigned.valueOf("246913577753", scrap),
+                Unsigned.divide(Unsigned.valueOf("1234567888765432110", scrap), 5_000_000)
         );
         assertEquals(
-                Unsigned.valueOf("255467242433136984526717440793490994", stack),
-                Unsigned.divide(Unsigned.valueOf("85070591730234615847396907784232501249", stack), 333)
+                Unsigned.valueOf("255467242433136984526717440793490994", scrap),
+                Unsigned.divide(Unsigned.valueOf("85070591730234615847396907784232501249", scrap), 333)
         );
     }
 }

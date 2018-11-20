@@ -16,15 +16,17 @@
 
 package com.github.ykiselev.conversion;
 
+import com.github.ykiselev.memory.scrap.IntArray;
+import com.github.ykiselev.memory.scrap.ScrapMemory;
+import com.github.ykiselev.memory.scrap.ThreadScrapMemory;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.lwjgl.system.MemoryStack;
 
 import java.math.BigDecimal;
-import java.nio.IntBuffer;
+import java.text.NumberFormat;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
@@ -71,11 +73,18 @@ class DoubleConversionTest {
     }
 
     @ParameterizedTest
-    @ValueSource(doubles = {Double.NaN, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY, 0, -0.0, 0.1, 0.001, 0.2, 0.333, 1e-5, 1e-123, Double.MIN_VALUE})
+    @ValueSource(doubles = {Double.NaN, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY, 0,
+            // negative exponents
+            -0.0, 0.1, 0.001, 0.2, 0.333, 1e-5, 1e-123, Double.MIN_VALUE,
+            // positive exponents
+            1, 5, 1000, Double.MAX_VALUE
+    })
     void shouldConvert(double value) {
         final StringBuilder sb = new StringBuilder();
         DoubleConversion.append(value, 6, sb);
-        Assertions.assertEquals(Double.toString(value), sb.toString());
+        String v = Double.toString(value);
+        String v2 = String.format("%.6f", value);
+        Assertions.assertEquals(v, sb.toString());
     }
 
     @Test
@@ -88,21 +97,49 @@ class DoubleConversionTest {
             num = num.multiply(five);
             if (i % 10 == 0) {
                 final String s = num.toPlainString();
-                try (MemoryStack stack = MemoryStack.stackPush()) {
-                    final IntBuffer buffer = Unsigned.valueOf(s, stack);
-                    Assertions.assertEquals(s, Unsigned.toString(buffer));
+                try (ScrapMemory scrap = ThreadScrapMemory.push()) {
+                    final IntArray buffer = Unsigned.valueOf(s, scrap);
+                    Assertions.assertEquals(s, Unsigned.toString(buffer, scrap));
                     sb.append('{');
-                    for (int k = 0; k < buffer.limit(); k++) {
+                    for (int k = 0; k < buffer.size(); k++) {
                         sb.append(buffer.get(k));
-                        if (k < buffer.limit() - 1) {
+                        if (k < buffer.size() - 1) {
                             sb.append(',');
                         }
                     }
                     sb.append("}, // ").append(i).append("\n");
-
                 }
             }
         }
         System.out.println(sb);
+    }
+
+    private String toStr(int num) {
+        final char[] tmp = new char[16];
+        int r, index = tmp.length - 1;
+        while (num > 999) {
+            final int q = num / 1000;
+            // -1024 +16 +8 = 1000. todo - ???
+            r = num - (q << 10) + (q << 4) + (q << 3);
+            num = q;
+
+            tmp[index--] = (char) ('0' + r % 10);
+            tmp[index--] = (char) ('0' + (r / 10) % 10);
+            tmp[index--] = (char) ('0' + (r / 100) % 10);
+        }
+        tmp[index] = (char) ('0' + num % 10);
+        if (num > 9) {
+            tmp[--index] = (char) ('0' + (num / 10) % 10);
+            if (num > 99) {
+                tmp[--index] = (char) ('0' + (num / 100) % 10);
+            }
+        }
+        return new String(tmp, index, tmp.length - index);
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {0, 1, 2, 5, 7, 10, 50, 100, 178, 534, 1000, 1024, 2048, 88889})
+    void checkOpt(int num) {
+        Assertions.assertEquals(Integer.toUnsignedString(num), toStr(num));
     }
 }
