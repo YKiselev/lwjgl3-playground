@@ -38,7 +38,7 @@ public final class ScrapMemory implements AutoCloseable {
      */
     public ScrapMemory(int byteSize, int intSize) {
         this.byteArrayScrap = new ByteArrayScrap(byteSize * 1024);
-        this.intArrayScrap = new IntArrayScrap(intSize * 1024);
+        this.intArrayScrap = IntArray.createScrap(intSize * 1024);
         this.scraps = new Scrap[]{byteArrayScrap, intArrayScrap};
     }
 
@@ -50,6 +50,9 @@ public final class ScrapMemory implements AutoCloseable {
         return byteArrayScrap.allocate(size);
     }
 
+    /**
+     * Starts new "stack" frame.
+     */
     @SuppressWarnings({"ForLoopReplaceableByForEach"})
     public void push() {
         for (int i = 0; i < scraps.length; i++) {
@@ -57,6 +60,9 @@ public final class ScrapMemory implements AutoCloseable {
         }
     }
 
+    /**
+     * Ends current "stack" frame
+     */
     @SuppressWarnings({"ForLoopReplaceableByForEach"})
     public void pop() {
         for (int i = 0; i < scraps.length; i++) {

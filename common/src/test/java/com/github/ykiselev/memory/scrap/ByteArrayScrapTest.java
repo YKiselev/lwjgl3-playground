@@ -20,6 +20,9 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
@@ -127,5 +130,29 @@ class ByteArrayScrapTest {
         assertEquals(2, a.get(1));
         assertEquals(3, a.get(2));
         assertEquals(7, a2.get(0));
+    }
+
+    @Test
+    void performance() {
+        final int elements = 8;
+        final int[] indices = new int[elements];
+        for (int i = 0; i < elements; i++) {
+            indices[i] = ThreadLocalRandom.current().nextInt(0, elements);
+        }
+        long hash = 0;
+        long t0 = System.nanoTime();
+        for (long c = 0; c < 100_000_000; c++) {
+            scrap.push();
+            ByteArray a = scrap.allocate(elements);
+            for (int i = 0; i < elements; i++) {
+                a.set(i, (byte) ((c ^ i) & 0xffL));
+            }
+            int idx = indices[(int) (c % elements)];
+            hash += a.get(idx);
+            scrap.pop();
+        }
+        long t1 = System.nanoTime();
+        System.out.println(TimeUnit.NANOSECONDS.toMillis(t1 - t0) + " ms");
+        System.out.println(hash);
     }
 }

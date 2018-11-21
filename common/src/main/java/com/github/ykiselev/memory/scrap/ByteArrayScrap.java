@@ -54,7 +54,7 @@ final class ByteArrayScrap extends Scrap<ByteArray> {
     }
 
     private int reserve(int size) {
-        final int newOffset = inc(offset, size);
+        final int newOffset = ix(offset, size);
         if (newOffset > buffer.length) {
             throw new IllegalArgumentException("Not enough space!");
         }
@@ -64,16 +64,12 @@ final class ByteArrayScrap extends Scrap<ByteArray> {
         return result;
     }
 
-    private static int inc(int offset, int size) {
-        return offset + Integer.BYTES + size;
-    }
-
     private static int ix(int array) {
         return array;
     }
 
-    private static int ix(int array, int index) {
-        return array + Integer.BYTES + index;
+    private static int ix(int offset, int index) {
+        return offset + Integer.BYTES + index;
     }
 
     @Override
@@ -103,12 +99,12 @@ final class ByteArrayScrap extends Scrap<ByteArray> {
             }
             final int ix = ix(array);
             final int prevSize = size();
-            if (offset != inc(ix, prevSize)) {
+            if (offset != ix(ix, prevSize)) {
                 if (value > prevSize) {
                     throw new IllegalArgumentException("Only last array can be resized up!");
                 }
             } else {
-                offset = inc(ix, value);
+                offset = ix(ix, value);
             }
             VHI.set(buffer, ix, value);
         }

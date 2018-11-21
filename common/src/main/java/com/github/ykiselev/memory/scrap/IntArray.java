@@ -16,31 +16,126 @@
 
 package com.github.ykiselev.memory.scrap;
 
+import java.util.Arrays;
+import java.util.Objects;
+
+import static java.util.Objects.requireNonNull;
+
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public interface IntArray {
+public final class IntArray {
 
-    int size();
+    private final IntArrayScrap owner;
+
+    private int array = Integer.MAX_VALUE;
+
+    private IntArray(IntArrayScrap owner) {
+        this.owner = requireNonNull(owner);
+    }
+
+    private static int ix(int offset, int index) {
+        return offset + 1 + index;
+    }
+
+    private static int ix(int array) {
+        return array;
+    }
+
+    public int size() {
+        return owner.buffer[ix(array)];
+    }
 
     /**
      * Resizes the array. Note that only the last array can be resized up.
      *
      * @param value the new length
      */
-    void size(int value);
+    public void size(int value) {
+        if (value < 0) {
+            throw new IllegalArgumentException("Array length cannot be negative: " + value);
+        }
+        owner.resize(array, value);
+    }
 
-    void set(int index, int value);
+    public void set(int index, int value) {
+        owner.buffer[ix(array, index)] = value;
+    }
 
-    int get(int index);
+    public int get(int index) {
+        return owner.buffer[ix(array, index)];
+    }
 
-    void set(int fromIndex, int[] src, int srcFromIndex, int length);
+    public void set(int fromIndex, int[] src, int srcFromIndex, int length) {
+        System.arraycopy(src, srcFromIndex, owner.buffer, ix(array, fromIndex), length);
+    }
 
-    void get(int fromIndex, int[] dest, int destFromIndex, int length);
+    public void get(int fromIndex, int[] dest, int destFromIndex, int length) {
+        System.arraycopy(owner.buffer, ix(array, fromIndex), dest, destFromIndex, length);
+    }
 
-    void fill(int fromIndex, int toIndex, int value);
+    public void fill(int fromIndex, int toIndex, int value) {
+        Arrays.fill(owner.buffer, ix(array, fromIndex), ix(array, toIndex), value);
+    }
 
-    default void fill(int value) {
+    public void fill(int value) {
         fill(0, size(), value);
+    }
+
+    static Scrap<IntArray> createScrap(int size) {
+        return new IntArrayScrap(size);
+    }
+
+    private static final class IntArrayScrap extends Scrap<IntArray> {
+
+        private final int[] buffer;
+
+        private int offset;
+
+        IntArrayScrap(int size) {
+            this.buffer = new int[size];
+        }
+
+        @Override
+        IntArray allocate(IntArray reuse, int size) {
+            final int reserved = reserve(size);
+            final IntArray instance = Objects.requireNonNullElseGet(reuse, () -> new IntArray(this));
+            instance.array = reserved;
+            return instance;
+        }
+
+        private int reserve(int size) {
+            final int newOffset = ix(offset, size);
+            if (newOffset > buffer.length) {
+                throw new IllegalArgumentException("Not enough space!");
+            }
+            final int result = offset;
+            buffer[offset] = size;
+            offset = newOffset;
+            return result;
+        }
+
+        private void resize(int array, int value) {
+            final int ix = ix(array);
+            final int prevSize = buffer[ix];
+            if (offset != ix(ix, prevSize)) {
+                if (value > prevSize) {
+                    throw new IllegalArgumentException("Only last array can be resized up!");
+                }
+            } else {
+                offset = ix(offset, value);
+            }
+            buffer[ix] = value;
+        }
+
+        @Override
+        void onPop(IntArray item) {
+            final int ix = ix(item.array);
+            if (ix > offset) {
+                throw new IllegalStateException("Invalid array : ix=" + ix + ", offset=" + offset);
+            }
+            item.array = Integer.MAX_VALUE;
+            offset = ix;
+        }
     }
 }

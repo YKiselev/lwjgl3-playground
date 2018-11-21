@@ -17,30 +17,17 @@
 package com.github.ykiselev.memory.scrap;
 
 /**
+ * Thread local holder of instance of {@link ScrapMemory}.
+ * Note: it is user's responsibility to set instance of {@link ScrapMemory} prior to calling {@link ThreadScrapMemory#push()}!
+ *
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
 public final class ThreadScrapMemory {
 
-    public static final String BYTE_ARRAY__SIZE = "scrap.memory.byteArraySize";
+    private static final ThreadLocal<ScrapMemory> TLS = new ThreadLocal<>();
 
-    public static final String INT_ARRAY__SIZE = "scrap.memory.intArraySize";
-
-    private static final ThreadLocal<ScrapMemory> TLS = ThreadLocal.withInitial(ThreadScrapMemory::newInstance);
-
-    private static ScrapMemory newInstance() {
-        return new ScrapMemory(
-                getSize(BYTE_ARRAY__SIZE, 32),
-                getSize(INT_ARRAY__SIZE, 32)
-        );
-    }
-
-    private static int getSize(String name, int defValue) {
-        final String property = System.getProperty(name);
-        int result = defValue;
-        if (property != null) {
-            result = Integer.parseUnsignedInt(property);
-        }
-        return result * 1024;
+    public static void set(ScrapMemory scrap){
+        TLS.set(scrap);
     }
 
     /**
@@ -51,6 +38,9 @@ public final class ThreadScrapMemory {
      */
     public static ScrapMemory push() {
         final ScrapMemory result = TLS.get();
+        if (result == null) {
+            throw new IllegalStateException("You should set instance of " + ScrapMemory.class.getSimpleName() + " before using it!");
+        }
         result.push();
         return result;
     }

@@ -33,15 +33,15 @@ abstract class Scrap<T> {
 
     private int depth;
 
-    int free() {
+    final int free() {
         return free.size();
     }
 
-    int allocated() {
+    final int allocated() {
         return allocated.size();
     }
 
-    int depth() {
+    final int depth() {
         return depth;
     }
 
