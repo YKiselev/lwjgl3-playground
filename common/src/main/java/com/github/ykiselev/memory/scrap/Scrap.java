@@ -53,21 +53,23 @@ abstract class Scrap<T> {
         if (depth == 0) {
             throw new IllegalStateException("Call push method first!");
         }
-        final T existing;
-        if (!free.isEmpty()) {
-            existing = free.remove(free.size() - 1);
-        } else {
-            existing = null;
-        }
-        final T result = allocate(existing, size);
+        final T result = allocate(getFree(), size);
         allocated.add(result);
         return result;
     }
 
-    final void push() {
+    private T getFree() {
+        return free.isEmpty() ? null : free.remove(free.size() - 1);
+    }
+
+    private void ensureStackSize() {
         if (depth + 1 == stack.length) {
             stack = Arrays.copyOf(stack, stack.length * 2);
         }
+    }
+
+    final void push() {
+        ensureStackSize();
         stack[depth++] = allocated.size();
     }
 
@@ -75,12 +77,16 @@ abstract class Scrap<T> {
         if (depth <= 0) {
             throw new IllegalStateException("Nothing to pop!");
         }
-        final int popFrom = stack[--depth];
+        final int downTo = stack[--depth];
         stack[depth] = 0;
-        if (popFrom > allocated.size()) {
+        if (downTo > allocated.size()) {
             throw new IllegalStateException("Unable to pop!");
         }
-        for (int i = allocated.size() - 1; i >= popFrom; i--) {
+        freeAllocated(downTo);
+    }
+
+    private void freeAllocated(int downTo){
+        for (int i = allocated.size() - 1; i >= downTo; i--) {
             final T item = allocated.remove(i);
             free.add(item);
             onPop(item);

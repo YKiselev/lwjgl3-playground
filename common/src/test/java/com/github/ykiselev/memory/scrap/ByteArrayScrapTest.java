@@ -18,6 +18,7 @@ package com.github.ykiselev.memory.scrap;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -133,6 +134,7 @@ class ByteArrayScrapTest {
     }
 
     @Test
+    @Disabled
     void performance() {
         final int elements = 8;
         final int[] indices = new int[elements];
