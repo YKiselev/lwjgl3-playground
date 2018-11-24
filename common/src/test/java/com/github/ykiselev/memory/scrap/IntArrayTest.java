@@ -30,22 +30,22 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-class IntArrayTest {
+public class IntArrayTest {
 
     private final Scrap<IntArray> scrap = IntArray.createScrap(1024);
 
     @BeforeEach
-    void setUp() {
+    public void setUp() {
         scrap.push();
     }
 
     @AfterEach
-    void tearDown() {
+    public void tearDown() {
         scrap.pop();
     }
 
     @Test
-    void shouldAllocate() {
+    public void shouldAllocate() {
         IntArray a1 = scrap.allocate(5);
         assertNotEquals(0, a1);
         assertEquals(5, a1.size());
@@ -54,7 +54,7 @@ class IntArrayTest {
     }
 
     @Test
-    void shouldFill() {
+    public void shouldFill() {
         IntArray a1 = scrap.allocate(1);
         IntArray a2 = scrap.allocate(2);
         IntArray a3 = scrap.allocate(1);
@@ -75,7 +75,7 @@ class IntArrayTest {
     }
 
     @Test
-    void shouldResizeUp() {
+    public void shouldResizeUp() {
         IntArray a = scrap.allocate(3);
         a.set(0, 1);
         a.set(1, 2);
@@ -96,7 +96,7 @@ class IntArrayTest {
     }
 
     @Test
-    void shouldResizeDown() {
+    public void shouldResizeDown() {
         IntArray a = scrap.allocate(3);
         a.set(0, 1);
         a.set(1, 2);
@@ -117,7 +117,7 @@ class IntArrayTest {
 
     @Test
     @Disabled
-    void performance() {
+    public void performance() {
         final int elements = 8;
         final int[] indices = new int[elements];
         for (int i = 0; i < elements; i++) {

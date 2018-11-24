@@ -29,26 +29,26 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-class ArrayCircularBufferTest {
+public class ArrayCircularBufferTest {
 
     @Nested
-    class WhenSingleElementBuffer {
+    public class WhenSingleElementBuffer {
 
         CircularBuffer<String> buffer = new ArrayCircularBuffer<>(String.class, 1);
 
         @Test
-        void readShouldFailIfEmpty() {
+        public void readShouldFailIfEmpty() {
             assertThrows(NoSuchElementException.class, buffer::read);
         }
 
         @Test
-        void shouldBeEmptyIfZeroSize() {
+        public void shouldBeEmptyIfZeroSize() {
             assertEquals(0, buffer.count());
             assertTrue(buffer.isEmpty());
         }
 
         @Test
-        void shouldWriteAndRead() {
+        public void shouldWriteAndRead() {
             buffer.write("abc");
             assertEquals(1, buffer.count());
             assertEquals("abc", buffer.read());
@@ -56,7 +56,7 @@ class ArrayCircularBufferTest {
         }
 
         @Test
-        void shouldWriteManyTimesAndRead() {
+        public void shouldWriteManyTimesAndRead() {
             buffer.write("a");
             assertEquals("a", buffer.read());
             buffer.write("b");
@@ -68,7 +68,7 @@ class ArrayCircularBufferTest {
         }
 
         @Test
-        void shouldGet() {
+        public void shouldGet() {
             buffer.write("a");
             assertEquals("a", buffer.get(0));
             buffer.write("b");
@@ -80,23 +80,23 @@ class ArrayCircularBufferTest {
     }
 
     @Nested
-    class WhenThreeElementBuffer {
+    public class WhenThreeElementBuffer {
 
         CircularBuffer<String> buffer = new ArrayCircularBuffer<>(String.class, 3);
 
         @Test
-        void readShouldFailIfEmpty() {
+        public void readShouldFailIfEmpty() {
             assertThrows(NoSuchElementException.class, buffer::read);
         }
 
         @Test
-        void shouldBeEmptyIfZeroSize() {
+        public void shouldBeEmptyIfZeroSize() {
             assertEquals(0, buffer.count());
             assertTrue(buffer.isEmpty());
         }
 
         @Test
-        void shouldWriteAndRead() {
+        public void shouldWriteAndRead() {
             buffer.write("a");
             buffer.write("b");
             buffer.write("c");
@@ -110,7 +110,7 @@ class ArrayCircularBufferTest {
         }
 
         @Test
-        void shouldClear() {
+        public void shouldClear() {
             buffer.write("a");
             buffer.write("b");
             buffer.write("c");
@@ -120,7 +120,7 @@ class ArrayCircularBufferTest {
         }
 
         @Test
-        void shouldIterate() {
+        public void shouldIterate() {
             buffer.write("a");
             buffer.write("b");
             buffer.write("c");
@@ -128,7 +128,7 @@ class ArrayCircularBufferTest {
         }
 
         @Test
-        void shouldCopyTo() {
+        public void shouldCopyTo() {
             String[] dest = new String[3];
             buffer.write("a");
             assertEquals(1, buffer.copyTo(dest));
@@ -160,7 +160,7 @@ class ArrayCircularBufferTest {
         }
 
         @Test
-        void shouldGet() {
+        public void shouldGet() {
             buffer.write("a");
             assertEquals("a", buffer.get(0));
 

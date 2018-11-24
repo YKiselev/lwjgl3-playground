@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-class TriggerTest {
+public class TriggerTest {
 
     private final AtomicInteger flipped = new AtomicInteger();
 
@@ -37,7 +37,7 @@ class TriggerTest {
     );
 
     @Test
-    void shouldSwitchOn() {
+    public void shouldSwitchOn() {
         trigger.value(true);
         trigger.value(true);
         assertEquals(1, flipped.get());
@@ -45,7 +45,7 @@ class TriggerTest {
     }
 
     @Test
-    void shouldSwitchOff() {
+    public void shouldSwitchOff() {
         trigger.value(false);
         trigger.value(false);
         assertEquals(0, flipped.get());
@@ -53,7 +53,7 @@ class TriggerTest {
     }
 
     @Test
-    void shouldSwitchOnOff() {
+    public void shouldSwitchOnOff() {
         trigger.value(true);
         trigger.value(false);
         trigger.value(true);

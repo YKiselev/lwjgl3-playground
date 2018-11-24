@@ -33,12 +33,12 @@ import static org.mockito.Mockito.verify;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-class WiredValuesTest {
+public class WiredValuesTest {
 
     private final PersistedConfiguration cfg = mock(PersistedConfiguration.class);
 
     @Test
-    void shouldWireIntAndCheckForOverflow() {
+    public void shouldWireIntAndCheckForOverflow() {
         final AtomicInteger value = new AtomicInteger();
         new WiredValues(cfg)
                 .withInt("a", () -> 1, value::set, false, LongFormat.DECIMAL)

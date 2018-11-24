@@ -39,10 +39,10 @@ import static org.mockito.Mockito.when;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-class LazyTest {
+public class LazyTest {
 
     @Test
-    void shouldInitOnce() {
+    public void shouldInitOnce() {
         Supplier<String> delegate = Mockito.mock(Supplier.class);
         when(delegate.get()).thenReturn("x");
         Supplier<String> lazy = Lazy.of(delegate);
@@ -53,7 +53,7 @@ class LazyTest {
     }
 
     @Test
-    void shouldInitIntOnce() {
+    public void shouldInitIntOnce() {
         IntSupplier delegate = Mockito.mock(IntSupplier.class);
         when(delegate.getAsInt()).thenReturn(5);
         IntSupplier lazy = Lazy.of(delegate);
@@ -64,7 +64,7 @@ class LazyTest {
     }
 
     @Test
-    void shouldInitLongOnce() {
+    public void shouldInitLongOnce() {
         LongSupplier delegate = Mockito.mock(LongSupplier.class);
         when(delegate.getAsLong()).thenReturn(15L);
         LongSupplier lazy = Lazy.of(delegate);
@@ -75,7 +75,7 @@ class LazyTest {
     }
 
     @Test
-    void shouldInitDoubleOnce() {
+    public void shouldInitDoubleOnce() {
         DoubleSupplier delegate = Mockito.mock(DoubleSupplier.class);
         when(delegate.getAsDouble()).thenReturn(3.14);
         DoubleSupplier lazy = Lazy.of(delegate);
@@ -86,7 +86,7 @@ class LazyTest {
     }
 
     @Test
-    void shouldInitBooleanOnce() {
+    public void shouldInitBooleanOnce() {
         BooleanSupplier delegate = Mockito.mock(BooleanSupplier.class);
         when(delegate.getAsBoolean()).thenReturn(true);
         BooleanSupplier lazy = Lazy.of(delegate);
@@ -108,7 +108,7 @@ class LazyTest {
     }
 
     @Test
-    void shouldBeThreadSafe() throws Exception {
+    public void shouldBeThreadSafe() throws Exception {
         AtomicLong counter = new AtomicLong();
         Supplier<Long> lazy = Lazy.sync((Supplier<Long>) counter::incrementAndGet);
         runParallel(lazy, v -> v == 1L);
@@ -116,7 +116,7 @@ class LazyTest {
     }
 
     @Test
-    void intShouldBeThreadSafe() throws Exception {
+    public void intShouldBeThreadSafe() throws Exception {
         AtomicInteger counter = new AtomicInteger();
         IntSupplier lazy = Lazy.sync(counter::incrementAndGet);
         runParallel(lazy::getAsInt, v -> v == 1);
@@ -124,7 +124,7 @@ class LazyTest {
     }
 
     @Test
-    void longShouldBeThreadSafe() throws Exception {
+    public void longShouldBeThreadSafe() throws Exception {
         AtomicLong counter = new AtomicLong();
         LongSupplier lazy = Lazy.sync(counter::incrementAndGet);
         runParallel(lazy::getAsLong, v -> v == 1L);
@@ -132,7 +132,7 @@ class LazyTest {
     }
 
     @Test
-    void doubleShouldBeThreadSafe() throws Exception {
+    public void doubleShouldBeThreadSafe() throws Exception {
         AtomicInteger counter = new AtomicInteger();
         DoubleSupplier lazy = Lazy.sync((DoubleSupplier) counter::incrementAndGet);
         runParallel(lazy::getAsDouble, v -> v == 1.0);
@@ -140,7 +140,7 @@ class LazyTest {
     }
 
     @Test
-    void booleanShouldBeThreadSafe() throws Exception {
+    public void booleanShouldBeThreadSafe() throws Exception {
         AtomicLong counter = new AtomicLong();
         BooleanSupplier lazy = Lazy.sync(() -> (counter.incrementAndGet() & 1) != 0);
         runParallel(lazy::getAsBoolean, v -> v);

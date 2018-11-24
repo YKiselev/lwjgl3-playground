@@ -27,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-class SimpleNodeListTest {
+public class SimpleNodeListTest {
 
     private final NodeList<ImmutableNode<Integer>> ints = new SimpleNodeList<>();
 
@@ -46,7 +46,7 @@ class SimpleNodeListTest {
     }
 
     @Test
-    void shouldAddFirst() {
+    public void shouldAddFirst() {
         final ImmutableNode<Integer> n1 = ints.addFirst(node(1));
         ints.addFirst(node(2));
         final ImmutableNode<Integer> n3 = ints.addFirst(node(3));
@@ -56,7 +56,7 @@ class SimpleNodeListTest {
     }
 
     @Test
-    void shouldAddLast() {
+    public void shouldAddLast() {
         final ImmutableNode<Integer> n1 = ints.addLast(node(1));
         ints.addLast(node(2));
         final ImmutableNode<Integer> n3 = ints.addLast(node(3));
@@ -66,7 +66,7 @@ class SimpleNodeListTest {
     }
 
     @Test
-    void shouldRemove() {
+    public void shouldRemove() {
         final ImmutableNode<Integer> n1 = ints.addLast(node(1));
         final ImmutableNode<Integer> n2 = ints.addLast(node(2));
         final ImmutableNode<Integer> n3 = ints.addLast(node(3));
@@ -81,7 +81,7 @@ class SimpleNodeListTest {
     }
 
     @Test
-    void shouldClear() {
+    public void shouldClear() {
         ints.addLast(node(1));
         ints.addLast(node(2));
         ints.addLast(node(3));

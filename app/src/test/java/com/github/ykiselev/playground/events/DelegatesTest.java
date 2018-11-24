@@ -35,10 +35,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-class DelegatesTest {
+public class DelegatesTest {
 
     @Test
-    void shouldAddAndRemove() throws Exception {
+    public void shouldAddAndRemove() throws Exception {
         final Delegates<String> array = new Delegates<>(new String[0]);
         AutoCloseable c1 = array.add("a");
         AutoCloseable c2 = array.add("b");
@@ -53,7 +53,7 @@ class DelegatesTest {
     }
 
     @RepeatedTest(100)
-    void shouldBeThreadSafe() throws Exception {
+    public void shouldBeThreadSafe() throws Exception {
         final Delegates<Integer> array = new Delegates<>(new Integer[0]);
         final AtomicInteger seq = new AtomicInteger();
         final AtomicLong counter = new AtomicLong();

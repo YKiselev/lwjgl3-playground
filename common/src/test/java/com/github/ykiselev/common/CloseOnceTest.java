@@ -25,10 +25,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-class CloseOnceTest {
+public class CloseOnceTest {
 
     @Test
-    void shouldCloseOnce() throws Exception {
+    public void shouldCloseOnce() throws Exception {
         final AutoCloseable closeable = Mockito.mock(AutoCloseable.class);
         final CloseOnce once = new CloseOnce(closeable);
         assertFalse(once.isClosed());

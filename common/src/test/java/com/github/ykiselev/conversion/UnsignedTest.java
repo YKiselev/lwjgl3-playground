@@ -19,7 +19,6 @@ package com.github.ykiselev.conversion;
 import com.github.ykiselev.memory.scrap.ByteArray;
 import com.github.ykiselev.memory.scrap.IntArray;
 import com.github.ykiselev.memory.scrap.ScrapMemory;
-import com.github.ykiselev.memory.scrap.ThreadScrapMemory;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,17 +31,17 @@ import java.nio.charset.StandardCharsets;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-class UnsignedTest {
+public class UnsignedTest {
 
     private ScrapMemory scrap;
 
     @BeforeEach
-    void setUp() {
-        scrap = ThreadScrapMemory.push();
+    public void setUp() {
+        scrap = new ScrapMemory(64, 64).push();
     }
 
     @AfterEach
-    void tearDown() {
+    public void tearDown() {
         scrap.pop();
     }
 
@@ -52,7 +51,7 @@ class UnsignedTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"390625", "1220703125"})
-    void shouldConvertToString(String expected) {
+    public void shouldConvertToString(String expected) {
         Assertions.assertEquals(
                 expected,
                 Unsigned.toString(
@@ -64,7 +63,7 @@ class UnsignedTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"390625", "1220703125", "123000456000789000112233000000445566000000778899000000"})
-    void shouldAppend(String expected) {
+    public void shouldAppend(String expected) {
         Assertions.assertEquals(
                 expected,
                 Unsigned.toString(
@@ -83,7 +82,7 @@ class UnsignedTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"390625", "1220703125", "123000456000789000112233000000445566000000778899000000"})
-    void shouldConvertToDigits(String expected) {
+    public void shouldConvertToDigits(String expected) {
         Assertions.assertEquals(
                 expected,
                 toDigits(Unsigned.valueOf(expected, scrap))
@@ -91,7 +90,7 @@ class UnsignedTest {
     }
 
     @Test
-    void shouldParse() {
+    public void shouldParse() {
         assertEquals(
                 Unsigned.valueOf(new int[]{890123456, 901234567, 12345678}, scrap),
                 Unsigned.valueOf("12345678901234567890123456", scrap)
@@ -107,7 +106,7 @@ class UnsignedTest {
     }
 
     @Test
-    void shouldCreate() {
+    public void shouldCreate() {
         assertEquals(
                 Unsigned.valueOf(123456789, scrap),
                 Unsigned.valueOf("123456789", scrap)
@@ -115,7 +114,7 @@ class UnsignedTest {
     }
 
     @Test
-    void shouldMultiplyByInt() {
+    public void shouldMultiplyByInt() {
         assertEquals(
                 Unsigned.valueOf("15241578750190521", scrap),
                 Unsigned.multiply(Unsigned.valueOf(123456789, scrap), 123456789, scrap)
@@ -131,7 +130,7 @@ class UnsignedTest {
     }
 
     @Test
-    void shouldMultiplyByLong() {
+    public void shouldMultiplyByLong() {
         assertEquals(
                 Unsigned.valueOf("12345678900000000", scrap),
                 Unsigned.multiply(Unsigned.valueOf(1, scrap), 12345678900000000L, scrap)
@@ -147,7 +146,7 @@ class UnsignedTest {
     }
 
     @Test
-    void shouldDivideByInt() {
+    public void shouldDivideByInt() {
         assertEquals(
                 Unsigned.valueOf("123456789", scrap),
                 Unsigned.divide(Unsigned.valueOf(123456789L, scrap), 1)

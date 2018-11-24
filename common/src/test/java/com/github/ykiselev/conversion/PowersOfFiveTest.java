@@ -17,7 +17,6 @@
 package com.github.ykiselev.conversion;
 
 import com.github.ykiselev.memory.scrap.ScrapMemory;
-import com.github.ykiselev.memory.scrap.ThreadScrapMemory;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -28,14 +27,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-class PowersOfFiveTest {
+public class PowersOfFiveTest {
 
     private static final BigInteger FIVE = BigInteger.valueOf(5);
 
     @ParameterizedTest
     @ValueSource(ints = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 13, 107, 503, 911, 1022, 1074})
-    void shouldReturnProperValue(int exp) {
-        try (ScrapMemory scrap = ThreadScrapMemory.push()) {
+    public void shouldReturnProperValue(int exp) {
+        try (ScrapMemory scrap = new ScrapMemory(64, 64).push()) {
             assertEquals(
                     FIVE.pow(exp).toString(10),
                     Unsigned.toString(PowersOfFive.valueOf(exp, scrap), scrap)

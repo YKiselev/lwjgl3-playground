@@ -43,7 +43,7 @@ import static org.mockito.Mockito.verify;
  */
 @SuppressWarnings("unchecked")
 @DisplayName("app config")
-class AppConfigTest {
+public class AppConfigTest {
 
     static class State {
 
@@ -102,12 +102,12 @@ class AppConfigTest {
 
     @Nested
     @DisplayName("when filled")
-    class WhenFilled {
+    public class WhenFilled {
 
         PersistedConfiguration cfg = new AppConfig(fileConfig);
 
         @BeforeEach
-        void setUp() {
+        public void setUp() {
             State toWire = new State();
             cfg.wire()
                     .withInt("a.int", toWire::var1, toWire::var1, false)
@@ -119,7 +119,7 @@ class AppConfigTest {
         }
 
         @Test
-        void shouldGetVariable() {
+        public void shouldGetVariable() {
             assertEquals("5", cfg.root().getString("a.string"));
             assertTrue(cfg.root().getBoolean("a.boolean2"));
             assertEquals(1, cfg.root().getInt("a.int"));
@@ -128,7 +128,7 @@ class AppConfigTest {
         }
 
         @Test
-        void shouldKnowVariable() {
+        public void shouldKnowVariable() {
             assertTrue(cfg.root().hasVariable("a.string"));
             assertTrue(cfg.root().hasVariable("a.boolean2"));
             assertTrue(cfg.root().hasVariable("a.int"));
@@ -137,7 +137,7 @@ class AppConfigTest {
         }
 
         @Test
-        void shouldSetVariable() {
+        public void shouldSetVariable() {
             cfg.root().set("a.string", "c");
             assertEquals("c", cfg.root().getString("a.string"));
 
@@ -155,7 +155,7 @@ class AppConfigTest {
         }
 
         @Test
-        void shouldThrowIfTypeMismatch() {
+        public void shouldThrowIfTypeMismatch() {
             assertThrows(ClassCastException.class, () ->
                     cfg.root().getBoolean("a.string"));
             assertThrows(ClassCastException.class, () ->
@@ -165,7 +165,7 @@ class AppConfigTest {
         }
 
         @Test
-        void shouldListAllVariablesAndConstLists() {
+        public void shouldListAllVariablesAndConstLists() {
             assertArrayEquals(
                     new String[]{
                             "a.boolean2",
@@ -183,19 +183,19 @@ class AppConfigTest {
     }
 
     @Test
-    void shouldRead() {
+    public void shouldRead() {
         new AppConfig(fileConfig);
         verify(fileConfig, times(1)).loadAll("app.conf");
     }
 
     @Test
-    void shouldWrite() {
+    public void shouldWrite() {
         new AppConfig(fileConfig).persist();
         verify(fileConfig, times(1)).persist(eq("app.conf"), any(Map.class));
     }
 
     @Test
-    void shouldThrowIfNoVariable() {
+    public void shouldThrowIfNoVariable() {
         assertThrows(VariableNotFoundException.class,
                 () -> new AppConfig(fileConfig).root().getValue("a", Values.WiredString.class)
         );

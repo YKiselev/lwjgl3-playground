@@ -16,7 +16,6 @@
 
 package com.github.ykiselev.fps;
 
-import com.github.ykiselev.fps.FrameInfo;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -24,10 +23,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-class FrameInfoTest {
+public class FrameInfoTest {
 
     @Test
-    void shouldCaclulate() {
+    public void shouldCaclulate() {
         FrameInfo info = new FrameInfo(3);
         info.add(100);
         info.add(20);

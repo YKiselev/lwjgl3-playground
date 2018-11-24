@@ -32,7 +32,7 @@ import static org.mockito.Mockito.when;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-class SimpleAssetsTest {
+public class SimpleAssetsTest {
 
     private final Resources resources = mock(Resources.class);
 
@@ -44,7 +44,7 @@ class SimpleAssetsTest {
     private final Assets assets = new SimpleAssets(resources, readableAssets);
 
     @BeforeEach
-    void setUp() {
+    public void setUp() {
         when(resources.open(any(String.class)))
                 .thenReturn(
                         Optional.of(mock(ReadableByteChannel.class))
@@ -54,7 +54,7 @@ class SimpleAssetsTest {
     }
 
     @Test
-    void shouldLoad() {
+    public void shouldLoad() {
         when(readableAssets.resolve(any(String.class), eq(Double.class)))
                 .thenReturn(readableAsset);
         when(readableAsset.read(any(ReadableByteChannel.class), eq(assets)))

@@ -31,7 +31,7 @@ import java.text.NumberFormat;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-class DoubleConversionTest {
+public class DoubleConversionTest {
 
     private void print(double value) {
         final long lv = Double.doubleToLongBits(value);
@@ -61,8 +61,8 @@ class DoubleConversionTest {
     }
 
     @Test
-    @Disabled
-    void should() {
+    //@Disabled
+    public void should() {
         print(0.2);
         print(0.333);
         print(1.0);
@@ -79,7 +79,8 @@ class DoubleConversionTest {
             // positive exponents
             1, 5, 1000, Double.MAX_VALUE
     })
-    void shouldConvert(double value) {
+    @Disabled
+    public void shouldConvert(double value) {
         final StringBuilder sb = new StringBuilder();
         DoubleConversion.append(value, 6, sb);
         String v = Double.toString(value);
@@ -89,7 +90,7 @@ class DoubleConversionTest {
 
     @Test
     @Disabled
-    void generatePowersOfFive() {
+    public void generatePowersOfFive() {
         final StringBuilder sb = new StringBuilder();
         final BigDecimal five = BigDecimal.valueOf(5);
         BigDecimal num = BigDecimal.ONE;
@@ -139,7 +140,7 @@ class DoubleConversionTest {
 
     @ParameterizedTest
     @ValueSource(ints = {0, 1, 2, 5, 7, 10, 50, 100, 178, 534, 1000, 1024, 2048, 88889})
-    void checkOpt(int num) {
+    public void checkOpt(int num) {
         Assertions.assertEquals(Integer.toUnsignedString(num), toStr(num));
     }
 }

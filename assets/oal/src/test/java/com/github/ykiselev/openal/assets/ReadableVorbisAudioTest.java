@@ -31,14 +31,14 @@ import static org.mockito.Mockito.mock;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-class ReadableVorbisAudioTest {
+public class ReadableVorbisAudioTest {
 
     private final ReadableAsset<AudioSamples> readableResource = new ReadableVorbisAudio(32 * 1024);
 
     private final Assets assets = mock(Assets.class);
 
     @Test
-    void shouldRead() {
+    public void shouldRead() {
         final Wrap<AudioSamples> samples = readableResource.read(
                 Channels.newChannel(getClass().getResourceAsStream("/sample.ogg")),
                 assets

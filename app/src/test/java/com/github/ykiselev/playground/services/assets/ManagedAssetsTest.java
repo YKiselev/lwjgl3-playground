@@ -34,14 +34,14 @@ import static org.mockito.Mockito.when;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-class ManagedAssetsTest {
+public class ManagedAssetsTest {
 
     private Assets delegate = mock(Assets.class);
 
     private final ManagedAssets assets = new ManagedAssets(delegate);
 
     @Test
-    void shouldLoadOnce() {
+    public void shouldLoadOnce() {
         when(delegate.tryLoad(eq("a"), eq(String.class), eq(assets)))
                 .thenReturn(Wraps.simple("A"));
         assertSame(
@@ -51,7 +51,7 @@ class ManagedAssetsTest {
     }
 
     @Test
-    void shouldCloseAutoCloseables() throws Exception {
+    public void shouldCloseAutoCloseables() throws Exception {
         final AutoCloseable a = mock(AutoCloseable.class);
         when(delegate.tryLoad(eq("ac"), eq(AutoCloseable.class), eq(assets)))
                 .thenReturn(Wraps.of(a));
@@ -61,7 +61,7 @@ class ManagedAssetsTest {
     }
 
     @Test
-    void shouldCloseCloseables() throws Exception {
+    public void shouldCloseCloseables() throws Exception {
         final Closeable c = mock(Closeable.class);
         when(delegate.tryLoad(eq("c"), eq(Closeable.class), eq(assets)))
                 .thenReturn(Wraps.of(c));
@@ -71,7 +71,7 @@ class ManagedAssetsTest {
     }
 
     @Test
-    void shouldRemoveUnused() throws Exception {
+    public void shouldRemoveUnused() throws Exception {
         final AutoCloseable a = mock(AutoCloseable.class);
         when(delegate.tryLoad(eq("ac"), eq(AutoCloseable.class), eq(assets)))
                 .thenReturn(Wraps.of(a));
@@ -80,7 +80,7 @@ class ManagedAssetsTest {
     }
 
     @Test
-    void shouldReportLeaks() {
+    public void shouldReportLeaks() {
         final AutoCloseable a = mock(AutoCloseable.class);
         when(delegate.tryLoad(eq("ac"), eq(AutoCloseable.class), eq(assets)))
                 .thenReturn(Wraps.of(a));

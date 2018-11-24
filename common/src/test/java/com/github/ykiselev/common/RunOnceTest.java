@@ -31,10 +31,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-class RunOnceTest {
+public class RunOnceTest {
 
     @Test
-    void shouldRunOnce() {
+    public void shouldRunOnce() {
         final Runnable runnable = Mockito.mock(Runnable.class);
         final RunOnce once = new RunOnce(runnable);
         assertFalse(once.wasRun());
@@ -46,7 +46,7 @@ class RunOnceTest {
     }
 
     @Test
-    void shouldBeThreadSafe() throws Exception {
+    public void shouldBeThreadSafe() throws Exception {
         final AtomicLong counter = new AtomicLong();
         final RunOnce once = new RunOnce(counter::incrementAndGet);
         final ExecutorService service = Executors.newFixedThreadPool(16);

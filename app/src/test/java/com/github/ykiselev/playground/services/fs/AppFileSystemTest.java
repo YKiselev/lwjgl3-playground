@@ -35,7 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class AppFileSystemTest {
+public class AppFileSystemTest {
 
     private FileSystem fs;
 
@@ -48,7 +48,7 @@ class AppFileSystemTest {
     private Path file2;
 
     @BeforeAll
-    void setUp() throws IOException {
+    public void setUp() throws IOException {
         dir1 = Files.createTempDirectory("dir1");
         dir2 = Files.createTempDirectory("dir2");
         file1 = Files.createFile(dir1.resolve("b.txt"));
@@ -60,7 +60,7 @@ class AppFileSystemTest {
     }
 
     @AfterAll
-    void tearDown() throws IOException {
+    public void tearDown() throws IOException {
         Files.delete(file1);
         Files.delete(file2);
         Files.delete(dir1);
@@ -68,14 +68,14 @@ class AppFileSystemTest {
     }
 
     @Test
-    void shouldOpenFromClassPath() throws IOException {
+    public void shouldOpenFromClassPath() throws IOException {
         Optional<ReadableByteChannel> r = fs.open("folder1/a");
         assertTrue(r.isPresent());
         r.get().close();
     }
 
     @Test
-    void shouldOpenAllFromClassPath() throws IOException {
+    public void shouldOpenAllFromClassPath() throws IOException {
         ReadableByteChannel[] array = fs.openAll("folder1/a")
                 .toArray(ReadableByteChannel[]::new);
         assertEquals(1, array.length);
@@ -85,14 +85,14 @@ class AppFileSystemTest {
     }
 
     @Test
-    void shouldOpenFile() throws IOException {
+    public void shouldOpenFile() throws IOException {
         Optional<ReadableByteChannel> r = fs.open("b.txt");
         assertTrue(r.isPresent());
         r.get().close();
     }
 
     @Test
-    void shouldOpenAllFiles() throws IOException {
+    public void shouldOpenAllFiles() throws IOException {
         ReadableByteChannel[] array = fs.openAll("b.txt").toArray(ReadableByteChannel[]::new);
         assertEquals(2, array.length);
         for (ReadableByteChannel channel : array) {

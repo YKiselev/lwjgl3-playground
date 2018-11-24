@@ -30,22 +30,22 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-class ByteArrayScrapTest {
+public class ByteArrayScrapTest {
 
     private final ByteArrayScrap scrap = new ByteArrayScrap(1024);
 
     @BeforeEach
-    void setUp() {
+    public void setUp() {
         scrap.push();
     }
 
     @AfterEach
-    void tearDown() {
+    public void tearDown() {
         scrap.pop();
     }
 
     @Test
-    void shouldAllocate() {
+    public void shouldAllocate() {
         ByteArray a1 = scrap.allocate(5);
         assertNotEquals(0, a1);
         assertEquals(5, a1.size());
@@ -54,7 +54,7 @@ class ByteArrayScrapTest {
     }
 
     @Test
-    void shouldPop() {
+    public void shouldPop() {
         assertEquals(1, scrap.depth());
         assertEquals(0, scrap.free());
         assertEquals(0, scrap.allocated());
@@ -72,7 +72,7 @@ class ByteArrayScrapTest {
     }
 
     @Test
-    void shouldFill() {
+    public void shouldFill() {
         ByteArray a1 = scrap.allocate(1);
         ByteArray a2 = scrap.allocate(2);
         ByteArray a3 = scrap.allocate(1);
@@ -93,7 +93,7 @@ class ByteArrayScrapTest {
     }
 
     @Test
-    void shouldResizeUp() {
+    public void shouldResizeUp() {
         ByteArray a = scrap.allocate(3);
         a.set(0, (byte) 1);
         a.set(1, (byte) 2);
@@ -114,7 +114,7 @@ class ByteArrayScrapTest {
     }
 
     @Test
-    void shouldResizeDown() {
+    public void shouldResizeDown() {
         ByteArray a = scrap.allocate(3);
         a.set(0, (byte) 1);
         a.set(1, (byte) 2);
@@ -135,7 +135,7 @@ class ByteArrayScrapTest {
 
     @Test
     @Disabled
-    void performance() {
+    public void performance() {
         final int elements = 8;
         final int[] indices = new int[elements];
         for (int i = 0; i < elements; i++) {

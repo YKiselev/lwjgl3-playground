@@ -30,10 +30,10 @@ import static org.mockito.Mockito.verify;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-class HandlersTest {
+public class HandlersTest {
 
     @Test
-    void shouldFailIfEmpty() {
+    public void shouldFailIfEmpty() {
         assertThrows(IllegalArgumentException.class, () -> Handlers.command("", a1 -> {
                 }).run(Collections.emptyList())
         );
@@ -55,7 +55,7 @@ class HandlersTest {
     }
 
     @Test
-    void consumer0() throws Exception {
+    public void consumer0() throws Exception {
         ThrowingRunnable h = mock(ThrowingRunnable.class);
         Command c = Handlers.command("", h);
 
@@ -66,7 +66,7 @@ class HandlersTest {
     }
 
     @Test
-    void consumer1() throws Exception {
+    public void consumer1() throws Exception {
         Commands.H1 h = mock(Commands.H1.class);
         Command c = Handlers.command("", h);
 
@@ -77,7 +77,7 @@ class HandlersTest {
     }
 
     @Test
-    void consumer2() throws Exception {
+    public void consumer2() throws Exception {
         Commands.H2 h = mock(Commands.H2.class);
         Command c = Handlers.command("", h);
 
@@ -91,7 +91,7 @@ class HandlersTest {
     }
 
     @Test
-    void consumer3() throws Exception {
+    public void consumer3() throws Exception {
         Commands.H3 h = mock(Commands.H3.class);
         Command c = Handlers.command("", h);
 
@@ -108,7 +108,7 @@ class HandlersTest {
     }
 
     @Test
-    void consumer4() throws Exception {
+    public void consumer4() throws Exception {
         Commands.H4 h = mock(Commands.H4.class);
         Command c = Handlers.command("", h);
 
@@ -128,7 +128,7 @@ class HandlersTest {
     }
 
     @Test
-    void consumer5() throws Exception {
+    public void consumer5() throws Exception {
         Commands.H5 h = mock(Commands.H5.class);
         Command c = Handlers.command("", h);
 
@@ -151,7 +151,7 @@ class HandlersTest {
     }
 
     @Test
-    void consumer6() throws Exception {
+    public void consumer6() throws Exception {
         Commands.H6 h = mock(Commands.H6.class);
         Command c = Handlers.command("", h);
 

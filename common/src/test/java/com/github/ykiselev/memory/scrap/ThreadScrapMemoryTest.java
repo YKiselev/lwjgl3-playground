@@ -23,11 +23,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-class ThreadScrapMemoryTest {
+public class ThreadScrapMemoryTest {
 
     @Test
-    void shouldPush() {
-        try (ScrapMemory scrap = ThreadScrapMemory.push()) {
+    public void shouldPush() {
+        try (ScrapMemory scrap = new ScrapMemory(64, 64).push()) {
             ByteArray array = scrap.allocate(32);
             assertEquals(32, array.size());
         }

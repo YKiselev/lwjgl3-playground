@@ -33,7 +33,7 @@ import static org.mockito.Mockito.when;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-class AppUiLayersTest {
+public class AppUiLayersTest {
 
     private UiLayers layers = new AppUiLayers();
 
@@ -44,7 +44,7 @@ class AppUiLayersTest {
     private UiLayer layer3 = mock(UiLayer.class, "layer3");
 
     @BeforeEach
-    void setUp() {
+    public void setUp() {
         when(layer1.kind()).thenReturn(UiLayer.Kind.POPUP);
         when(layer1.isPopup()).thenReturn(true);
 
@@ -56,7 +56,7 @@ class AppUiLayersTest {
     }
 
     @Test
-    void shouldAddAndPopInOrder() {
+    public void shouldAddAndPopInOrder() {
         layers.add(layer1);
         layers.add(layer2);
         verify(layer1, times(1)).onPush();
@@ -69,14 +69,14 @@ class AppUiLayersTest {
     }
 
     @Test
-    void shouldAddPopupOnTop() {
+    public void shouldAddPopupOnTop() {
         layers.add(layer1);
         layers.add(layer3);
         layers.pop(layer1);
     }
 
     @Test
-    void shouldFailIfAddAndPopInWrongOrder() {
+    public void shouldFailIfAddAndPopInWrongOrder() {
         layers.add(layer1);
         layers.add(layer2);
         verify(layer1, times(1)).onPush();
@@ -89,7 +89,7 @@ class AppUiLayersTest {
     }
 
     @Test
-    void shouldDrawBottomUp() {
+    public void shouldDrawBottomUp() {
         layers.add(layer1);
         layers.add(layer2);
         layers.add(layer3);
@@ -103,7 +103,7 @@ class AppUiLayersTest {
     }
 
     @Test
-    void shouldDispatchFromTopBottom() {
+    public void shouldDispatchFromTopBottom() {
         WindowEvents events = mock(WindowEvents.class);
 
         layers.add(layer1);
@@ -126,7 +126,7 @@ class AppUiLayersTest {
     }
 
     @Test
-    void shouldRemovePopups() {
+    public void shouldRemovePopups() {
         layers.add(layer1);
         layers.add(layer2);
         layers.add(layer3);
@@ -142,7 +142,7 @@ class AppUiLayersTest {
     }
 
     @Test
-    void shouldRemove() {
+    public void shouldRemove() {
         layers.add(layer1);
         layers.add(layer2);
         layers.add(layer3);

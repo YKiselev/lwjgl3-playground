@@ -26,14 +26,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-class ByteChannelAsStringTest {
+public class ByteChannelAsStringTest {
 
     private static final String STRING = "This is a test string. Это проверочная строка.";
 
     private static final Charset CHARSET = StandardCharsets.UTF_16LE;
 
     @Test
-    void shouldRead() {
+    public void shouldRead() {
         assertEquals(
                 STRING,
                 new ByteChannelAsString(

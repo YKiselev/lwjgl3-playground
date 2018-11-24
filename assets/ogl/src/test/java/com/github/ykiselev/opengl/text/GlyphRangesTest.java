@@ -24,10 +24,10 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-class GlyphRangesTest {
+public class GlyphRangesTest {
 
     @Test
-    void shouldFindGlyph() {
+    public void shouldFindGlyph() {
         final Glyph g1 = new Glyph(0, 0, 0, 0, 8);
         final Glyph g2 = new Glyph(0, 0, 0, 0, 8);
         final Glyph g3 = new Glyph(0, 0, 0, 0, 8);

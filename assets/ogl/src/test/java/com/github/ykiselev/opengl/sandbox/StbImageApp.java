@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.github.ykiselev.sandbox;
+package com.github.ykiselev.opengl.sandbox;
 
 import com.github.ykiselev.io.ByteChannelAsByteBuffer;
 import com.github.ykiselev.wrap.Wrap;

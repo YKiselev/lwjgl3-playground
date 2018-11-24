@@ -30,7 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-class ServiceLoaderTest {
+public class ServiceLoaderTest {
 
     public interface Greeter {
 
@@ -79,7 +79,7 @@ class ServiceLoaderTest {
     }
 
     @Test
-    void shouldLoadAll() {
+    public void shouldLoadAll() {
         ServiceLoader loader = new ServiceLoader(
                 ConfigFactory.load("test.conf")
                         .getObjectList("services")
@@ -94,7 +94,7 @@ class ServiceLoaderTest {
     }
 
     @Test
-    void shouldFailWhenIfaceNotImplemented() {
+    public void shouldFailWhenIfaceNotImplemented() {
         assertThrows(
                 IllegalArgumentException.class,
                 () -> new ServiceLoader(
@@ -105,7 +105,7 @@ class ServiceLoaderTest {
     }
 
     @Test
-    void shouldFailWhenInstanceNotImplementsIface() {
+    public void shouldFailWhenInstanceNotImplementsIface() {
         // Should work
         new ServiceLoader(
                 ConfigFactory.load("wrong2.conf")

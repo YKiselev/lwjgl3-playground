@@ -27,15 +27,15 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-class EndlessIteratorTest {
+public class EndlessIteratorTest {
 
     @Test
-    void shouldWorkWithEmptyCollection() {
+    public void shouldWorkWithEmptyCollection() {
         assertFalse(new EndlessIterator<>(Collections.emptyList()).hasNext());
     }
 
     @Test
-    void shouldWorkWithSingleItemCollection() {
+    public void shouldWorkWithSingleItemCollection() {
         EndlessIterator<Object> it = new EndlessIterator<>(Collections.singletonList("a"));
         assertEquals("a", it.next());
         assertEquals("a", it.next());
@@ -43,7 +43,7 @@ class EndlessIteratorTest {
     }
 
     @Test
-    void shouldWorkWithMultiItemCollection() {
+    public void shouldWorkWithMultiItemCollection() {
         EndlessIterator<Object> it = new EndlessIterator<>(Arrays.asList("a", "b", "c"));
         assertEquals("a", it.next());
         assertEquals("b", it.next());

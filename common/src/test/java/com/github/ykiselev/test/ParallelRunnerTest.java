@@ -30,10 +30,10 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-class ParallelRunnerTest {
+public class ParallelRunnerTest {
 
     @Test
-    void shouldRunWhenSomeThreadsFailed() {
+    public void shouldRunWhenSomeThreadsFailed() {
         assumeTrue(Runtime.getRuntime().availableProcessors() > 1);
         final AtomicBoolean fired = new AtomicBoolean(false);
         Supplier<ThrowingRunnable> s = () -> () -> {

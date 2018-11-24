@@ -26,10 +26,10 @@ import static org.mockito.Mockito.when;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-class CompositeReadableAssetsTest {
+public class CompositeReadableAssetsTest {
 
     @Test
-    void shouldResolve() {
+    public void shouldResolve() {
         final ReadableAsset<String> rr = (stream, assets) -> null;
         final ReadableAssets delegate1 = mock(ReadableAssets.class);
         final ReadableAssets delegate2 = mock(ReadableAssets.class);

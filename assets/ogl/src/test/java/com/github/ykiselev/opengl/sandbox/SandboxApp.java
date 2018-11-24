@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.github.ykiselev.sandbox;
+package com.github.ykiselev.opengl.sandbox;
 
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.opengl.GL;

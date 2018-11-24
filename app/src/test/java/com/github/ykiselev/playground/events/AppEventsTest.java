@@ -36,7 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-class AppEventsTest {
+public class AppEventsTest {
 
     interface A {
 
@@ -73,7 +73,7 @@ class AppEventsTest {
     }
 
     @Test
-    void shouldSubscribe() throws Exception {
+    public void shouldSubscribe() throws Exception {
         final List<String> journal = new ArrayList<>();
         final Consumer<String> handler = journal::add;
         AutoCloseable s1 = bus.subscribe(String.class, handler);
@@ -85,7 +85,7 @@ class AppEventsTest {
     }
 
     @Test
-    void shouldFindExactEventType() {
+    public void shouldFindExactEventType() {
         final AtomicBoolean flag = new AtomicBoolean(false);
         bus.subscribe(A.class, fail());
         bus.subscribe(B.class, fail());
@@ -96,7 +96,7 @@ class AppEventsTest {
     }
 
     @Test
-    void shouldSupportParameterizedEventTypes() {
+    public void shouldSupportParameterizedEventTypes() {
         final AtomicBoolean f = new AtomicBoolean(false);
         final AtomicBoolean e = new AtomicBoolean(false);
         bus.subscribe(E.class, fail());
@@ -109,7 +109,7 @@ class AppEventsTest {
     }
 
     @Test
-    void shouldUnsubscribe() throws Exception {
+    public void shouldUnsubscribe() throws Exception {
         final AtomicBoolean f = new AtomicBoolean(false);
         AutoCloseable s2 = bus.subscribe(F.class, c -> f.set(true));
         bus.fire(new F());
@@ -121,7 +121,7 @@ class AppEventsTest {
     }
 
     @Test
-    void shouldFilter() throws Exception {
+    public void shouldFilter() throws Exception {
         final List<String> journal = new ArrayList<>();
         final Consumer<String> handler = journal::add;
         final EventFilter<String> filter = s -> "x".equals(s) ? s : null;

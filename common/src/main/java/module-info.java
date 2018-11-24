@@ -7,6 +7,7 @@ module ykiselev.playground.common {
     requires ykiselev.assets.api;
     requires org.lwjgl;
     requires commons.io;
+    requires static java.management;
 
     exports com.github.ykiselev.caching;
     exports com.github.ykiselev.circular;

@@ -28,14 +28,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-class SynchronizedCircularBufferTest {
+public class SynchronizedCircularBufferTest {
 
     private final CircularBuffer<Integer> ints = new SynchronizedCircularBuffer<>(
             new ArrayCircularBuffer<>(Integer.class, 100)
     );
 
     @Test
-    void shouldBeThreadSafe() throws Exception {
+    public void shouldBeThreadSafe() throws Exception {
         final AtomicInteger counter = new AtomicInteger();
         Supplier<ThrowingRunnable> s = () ->
                 () -> ints.write(counter.incrementAndGet());

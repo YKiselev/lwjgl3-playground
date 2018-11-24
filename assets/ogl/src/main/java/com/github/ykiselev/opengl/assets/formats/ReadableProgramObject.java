@@ -32,7 +32,6 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.channels.ReadableByteChannel;
 import java.util.List;
-import java.util.Map;
 
 import static org.lwjgl.opengl.GL11.GL_TRUE;
 import static org.lwjgl.opengl.GL20.GL_LINK_STATUS;
@@ -92,9 +91,8 @@ public final class ReadableProgramObject implements ReadableAsset<ProgramObject>
     @SuppressWarnings("unchecked")
     private Wrap<ShaderObject>[] readShaders(Assets assets, Config config) {
         return config.getConfig("shaders").root()
-                .entrySet()
+                .values()
                 .stream()
-                .map(Map.Entry::getValue)
                 .map(ConfigValue::unwrapped)
                 .map(String.class::cast)
                 .filter(v -> !v.isEmpty())
@@ -104,7 +102,7 @@ public final class ReadableProgramObject implements ReadableAsset<ProgramObject>
 
     private Config readConfig(ReadableByteChannel channel, Assets assets) {
         final ReadableAsset<Config> readableConfig = assets.resolve(Config.class);
-        try (Wrap<Config> fallback = assets.load("fallback/program-object.conf", Config.class)) {
+        try (Wrap<Config> fallback = assets.load("ogl/fallback/program-object.conf", Config.class)) {
             try (Wrap<Config> config = readableConfig.read(channel, assets)) {
                 return config.value()
                         .withFallback(fallback.value());

@@ -26,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-class InstanceFromClassTest {
+public class InstanceFromClassTest {
 
     public static class F implements Factory<Integer> {
 
@@ -51,7 +51,7 @@ class InstanceFromClassTest {
     private Services services = Mockito.mock(Services.class);
 
     @Test
-    void shouldCreateFromClass() {
+    public void shouldCreateFromClass() {
         assertTrue(
                 new InstanceFromClass<>(String.class, services)
                         .get() instanceof String
@@ -59,7 +59,7 @@ class InstanceFromClassTest {
     }
 
     @Test
-    void shouldCreateUsingCtorWithArg() {
+    public void shouldCreateUsingCtorWithArg() {
         assertTrue(
                 new InstanceFromClass<>(A.class, services)
                         .get() instanceof A
@@ -67,7 +67,7 @@ class InstanceFromClassTest {
     }
 
     @Test
-    void shouldCreateFromFactory() {
+    public void shouldCreateFromFactory() {
         assertEquals(
                 123,
                 new InstanceFromClass<>(F.class, services)

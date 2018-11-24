@@ -54,10 +54,11 @@ public final class ScrapMemory implements AutoCloseable {
      * Starts new "stack" frame.
      */
     @SuppressWarnings({"ForLoopReplaceableByForEach"})
-    public void push() {
+    public ScrapMemory push() {
         for (int i = 0; i < scraps.length; i++) {
             scraps[i].push();
         }
+        return this;
     }
 
     /**

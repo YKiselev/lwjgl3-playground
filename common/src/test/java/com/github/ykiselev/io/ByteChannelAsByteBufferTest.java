@@ -32,7 +32,7 @@ import static org.mockito.Mockito.when;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-class ByteChannelAsByteBufferTest {
+public class ByteChannelAsByteBufferTest {
 
     private static final int CHANNEL_LENGTH = 8 * 4 * 1_000;
 
@@ -43,7 +43,7 @@ class ByteChannelAsByteBufferTest {
     );
 
     @Test
-    void shouldRead() throws IOException {
+    public void shouldRead() throws IOException {
         when(channel.read(any(ByteBuffer.class)))
                 .then((Answer<Integer>) invocation -> {
                     final ByteBuffer buffer = invocation.getArgument(0);

@@ -29,7 +29,7 @@ import static org.mockito.Mockito.when;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-class CountedRefTest {
+public class CountedRefTest {
 
     public interface A {
 
@@ -37,7 +37,7 @@ class CountedRefTest {
     }
 
     @Test
-    void shouldCount() {
+    public void shouldCount() {
         final Consumer<A> disposer = mock(Consumer.class);
         final A target = mock(A.class);
         when(target.name()).thenReturn("xyz");

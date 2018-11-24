@@ -31,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-class ByteChannelAsLinesTest {
+public class ByteChannelAsLinesTest {
 
     private static final List<String> STRINGS = Arrays.asList(
             "This is a test string.",
@@ -41,7 +41,7 @@ class ByteChannelAsLinesTest {
     private static final Charset CHARSET = StandardCharsets.UTF_8;
 
     @Test
-    void shouldRead() throws IOException {
+    public void shouldRead() throws IOException {
         try (ByteChannelAsLines lines = new ByteChannelAsLines(
                 new ByteChannelFromArray(
                         STRINGS.stream()

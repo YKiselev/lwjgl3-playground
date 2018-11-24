@@ -24,10 +24,10 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-class MutablePrefixTreeTest {
+public class MutablePrefixTreeTest {
 
     @Test
-    void shouldBuildImmutableTree() {
+    public void shouldBuildImmutableTree() {
         final PrefixTree<Integer> tree = new MutablePrefixTree<Integer>("\\.")
                 .add("a.b.1", 1)
                 .add("a.b.2", 2)
@@ -38,7 +38,7 @@ class MutablePrefixTreeTest {
     }
 
     @Test
-    void shouldMerge() {
+    public void shouldMerge() {
         PrefixTree<Integer> a = new MutablePrefixTree<Integer>("\\.")
                 .add("a.b.c.d.e", 1)
                 .add("a.b.k.l.m.n", 2)
@@ -57,7 +57,7 @@ class MutablePrefixTreeTest {
     }
 
     @Test
-    void shouldFind() {
+    public void shouldFind() {
         assertEquals(
                 1,
                 (int) new MutablePrefixTree<Integer>("\\.")
@@ -69,7 +69,7 @@ class MutablePrefixTreeTest {
     }
 
     @Test
-    void shouldRemove() {
+    public void shouldRemove() {
         MutablePrefixTree<Integer> tree = new MutablePrefixTree<Integer>("\\.")
                 .add("a.b.c", 1)
                 .add("a.b.d", 2);

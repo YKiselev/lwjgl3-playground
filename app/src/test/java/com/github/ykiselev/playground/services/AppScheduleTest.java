@@ -33,7 +33,7 @@ import static org.mockito.Mockito.when;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-class AppScheduleTest {
+public class AppScheduleTest {
 
     private long clock;
 
@@ -47,7 +47,7 @@ class AppScheduleTest {
     }
 
     @Test
-    void shouldSchedule() {
+    public void shouldSchedule() {
         clock = 0;
         final Runnable t1 = mock(Runnable.class);
         final Runnable t2 = mock(Runnable.class);
@@ -71,7 +71,7 @@ class AppScheduleTest {
     }
 
     @Test
-    void shouldScheduleRepeatable() {
+    public void shouldScheduleRepeatable() {
         clock = 0;
         final Repeatable r1 = mock(Repeatable.class);
         final Repeatable r2 = mock(Repeatable.class);

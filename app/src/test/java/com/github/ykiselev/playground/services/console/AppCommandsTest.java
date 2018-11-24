@@ -40,18 +40,18 @@ import static org.mockito.Mockito.verify;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-class AppCommandsTest {
+public class AppCommandsTest {
 
     private final Commands commands = new AppCommands(new DefaultTokenizer(), 1);
 
     @Test
-    void shouldReportUnknownCommand() {
+    public void shouldReportUnknownCommand() {
         assertThrows(UnknownCommandException.class, () ->
                 commands.execute("this will not work!"));
     }
 
     @Test
-    void shouldFail() {
+    public void shouldFail() {
         commands.add("fail", () -> {
             throw new RuntimeException("Oops!");
         });
@@ -60,7 +60,7 @@ class AppCommandsTest {
     }
 
     @Test
-    void shouldOverflow() throws Exception {
+    public void shouldOverflow() throws Exception {
         ThrowingRunnable h = Mockito.mock(ThrowingRunnable.class);
         commands.add("overflow", h);
 
@@ -79,7 +79,7 @@ class AppCommandsTest {
     }
 
     @Test
-    void shouldExecute() throws Exception {
+    public void shouldExecute() throws Exception {
         ThrowingRunnable h = mock(ThrowingRunnable.class);
         commands.add("cmd", h);
         commands.execute("cmd");
@@ -87,7 +87,7 @@ class AppCommandsTest {
     }
 
     @Test
-    void shouldExecuteSeparatedBySemicolon() throws Exception {
+    public void shouldExecuteSeparatedBySemicolon() throws Exception {
         ThrowingRunnable h = mock(ThrowingRunnable.class);
         commands.add("cmd", h);
         commands.execute("cmd;cmd");
@@ -95,7 +95,7 @@ class AppCommandsTest {
     }
 
     @Test
-    void shouldExecuteMultiLine() throws Exception {
+    public void shouldExecuteMultiLine() throws Exception {
         ThrowingRunnable h = mock(ThrowingRunnable.class);
         commands.add("cmd", h);
         commands.execute("cmd\rcmd\ncmd\r\ncmd");
@@ -103,7 +103,7 @@ class AppCommandsTest {
     }
 
     @Test
-    void shouldPassArgs() throws Exception {
+    public void shouldPassArgs() throws Exception {
         Commands.H2 h = mock(Commands.H2.class);
         commands.add("cmd", h);
         commands.execute("cmd 1");
@@ -111,7 +111,7 @@ class AppCommandsTest {
     }
 
     @Test
-    void shouldBeThreadSafe() throws Exception {
+    public void shouldBeThreadSafe() throws Exception {
         final ThreadLocal<String[]> savedArgs = new ThreadLocal<>();
         commands.add("a", (a, b) -> savedArgs.set(new String[]{a, b}));
         commands.add("b", (a, b) -> savedArgs.set(new String[]{a, b}));

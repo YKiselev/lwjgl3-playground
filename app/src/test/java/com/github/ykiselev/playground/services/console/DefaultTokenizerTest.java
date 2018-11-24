@@ -35,7 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-class DefaultTokenizerTest {
+public class DefaultTokenizerTest {
 
     private final List<String> parts = new ArrayList<>();
 
@@ -57,84 +57,84 @@ class DefaultTokenizerTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"", " ", "\t", "   "})
-    void shouldParseEmpty(String value) {
+    public void shouldParseEmpty(String value) {
         consumer.accept(value);
         assertTrue(parts.isEmpty());
     }
 
     @Test
-    void shouldParseNull() {
+    public void shouldParseNull() {
         consumer.accept(null);
         assertTrue(parts.isEmpty());
     }
 
     @ParameterizedTest
     @ValueSource(strings = {" token ", "token ", " token", "token"})
-    void shouldParseSingleToken(String value) {
+    public void shouldParseSingleToken(String value) {
         consumer.accept(value);
         assertEquals("token");
     }
 
     @Test
-    void shouldParseTwoTokens() {
+    public void shouldParseTwoTokens() {
         consumer.accept(" first \t second ");
         assertEquals("first", "second");
     }
 
     @ParameterizedTest
     @ValueSource(strings = {" \" first \t second \"", "\" first \t second \"", "\" first \t second \"", "' first \t second '"})
-    void shouldParseQuotedTokens(String value) {
+    public void shouldParseQuotedTokens(String value) {
         consumer.accept(value);
         assertEquals(" first \t second ");
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"simple \"quoted tokens\"", " simple \"quoted tokens\"", "simple \"quoted tokens\" ", " simple \t\"quoted tokens\" "})
-    void shouldParseMixed(String value) {
+    public void shouldParseMixed(String value) {
         consumer.accept(value);
         assertEquals("simple", "quoted tokens");
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"1;2", " 1 ;2", "1; 2", " 1 \t; \t2  "})
-    void shouldParseDelimitedBySemicolon(String value) {
+    public void shouldParseDelimitedBySemicolon(String value) {
         consumer.accept(value);
         assertEquals("1", "2");
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"a b c //d", "a//xxx\rb//yyy\nc"})
-    void shouldStripSingleLineComments(String value) {
+    public void shouldStripSingleLineComments(String value) {
         consumer.accept(value);
         assertEquals("a", "b", "c");
     }
 
     @Test
-    void shouldNotStripSingleLineCommentInsideQuotedText() {
+    public void shouldNotStripSingleLineCommentInsideQuotedText() {
         consumer.accept("a \"b c //d\"");
         assertEquals("a", "b c //d");
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"a b c /* d */", "a/*xxx*/ b/*yyy*/ c"})
-    void shouldStripMultiLineComments(String value) {
+    public void shouldStripMultiLineComments(String value) {
         consumer.accept(value);
         assertEquals("a", "b", "c");
     }
 
     @Test
-    void shouldNotStripMultiLineCommentInsideQuotedText() {
+    public void shouldNotStripMultiLineCommentInsideQuotedText() {
         consumer.accept("a \"b c /* d */\"");
         assertEquals("a", "b c /* d */");
     }
 
     @Test
-    void shouldFailIfUnclosedMultiLineComment() {
+    public void shouldFailIfUnclosedMultiLineComment() {
         assertThrows(IllegalArgumentException.class, () -> consumer.accept("a b c /* d"));
     }
 
     @Test
-    void shouldBeThreadSafe() {
+    public void shouldBeThreadSafe() {
         final String[] inputs = {
                 "a b c d e f",
                 "1 2 3 4 5 6",
