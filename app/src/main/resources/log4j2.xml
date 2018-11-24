@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 
-<Configuration status="WARN">
+<Configuration status="WARN" packages="com.github.ykiselev.playground.services.console.appender">
 
     <Properties>
         <Property name="logDir">${sys:user.home}/lwjgl3-playground/logs</Property>

@@ -20,4 +20,6 @@ module ykiselev.playground.app {
     requires ykiselev.playground.assets.ogl;
     requires ykiselev.playground.assets.oal;
     requires ykiselev.playground.ui;
+
+    opens com.github.ykiselev.playground.services.console.appender;
 }
