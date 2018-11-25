@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package com.github.ykiselev.services;
+package com.github.ykiselev.spi;
 
-import com.github.ykiselev.api.Updateable;
+import com.github.ykiselev.components.Game;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public interface GameFactory extends AutoCloseable, Updateable {
+public interface GameFactory extends Factory<Game> {
 
-    void newGame();
+    String name();
 }

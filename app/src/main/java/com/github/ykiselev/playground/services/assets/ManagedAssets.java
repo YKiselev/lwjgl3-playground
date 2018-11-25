@@ -148,20 +148,4 @@ public final class ManagedAssets implements Assets, AutoCloseable {
         }
     }
 
-    /**
-     *
-     */
-    private static final class SimpleAsset implements Asset {
-
-        private final Wrap<?> value;
-
-        SimpleAsset(Wrap<?> value) {
-            this.value = value;
-        }
-
-        @Override
-        public Wrap<?> value() {
-            return value;
-        }
-    }
 }

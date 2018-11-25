@@ -5,7 +5,7 @@ module ykiselev.playground.spi {
     requires org.lwjgl;
     requires org.lwjgl.glfw;
     requires config;
-    requires ykiselev.assets.api;
+    requires transitive ykiselev.assets.api;
     requires ykiselev.playground.common;
     requires ykiselev.playground.assets.ogl;
 

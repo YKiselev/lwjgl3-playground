@@ -22,10 +22,10 @@ import com.github.ykiselev.common.ThrowingRunnable;
 import com.github.ykiselev.playground.app.window.AppWindow;
 import com.github.ykiselev.playground.app.window.WindowBuilder;
 import com.github.ykiselev.playground.host.ProgramArguments;
-import com.github.ykiselev.playground.services.AppGameFactory;
+import com.github.ykiselev.playground.services.AppGameContainer;
 import com.github.ykiselev.playground.services.AppMenuFactory;
 import com.github.ykiselev.playground.services.console.ConsoleFactory;
-import com.github.ykiselev.services.GameFactory;
+import com.github.ykiselev.services.GameContainer;
 import com.github.ykiselev.services.MenuFactory;
 import com.github.ykiselev.services.Services;
 import com.github.ykiselev.services.commands.Commands;
@@ -67,15 +67,15 @@ public final class MainLoop implements ThrowingRunnable {
             window.show();
             glfwSwapInterval(args.swapInterval());
             logger.info("Entering main loop...");
-            final GameFactory gameFactory = services.resolve(GameFactory.class);
+            final GameContainer gameContainer = services.resolve(GameContainer.class);
             final Schedule schedule = services.resolve(Schedule.class);
             final UiLayers layers = services.resolve(UiLayers.class);
             // todo - remove that
-            gameFactory.newGame();
+            gameContainer.newGame();
             //
             while (!window.shouldClose() && !exitFlag) {
                 final double t0 = glfwGetTime();
-                gameFactory.update();
+                gameContainer.update();
                 window.checkEvents();
                 layers.draw();
                 window.swapBuffers();
@@ -109,7 +109,7 @@ public final class MainLoop implements ThrowingRunnable {
                         .create(),
                 services.add(FrameInfo.class, frameInfo),
                 services.add(MenuFactory.class, new AppMenuFactory(services)),
-                services.add(GameFactory.class, new AppGameFactory(services))
+                services.add(GameContainer.class, new AppGameContainer(services))
         );
     }
 }

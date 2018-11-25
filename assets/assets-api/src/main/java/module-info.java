@@ -2,8 +2,8 @@
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
 module ykiselev.assets.api {
-    requires ykiselev.wrap;
     requires slf4j.api;
+    requires transitive ykiselev.wrap;
 
     exports com.github.ykiselev.assets;
 }

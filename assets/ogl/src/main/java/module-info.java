@@ -9,8 +9,8 @@ module ykiselev.playground.assets.ogl {
     requires slf4j.api;
     requires sprite.font.lib;
     requires config;
-    requires ykiselev.wrap;
-    requires ykiselev.assets.api;
+    requires transitive ykiselev.wrap;
+    requires transitive ykiselev.assets.api;
     requires ykiselev.playground.common;
 
     exports com.github.ykiselev.opengl;

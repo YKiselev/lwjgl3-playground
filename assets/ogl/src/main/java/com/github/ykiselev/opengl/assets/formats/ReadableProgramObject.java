@@ -102,7 +102,7 @@ public final class ReadableProgramObject implements ReadableAsset<ProgramObject>
 
     private Config readConfig(ReadableByteChannel channel, Assets assets) {
         final ReadableAsset<Config> readableConfig = assets.resolve(Config.class);
-        try (Wrap<Config> fallback = assets.load("ogl/fallback/program-object.conf", Config.class)) {
+        try (Wrap<Config> fallback = assets.load("progs/default/program-object.conf", Config.class)) {
             try (Wrap<Config> config = readableConfig.read(channel, assets)) {
                 return config.value()
                         .withFallback(fallback.value());

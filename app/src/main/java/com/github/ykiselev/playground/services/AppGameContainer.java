@@ -16,26 +16,26 @@
 
 package com.github.ykiselev.playground.services;
 
-import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.closeables.Closeables;
 import com.github.ykiselev.closeables.CompositeAutoCloseable;
 import com.github.ykiselev.components.Game;
-import com.github.ykiselev.services.GameFactory;
+import com.github.ykiselev.services.GameContainer;
 import com.github.ykiselev.services.Services;
 import com.github.ykiselev.services.commands.Commands;
 import com.github.ykiselev.services.configuration.PersistedConfiguration;
 import com.github.ykiselev.services.layers.UiLayers;
-import com.github.ykiselev.spi.ClassFromName;
-import com.github.ykiselev.spi.InstanceFromClass;
-import com.github.ykiselev.wrap.Wrap;
-import com.typesafe.config.Config;
+import com.github.ykiselev.spi.GameFactory;
+
+import java.util.ServiceLoader;
 
 import static java.util.Objects.requireNonNull;
 
 /**
+ * todo - find a better name!
+ *
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class AppGameFactory implements GameFactory {
+public final class AppGameContainer implements GameContainer {
 
     private final Services services;
 
@@ -45,7 +45,7 @@ public final class AppGameFactory implements GameFactory {
 
     private final AutoCloseable subscriptions;
 
-    public AppGameFactory(Services services) {
+    public AppGameContainer(Services services) {
         this.services = requireNonNull(services);
         this.subscriptions = new CompositeAutoCloseable(
                 services.resolve(Commands.class)
@@ -55,14 +55,6 @@ public final class AppGameFactory implements GameFactory {
                         .withBoolean("game.isPresent", () -> game != null, false)
                         .build()
         );
-    }
-
-    private String getFactoryClassName() {
-        final Wrap<Config> wrap = services.resolve(Assets.class)
-                .load("game.conf", Config.class);
-        try (wrap) {
-            return wrap.value().getString("game.factory");
-        }
     }
 
     @Override
@@ -83,10 +75,7 @@ public final class AppGameFactory implements GameFactory {
     public void newGame() {
         synchronized (lock) {
             closeGame();
-            game = new InstanceFromClass<Game>(
-                    new ClassFromName(getFactoryClassName()),
-                    services
-            ).get();
+            game = ServiceLoader.load(GameFactory.class).findFirst().map(f -> f.create(services)).orElseThrow();
             final UiLayers uiLayers = services.resolve(UiLayers.class);
             uiLayers.add(game);
             uiLayers.removePopups();

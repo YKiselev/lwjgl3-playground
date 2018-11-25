@@ -30,11 +30,10 @@ import com.github.ykiselev.playground.ui.models.checkbox.ConfigurationBoundCheck
 import com.github.ykiselev.playground.ui.models.checkbox.SimpleCheckBoxModel;
 import com.github.ykiselev.playground.ui.models.slider.ConfigurationBoundSliderModel;
 import com.github.ykiselev.playground.ui.models.slider.SliderDefinition;
-import com.github.ykiselev.services.GameFactory;
+import com.github.ykiselev.services.GameContainer;
 import com.github.ykiselev.services.Services;
 import com.github.ykiselev.services.commands.Commands;
 import com.github.ykiselev.services.configuration.PersistedConfiguration;
-import com.github.ykiselev.services.events.Events;
 import com.github.ykiselev.services.layers.DrawingContext;
 import com.github.ykiselev.services.layers.Sprites;
 import com.github.ykiselev.services.layers.UiLayer;
@@ -117,7 +116,7 @@ public final class Menu implements UiLayer, AutoCloseable, Removable {
                 new MenuItem(
                         new Link(
                                 "New",
-                                () -> services.resolve(GameFactory.class).newGame()
+                                () -> services.resolve(GameContainer.class).newGame()
                         )
                 ),
                 new MenuItem(

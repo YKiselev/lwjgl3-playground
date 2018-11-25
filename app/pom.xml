@@ -50,6 +50,11 @@
         </dependency>
         <dependency>
             <groupId>com.github.ykiselev</groupId>
+            <artifactId>default-assets</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.ykiselev</groupId>
             <artifactId>base</artifactId>
             <version>${project.version}</version>
         </dependency>

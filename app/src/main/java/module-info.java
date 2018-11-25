@@ -1,3 +1,5 @@
+import com.github.ykiselev.spi.GameFactory;
+
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
@@ -20,6 +22,9 @@ module ykiselev.playground.app {
     requires ykiselev.playground.assets.ogl;
     requires ykiselev.playground.assets.oal;
     requires ykiselev.playground.ui;
+    requires ykiselev.playground.def.assets;
 
     opens com.github.ykiselev.playground.services.console.appender;
+
+    uses GameFactory;
 }
