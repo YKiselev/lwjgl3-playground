@@ -75,7 +75,10 @@ public final class AppGameContainer implements GameContainer {
     public void newGame() {
         synchronized (lock) {
             closeGame();
-            game = ServiceLoader.load(GameFactory.class).findFirst().map(f -> f.create(services)).orElseThrow();
+            game = ServiceLoader.load(GameFactory.class)
+                    .findFirst()
+                    .map(f -> f.create(services))
+                    .orElseThrow(() -> new IllegalStateException("Game module not found!"));
             final UiLayers uiLayers = services.resolve(UiLayers.class);
             uiLayers.add(game);
             uiLayers.removePopups();

@@ -69,6 +69,12 @@ public final class ProgramArguments {
         return false;
     }
 
+    /**
+     * Ordered list of asset directories. First element is always {@link ProgramArguments#home()} path, the rest is
+     * directories specified via "asset.paths" program argument.
+     *
+     * @return ordered list of directories to search for assets.
+     */
     public Collection<Path> assetPaths() {
         return Stream.concat(
                 Stream.of(home()),
@@ -98,13 +104,7 @@ public final class ProgramArguments {
     public Path home() {
         final Path path = value("mod.home")
                 .map(Paths::get)
-                .orElse(
-                        Paths.get(
-                                System.getProperty("user.home"),
-                                System.getProperty("app.folder", "lwjgl3-playground"),
-                                System.getProperty("mod", "base")
-                        )
-                );
+                .orElseGet(this::getDefaultModPath);
         if (!Files.exists(path)) {
             try {
                 Files.createDirectories(path);
@@ -113,5 +113,16 @@ public final class ProgramArguments {
             }
         }
         return path;
+    }
+
+    /**
+     * @return default mod path - ${user.home}/${app.folder}/${mod}
+     */
+    private Path getDefaultModPath() {
+        return Paths.get(
+                System.getProperty("user.home"),
+                System.getProperty("app.folder", "lwjgl3-playground"),
+                System.getProperty("mod", "base")
+        );
     }
 }

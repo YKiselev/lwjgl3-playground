@@ -26,5 +26,7 @@ module ykiselev.playground.app {
 
     opens com.github.ykiselev.playground.services.console.appender;
 
+    exports com.github.ykiselev.playground;
+
     uses GameFactory;
 }
