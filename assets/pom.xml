@@ -32,7 +32,6 @@
         <module>assets-api</module>
         <module>oal</module>
         <module>ogl</module>
-        <module>default-assets</module>
     </modules>
 
 </project>

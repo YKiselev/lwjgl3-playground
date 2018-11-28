@@ -46,6 +46,20 @@
                 <include>*.dll</include>
             </includes>
         </fileSet>
+        <fileSet>
+            <directory>${project.parent.basedir}/static</directory>
+            <outputDirectory>base</outputDirectory>
+            <includes>
+                <include>**/*</include>
+            </includes>
+        </fileSet>
+        <fileSet>
+            <directory>${external.base.directory}</directory>
+            <outputDirectory>base</outputDirectory>
+            <includes>
+                <include>**/*</include>
+            </includes>
+        </fileSet>
     </fileSets>
     <dependencySets>
         <dependencySet>
@@ -62,6 +76,5 @@
                 <include>com.github.ykiselev:base</include>
             </includes>
         </dependencySet>
-
     </dependencySets>
 </assembly>

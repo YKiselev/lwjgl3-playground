@@ -57,14 +57,17 @@ public final class ManagedAssets implements Assets, AutoCloseable {
                 return (Wrap<T>) asset.value();
             }
             synchronized (loadLock) {
+                // We can't use  Map#computeIfAbsent because asset can be composite and call this method recursively
                 if (!cache.containsKey(resource)) {
-                    cache.put(
-                            resource,
-                            new RefAsset(
-                                    resource,
-                                    delegate.tryLoad(resource, clazz, assets)
-                            )
-                    );
+                    final Wrap<T> wrap = delegate.tryLoad(resource, clazz, assets);
+                    if (wrap != null) {
+                        cache.put(
+                                resource,
+                                new RefAsset(resource, wrap)
+                        );
+                    } else {
+                        return null;
+                    }
                 }
             }
         }

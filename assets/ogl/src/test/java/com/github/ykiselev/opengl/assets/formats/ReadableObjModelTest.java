@@ -18,17 +18,16 @@ package com.github.ykiselev.opengl.assets.formats;
 
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.assets.ReadableAsset;
-import com.github.ykiselev.opengl.assets.formats.ReadableObjModel;
 import com.github.ykiselev.opengl.assets.formats.obj.ObjModel;
 import com.github.ykiselev.wrap.Wrap;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.net.URL;
 import java.nio.channels.Channels;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).

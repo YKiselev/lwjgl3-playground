@@ -25,9 +25,9 @@ import org.junit.jupiter.params.provider.MethodSource;
 import java.nio.FloatBuffer;
 import java.util.stream.Stream;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
@@ -40,7 +40,7 @@ public class MatrixTest {
         int i = 0;
         for (float v : expected) {
             final float v1 = actual.get(i);
-            assertEquals("Difference at #" + i, v, v1, 0.0001f);
+            assertEquals(v, v1, 0.0001f, "Difference at #" + i);
             i++;
         }
     }
@@ -80,8 +80,8 @@ public class MatrixTest {
         Matrix.translate(m, trans.x, trans.y, trans.z, m);
         Matrix.multiply(m, v);
         assertTrue(
-                "expected " + expected + " but was " + v,
-                expected.equals(v, 0.0001f)
+                expected.equals(v, 0.0001f),
+                "expected " + expected + " but was " + v
         );
     }
 
@@ -105,8 +105,8 @@ public class MatrixTest {
         Matrix.translate(rm, 1, 2, 3, rm);
         final float[] r3 = Matrix.toArray(rm);
 
-        assertArrayEquals("r1 == r2 ?", r1, r2, 0.001f);
-        assertArrayEquals("r2 == r3 ?", r2, r3, 0.001f);
+        assertArrayEquals(r1, r2, 0.001f);
+        assertArrayEquals(r2, r3, 0.001f);
     }
 
     @Test
@@ -313,9 +313,9 @@ public class MatrixTest {
     }
 
     private void assertVectorEquals(float x, float y, float z, Vector3f v) {
-        assertEquals("x", x, v.x, 0.001f);
-        assertEquals("y", y, v.y, 0.001f);
-        assertEquals("z", z, v.z, 0.001f);
+        assertEquals(x, v.x, 0.001f);
+        assertEquals(y, v.y, 0.001f);
+        assertEquals(z, v.z, 0.001f);
     }
 
     @Test
@@ -351,7 +351,7 @@ public class MatrixTest {
     public void shouldBePerspective(Vector4f v, Vector4f expected) {
         Matrix.perspective(-1, 1, 1, -1, 1, 10, m);
         Matrix.multiply(m, v);
-        assertTrue("expected " + expected + " but was " + v, expected.equals(v, 0.001f));
+        assertTrue(expected.equals(v, 0.001f), "expected " + expected + " but was " + v);
     }
 
     private static Vector3f v(float x, float y, float z) {
@@ -382,8 +382,8 @@ public class MatrixTest {
         Matrix.multiply(m, v1);
         Matrix.multiply(m, v2);
         Matrix.multiply(m, v3);
-        assertTrue("expected " + ax + " but was " + v1, ax.equals(v1, 0.001f));
-        assertTrue("expected " + ay + " but was " + v2, ay.equals(v2, 0.001f));
-        assertTrue("expected " + az + " but was " + v3, az.equals(v3, 0.001f));
+        assertTrue(ax.equals(v1, 0.001f), "expected " + ax + " but was " + v1);
+        assertTrue(ay.equals(v2, 0.001f), "expected " + ay + " but was " + v2);
+        assertTrue(az.equals(v3, 0.001f), "expected " + az + " but was " + v3);
     }
 }
