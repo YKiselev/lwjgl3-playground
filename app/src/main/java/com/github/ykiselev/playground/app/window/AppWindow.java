@@ -17,10 +17,10 @@
 package com.github.ykiselev.playground.app.window;
 
 import com.github.ykiselev.window.WindowEvents;
+import org.jetbrains.annotations.Nullable;
 import org.lwjgl.system.Callback;
 import org.lwjgl.system.MemoryStack;
 
-import javax.annotation.Nullable;
 import java.nio.IntBuffer;
 
 import static java.util.Objects.requireNonNull;

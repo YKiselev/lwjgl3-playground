@@ -39,6 +39,8 @@ public final class AppGameContainer implements GameContainer {
 
     private final Services services;
 
+    private String name = "base";
+
     private volatile Game game;
 
     private final Object lock = new Object();
@@ -52,6 +54,7 @@ public final class AppGameContainer implements GameContainer {
                         .add("new-game", this::newGame),
                 services.resolve(PersistedConfiguration.class)
                         .wire()
+                        .withString("game.name", () -> name, v -> name = v, false)
                         .withBoolean("game.isPresent", () -> game != null, false)
                         .build()
         );

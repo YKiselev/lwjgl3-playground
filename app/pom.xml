@@ -50,11 +50,6 @@
         </dependency>
         <dependency>
             <groupId>com.github.ykiselev</groupId>
-            <artifactId>default-assets</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.github.ykiselev</groupId>
             <artifactId>base</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -121,16 +116,8 @@
             <artifactId>log4j-iostreams</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.google.code.findbugs</groupId>
-            <artifactId>jsr305</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>javax.json</groupId>
-            <artifactId>javax.json-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.glassfish</groupId>
-            <artifactId>javax.json</artifactId>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations</artifactId>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>

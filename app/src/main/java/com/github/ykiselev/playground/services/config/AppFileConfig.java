@@ -94,11 +94,7 @@ final class AppFileConfig implements FileConfig {
     }
 
     private void set(Config value) {
-        this.config = value.withFallback(
-                ConfigFactory.parseURL(
-                        getClass().getResource("/fallback/app.conf")
-                )
-        ).resolve();
+        this.config = value.resolve();
     }
 
     private Config readFromFile(ReadableByteChannel channel) {
