@@ -24,8 +24,6 @@ import com.github.ykiselev.services.configuration.ConfigurationException;
 import com.github.ykiselev.services.configuration.ConfigurationException.VariableAlreadyExistsException;
 import com.github.ykiselev.services.configuration.PersistedConfiguration;
 import com.github.ykiselev.services.configuration.values.ConfigValue;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -44,8 +42,6 @@ import static java.util.Objects.requireNonNull;
  */
 public final class AppConfig implements PersistedConfiguration, AutoCloseable {
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
-
     private final CopyOnModify<Map<String, ConfigValue>> config;
 
     private final FileConfig fileConfig;
@@ -55,7 +51,6 @@ public final class AppConfig implements PersistedConfiguration, AutoCloseable {
 
     private final Config root = new Config() {
 
-        @SuppressWarnings("unchecked")
         @Override
         public <V extends ConfigValue> V getValue(String path, Class<V> clazz) {
             final V result = clazz.cast(getRawValue(path));
@@ -136,19 +131,13 @@ public final class AppConfig implements PersistedConfiguration, AutoCloseable {
 
     @Override
     public void persist(String name) {
-        fileConfig.persist(
-                name,
-                config.value()
-                        .entrySet()
-                        .stream()
-                        .map(Map.Entry::getValue)
-                        .collect(
-                                Collectors.toMap(
-                                        ConfigValue::name,
-                                        ConfigValue::boxed
-                                )
-                        )
-        );
+        final Map<String, Object> map = new HashMap<>();
+        config.value()
+                .values()
+                .stream()
+                .filter(ConfigValue::isPersisted)
+                .forEach(v -> map.put(v.name(), v.boxed()));
+        fileConfig.persist(name, map);
     }
 
     private void applyFileValues() {

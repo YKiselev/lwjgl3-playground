@@ -39,8 +39,6 @@ public final class AppGameContainer implements GameContainer {
 
     private final Services services;
 
-    private String name = "base";
-
     private volatile Game game;
 
     private final Object lock = new Object();
@@ -54,7 +52,6 @@ public final class AppGameContainer implements GameContainer {
                         .add("new-game", this::newGame),
                 services.resolve(PersistedConfiguration.class)
                         .wire()
-                        .withString("game.name", () -> name, v -> name = v, false)
                         .withBoolean("game.isPresent", () -> game != null, false)
                         .build()
         );
@@ -81,7 +78,7 @@ public final class AppGameContainer implements GameContainer {
             game = ServiceLoader.load(GameFactory.class)
                     .findFirst()
                     .map(f -> f.create(services))
-                    .orElseThrow(() -> new IllegalStateException("Game module not found!"));
+                    .orElseThrow(() -> new IllegalStateException("Game factory service not found!"));
             final UiLayers uiLayers = services.resolve(UiLayers.class);
             uiLayers.add(game);
             uiLayers.removePopups();

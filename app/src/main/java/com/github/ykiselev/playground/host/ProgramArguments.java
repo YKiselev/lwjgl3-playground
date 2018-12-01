@@ -28,6 +28,13 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
+ * Supported program arguments includes:
+ * <ul>
+ * <li>Base folder, containing base mod assets (read-only)</li>
+ * <li>User folder, to store persisted configs (writable)</li>
+ * </ul>
+ * </pre>
+ *
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
 public final class ProgramArguments {
@@ -78,10 +85,12 @@ public final class ProgramArguments {
     public Collection<Path> assetPaths() {
         return Stream.concat(
                 Stream.of(home()),
-                value("asset.paths").stream()
+                value("assets")
+                        .stream()
                         .flatMap(v -> Arrays.stream(v.split(",")))
                         .map(Paths::get)
-        ).filter(p -> Files.exists(p) && Files.isDirectory(p))
+        ).filter(Files::exists)
+                .filter(Files::isDirectory)
                 .collect(Collectors.toList());
     }
 
@@ -102,9 +111,9 @@ public final class ProgramArguments {
      * @return the path to write-enabled folder.
      */
     public Path home() {
-        final Path path = value("mod.home")
+        final Path path = value("home")
                 .map(Paths::get)
-                .orElseGet(this::getDefaultModPath);
+                .orElseGet(this::getDefaultHomePath);
         if (!Files.exists(path)) {
             try {
                 Files.createDirectories(path);
@@ -116,9 +125,9 @@ public final class ProgramArguments {
     }
 
     /**
-     * @return default mod path - ${user.home}/${app.folder}/${mod}
+     * @return default home path - ${user.home}/${app.folder}/${mod}
      */
-    private Path getDefaultModPath() {
+    private Path getDefaultHomePath() {
         return Paths.get(
                 System.getProperty("user.home"),
                 System.getProperty("app.folder", "lwjgl3-playground"),

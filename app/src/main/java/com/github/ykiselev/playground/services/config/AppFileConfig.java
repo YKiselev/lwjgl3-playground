@@ -30,6 +30,7 @@ import java.io.Writer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 import static java.util.Objects.requireNonNull;
@@ -66,7 +67,7 @@ final class AppFileConfig implements FileConfig {
     public void persist(String name, Map<String, Object> config) {
         logger.info("Saving config to {}...", name);
         try (WritableByteChannel channel = fileSystem.openForWriting("app.conf", false)) {
-            try (Writer writer = Channels.newWriter(channel, "utf-8")) {
+            try (Writer writer = Channels.newWriter(channel, StandardCharsets.UTF_8)) {
                 writer.write(
                         ConfigFactory.parseMap(config)
                                 .root()
@@ -99,7 +100,7 @@ final class AppFileConfig implements FileConfig {
 
     private Config readFromFile(ReadableByteChannel channel) {
         try {
-            try (Reader reader = Channels.newReader(channel, "utf-8")) {
+            try (Reader reader = Channels.newReader(channel, StandardCharsets.UTF_8)) {
                 return ConfigFactory.parseReader(reader);
             }
         } catch (IOException e) {
