@@ -3,5 +3,5 @@
  -Dorg.lwjgl.util.DebugLoader=true ^
  -Dorg.lwjgl.librarypath=app/target/playground/bin ^
  -m ykiselev.playground.app/com.github.ykiselev.playground.Main ^
- asset.paths=app/target/playground/base/data ^
- mod.home=app/target/playground/base ^
+ assets=app/target/playground/base/data ^
+ home=app/target/playground/base ^

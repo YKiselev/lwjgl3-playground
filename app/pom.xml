@@ -25,32 +25,32 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>app</artifactId>
+    <artifactId>playground-app</artifactId>
 
     <dependencies>
         <dependency>
             <groupId>com.github.ykiselev</groupId>
-            <artifactId>ogl</artifactId>
+            <artifactId>playground-ogl</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.github.ykiselev</groupId>
-            <artifactId>oal</artifactId>
+            <artifactId>playground-oal</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.github.ykiselev</groupId>
-            <artifactId>spi</artifactId>
+            <artifactId>playground-spi</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.github.ykiselev</groupId>
-            <artifactId>ui</artifactId>
+            <artifactId>playground-ui</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.github.ykiselev</groupId>
-            <artifactId>base</artifactId>
+            <artifactId>playground-base</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -119,6 +119,7 @@
             <groupId>org.jetbrains</groupId>
             <artifactId>annotations</artifactId>
         </dependency>
+        <!-- Test dependencies -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>

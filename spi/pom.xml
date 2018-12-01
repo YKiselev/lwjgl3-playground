@@ -25,19 +25,19 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>spi</artifactId>
+    <artifactId>playground-spi</artifactId>
     <description>Service provider interface for playground app</description>
 
     <dependencies>
         <dependency>
             <groupId>com.github.ykiselev</groupId>
-            <artifactId>common</artifactId>
+            <artifactId>playground-common</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>com.github.ykiselev</groupId>
-            <artifactId>ogl</artifactId>
+            <artifactId>playground-ogl</artifactId>
             <version>${project.version}</version>
         </dependency>
 
@@ -46,6 +46,7 @@
             <artifactId>config</artifactId>
         </dependency>
 
+        <!-- Test dependencies -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
