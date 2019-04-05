@@ -26,4 +26,5 @@ module ykiselev.playground.common {
     exports com.github.ykiselev.test;
     exports com.github.ykiselev.tree;
     exports com.github.ykiselev.trigger;
+    exports com.github.ykiselev.math;
 }
