@@ -37,8 +37,8 @@ public final class DefaultSpriteFont implements SpriteFont {
     private final GlyphRanges ranges;
 
     @Override
-    public Texture2d texture() {
-        return texture.value();
+    public int texture() {
+        return texture.value().id();
     }
 
     @Override

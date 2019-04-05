@@ -14,12 +14,26 @@
  * limitations under the License.
  */
 
-package com.github.ykiselev.opengl.sprites;
+package com.github.ykiselev.opengl.text;
 
 /**
- * @author Yuriy Kiselev (uze@yandex.ru).
+ * @author Yuriy Kiselev (uze@yandex.ru)
+ * @since 07.04.2019
  */
-public enum TextDrawingFlags {
+public interface Font extends AutoCloseable {
 
-    USE_COLOR_CONTROL_SEQUENCES, USE_KERNING
+    int texture();
+
+    int height();
+
+    int width(CharSequence text);
+
+    /**
+     * Calculates actual height of {@code text}.
+     *
+     * @param text  the text to calculate height for.
+     * @param width the maximum width to use.
+     * @return the actual text height.
+     */
+    int height(CharSequence text, int width);
 }

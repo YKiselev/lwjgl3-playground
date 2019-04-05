@@ -49,7 +49,7 @@ public final class CountedRef<T> implements Ref<T> {
     @Override
     public synchronized long release() {
         final long value = --counter;
-        if (value <= 0 && reference != null) {
+        if (value == 0 && reference != null) {
             try {
                 disposer.accept(reference);
             } finally {

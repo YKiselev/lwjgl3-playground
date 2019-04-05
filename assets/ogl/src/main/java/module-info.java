@@ -12,6 +12,7 @@ module ykiselev.playground.assets.ogl {
     requires transitive ykiselev.wrap;
     requires transitive ykiselev.assets.api;
     requires ykiselev.playground.common;
+    requires org.jetbrains.annotations;
 
     exports com.github.ykiselev.opengl;
     exports com.github.ykiselev.opengl.assets.formats;
@@ -26,4 +27,5 @@ module ykiselev.playground.assets.ogl {
     exports com.github.ykiselev.opengl.textures;
     exports com.github.ykiselev.opengl.vbo;
     exports com.github.ykiselev.opengl.vertices;
+    exports com.github.ykiselev.opengl.fonts;
 }

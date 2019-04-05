@@ -16,16 +16,10 @@
 
 package com.github.ykiselev.opengl.text;
 
-import com.github.ykiselev.opengl.textures.Texture2d;
-
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public interface SpriteFont extends AutoCloseable {
-
-    Texture2d texture();
-
-    int height();
+public interface SpriteFont extends Font {
 
     int glyphXBorder();
 
@@ -47,14 +41,4 @@ public interface SpriteFont extends AutoCloseable {
      */
     Glyph glyph(char ch);
 
-    int width(CharSequence text);
-
-    /**
-     * Calculates actual height of {@code text}.
-     *
-     * @param text  the text to calculate height for.
-     * @param width the maximum width to use.
-     * @return the actual text height.
-     */
-    int height(CharSequence text, int width);
 }

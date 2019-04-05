@@ -16,11 +16,13 @@
 
 package com.github.ykiselev.opengl.sprites;
 
+import com.github.ykiselev.opengl.fonts.TrueTypeFont;
 import com.github.ykiselev.opengl.shaders.ProgramObject;
 import com.github.ykiselev.opengl.text.Glyph;
 import com.github.ykiselev.opengl.text.SpriteFont;
 import com.github.ykiselev.opengl.textures.Texture2d;
 import com.github.ykiselev.wrap.Wrap;
+import org.lwjgl.stb.STBTTPackedchar;
 
 import static java.util.Objects.requireNonNull;
 
@@ -114,7 +116,19 @@ public final class DefaultSpriteBatch implements SpriteBatch {
     @Override
     public int draw(int x, int y, int maxWidth, CharSequence text, TextAttributes attributes) {
         final SpriteFont font = attributes.font();
-        if (font == null){
+        if (font != null) {
+            return drawUsingSpriteFont(x, y, maxWidth, text, attributes);
+        }
+        final TrueTypeFont trueTypeFont = attributes.trueTypeFont();
+        if (trueTypeFont != null) {
+            return drawUsingTrueTypeFont(x, y, maxWidth, text, attributes);
+        }
+        return 0;
+    }
+
+    private int drawUsingSpriteFont(int x, int y, int maxWidth, CharSequence text, TextAttributes attributes) {
+        final SpriteFont font = attributes.font();
+        if (font == null) {
             throw new NullPointerException("Font is not set!");
         }
         quads.use(font.texture());
@@ -163,6 +177,78 @@ public final class DefaultSpriteBatch implements SpriteBatch {
         return y - qy;
     }
 
+    private int drawUsingTrueTypeFont(int x, int y, int maxWidth, CharSequence text, TextAttributes attributes) {
+        final TrueTypeFont font = attributes.trueTypeFont();
+        if (font == null) {
+            throw new NullPointerException("Font is not set!");
+        }
+        quads.use(font.texture());
+
+        final boolean useColorControlSequences = attributes.useColorControlSequences();
+        final boolean useKerning = attributes.useKerning();
+        final LineStart lineStart = LineStart.from(attributes.alignment());
+        int color = attributes.color();
+        final float dy = font.fontSize();
+        final int maxX = x + maxWidth;
+        final float ibw = font.bitmapWidth();
+        final float ibh = font.bitmapHeight();
+        int pcp = 0;
+        float fx = x;// todo - lineStart.calculate(x, font, text, 0, maxWidth);
+        float fy = y - dy, qy = fy;
+        for (int i = 0; i < text.length(); ) {
+            final int previous = pcp;
+            final int value = Character.codePointAt(text, i);
+            pcp = value;
+            i += Character.charCount(value);
+            if (useColorControlSequences && value == '^' && (previous != '\\')) {
+                if (i + 2 < text.length()) {
+                    color = colorTable.color(
+                            colorIndex(text.charAt(++i), text.charAt(++i))
+                    );
+                }
+                continue;
+            }
+            if (value == '\r') {
+                continue;
+            }
+            if (value == '\n') {
+                fx = x;// todo lineStart.calculate(x, font, text, i + 1, maxWidth);
+                fy -= dy;
+                continue;
+            }
+            final STBTTPackedchar.Buffer charData = font.charData(value);
+            if (fx + charData.xadvance() > maxX) {
+                fx = x;//todo = lineStart.calculate(x, font, text, i, maxWidth);
+                fy -= dy;
+            }
+            qy = fy;
+
+            final float x1 = fx + charData.xadvance();
+            final float y1 = fy + font.info().lineHeight();
+            if (value != ' ') {
+                final float qx0 = fx + charData.xoff();
+                final float qy0 = fy + charData.yoff();
+                final float qx1 = fx + charData.xoff2();
+                final float qy1 = fy + charData.yoff2();
+
+                final float s0 = fx * ibw;
+                final float t0 = charData.y0() * ibh;
+                final float s1 = charData.x1() * ibw;
+                final float t1 = charData.y1() * ibh;
+                quads.addQuad(fx, fy, s0, t1, x1, y1, s1, t0, color);
+            }
+
+            fx = x1;
+
+            // apply some kerning
+            if (useKerning && i < text.length()) {
+                fx += font.info().getKernAdvance(value, Character.codePointAt(text, i));
+            }
+        }
+
+        return (int) (y - qy);
+    }
+
     @Override
     public void draw(TextBuilder builder, int x, int y) {
         builder.draw(quads, x, y);
@@ -170,7 +256,7 @@ public final class DefaultSpriteBatch implements SpriteBatch {
 
     @Override
     public void draw(Texture2d texture, int x, int y, int width, int height, float s0, float t0, float s1, float t1, int color) {
-        quads.use(texture);
+        quads.use(texture.id());
         quads.addQuad(x, y, s0, t0, x + width, y + height, s1, t1, color);
     }
 

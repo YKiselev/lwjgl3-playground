@@ -20,7 +20,6 @@ import com.github.ykiselev.opengl.matrices.Matrix;
 import com.github.ykiselev.opengl.shaders.ProgramObject;
 import com.github.ykiselev.opengl.shaders.uniforms.UniformInfo;
 import com.github.ykiselev.opengl.shaders.uniforms.UniformVariable;
-import com.github.ykiselev.opengl.textures.Texture2d;
 import com.github.ykiselev.opengl.vbo.IndexBufferObject;
 import com.github.ykiselev.opengl.vbo.VertexArrayObject;
 import com.github.ykiselev.opengl.vbo.VertexBufferObject;
@@ -95,7 +94,7 @@ public final class TexturedQuads implements AutoCloseable {
 
     private final FloatBuffer matrix;
 
-    private Texture2d currentTexture;
+    private int currentTexture;
 
     private int quadCounter;
 
@@ -302,14 +301,14 @@ public final class TexturedQuads implements AutoCloseable {
         quadCounter++;
     }
 
-    public void use(Texture2d texture) {
-        if (texture == null) {
+    public void use(int texture) {
+        if (texture == 0) {
             flush();
             glBindTexture(GL_TEXTURE_2D, 0);
         } else if (texture != currentTexture) {
             flush();
             glActiveTexture(GL_TEXTURE0);
-            texture.bind();
+            glBindTexture(GL_TEXTURE_2D, texture);
         }
         currentTexture = texture;
     }
@@ -329,7 +328,7 @@ public final class TexturedQuads implements AutoCloseable {
 
         vao.bind();
         program.value().bind();
-        use(null);
+        use(0);
 
         if (enableAlphaBlending) {
             glEnable(GL_BLEND);
@@ -348,7 +347,7 @@ public final class TexturedQuads implements AutoCloseable {
 
     public void end() {
         flush();
-        use(null);
+        use(0);
         vao.unbind();
         vbo.unbind();
         ebo.unbind();

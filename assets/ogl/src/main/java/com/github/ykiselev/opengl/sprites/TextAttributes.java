@@ -16,6 +16,7 @@
 
 package com.github.ykiselev.opengl.sprites;
 
+import com.github.ykiselev.opengl.fonts.TrueTypeFont;
 import com.github.ykiselev.opengl.text.SpriteFont;
 
 import java.util.EnumSet;
@@ -30,6 +31,8 @@ public final class TextAttributes {
 
     private SpriteFont font;
 
+    private TrueTypeFont trueTypeFont;
+
     private TextAlignment alignment = TextAlignment.LEFT;
 
     private int color = Colors.WHITE;
@@ -42,6 +45,14 @@ public final class TextAttributes {
 
     public void font(SpriteFont font) {
         this.font = font;
+    }
+
+    public TrueTypeFont trueTypeFont() {
+        return trueTypeFont;
+    }
+
+    public void trueTypeFont(TrueTypeFont trueTypeFont) {
+        this.trueTypeFont = trueTypeFont;
     }
 
     public TextAlignment alignment() {
@@ -66,6 +77,10 @@ public final class TextAttributes {
 
     public boolean useColorControlSequences() {
         return flags.contains(TextDrawingFlags.USE_COLOR_CONTROL_SEQUENCES);
+    }
+
+    public boolean useKerning() {
+        return flags.contains(TextDrawingFlags.USE_KERNING);
     }
 
     public void flags(Set<TextDrawingFlags> flags) {

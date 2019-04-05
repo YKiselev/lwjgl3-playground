@@ -14,12 +14,25 @@
  * limitations under the License.
  */
 
-package com.github.ykiselev.opengl.sprites;
+package com.github.ykiselev.math;
 
 /**
- * @author Yuriy Kiselev (uze@yandex.ru).
+ * @author Yuriy Kiselev (uze@yandex.ru)
+ * @since 05.04.2019
  */
-public enum TextDrawingFlags {
+public final class PowerOfTwo {
 
-    USE_COLOR_CONTROL_SEQUENCES, USE_KERNING
+    public static int next(int value) {
+        if (value < 0) {
+            throw new IllegalArgumentException("Value should be positive: " + value);
+        }
+        if (value == 0) {
+            return 0;
+        }
+        final int highestOneBit = Integer.highestOneBit(value);
+        if (highestOneBit == value) {
+            return value;
+        }
+        return highestOneBit << 1;
+    }
 }
