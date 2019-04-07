@@ -23,7 +23,7 @@ import com.github.ykiselev.wrap.Wrap;
  * <p>
  * Created by Y.Kiselev on 15.05.2016.
  */
-public interface Assets extends ReadableAssets {
+public interface Assets extends ReadableAssets, Resources {
 
     /**
      * Loads asset using one of registered {@link ReadableAsset}'s

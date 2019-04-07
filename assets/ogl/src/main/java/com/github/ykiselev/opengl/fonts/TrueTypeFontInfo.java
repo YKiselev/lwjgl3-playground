@@ -18,6 +18,7 @@ package com.github.ykiselev.opengl.fonts;
 
 import com.github.ykiselev.common.IntDimensions;
 import com.github.ykiselev.math.PowerOfTwo;
+import com.github.ykiselev.wrap.Wrap;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.stb.STBTTFontinfo;
 import org.lwjgl.stb.STBTruetype;
@@ -48,7 +49,7 @@ public final class TrueTypeFontInfo implements AutoCloseable {
      * This buffer is referenced as native address from {@link STBTTFontinfo} structure so we need to keep it
      * from being collected by gc
      */
-    private final ByteBuffer ttf;
+    private final Wrap<ByteBuffer> ttf;
 
     private final STBTTFontinfo info;
 
@@ -85,7 +86,7 @@ public final class TrueTypeFontInfo implements AutoCloseable {
     }
 
     public ByteBuffer fontData() {
-        return ttf;
+        return ttf.value();
     }
 
     public float fontSize() {
@@ -101,7 +102,7 @@ public final class TrueTypeFontInfo implements AutoCloseable {
      * @param lineGap  the font's line gap
      * @param fontSize the scaled font size in pixels
      */
-    public TrueTypeFontInfo(ByteBuffer ttf, STBTTFontinfo info, float scale, int ascent, int descent, int lineGap, float fontSize) {
+    public TrueTypeFontInfo(Wrap<ByteBuffer> ttf, STBTTFontinfo info, float scale, int ascent, int descent, int lineGap, float fontSize) {
         this.ttf = requireNonNull(ttf);
         this.info = requireNonNull(info);
         this.scale = scale;
@@ -114,6 +115,7 @@ public final class TrueTypeFontInfo implements AutoCloseable {
 
     @Override
     public void close() {
+        ttf.close();
         info.close();
     }
 
@@ -227,9 +229,9 @@ public final class TrueTypeFontInfo implements AutoCloseable {
         return maxWidth * scale;
     }
 
-    public static TrueTypeFontInfo load(ByteBuffer fontData, float fontHeight) {
+    public static TrueTypeFontInfo load(Wrap<ByteBuffer> fontData, float fontHeight) {
         final STBTTFontinfo info = STBTTFontinfo.create();
-        if (!stbtt_InitFont(info, fontData)) {
+        if (!stbtt_InitFont(info, fontData.value())) {
             throw new IllegalStateException("Failed to initialize font information!");
         }
 

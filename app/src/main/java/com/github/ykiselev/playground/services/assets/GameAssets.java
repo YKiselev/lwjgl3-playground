@@ -19,18 +19,20 @@ package com.github.ykiselev.playground.services.assets;
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.assets.CompositeReadableAssets;
 import com.github.ykiselev.assets.ReadableAsset;
-import com.github.ykiselev.openal.assets.ReadableVorbisAudio;
 import com.github.ykiselev.assets.ResourceException;
 import com.github.ykiselev.assets.Resources;
 import com.github.ykiselev.assets.SimpleAssets;
+import com.github.ykiselev.closeables.Closeables;
+import com.github.ykiselev.openal.assets.ReadableVorbisAudio;
 import com.github.ykiselev.opengl.assets.formats.ReadableConfig;
 import com.github.ykiselev.opengl.assets.formats.ReadableObjModel;
 import com.github.ykiselev.opengl.assets.formats.ReadableProgramObject;
 import com.github.ykiselev.opengl.assets.formats.ReadableShaderObject;
 import com.github.ykiselev.opengl.assets.formats.ReadableSpriteFont;
 import com.github.ykiselev.opengl.assets.formats.ReadableTexture2d;
+import com.github.ykiselev.opengl.assets.formats.ReadableTrueTypeFontInfo;
 import com.github.ykiselev.opengl.assets.formats.obj.ObjModel;
-import com.github.ykiselev.closeables.Closeables;
+import com.github.ykiselev.opengl.fonts.TrueTypeFontInfo;
 import com.github.ykiselev.opengl.shaders.ProgramObject;
 import com.github.ykiselev.opengl.text.SpriteFont;
 import com.github.ykiselev.opengl.textures.DefaultMipMappedTexture2d;
@@ -41,7 +43,10 @@ import com.github.ykiselev.wrap.Wrap;
 import com.typesafe.config.Config;
 import org.lwjgl.opengl.GL20;
 
+import java.nio.channels.ReadableByteChannel;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 import static java.util.Objects.requireNonNull;
 
@@ -71,6 +76,16 @@ public final class GameAssets implements Assets, AutoCloseable {
         Closeables.close(delegate);
     }
 
+    @Override
+    public Optional<ReadableByteChannel> open(String resource) throws ResourceException {
+        return delegate.open(resource);
+    }
+
+    @Override
+    public Stream<ReadableByteChannel> openAll(String resource) throws ResourceException {
+        return delegate.openAll(resource);
+    }
+
     public static Assets create(Resources resources) {
         final ReadableConfig readableConfig = new ReadableConfig();
         final ReadableTexture2d simpleReadableTexture2d = new ReadableTexture2d(
@@ -85,7 +100,8 @@ public final class GameAssets implements Assets, AutoCloseable {
                 SpriteFont.class, new ReadableSpriteFont(),
                 Sprite.class, simpleReadableTexture2d,
                 MipMappedTexture2d.class, mipMappedReadableTexture2d,
-                ObjModel.class, new ReadableObjModel()
+                ObjModel.class, new ReadableObjModel(),
+                TrueTypeFontInfo.class, new ReadableTrueTypeFontInfo()
         );
         final Map<String, ReadableAsset> byExtension = Map.of(
                 "vs", new ReadableShaderObject(GL20.GL_VERTEX_SHADER),

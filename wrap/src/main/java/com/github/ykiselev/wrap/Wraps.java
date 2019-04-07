@@ -21,6 +21,14 @@ package com.github.ykiselev.wrap;
  */
 public final class Wraps {
 
+    /**
+     * Convenient method to wrap instance of class that doesn't implement {@link AutoCloseable}.
+     * Note: wrapper created by this method upon calling method {@link Wrap#close()} does nothing.
+     *
+     * @param value the value to wrap
+     * @param <T>   the type parameter
+     * @return the no-op wrapper
+     */
     public static <T> Wrap<T> simple(T value) {
         return new Wrap<>(value) {
             @Override
@@ -30,6 +38,13 @@ public final class Wraps {
         };
     }
 
+    /**
+     * Use this method to wrap instances of classes implementing {@link AutoCloseable}.
+     *
+     * @param value the value to wrap
+     * @param <T>   the type parameter
+     * @return the wrapper of supplied value which will call {@link AutoCloseable#close()} on contained instance upon calling {@link Wrap#close()}
+     */
     public static <T extends AutoCloseable> Wrap<T> of(T value) {
         return new Wrap<>(value) {
             @Override

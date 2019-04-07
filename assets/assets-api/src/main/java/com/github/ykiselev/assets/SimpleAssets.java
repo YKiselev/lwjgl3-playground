@@ -20,6 +20,10 @@ import com.github.ykiselev.wrap.Wrap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.channels.ReadableByteChannel;
+import java.util.Optional;
+import java.util.stream.Stream;
+
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -60,5 +64,15 @@ public final class SimpleAssets implements Assets {
     @Override
     public <T> ReadableAsset<T> resolve(String resource, Class<T> clazz) throws ResourceException {
         return readableAssets.resolve(resource, clazz);
+    }
+
+    @Override
+    public Optional<ReadableByteChannel> open(String resource) throws ResourceException {
+        return resources.open(resource);
+    }
+
+    @Override
+    public Stream<ReadableByteChannel> openAll(String resource) throws ResourceException {
+        return resources.openAll(resource);
     }
 }

@@ -26,8 +26,11 @@ import com.github.ykiselev.wrap.Wrap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.channels.ReadableByteChannel;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Stream;
 
 import static java.util.Objects.requireNonNull;
 
@@ -106,6 +109,16 @@ public final class ManagedAssets implements Assets, AutoCloseable {
         Closeables.close(delegate);
         cache.values().forEach(Closeables::close);
         cache.clear();
+    }
+
+    @Override
+    public Optional<ReadableByteChannel> open(String resource) throws ResourceException {
+        return delegate.open(resource);
+    }
+
+    @Override
+    public Stream<ReadableByteChannel> openAll(String resource) throws ResourceException {
+        return delegate.openAll(resource);
     }
 
     /**
