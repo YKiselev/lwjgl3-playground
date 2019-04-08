@@ -224,7 +224,7 @@ public final class DefaultSpriteBatch implements SpriteBatch {
             qy = fy;
 
             final float x1 = fx + charData.xadvance();
-            final float y1 = fy + font.info().lineHeight();
+            final float y1 = fy + font.info().metrics().lineHeight();
             if (value != ' ') {
                 final float qx0 = fx + charData.xoff();
                 final float qy0 = fy + charData.yoff();

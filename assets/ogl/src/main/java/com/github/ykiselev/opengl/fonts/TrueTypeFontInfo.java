@@ -21,7 +21,6 @@ import com.github.ykiselev.math.PowerOfTwo;
 import com.github.ykiselev.wrap.Wrap;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.stb.STBTTFontinfo;
-import org.lwjgl.stb.STBTruetype;
 import org.lwjgl.system.MemoryStack;
 
 import java.nio.ByteBuffer;
@@ -53,64 +52,25 @@ public final class TrueTypeFontInfo implements AutoCloseable {
 
     private final STBTTFontinfo info;
 
-    private final float scale;
-
-    private final int ascent;
-
-    private final int descent;
-
-    private final int lineGap;
-
-    private final float lineHeight;
-
-    private final float fontSize;
-
-    public float scale() {
-        return scale;
-    }
-
-    public int ascent() {
-        return ascent;
-    }
-
-    public int descent() {
-        return descent;
-    }
-
-    public int lineGap() {
-        return lineGap;
-    }
-
-    public float lineHeight() {
-        return lineHeight;
-    }
+    private final FontMetrics metrics;
 
     public ByteBuffer fontData() {
         return ttf.value();
     }
 
-    public float fontSize() {
-        return fontSize;
+    public FontMetrics metrics() {
+        return metrics;
     }
 
     /**
-     * @param ttf      the raw fond data
-     * @param info     the font info structure
-     * @param scale    see {@link STBTruetype#stbtt_ScaleForPixelHeight(STBTTFontinfo, float)} for explanation
-     * @param ascent   the font's ascent value
-     * @param descent  the font's descent value
-     * @param lineGap  the font's line gap
-     * @param fontSize the scaled font size in pixels
+     * @param ttf     the raw fond data
+     * @param info    the font info structure
+     * @param metrics the font metrics
      */
-    public TrueTypeFontInfo(Wrap<ByteBuffer> ttf, STBTTFontinfo info, float scale, int ascent, int descent, int lineGap, float fontSize) {
+    public TrueTypeFontInfo(Wrap<ByteBuffer> ttf, STBTTFontinfo info, FontMetrics metrics) {
         this.ttf = requireNonNull(ttf);
         this.info = requireNonNull(info);
-        this.scale = scale;
-        this.ascent = ascent;
-        this.descent = descent;
-        this.lineGap = lineGap;
-        this.fontSize = fontSize;
-        this.lineHeight = scale * (ascent - descent + lineGap);
+        this.metrics = requireNonNull(metrics);
     }
 
     @Override
@@ -122,13 +82,14 @@ public final class TrueTypeFontInfo implements AutoCloseable {
     @Override
     public String toString() {
         return "TrueTypeFontInfo{" +
-                "info=" + info +
-                ", fontSize=" + fontSize +
+                "ttf=" + ttf +
+                ", info=" + info +
+                ", metrics=" + metrics +
                 '}';
     }
 
     public float getKernAdvance(int codePoint1, int codePoint2) {
-        return stbtt_GetCodepointKernAdvance(info, codePoint1, codePoint2) * scale;
+        return stbtt_GetCodepointKernAdvance(info, codePoint1, codePoint2) * metrics.scale();
     }
 
     public void getCodePointHMetrics(int codePoint, @Nullable IntBuffer advanceWidth, @Nullable IntBuffer leftSideBearing) {
@@ -152,7 +113,7 @@ public final class TrueTypeFontInfo implements AutoCloseable {
                 final int codePoint = codePoints[i];
                 final int g = stbtt_FindGlyphIndex(info, codePoint);
                 stbtt_GetGlyphHMetrics(info, g, advance, lsb);
-                stbtt_GetGlyphBitmapBox(info, g, scale, scale, x0, y0, x1, y1);
+                stbtt_GetGlyphBitmapBox(info, g, metrics.scale(), metrics.scale(), x0, y0, x1, y1);
                 widths[i] = x1.get(0) - x0.get(0);
                 heights[i] = y1.get(0) - y0.get(0);
             }
@@ -226,7 +187,7 @@ public final class TrueTypeFontInfo implements AutoCloseable {
         if (width > maxWidth) {
             maxWidth = width;
         }
-        return maxWidth * scale;
+        return maxWidth * metrics.scale();
     }
 
     public static TrueTypeFontInfo load(Wrap<ByteBuffer> fontData, float fontHeight) {
@@ -245,11 +206,13 @@ public final class TrueTypeFontInfo implements AutoCloseable {
             return new TrueTypeFontInfo(
                     fontData,
                     info,
-                    stbtt_ScaleForPixelHeight(info, fontHeight),
-                    ascent.get(0),
-                    descent.get(0),
-                    lineGap.get(0),
-                    fontHeight
+                    new FontMetrics(
+                            stbtt_ScaleForPixelHeight(info, fontHeight),
+                            ascent.get(0),
+                            descent.get(0),
+                            lineGap.get(0),
+                            fontHeight
+                    )
             );
         }
     }

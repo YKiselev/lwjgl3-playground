@@ -25,23 +25,21 @@ public interface ReadableAssets {
      * Resolves instance of {@link ReadableAsset} from supplied URI and/or class. Some implementations (like {@link SimpleAssets}) require only one
      * of {code resource}, {@code clazz} to be {@code non-null}.
      *
-     * @param <T>      the type of resource
      * @param resource the resource name.
-     * @param clazz    the resource class.
+     * @param clazz    the class.
      * @return the readable resource or {@code null} if not found.
      * @throws ResourceException if something goes wrong
      */
-    <T> ReadableAsset<T> resolve(String resource, Class<T> clazz) throws ResourceException;
+    ReadableAsset resolve(String resource, Class<?> clazz) throws ResourceException;
 
     /**
      * Convenient method to resolve {@link ReadableAsset} by asset class.
      *
-     * @param clazz the asset class.
-     * @param <T>   the type of asset class.
+     * @param clazz the class.
      * @return the readable resource or {@code null} if not found.
      * @throws ResourceException if something goes wrong
      */
-    default <T> ReadableAsset<T> resolve(Class<T> clazz) throws ResourceException {
+    default ReadableAsset resolve(Class<?> clazz) throws ResourceException {
         return resolve(null, clazz);
     }
 
@@ -49,11 +47,10 @@ public interface ReadableAssets {
      * Convenient method to resolve {@link ReadableAsset} by asset class.
      *
      * @param resource the resource name.
-     * @param <T>      the type of asset class.
      * @return the readable resource or {@code null} if not found.
      * @throws ResourceException if something goes wrong
      */
-    default <T> ReadableAsset<T> resolve(String resource) throws ResourceException {
+    default ReadableAsset resolve(String resource) throws ResourceException {
         return resolve(resource, null);
     }
 }

@@ -26,8 +26,9 @@ import org.lwjgl.stb.STBTTPackedchar;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -51,6 +52,7 @@ import static org.lwjgl.system.MemoryUtil.NULL;
 
 /**
  * This class tries to pack as many fonts as possible into as little textures as possible.
+ * Holds native resources so calling of {@link FontAtlas#close()} after the usage is required.
  *
  * @author Yuriy Kiselev (uze@yandex.ru)
  * @since 07.04.2019
@@ -59,16 +61,19 @@ public final class FontAtlas implements AutoCloseable {
 
     static final class PreFont {
 
+        private final String key;
+
         private final TrueTypeFontInfo info;
 
         private final CodePoints codePoints;
 
         private final STBTTPackedchar.Buffer charData;
 
-        PreFont(TrueTypeFontInfo info, CodePoints codePoints, STBTTPackedchar.Buffer charData) {
-            this.info = info;
-            this.codePoints = codePoints;
-            this.charData = charData;
+        PreFont(String key, TrueTypeFontInfo info, CodePoints codePoints, STBTTPackedchar.Buffer charData) {
+            this.key = requireNonNull(key);
+            this.info = requireNonNull(info);
+            this.codePoints = requireNonNull(codePoints);
+            this.charData = requireNonNull(charData);
         }
     }
 
@@ -90,7 +95,7 @@ public final class FontAtlas implements AutoCloseable {
             pc.close();
         }
 
-        boolean add(TrueTypeFontInfo info, CodePoints codePoints, int horizontalOverSample, int verticalOverSample) {
+        boolean add(String key, TrueTypeFontInfo info, CodePoints codePoints, int horizontalOverSample, int verticalOverSample) {
             stbtt_PackSetOversampling(pc, horizontalOverSample, verticalOverSample);
 
             final int numCodePoints = codePoints.numCodePoints();
@@ -101,7 +106,7 @@ public final class FontAtlas implements AutoCloseable {
                 for (int i = 0, p = 0; i < codePoints.numRanges(); i++) {
                     final CodePoints.Range range = codePoints.range(i);
                     final STBTTPackRange pr = ranges.get(i);
-                    pr.font_size(info.fontSize());
+                    pr.font_size(info.metrics().fontSize());
                     pr.first_unicode_codepoint_in_range(range.firstCodePoint());
                     pr.num_chars(range.size());
                     pr.chardata_for_range(new STBTTPackedchar.Buffer(charData.address(p), range.size()));
@@ -115,13 +120,13 @@ public final class FontAtlas implements AutoCloseable {
                 }
 
                 charData.clear();
-                fonts.add(new PreFont(info, codePoints, charData));
+                fonts.add(new PreFont(key, info, codePoints, charData));
             }
 
             return true;
         }
 
-        Collection<TrueTypeFont> finish() {
+        Map<String, TrueTypeFont> finish() {
             stbtt_PackEnd(pc);
 
             final int textureId = glGenTextures();
@@ -135,46 +140,77 @@ public final class FontAtlas implements AutoCloseable {
             );
 
             return fonts.stream()
-                    .map(pf -> new TrueTypeFont(pf.info, pf.charData, pf.codePoints,
-                            sharedTexture.share(), bitmap.width(), bitmap.height())
-                    ).collect(Collectors.toList());
+                    .collect(Collectors.toMap(
+                            pf -> pf.key,
+                            pf -> new TrueTypeFont(pf.info, pf.charData, pf.codePoints,
+                                    sharedTexture.share(), bitmap.width(), bitmap.height())
+                    ));
         }
     }
 
     private final Supplier<Bitmap<ByteBuffer>> bitmapFactory;
 
-    private final List<TrueTypeFont> fonts = new ArrayList<>();
+    private final Map<String, TrueTypeFont> fonts = new HashMap<>();
 
     private Context context;
 
+    /**
+     * Primary ctor.
+     *
+     * @param bitmapFactory the bitmap factory which wil be called every time new bitmap is required to fill with font glyphs.
+     */
     public FontAtlas(Supplier<Bitmap<ByteBuffer>> bitmapFactory) {
         this.bitmapFactory = requireNonNull(bitmapFactory);
     }
 
-    public void addFont(TrueTypeFontInfo info, CodePoints codePoints) {
-        addFont(info, codePoints, 1, 1);
+    /**
+     * Adds new font to this atlas. For optimal results feed fonts in sequence from smallest to larges. This version simply delegates to
+     * {@link FontAtlas#addFont(String, com.github.ykiselev.opengl.fonts.TrueTypeFontInfo, com.github.ykiselev.opengl.fonts.CodePoints, int, int)}
+     * with both oversample values set to 1.
+     *
+     * @param key        the key of the font (each font in the atlas should have unique key)
+     * @param info       the font to add to atlas
+     * @param codePoints the code points to use when building font glyphs
+     */
+    public void addFont(String key, TrueTypeFontInfo info, CodePoints codePoints) {
+        addFont(key, info, codePoints, 1, 1);
     }
 
-    public void addFont(TrueTypeFontInfo info, CodePoints codePoints, int horizontalOverSample, int verticalOverSample) {
+    /**
+     * Adds new font to this atlas. For optimal results feed fonts in sequence from smallest to larges.
+     *
+     * @param key                  the key of the font (each font in the atlas should have unique key)
+     * @param info                 the font to add to atlas
+     * @param codePoints           the code points to use when building font glyphs
+     * @param horizontalOverSample the horizontal oversample value
+     * @param verticalOverSample   the vertical oversample value
+     */
+    public void addFont(String key, TrueTypeFontInfo info, CodePoints codePoints, int horizontalOverSample, int verticalOverSample) {
         for (; ; ) {
             if (context == null) {
                 context = createContext(bitmapFactory.get());
             }
-            if (context.add(info, codePoints, horizontalOverSample, verticalOverSample)) {
+            if (context.add(key, info, codePoints, horizontalOverSample, verticalOverSample)) {
                 break;
             }
             closeContext(contextFonts -> {
                 if (contextFonts.isEmpty()) {
                     throw new IllegalStateException("Unable to pack font " + info + ", perhaps supplied bitmap is too small to fit this font!");
                 }
-                fonts.addAll(contextFonts);
+                fonts.putAll(contextFonts);
             });
         }
     }
 
-    public Collection<TrueTypeFont> drainFonts() {
-        closeContext(fonts::addAll);
-        final List<TrueTypeFont> result = new ArrayList<>(fonts);
+    /**
+     * Drains all added fonts from this instance.
+     * Note: font added after call to this method will be placed in new bitmap.
+     *
+     * @return the fonts added to atlas so far.
+     */
+    public Map<String, TrueTypeFont> drainFonts() {
+        closeContext(fonts::putAll);
+        final Map<String, TrueTypeFont> result = new HashMap<>(fonts);
         fonts.clear();
         return result;
     }
@@ -187,7 +223,7 @@ public final class FontAtlas implements AutoCloseable {
         return new Context(bitmap, pc);
     }
 
-    private void closeContext(Consumer<Collection<TrueTypeFont>> consumer) {
+    private void closeContext(Consumer<Map<String, TrueTypeFont>> consumer) {
         consumer.accept(context.finish());
         context.close();
         context = null;

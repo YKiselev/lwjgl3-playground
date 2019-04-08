@@ -34,7 +34,7 @@ public interface Assets extends ReadableAssets, Resources {
      * @return the requested resource
      * @throws ResourceException if resource not found or something goes wrong during the resource loading process.
      */
-    default <T> Wrap<T> load(String resource, Class<T> clazz) throws ResourceException {
+    default <T> Wrap<T> load(String resource, Class<?> clazz) throws ResourceException {
         final Wrap<T> result = tryLoad(resource, clazz);
         if (result == null) {
             throw new ResourceException("Unable to load " + resource);
@@ -51,7 +51,7 @@ public interface Assets extends ReadableAssets, Resources {
      * @return the requested resource or {@code null}
      * @throws ResourceException if something goes wrong during the resource loading process.
      */
-    default <T> Wrap<T> tryLoad(String resource, Class<T> clazz) throws ResourceException {
+    default <T> Wrap<T> tryLoad(String resource, Class<?> clazz) throws ResourceException {
         return tryLoad(resource, clazz, this);
     }
 
@@ -65,7 +65,7 @@ public interface Assets extends ReadableAssets, Resources {
      * @return the requested resource or {@code null}
      * @throws ResourceException if something goes wrong during the resource loading process.
      */
-    <T> Wrap<T> tryLoad(String resource, Class<T> clazz, Assets assets) throws ResourceException;
+    <T> Wrap<T> tryLoad(String resource, Class<?> clazz, Assets assets) throws ResourceException;
 
     /**
      * Convenient method taking only one string argument as a resource name.

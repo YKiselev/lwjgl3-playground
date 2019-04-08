@@ -45,7 +45,7 @@ public final class TrueTypeFont implements AutoCloseable {
     private final CodePoints codePoints;
 
     public float fontSize() {
-        return info.fontSize();
+        return info.metrics().fontSize();
     }
 
     public int texture() {
