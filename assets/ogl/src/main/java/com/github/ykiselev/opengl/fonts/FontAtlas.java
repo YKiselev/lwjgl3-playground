@@ -20,6 +20,8 @@ import com.github.ykiselev.lifetime.SharedResource;
 import com.github.ykiselev.math.PowerOfTwo;
 import com.github.ykiselev.opengl.textures.DefaultSprite;
 import com.github.ykiselev.opengl.textures.Texture2d;
+import com.github.ykiselev.wrap.Wrap;
+import org.lwjgl.BufferUtils;
 import org.lwjgl.stb.STBTTPackContext;
 import org.lwjgl.stb.STBTTPackRange;
 import org.lwjgl.stb.STBTTPackedchar;
@@ -79,19 +81,20 @@ public final class FontAtlas implements AutoCloseable {
 
     static final class Context implements AutoCloseable {
 
-        private final Bitmap<ByteBuffer> bitmap;
+        private final Bitmap<Wrap<ByteBuffer>> bitmap;
 
         private final STBTTPackContext pc;
 
         private final List<PreFont> fonts = new ArrayList<>();
 
-        private Context(Bitmap<ByteBuffer> bitmap, STBTTPackContext pc) {
+        private Context(Bitmap<Wrap<ByteBuffer>> bitmap, STBTTPackContext pc) {
             this.bitmap = requireNonNull(bitmap);
             this.pc = requireNonNull(pc);
         }
 
         @Override
         public void close() {
+            bitmap.pixels().close();
             pc.close();
         }
 
@@ -131,7 +134,7 @@ public final class FontAtlas implements AutoCloseable {
 
             final int textureId = glGenTextures();
             glBindTexture(GL_TEXTURE_2D, textureId);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, bitmap.width(), bitmap.height(), 0, GL_ALPHA, GL_UNSIGNED_BYTE, bitmap.pixels());
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, bitmap.width(), bitmap.height(), 0, GL_ALPHA, GL_UNSIGNED_BYTE, bitmap.pixels().value());
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
@@ -148,7 +151,7 @@ public final class FontAtlas implements AutoCloseable {
         }
     }
 
-    private final Supplier<Bitmap<ByteBuffer>> bitmapFactory;
+    private final Supplier<Bitmap<Wrap<ByteBuffer>>> bitmapFactory;
 
     private final Map<String, TrueTypeFont> fonts = new HashMap<>();
 
@@ -159,7 +162,7 @@ public final class FontAtlas implements AutoCloseable {
      *
      * @param bitmapFactory the bitmap factory which wil be called every time new bitmap is required to fill with font glyphs.
      */
-    public FontAtlas(Supplier<Bitmap<ByteBuffer>> bitmapFactory) {
+    public FontAtlas(Supplier<Bitmap<Wrap<ByteBuffer>>> bitmapFactory) {
         this.bitmapFactory = requireNonNull(bitmapFactory);
     }
 
@@ -215,9 +218,9 @@ public final class FontAtlas implements AutoCloseable {
         return result;
     }
 
-    private Context createContext(Bitmap<ByteBuffer> bitmap) {
+    private Context createContext(Bitmap<Wrap<ByteBuffer>> bitmap) {
         final STBTTPackContext pc = STBTTPackContext.malloc();
-        if (!stbtt_PackBegin(pc, bitmap.pixels(), bitmap.width(), bitmap.height(), 0, 1, NULL)) {
+        if (!stbtt_PackBegin(pc, bitmap.pixels().value(), bitmap.width(), bitmap.height(), 0, 1, NULL)) {
             throw new IllegalStateException("Unable to start packing: not enough memory!");
         }
         return new Context(bitmap, pc);

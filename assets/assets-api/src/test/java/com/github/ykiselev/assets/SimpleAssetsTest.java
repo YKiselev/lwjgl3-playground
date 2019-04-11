@@ -38,7 +38,8 @@ public class SimpleAssetsTest {
 
     private final ReadableAssets readableAssets = mock(ReadableAssets.class);
 
-    private final ReadableAsset readableAsset = mock(ReadableAsset.class);
+    @SuppressWarnings("unchecked")
+    private final ReadableAsset<Double> readableAsset = mock(ReadableAsset.class);
 
     private final Assets assets = new SimpleAssets(resources, readableAssets);
 
@@ -58,6 +59,6 @@ public class SimpleAssetsTest {
                 .thenReturn(readableAsset);
         when(readableAsset.read(any(ReadableByteChannel.class), eq(assets)))
                 .thenReturn(Wraps.simple(Math.PI));
-        assertEquals(Math.PI, (Double) assets.load("x", Double.class).value(), 0.00001);
+        assertEquals(Math.PI, assets.load("x", Double.class).value(), 0.00001);
     }
 }

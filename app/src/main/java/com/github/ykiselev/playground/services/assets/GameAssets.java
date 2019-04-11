@@ -62,12 +62,12 @@ public final class GameAssets implements Assets, AutoCloseable {
     }
 
     @Override
-    public <T> Wrap<T> tryLoad(String resource, Class<?> clazz, Assets assets) throws ResourceException {
+    public <T> Wrap<T> tryLoad(String resource, Class<T> clazz, Assets assets) throws ResourceException {
         return delegate.tryLoad(resource, clazz, assets);
     }
 
     @Override
-    public ReadableAsset resolve(String resource, Class<?> clazz) throws ResourceException {
+    public <T> ReadableAsset<T> resolve(String resource, Class<T> clazz) throws ResourceException {
         return delegate.resolve(resource, clazz);
     }
 
@@ -116,7 +116,6 @@ public final class GameAssets implements Assets, AutoCloseable {
                         new SimpleAssets(
                                 resources,
                                 new CompositeReadableAssets(
-                                        new ResourceByReadableAssetClass(),
                                         new ResourceByClass(byClass),
                                         new ResourceByExtension(byExtension)
                                 )

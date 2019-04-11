@@ -34,7 +34,8 @@ public final class ResourceByExtension implements ReadableAssets {
     }
 
     @Override
-    public ReadableAsset resolve(String resource, Class<?> clazz) throws ResourceException {
+    @SuppressWarnings("unchecked")
+    public <T> ReadableAsset<T> resolve(String resource, Class<T> clazz) throws ResourceException {
         return map.get(extension(resource));
     }
 

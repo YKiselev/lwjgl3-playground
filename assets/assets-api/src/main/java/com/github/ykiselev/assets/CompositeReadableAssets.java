@@ -37,9 +37,9 @@ public final class CompositeReadableAssets implements ReadableAssets {
     }
 
     @Override
-    public ReadableAsset resolve(String resource, Class<?> clazz) throws ResourceException {
+    public <T> ReadableAsset<T> resolve(String resource, Class<T> clazz) throws ResourceException {
         for (ReadableAssets delegate : delegates) {
-            final ReadableAsset result = delegate.resolve(resource, clazz);
+            final ReadableAsset<T> result = delegate.resolve(resource, clazz);
             if (result != null) {
                 return result;
             }
