@@ -107,7 +107,7 @@ public final class CodePoints {
 
         @Override
         int indexOf(int codePoint) {
-            return codePoint - firstCodePoint;
+            return offset() + codePoint - firstCodePoint;
         }
     }
 
@@ -158,7 +158,7 @@ public final class CodePoints {
 
         @Override
         int indexOf(int codePoint) {
-            return Arrays.binarySearch(codePoints, codePoint);
+            return offset() + Arrays.binarySearch(codePoints, codePoint);
         }
     }
 
@@ -206,62 +206,22 @@ public final class CodePoints {
         if (codePoint < minCodePoint || codePoint > maxCodePoint) {
             return -1;
         }
-        int offset = 0;
-        for (Range range : ranges) {
+        int left = 0, right = ranges.length - 1;
+        while (left <= right) {
+            final int c = (right + left) / 2;
+            final Range range = ranges[c];
             if (codePoint < range.firstCodePoint()) {
-                // Ranges are sorted so if current starts after supplied code point then we don't have
-                // such code point at all
-                return -1;
+                right = c - 1;
+            } else if (codePoint > range.lastCodePoint()) {
+                left = c + 1;
+            } else {
+                return range.indexOf(codePoint);
             }
-            if (codePoint <= range.lastCodePoint()) {
-                final int index = range.indexOf(codePoint);
-                if (index < 0) {
-                    return -1;
-                }
-                return offset + index;
-            }
-            offset += range.size();
         }
         return -1;
     }
 
-    static Range[] ranges(IntStream codePoints) {
-        final int[] refined = refine(codePoints);
-        final List<Range> ranges = new ArrayList<>();
-        boolean dense = true;
-        int i = 1, prev = refined[0], cp = 0, offset = 0;
-        for (; i < refined.length; i++) {
-            cp = refined[i];
-            if (dense) {
-                if (cp > prev + 1) {
-                    if (i - offset > 1) {
-                        ranges.add(new DenseRange(offset, refined[offset], prev));
-                        offset = i;
-                    }
-                    dense = false;
-                }
-            } else {
-                if (cp <= prev + 1) {
-                    if (i - offset > 1) {
-                        ranges.add(new SparseRange(offset, Arrays.copyOfRange(refined, offset, i)));
-                        offset = i;
-                    }
-                    dense = true;
-                }
-            }
-            prev = cp;
-        }
-        if (i > offset) {
-            if (dense) {
-                ranges.add(new DenseRange(offset, refined[offset], cp));
-            } else {
-                ranges.add(new SparseRange(offset, Arrays.copyOfRange(refined, offset, i)));
-            }
-        }
-        return mergeSparse(ranges).toArray(Range[]::new);
-    }
-
-    static int[] refine(IntStream codePoints) {
+    private static int[] refine(IntStream codePoints) {
         final int[] refined = codePoints
                 .sorted()
                 .distinct()
@@ -330,28 +290,6 @@ public final class CodePoints {
         }
         final int[] merged = IntStream.concat(a.codePoints(), b.codePoints()).toArray();
         return new SparseRange(a.offset(), merged);
-    }
-
-    private static List<Range> mergeSparse(List<Range> src) {
-        if (src.isEmpty()) {
-            return src;
-        }
-        Range r = src.get(0);
-        final List<Range> result = new ArrayList<>(src.size());
-        for (int i = 1; i < src.size(); i++) {
-            final Range r2 = src.get(i);
-            if (!r.isSparse() || !r2.isSparse()) {
-                result.add(r);
-                r = r2;
-            } else {
-                final int leftRangeSize = r.size();
-                final int[] ints = Arrays.copyOf(((SparseRange) r).codePoints, leftRangeSize + r2.size());
-                System.arraycopy(((SparseRange) r2).codePoints, 0, ints, leftRangeSize, r2.size());
-                r = new SparseRange(r.offset, ints);
-            }
-        }
-        result.add(r);
-        return result;
     }
 
     public static CodePoints of(IntStream codePoints) {
