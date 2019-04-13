@@ -16,7 +16,7 @@
 
 package com.github.ykiselev.services.commands;
 
-import com.github.ykiselev.closeables.CompositeAutoCloseable;
+import com.github.ykiselev.common.closeables.CompositeAutoCloseable;
 import com.github.ykiselev.common.ThrowingRunnable;
 
 import java.util.List;

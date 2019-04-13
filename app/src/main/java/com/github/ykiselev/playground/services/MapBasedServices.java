@@ -16,8 +16,8 @@
 
 package com.github.ykiselev.playground.services;
 
-import com.github.ykiselev.closeables.Closeables;
-import com.github.ykiselev.cow.CopyOnModify;
+import com.github.ykiselev.common.closeables.Closeables;
+import com.github.ykiselev.common.cow.CopyOnModify;
 import com.github.ykiselev.services.Services;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

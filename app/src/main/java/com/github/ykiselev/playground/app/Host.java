@@ -17,7 +17,7 @@
 package com.github.ykiselev.playground.app;
 
 import com.github.ykiselev.assets.Assets;
-import com.github.ykiselev.closeables.CompositeAutoCloseable;
+import com.github.ykiselev.common.closeables.CompositeAutoCloseable;
 import com.github.ykiselev.common.ThrowingRunnable;
 import com.github.ykiselev.playground.host.ProgramArguments;
 import com.github.ykiselev.playground.layers.AppUiLayers;

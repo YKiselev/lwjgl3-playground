@@ -16,7 +16,7 @@
 
 package com.github.ykiselev.playground.services;
 
-import com.github.ykiselev.closeables.Closeables;
+import com.github.ykiselev.common.closeables.Closeables;
 import com.github.ykiselev.playground.layers.menu.Menu;
 import com.github.ykiselev.services.MenuFactory;
 import com.github.ykiselev.services.Services;

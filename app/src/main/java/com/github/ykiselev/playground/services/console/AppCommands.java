@@ -16,7 +16,7 @@
 
 package com.github.ykiselev.playground.services.console;
 
-import com.github.ykiselev.cow.CopyOnModify;
+import com.github.ykiselev.common.cow.CopyOnModify;
 import com.github.ykiselev.services.commands.Command;
 import com.github.ykiselev.services.commands.CommandException.CommandAlreadyRegisteredException;
 import com.github.ykiselev.services.commands.CommandException.CommandExecutionFailedException;

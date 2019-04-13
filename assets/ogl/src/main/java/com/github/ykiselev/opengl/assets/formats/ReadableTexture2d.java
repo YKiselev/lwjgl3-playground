@@ -19,7 +19,7 @@ package com.github.ykiselev.opengl.assets.formats;
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.assets.ReadableAsset;
 import com.github.ykiselev.assets.ResourceException;
-import com.github.ykiselev.io.ByteChannelAsByteBuffer;
+import com.github.ykiselev.common.io.ByteChannelAsByteBuffer;
 import com.github.ykiselev.opengl.textures.Texture2d;
 import com.github.ykiselev.wrap.Wrap;
 import com.github.ykiselev.wrap.Wraps;

@@ -16,20 +16,14 @@
 
 package com.github.ykiselev.opengl.assets.formats;
 
-import com.github.ykiselev.assets.Assets;
-import com.github.ykiselev.assets.ReadableAsset;
-import com.github.ykiselev.memory.MemAlloc;
-import com.github.ykiselev.opengl.fonts.Bitmap;
-import com.github.ykiselev.opengl.fonts.CodePoints;
-import com.github.ykiselev.opengl.fonts.TrueTypeFont;
-import com.github.ykiselev.wrap.Wrap;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
-import java.net.URL;
-import java.util.Map;
+import java.util.Arrays;
+
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru)
@@ -37,15 +31,14 @@ import java.util.Map;
  */
 public class ReadableFontAtlasTest {
 
-    private final int bw = 32, bh = 32;
-
-    private final ReadableAsset<Map<String, Wrap<TrueTypeFont>>> resource = new ReadableFontAtlas(() -> new Bitmap<>(bw, bh, new MemAlloc(bw * bh)));
-
-    private final Assets assets = Mockito.mock(Assets.class);
-
-    private final URL url = getClass().getResource("/font-atlas.conf");
+    @Test
+    public void shouldReadCodePoints() {
+        assertArrayEquals(new int[]{' ', 'a', 'b', 'c', 'd', 'e', 'f', 'Z', 43981, 66561},
+                ReadableFontAtlas.readCodePoints(Arrays.asList("\u0020", "a-f", "Z", "\uabcd", "\ud801\udc01")).toArray());
+    }
 
     @Test
+    @Disabled
     public void shouldLoad() {
         Config cfg = ConfigFactory.load("font-atlas.conf");
 
@@ -54,7 +47,6 @@ public class ReadableFontAtlasTest {
         for (String s : cfg.getStringList("code-points")) {
             System.out.println(s);
         }
-
     }
 }
 

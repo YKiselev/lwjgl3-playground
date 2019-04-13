@@ -22,6 +22,7 @@ import com.github.ykiselev.assets.ResourceException;
 import com.github.ykiselev.opengl.shaders.DefaultProgramObject;
 import com.github.ykiselev.opengl.shaders.ProgramObject;
 import com.github.ykiselev.opengl.shaders.ShaderObject;
+import com.github.ykiselev.playground.assets.common.AssetUtils;
 import com.github.ykiselev.wrap.Wrap;
 import com.github.ykiselev.wrap.Wraps;
 import com.typesafe.config.Config;
@@ -54,38 +55,43 @@ public final class ReadableProgramObject implements ReadableAsset<ProgramObject>
 
     @Override
     public Wrap<ProgramObject> read(ReadableByteChannel channel, Assets assets) throws ResourceException {
-        final Config config = readConfig(channel, assets);
-        final int id = glCreateProgram();
-        final Wrap<ShaderObject>[] shaders = readShaders(assets, config);
-        for (Wrap<ShaderObject> w : shaders) {
-            glAttachShader(id, w.value().id());
-        }
-        final List<String> locations = config.getStringList("vertex-attribute-locations");
-        int i = 0;
-        for (String location : locations) {
-            glBindAttribLocation(id, i, location);
-            i++;
-        }
-        glLinkProgram(id);
-        final String log = glGetProgramInfoLog(id, MAX_PROGRAM_LOG_LENGTH);
-        final int status = glGetProgrami(id, GL_LINK_STATUS);
-        if (status != GL_TRUE) {
-            throw new ResourceException(log);
-        } else if (StringUtils.isNotEmpty(log)) {
-            logger.warn("Program link log: {}", log);
-        }
-        final ProgramObject program = new DefaultProgramObject(id, shaders);
-        final List<String> samplers = config.getStringList("samplers");
-        if (!samplers.isEmpty()) {
-            program.bind();
-            int unit = 0;
-            for (String uniform : samplers) {
-                glUniform1i(program.uniformLocation(uniform), unit);
-                unit++;
+        try (Wrap<Config> fallback = assets.load("progs/default/program-object.conf", Config.class);
+             Wrap<Config> cfg = AssetUtils.read(channel, assets)) {
+            final Config config = cfg.value()
+                    .withFallback(fallback.value());
+
+            final int id = glCreateProgram();
+            final Wrap<ShaderObject>[] shaders = readShaders(assets, config);
+            for (Wrap<ShaderObject> w : shaders) {
+                glAttachShader(id, w.value().id());
             }
-            program.unbind();
+            final List<String> locations = config.getStringList("vertex-attribute-locations");
+            int i = 0;
+            for (String location : locations) {
+                glBindAttribLocation(id, i, location);
+                i++;
+            }
+            glLinkProgram(id);
+            final String log = glGetProgramInfoLog(id, MAX_PROGRAM_LOG_LENGTH);
+            final int status = glGetProgrami(id, GL_LINK_STATUS);
+            if (status != GL_TRUE) {
+                throw new ResourceException(log);
+            } else if (StringUtils.isNotEmpty(log)) {
+                logger.warn("Program link log: {}", log);
+            }
+            final ProgramObject program = new DefaultProgramObject(id, shaders);
+            final List<String> samplers = config.getStringList("samplers");
+            if (!samplers.isEmpty()) {
+                program.bind();
+                int unit = 0;
+                for (String uniform : samplers) {
+                    glUniform1i(program.uniformLocation(uniform), unit);
+                    unit++;
+                }
+                program.unbind();
+            }
+            return Wraps.of(program);
         }
-        return Wraps.of(program);
     }
 
     @SuppressWarnings("unchecked")
@@ -98,15 +104,5 @@ public final class ReadableProgramObject implements ReadableAsset<ProgramObject>
                 .filter(v -> !v.isEmpty())
                 .map(uri -> assets.load(uri, null))
                 .toArray(Wrap[]::new);
-    }
-
-    private Config readConfig(ReadableByteChannel channel, Assets assets) {
-        final ReadableAsset<Config> readableConfig = assets.resolve(Config.class);
-        try (Wrap<Config> fallback = assets.load("progs/default/program-object.conf", Config.class)) {
-            try (Wrap<Config> config = readableConfig.read(channel, assets)) {
-                return config.value()
-                        .withFallback(fallback.value());
-            }
-        }
     }
 }

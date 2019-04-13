@@ -17,7 +17,7 @@
 package com.github.ykiselev.playground.events;
 
 import com.github.ykiselev.common.ThrowingRunnable;
-import com.github.ykiselev.test.ParallelRunner;
+import com.github.ykiselev.common.test.ParallelRunner;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 

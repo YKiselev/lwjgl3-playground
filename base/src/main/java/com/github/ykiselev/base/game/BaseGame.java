@@ -16,7 +16,7 @@
 
 package com.github.ykiselev.base.game;
 
-import com.github.ykiselev.fps.FrameInfo;
+import com.github.ykiselev.common.fps.FrameInfo;
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.components.Game;
 import com.github.ykiselev.opengl.buffers.FrameBuffer;
@@ -34,7 +34,7 @@ import com.github.ykiselev.services.MenuFactory;
 import com.github.ykiselev.services.Services;
 import com.github.ykiselev.services.commands.Commands;
 import com.github.ykiselev.services.layers.Sprites;
-import com.github.ykiselev.trigger.Trigger;
+import com.github.ykiselev.common.trigger.Trigger;
 import com.github.ykiselev.window.WindowEvents;
 import com.github.ykiselev.wrap.Wrap;
 import org.lwjgl.glfw.GLFW;

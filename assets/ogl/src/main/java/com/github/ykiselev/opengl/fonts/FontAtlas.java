@@ -16,12 +16,11 @@
 
 package com.github.ykiselev.opengl.fonts;
 
-import com.github.ykiselev.lifetime.SharedResource;
-import com.github.ykiselev.math.PowerOfTwo;
+import com.github.ykiselev.common.lifetime.SharedResource;
+import com.github.ykiselev.common.math.PowerOfTwo;
 import com.github.ykiselev.opengl.textures.DefaultSprite;
 import com.github.ykiselev.opengl.textures.Texture2d;
 import com.github.ykiselev.wrap.Wrap;
-import org.lwjgl.BufferUtils;
 import org.lwjgl.stb.STBTTPackContext;
 import org.lwjgl.stb.STBTTPackRange;
 import org.lwjgl.stb.STBTTPackedchar;

@@ -17,10 +17,10 @@
 package com.github.ykiselev.playground.services.console;
 
 import com.github.ykiselev.api.Named;
-import com.github.ykiselev.circular.ArrayCircularBuffer;
-import com.github.ykiselev.circular.CircularBuffer;
-import com.github.ykiselev.iterators.EndlessIterator;
-import com.github.ykiselev.iterators.MappingIterator;
+import com.github.ykiselev.common.circular.ArrayCircularBuffer;
+import com.github.ykiselev.common.circular.CircularBuffer;
+import com.github.ykiselev.common.iterators.EndlessIterator;
+import com.github.ykiselev.common.iterators.MappingIterator;
 import com.github.ykiselev.opengl.sprites.Colors;
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
 import com.github.ykiselev.opengl.sprites.TextAttributes;

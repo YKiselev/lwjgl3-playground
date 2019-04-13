@@ -40,6 +40,11 @@
         </dependency>
         <dependency>
             <groupId>com.github.ykiselev</groupId>
+            <artifactId>playground-assets-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.ykiselev</groupId>
             <artifactId>sprite-font-lib</artifactId>
             <version>1.11</version>
         </dependency>

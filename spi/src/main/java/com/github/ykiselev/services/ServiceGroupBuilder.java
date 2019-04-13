@@ -16,7 +16,7 @@
 
 package com.github.ykiselev.services;
 
-import com.github.ykiselev.closeables.CompositeAutoCloseable;
+import com.github.ykiselev.common.closeables.CompositeAutoCloseable;
 
 import static java.util.Objects.requireNonNull;
 

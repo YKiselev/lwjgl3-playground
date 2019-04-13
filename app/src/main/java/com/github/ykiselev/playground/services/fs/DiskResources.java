@@ -16,7 +16,7 @@
 
 package com.github.ykiselev.playground.services.fs;
 
-import com.github.ykiselev.lazy.Lazy;
+import com.github.ykiselev.common.lazy.Lazy;
 
 import java.io.UncheckedIOException;
 import java.net.MalformedURLException;

@@ -32,7 +32,7 @@ public interface Services extends AutoCloseable {
      * @param clazz    the service class
      * @param instance the service instance
      * @return the service registration handle. When {@link AutoCloseable#close()} is called on that value service instance
-     * is unregistered and passed to {@link com.github.ykiselev.closeables.Closeables#close(Object)}.
+     * is unregistered and passed to {@link com.github.ykiselev.common.closeables.Closeables#close(Object)}.
      */
     <T> AutoCloseable add(Class<T> clazz, T instance);
 

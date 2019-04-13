@@ -16,8 +16,8 @@
 
 package com.github.ykiselev.playground.services;
 
-import com.github.ykiselev.closeables.Closeables;
-import com.github.ykiselev.closeables.CompositeAutoCloseable;
+import com.github.ykiselev.common.closeables.Closeables;
+import com.github.ykiselev.common.closeables.CompositeAutoCloseable;
 import com.github.ykiselev.components.Game;
 import com.github.ykiselev.services.GameContainer;
 import com.github.ykiselev.services.Services;

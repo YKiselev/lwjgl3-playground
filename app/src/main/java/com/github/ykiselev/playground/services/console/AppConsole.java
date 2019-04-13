@@ -17,8 +17,8 @@
 package com.github.ykiselev.playground.services.console;
 
 import com.github.ykiselev.assets.Assets;
-import com.github.ykiselev.closeables.Closeables;
-import com.github.ykiselev.closeables.CompositeAutoCloseable;
+import com.github.ykiselev.common.closeables.Closeables;
+import com.github.ykiselev.common.closeables.CompositeAutoCloseable;
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
 import com.github.ykiselev.opengl.sprites.TextAttributes;
 import com.github.ykiselev.opengl.sprites.TextDrawingFlags;

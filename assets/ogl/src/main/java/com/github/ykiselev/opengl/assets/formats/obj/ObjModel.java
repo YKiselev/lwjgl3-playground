@@ -16,7 +16,7 @@
 
 package com.github.ykiselev.opengl.assets.formats.obj;
 
-import com.github.ykiselev.memory.MemAlloc;
+import com.github.ykiselev.common.memory.MemAlloc;
 import com.github.ykiselev.opengl.IndexedGeometrySource;
 import org.lwjgl.opengl.GL11;
 

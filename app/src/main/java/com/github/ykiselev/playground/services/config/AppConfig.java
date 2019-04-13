@@ -16,7 +16,7 @@
 
 package com.github.ykiselev.playground.services.config;
 
-import com.github.ykiselev.cow.CopyOnModify;
+import com.github.ykiselev.common.cow.CopyOnModify;
 import com.github.ykiselev.services.FileSystem;
 import com.github.ykiselev.services.Services;
 import com.github.ykiselev.services.configuration.Config;

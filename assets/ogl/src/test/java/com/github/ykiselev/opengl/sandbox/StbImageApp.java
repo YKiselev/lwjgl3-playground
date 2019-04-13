@@ -16,7 +16,7 @@
 
 package com.github.ykiselev.opengl.sandbox;
 
-import com.github.ykiselev.io.ByteChannelAsByteBuffer;
+import com.github.ykiselev.common.io.ByteChannelAsByteBuffer;
 import com.github.ykiselev.wrap.Wrap;
 import org.lwjgl.stb.STBIEOFCallback;
 import org.lwjgl.stb.STBIIOCallbacks;

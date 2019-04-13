@@ -16,9 +16,9 @@
 
 package com.github.ykiselev.playground.services.console.appender;
 
-import com.github.ykiselev.circular.ArrayCircularBuffer;
-import com.github.ykiselev.circular.CircularBuffer;
-import com.github.ykiselev.circular.SynchronizedCircularBuffer;
+import com.github.ykiselev.common.circular.ArrayCircularBuffer;
+import com.github.ykiselev.common.circular.CircularBuffer;
+import com.github.ykiselev.common.circular.SynchronizedCircularBuffer;
 import com.github.ykiselev.playground.services.console.CommandLine;
 import org.apache.logging.log4j.Marker;
 import org.apache.logging.log4j.core.Appender;

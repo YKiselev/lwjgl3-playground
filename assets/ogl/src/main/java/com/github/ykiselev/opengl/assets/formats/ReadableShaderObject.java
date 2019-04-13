@@ -19,7 +19,7 @@ package com.github.ykiselev.opengl.assets.formats;
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.assets.ReadableAsset;
 import com.github.ykiselev.assets.ResourceException;
-import com.github.ykiselev.io.ByteChannelAsString;
+import com.github.ykiselev.common.io.ByteChannelAsString;
 import com.github.ykiselev.opengl.shaders.DefaultShaderObject;
 import com.github.ykiselev.opengl.shaders.ShaderObject;
 import com.github.ykiselev.wrap.Wrap;

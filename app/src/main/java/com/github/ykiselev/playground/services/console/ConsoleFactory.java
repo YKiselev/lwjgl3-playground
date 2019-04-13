@@ -17,7 +17,7 @@
 package com.github.ykiselev.playground.services.console;
 
 import com.github.ykiselev.api.Named;
-import com.github.ykiselev.circular.CircularBuffer;
+import com.github.ykiselev.common.circular.CircularBuffer;
 import com.github.ykiselev.playground.services.console.appender.AppConsoleLog4j2Appender;
 import com.github.ykiselev.services.Services;
 import com.github.ykiselev.services.commands.Commands;

@@ -16,7 +16,7 @@
 
 package com.github.ykiselev.playground.services.console;
 
-import com.github.ykiselev.circular.CircularBuffer;
+import com.github.ykiselev.common.circular.CircularBuffer;
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
 import com.github.ykiselev.opengl.sprites.TextAlignment;
 import com.github.ykiselev.opengl.sprites.TextBuilder;

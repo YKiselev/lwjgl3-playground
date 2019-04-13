@@ -11,6 +11,7 @@ module ykiselev.playground.assets.ogl {
     requires config;
     requires transitive ykiselev.wrap;
     requires transitive ykiselev.assets.api;
+    requires transitive ykiselev.playground.assets.common;
     requires ykiselev.playground.common;
     requires org.jetbrains.annotations;
 

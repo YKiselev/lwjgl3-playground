@@ -51,6 +51,10 @@
             <groupId>org.lwjgl</groupId>
             <artifactId>lwjgl-glfw</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.typesafe</groupId>
+            <artifactId>config</artifactId>
+        </dependency>
         <!-- Test dependencies -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>

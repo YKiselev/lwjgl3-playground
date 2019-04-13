@@ -20,9 +20,11 @@ import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.assets.ReadableAsset;
 import com.github.ykiselev.assets.ResourceException;
 import com.github.ykiselev.opengl.fonts.Bitmap;
+import com.github.ykiselev.opengl.fonts.CodePoints;
 import com.github.ykiselev.opengl.fonts.FontAtlas;
 import com.github.ykiselev.opengl.fonts.TrueTypeFont;
 import com.github.ykiselev.opengl.fonts.TrueTypeFontInfo;
+import com.github.ykiselev.playground.assets.common.AssetUtils;
 import com.github.ykiselev.wrap.Wrap;
 import com.github.ykiselev.wrap.Wraps;
 import com.typesafe.config.Config;
@@ -31,10 +33,12 @@ import com.typesafe.config.ConfigValue;
 import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static java.util.Objects.requireNonNull;
 
@@ -52,31 +56,65 @@ public final class ReadableFontAtlas implements ReadableAsset<Map<String, Wrap<T
 
     @Override
     public Wrap<Map<String, Wrap<TrueTypeFont>>> read(ReadableByteChannel channel, Assets assets) throws ResourceException {
-        final Config atlasConfig;
-        final ReadableAsset<Config> readableConfig = assets.resolve(Config.class);
-        try (Wrap<Config> config = readableConfig.read(channel, assets)) {
-            atlasConfig = config.value();
-        }
-        @SuppressWarnings("unchecked") final Map.Entry<String, TrueTypeFontInfo>[] fonts = atlasConfig.getConfig("fonts").root()
-                .values()
-                .stream()
-                .map(ConfigValue::unwrapped)
-                .map(String.class::cast)
-                .filter(v -> !v.isEmpty())
-                .map(uri -> Map.entry(uri, assets.load(uri, TrueTypeFontInfo.class).value()))
-                .toArray(Map.Entry[]::new);
-        // Sort array from smallest font to larges to improve glyph texture fill rate
-        Arrays.sort(fonts, Comparator.comparingDouble(e -> e.getValue().metrics().fontSize()));
-        try (FontAtlas atlas = new FontAtlas(bitmapFactory)) {
-            // todo - code points
-            Arrays.stream(fonts).forEach(e -> atlas.addFont(e.getKey(), e.getValue(), null));
+        try (Wrap<Config> cfg = AssetUtils.read(channel, assets)) {
+            final Config atlasConfig = cfg.value();
+            @SuppressWarnings("unchecked") final Map.Entry<String, TrueTypeFontInfo>[] fonts = atlasConfig.getConfig("fonts").root()
+                    .values()
+                    .stream()
+                    .map(ConfigValue::unwrapped)
+                    .map(String.class::cast)
+                    .filter(v -> !v.isEmpty())
+                    .map(uri -> Map.entry(uri, assets.load(uri, TrueTypeFontInfo.class).value()))
+                    .toArray(Map.Entry[]::new);
+            // Sort array from smallest font to larges to improve glyph texture fill rate
+            Arrays.sort(fonts, Comparator.comparingDouble(e -> e.getValue().metrics().fontSize()));
+            try (FontAtlas atlas = new FontAtlas(bitmapFactory)) {
+                Arrays.stream(fonts).forEach(e ->
+                        atlas.addFont(
+                                e.getKey(),
+                                e.getValue(),
+                                CodePoints.of(readCodePoints(atlasConfig.getStringList("code-points")))
+                        )
+                );
 
-            return Wraps.simple(
-                    atlas.drainFonts().entrySet().stream().collect(Collectors.toMap(
-                            Map.Entry::getKey,
-                            e -> Wraps.of(e.getValue())
-                    ))
-            );
+                return Wraps.simple(
+                        atlas.drainFonts().entrySet().stream().collect(Collectors.toMap(
+                                Map.Entry::getKey,
+                                e -> Wraps.of(e.getValue())
+                        ))
+                );
+            }
         }
+    }
+
+    static IntStream readCodePoints(Collection<String> src) {
+        return src.stream().flatMapToInt(s -> {
+            final int idx = s.indexOf("-");
+            if (idx != -1) {
+                return IntStream.range(
+                        cp(s, 0, idx),
+                        cp(s, idx + 1, s.length()) + 1
+                );
+            } else {
+                return IntStream.of(cp(s, 0, s.length()));
+            }
+        });
+    }
+
+    /**
+     * Extracts single code point from the given string starting at {@code from} index and ending right before {@code to} index.
+     *
+     * @param src  the source string
+     * @param from from index (inclusive)
+     * @param to   to index (exclusive)
+     * @return the code point
+     */
+    private static int cp(String src, int from, int to) {
+        final int result = src.codePointAt(from);
+        final int count = Character.charCount(result);
+        if (from + count != to) {
+            throw new IllegalArgumentException("Bad code point: \"" + src.substring(from, to) + "\"");
+        }
+        return result;
     }
 }

@@ -21,7 +21,7 @@ import com.github.ykiselev.services.commands.CommandException.CommandExecutionFa
 import com.github.ykiselev.services.commands.CommandException.CommandStackOverflowException;
 import com.github.ykiselev.services.commands.CommandException.UnknownCommandException;
 import com.github.ykiselev.services.commands.Commands;
-import com.github.ykiselev.test.ParallelRunner;
+import com.github.ykiselev.common.test.ParallelRunner;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 

@@ -22,7 +22,7 @@ import com.github.ykiselev.assets.ReadableAsset;
 import com.github.ykiselev.assets.ResourceException;
 import com.github.ykiselev.assets.Resources;
 import com.github.ykiselev.assets.SimpleAssets;
-import com.github.ykiselev.closeables.Closeables;
+import com.github.ykiselev.common.closeables.Closeables;
 import com.github.ykiselev.openal.assets.ReadableVorbisAudio;
 import com.github.ykiselev.opengl.assets.formats.ReadableConfig;
 import com.github.ykiselev.opengl.assets.formats.ReadableObjModel;
