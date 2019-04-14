@@ -31,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class CodePointsTest {
 
     @Test
-    void shouldCollectDenseRanges() {
+    public void shouldCollectDenseRanges() {
         List<CodePoints.DenseRange> ranges = CodePoints.collectDenseRanges(IntStream.of(1, 3, 4, 7, 8, 10).toArray());
         assertEquals(4, ranges.size());
         List<CodePoints.Range> merged = CodePoints.mergeDegenerates(ranges);

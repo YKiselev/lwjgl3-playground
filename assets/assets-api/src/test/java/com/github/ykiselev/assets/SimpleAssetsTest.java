@@ -39,7 +39,7 @@ public class SimpleAssetsTest {
     private final ReadableAssets readableAssets = mock(ReadableAssets.class);
 
     @SuppressWarnings("unchecked")
-    private final ReadableAsset<Double> readableAsset = mock(ReadableAsset.class);
+    private final ReadableAsset<Double, Void> readableAsset = mock(ReadableAsset.class);
 
     private final Assets assets = new SimpleAssets(resources, readableAssets);
 
@@ -49,16 +49,16 @@ public class SimpleAssetsTest {
                 .thenReturn(
                         Optional.of(mock(ReadableByteChannel.class))
                 );
-        when(readableAsset.read(any(ReadableByteChannel.class), any()))
+        when(readableAsset.read(any(ReadableByteChannel.class), any(Recipe.class), any()))
                 .thenReturn(Wraps.simple(Math.PI));
     }
 
     @Test
     public void shouldLoad() {
-        when(readableAssets.resolve(any(String.class), eq(Double.class)))
+        when(readableAssets.resolve(any(String.class), any(Recipe.class)))
                 .thenReturn(readableAsset);
-        when(readableAsset.read(any(ReadableByteChannel.class), eq(assets)))
+        when(readableAsset.read(any(ReadableByteChannel.class), any(Recipe.class), eq(assets)))
                 .thenReturn(Wraps.simple(Math.PI));
-        assertEquals(Math.PI, assets.load("x", Double.class).value(), 0.00001);
+        assertEquals(Math.PI, assets.load("x", DefaultRecipe.of(Double.class)).value(), 0.00001);
     }
 }

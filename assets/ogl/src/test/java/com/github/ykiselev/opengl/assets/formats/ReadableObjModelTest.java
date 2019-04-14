@@ -17,6 +17,7 @@
 package com.github.ykiselev.opengl.assets.formats;
 
 import com.github.ykiselev.assets.Assets;
+import com.github.ykiselev.assets.DefaultRecipe;
 import com.github.ykiselev.assets.ReadableAsset;
 import com.github.ykiselev.opengl.assets.formats.obj.ObjModel;
 import com.github.ykiselev.wrap.Wrap;
@@ -34,7 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  */
 public class ReadableObjModelTest {
 
-    private final ReadableAsset<ObjModel> resource = new ReadableObjModel();
+    private final ReadableAsset<ObjModel, Void> resource = new ReadableObjModel();
 
     private final Assets assets = Mockito.mock(Assets.class);
 
@@ -46,6 +47,7 @@ public class ReadableObjModelTest {
                 Channels.newChannel(
                         url.openStream()
                 ),
+                DefaultRecipe.of(ObjModel.class),
                 assets
         );
         assertNotNull(model);

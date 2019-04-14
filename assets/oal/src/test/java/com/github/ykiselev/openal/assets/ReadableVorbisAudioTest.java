@@ -17,6 +17,7 @@
 package com.github.ykiselev.openal.assets;
 
 import com.github.ykiselev.assets.Assets;
+import com.github.ykiselev.assets.DefaultRecipe;
 import com.github.ykiselev.assets.ReadableAsset;
 import com.github.ykiselev.openal.AudioSamples;
 import com.github.ykiselev.wrap.Wrap;
@@ -32,7 +33,7 @@ import static org.mockito.Mockito.mock;
  */
 public class ReadableVorbisAudioTest {
 
-    private final ReadableAsset<AudioSamples> readableResource = new ReadableVorbisAudio(32 * 1024);
+    private final ReadableAsset<AudioSamples, Void> readableResource = new ReadableVorbisAudio(32 * 1024);
 
     private final Assets assets = mock(Assets.class);
 
@@ -40,6 +41,7 @@ public class ReadableVorbisAudioTest {
     public void shouldRead() {
         final Wrap<AudioSamples> samples = readableResource.read(
                 Channels.newChannel(getClass().getResourceAsStream("/sample.ogg")),
+                DefaultRecipe.of(AudioSamples.class),
                 assets
         );
         assertNotNull(samples);

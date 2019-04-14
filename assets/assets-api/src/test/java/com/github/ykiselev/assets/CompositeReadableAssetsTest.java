@@ -19,6 +19,7 @@ package com.github.ykiselev.assets;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -30,12 +31,12 @@ public class CompositeReadableAssetsTest {
 
     @Test
     public void shouldResolve() {
-        final ReadableAsset<String> rr = (stream, assets) -> null;
+        final ReadableAsset<String, Void> rr = (stream, rcp, assets) -> null;
         final ReadableAssets delegate1 = mock(ReadableAssets.class);
         final ReadableAssets delegate2 = mock(ReadableAssets.class);
-        when(delegate1.resolve(eq("a"), eq(String.class)))
+        when(delegate1.resolve(eq("a"), any(Recipe.class)))
                 .thenReturn(null);
-        when(delegate2.resolve(eq("a"), eq(String.class)))
+        when(delegate2.resolve(eq("a"), any(Recipe.class)))
                 .thenReturn(rr);
         final ReadableAssets readableAssets = new CompositeReadableAssets(
                 delegate1,
@@ -43,7 +44,7 @@ public class CompositeReadableAssetsTest {
         );
         Assertions.assertEquals(
                 rr,
-                readableAssets.resolve("a", String.class)
+                readableAssets.resolve("a", DefaultRecipe.of(String.class))
         );
     }
 }

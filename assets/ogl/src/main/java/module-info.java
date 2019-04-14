@@ -13,7 +13,7 @@ module ykiselev.playground.assets.ogl {
     requires transitive ykiselev.assets.api;
     requires transitive ykiselev.playground.assets.common;
     requires ykiselev.playground.common;
-    requires org.jetbrains.annotations;
+    requires static org.jetbrains.annotations;
 
     exports com.github.ykiselev.opengl;
     exports com.github.ykiselev.opengl.assets.formats;

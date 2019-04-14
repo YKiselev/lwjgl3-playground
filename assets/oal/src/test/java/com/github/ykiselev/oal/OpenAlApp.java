@@ -17,9 +17,10 @@
 package com.github.ykiselev.oal;
 
 import com.github.ykiselev.assets.Assets;
+import com.github.ykiselev.assets.DefaultRecipe;
 import com.github.ykiselev.assets.ReadableAsset;
-import com.github.ykiselev.openal.assets.ReadableVorbisAudio;
 import com.github.ykiselev.openal.AudioSamples;
+import com.github.ykiselev.openal.assets.ReadableVorbisAudio;
 import com.github.ykiselev.wrap.Wrap;
 import org.junit.jupiter.api.Assertions;
 import org.lwjgl.openal.AL;
@@ -73,7 +74,7 @@ import static org.mockito.Mockito.mock;
  */
 public final class OpenAlApp {
 
-    private final ReadableAsset<AudioSamples> readableResource = new ReadableVorbisAudio(32 * 1024);
+    private final ReadableAsset<AudioSamples, Void> readableResource = new ReadableVorbisAudio(32 * 1024);
 
     private final Assets assets = mock(Assets.class);
 
@@ -142,6 +143,7 @@ public final class OpenAlApp {
 
         try (Wrap<AudioSamples> samples = readableResource.read(
                 Channels.newChannel(getClass().getResourceAsStream("/sample.ogg")),
+                DefaultRecipe.of(AudioSamples.class),
                 assets
         )) {
             samples.value().buffer(buffer);

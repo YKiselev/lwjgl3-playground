@@ -17,6 +17,8 @@
 package com.github.ykiselev.playground.services.assets;
 
 import com.github.ykiselev.assets.Assets;
+import com.github.ykiselev.assets.DefaultRecipe;
+import com.github.ykiselev.assets.Recipe;
 import com.github.ykiselev.wrap.Wraps;
 import org.junit.jupiter.api.Test;
 
@@ -25,6 +27,7 @@ import java.io.Closeable;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -43,11 +46,11 @@ public class ManagedAssetsTest {
 
     @Test
     public void shouldLoadOnce() {
-        when(delegate.tryLoad(eq("a"), eq(String.class), eq(assets)))
+        when(delegate.tryLoad(eq("a"), any(Recipe.class), eq(assets)))
                 .thenReturn(Wraps.simple("A"));
         assertSame(
-                assets.load("a", String.class).value(),
-                assets.load("a", String.class).value()
+                assets.load("a", DefaultRecipe.of(String.class)).value(),
+                assets.load("a", DefaultRecipe.of(String.class)).value()
         );
     }
 
@@ -55,8 +58,8 @@ public class ManagedAssetsTest {
     public void shouldCloseAutoCloseables() throws Exception {
         final AutoCloseable a = mock(AutoCloseable.class);
         doReturn(Wraps.of(a))
-                .when(delegate).tryLoad(eq("ac"), eq(AutoCloseable.class), eq(assets));
-        assertNotNull(assets.load("ac", AutoCloseable.class));
+                .when(delegate).tryLoad(eq("ac"), any(Recipe.class), eq(assets));
+        assertNotNull(assets.load("ac", DefaultRecipe.of(AutoCloseable.class)));
         assets.close();
         verify(a, times(1)).close();
     }
@@ -65,8 +68,8 @@ public class ManagedAssetsTest {
     public void shouldCloseCloseables() throws Exception {
         final Closeable c = mock(Closeable.class);
         doReturn(Wraps.of(c)).
-                when(delegate).tryLoad(eq("c"), eq(Closeable.class), eq(assets));
-        assertNotNull(assets.load("c", Closeable.class));
+                when(delegate).tryLoad(eq("c"), any(Recipe.class), eq(assets));
+        assertNotNull(assets.load("c", DefaultRecipe.of(Closeable.class)));
         assets.close();
         verify(c, times(1)).close();
     }
@@ -75,8 +78,8 @@ public class ManagedAssetsTest {
     public void shouldRemoveUnused() throws Exception {
         final AutoCloseable a = mock(AutoCloseable.class);
         doReturn(Wraps.of(a))
-                .when(delegate).tryLoad(eq("ac"), eq(AutoCloseable.class), eq(assets));
-        assets.load("ac", AutoCloseable.class).close();
+                .when(delegate).tryLoad(eq("ac"), any(Recipe.class), eq(assets));
+        assets.load("ac", DefaultRecipe.of(AutoCloseable.class)).close();
         verify(a, times(1)).close();
     }
 
@@ -84,9 +87,9 @@ public class ManagedAssetsTest {
     public void shouldReportLeaks() {
         final AutoCloseable a = mock(AutoCloseable.class);
         doReturn(Wraps.of(a))
-                .when(delegate).tryLoad(eq("ac"), eq(AutoCloseable.class), eq(assets));
-        assertNotNull(assets.load("ac", AutoCloseable.class));
-        assertNotNull(assets.load("ac", AutoCloseable.class));
+                .when(delegate).tryLoad(eq("ac"), any(Recipe.class), eq(assets));
+        assertNotNull(assets.load("ac", DefaultRecipe.of(AutoCloseable.class)));
+        assertNotNull(assets.load("ac", DefaultRecipe.of(AutoCloseable.class)));
         assertThrows(RuntimeException.class, assets::close);
     }
 }
