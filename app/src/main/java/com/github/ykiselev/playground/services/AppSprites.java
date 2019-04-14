@@ -17,12 +17,11 @@
 package com.github.ykiselev.playground.services;
 
 import com.github.ykiselev.assets.Assets;
-import com.github.ykiselev.opengl.shaders.ProgramObject;
+import com.github.ykiselev.opengl.OglRecipes;
 import com.github.ykiselev.opengl.sprites.ColorTable;
 import com.github.ykiselev.opengl.sprites.DefaultSpriteBatch;
 import com.github.ykiselev.opengl.sprites.SimpleColorTable;
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
-import com.github.ykiselev.opengl.textures.Sprite;
 import com.github.ykiselev.services.Services;
 import com.github.ykiselev.services.layers.Sprites;
 
@@ -93,8 +92,8 @@ public final class AppSprites implements Sprites, AutoCloseable {
     public SpriteBatch newBatch() {
         final Assets assets = services.resolve(Assets.class);
         return new DefaultSpriteBatch(
-                assets.load("progs/sprite-batch.conf", ProgramObject.class),
-                assets.load("images/white.png", Sprite.class),
+                assets.load("progs/sprite-batch.conf", OglRecipes.PROGRAM),
+                assets.load("images/white.png", OglRecipes.SPRITE),
                 colorTable
         );
     }

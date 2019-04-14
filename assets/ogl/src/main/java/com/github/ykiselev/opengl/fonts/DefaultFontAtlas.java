@@ -14,23 +14,39 @@
  * limitations under the License.
  */
 
-package com.github.ykiselev.playground.assets.common;
+package com.github.ykiselev.opengl.fonts;
 
-import com.github.ykiselev.assets.Assets;
-import com.github.ykiselev.assets.Recipe;
 import com.github.ykiselev.wrap.Wrap;
-import com.typesafe.config.Config;
 
-import java.nio.channels.ReadableByteChannel;
+import java.util.Map;
+import java.util.Set;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru)
- * @since 13.04.2019
+ * @since 14.04.2019
  */
-public final class AssetUtils {
+public final class DefaultFontAtlas implements FontAtlas {
 
-    public static <C> Wrap<Config> read(ReadableByteChannel channel, Recipe<Config, C> recipe, Assets assets) {
-        return assets.resolve(recipe)
-                .read(channel, recipe, assets);
+    private final Map<String, Wrap<TrueTypeFont>> fonts;
+
+    public DefaultFontAtlas(Map<String, Wrap<TrueTypeFont>> fonts) {
+        this.fonts = requireNonNull(fonts);
+    }
+
+    @Override
+    public Wrap<TrueTypeFont> get(String key) {
+        return fonts.get(key);
+    }
+
+    @Override
+    public Set<String> keys() {
+        return fonts.keySet();
+    }
+
+    @Override
+    public void close() {
+        fonts.forEach((k, v) -> v.close());
     }
 }

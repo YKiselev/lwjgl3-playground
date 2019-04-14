@@ -30,12 +30,12 @@ public interface Assets extends ReadableAssets, Resources {
      *
      * @param <T>      the type of resource
      * @param resource the resource name
-     * @param clazz    the class of resource or {@code null} if not known
+     * @param recipe   the recipe to use for cooking of resource or {@code null} if not required
      * @return the requested resource
      * @throws ResourceException if resource not found or something goes wrong during the resource loading process.
      */
-    default <T> Wrap<T> load(String resource, Class<T> clazz) throws ResourceException {
-        final Wrap<T> result = tryLoad(resource, clazz);
+    default <T, C> Wrap<T> load(String resource, Recipe<T, C> recipe) throws ResourceException {
+        final Wrap<T> result = tryLoad(resource, recipe);
         if (result == null) {
             throw new ResourceException("Unable to load " + resource);
         }
@@ -47,12 +47,12 @@ public interface Assets extends ReadableAssets, Resources {
      *
      * @param <T>      the type of resource
      * @param resource the resource name
-     * @param clazz    the class of resource or {@code null} if not known
+     * @param recipe   the recipe to use for cooking of resource or {@code null} if not required
      * @return the requested resource or {@code null}
      * @throws ResourceException if something goes wrong during the resource loading process.
      */
-    default <T> Wrap<T> tryLoad(String resource, Class<T> clazz) throws ResourceException {
-        return tryLoad(resource, clazz, this);
+    default <T, C> Wrap<T> tryLoad(String resource, Recipe<T, C> recipe) throws ResourceException {
+        return tryLoad(resource, recipe, this);
     }
 
     /**
@@ -60,34 +60,10 @@ public interface Assets extends ReadableAssets, Resources {
      *
      * @param <T>      the type of resource
      * @param resource the resource name
-     * @param clazz    the class of resource or {@code null} if not known
+     * @param recipe   the recipe to use for cooking of resource or {@code null} if not required
      * @param assets   the asset manager to pass to {@link ReadableAsset#read(java.nio.channels.ReadableByteChannel, Assets)} to load sub-assets
      * @return the requested resource or {@code null}
      * @throws ResourceException if something goes wrong during the resource loading process.
      */
-    <T> Wrap<T> tryLoad(String resource, Class<T> clazz, Assets assets) throws ResourceException;
-
-    /**
-     * Convenient method taking only one string argument as a resource name.
-     *
-     * @param <T>      the type of resource
-     * @param resource the resource name.
-     * @return the requested resource
-     * @throws ResourceException if something goes wrong during the resource loading process.
-     */
-    default <T> Wrap<T> load(String resource) throws ResourceException {
-        return load(resource, null);
-    }
-
-    /**
-     * Convenient method taking only one string argument as a resource name.
-     *
-     * @param <T>      the type of resource
-     * @param resource the resource name
-     * @return the requested resource or {@code null}
-     * @throws ResourceException if something goes wrong during the resource loading process.
-     */
-    default <T> Wrap<T> tryLoad(String resource) throws ResourceException {
-        return tryLoad(resource, null);
-    }
+    <T, C> Wrap<T> tryLoad(String resource, Recipe<T, C> recipe, Assets assets) throws ResourceException;
 }

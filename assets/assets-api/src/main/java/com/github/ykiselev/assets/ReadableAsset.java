@@ -25,16 +25,17 @@ import java.nio.channels.ReadableByteChannel;
  * <p>
  * Created by Y.Kiselev on 15.05.2016.
  */
-public interface ReadableAsset<T> {
+public interface ReadableAsset<T, C> {
 
     /**
      * Reads resource from channel.
      *
      * @param channel the binary stream to read resource from.
+     * @param recipe  the recipe to use to cook the asset or {@code null} if not needed
      * @param assets  the instance of asset manager. At first glance {@link Resources} would suffice but {@link Assets}
      *                may be required in the case when compound asset consisting of different assets is read.
      * @return wrapped de-serialized resource.
      * @throws ResourceException if something goes wrong during de-serialization of resource.
      */
-    Wrap<T> read(ReadableByteChannel channel, Assets assets) throws ResourceException;
+    Wrap<T> read(ReadableByteChannel channel, Recipe<T, C> recipe, Assets assets) throws ResourceException;
 }

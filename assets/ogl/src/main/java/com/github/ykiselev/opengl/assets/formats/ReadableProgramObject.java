@@ -18,7 +18,9 @@ package com.github.ykiselev.opengl.assets.formats;
 
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.assets.ReadableAsset;
+import com.github.ykiselev.assets.Recipe;
 import com.github.ykiselev.assets.ResourceException;
+import com.github.ykiselev.opengl.OglRecipes;
 import com.github.ykiselev.opengl.shaders.DefaultProgramObject;
 import com.github.ykiselev.opengl.shaders.ProgramObject;
 import com.github.ykiselev.opengl.shaders.ShaderObject;
@@ -47,16 +49,16 @@ import static org.lwjgl.opengl.GL20.glUniform1i;
 /**
  * Created by Y.Kiselev on 15.05.2016.
  */
-public final class ReadableProgramObject implements ReadableAsset<ProgramObject> {
+public final class ReadableProgramObject implements ReadableAsset<ProgramObject, Void> {
 
     private static final int MAX_PROGRAM_LOG_LENGTH = 8 * 1024;
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Override
-    public Wrap<ProgramObject> read(ReadableByteChannel channel, Assets assets) throws ResourceException {
-        try (Wrap<Config> fallback = assets.load("progs/default/program-object.conf", Config.class);
-             Wrap<Config> cfg = AssetUtils.read(channel, assets)) {
+    public Wrap<ProgramObject> read(ReadableByteChannel channel, Recipe<ProgramObject, Void> recipe, Assets assets) throws ResourceException {
+        try (Wrap<Config> fallback = assets.load("progs/default/program-object.conf", OglRecipes.CONFIG);
+             Wrap<Config> cfg = AssetUtils.read(channel, OglRecipes.CONFIG, assets)) {
             final Config config = cfg.value()
                     .withFallback(fallback.value());
 

@@ -18,12 +18,13 @@ package com.github.ykiselev.openal.assets;
 
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.assets.ReadableAsset;
+import com.github.ykiselev.assets.Recipe;
 import com.github.ykiselev.assets.ResourceException;
-import com.github.ykiselev.openal.assets.vorbis.VorbisAudio;
 import com.github.ykiselev.common.io.ByteChannelAsByteBuffer;
 import com.github.ykiselev.common.io.ReadableBytes;
 import com.github.ykiselev.common.memory.MemAllocShort;
 import com.github.ykiselev.openal.AudioSamples;
+import com.github.ykiselev.openal.assets.vorbis.VorbisAudio;
 import com.github.ykiselev.wrap.Wrap;
 import com.github.ykiselev.wrap.Wraps;
 import org.lwjgl.stb.STBVorbisInfo;
@@ -46,7 +47,7 @@ import static org.lwjgl.system.MemoryUtil.NULL;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class ReadableVorbisAudio implements ReadableAsset<AudioSamples> {
+public final class ReadableVorbisAudio implements ReadableAsset<AudioSamples, Void> {
 
     private final int bufferSize;
 
@@ -59,7 +60,7 @@ public final class ReadableVorbisAudio implements ReadableAsset<AudioSamples> {
     }
 
     @Override
-    public Wrap<AudioSamples> read(ReadableByteChannel channel, Assets assets) throws ResourceException {
+    public Wrap<AudioSamples> read(ReadableByteChannel channel, Recipe<AudioSamples, Void> recipe, Assets assets) throws ResourceException {
         try (STBVorbisInfo info = STBVorbisInfo.malloc()) {
             final ReadableBytes asBuffer = new ByteChannelAsByteBuffer(
                     channel, bufferSize

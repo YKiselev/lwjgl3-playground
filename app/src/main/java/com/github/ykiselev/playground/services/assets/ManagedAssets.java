@@ -18,6 +18,7 @@ package com.github.ykiselev.playground.services.assets;
 
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.assets.ReadableAsset;
+import com.github.ykiselev.assets.Recipe;
 import com.github.ykiselev.assets.ResourceException;
 import com.github.ykiselev.common.closeables.Closeables;
 import com.github.ykiselev.common.lifetime.CountedRef;
@@ -53,7 +54,7 @@ public final class ManagedAssets implements Assets, AutoCloseable {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T> Wrap<T> tryLoad(String resource, Class<T> clazz, Assets assets) throws ResourceException {
+    public <T, C> Wrap<T> tryLoad(String resource, Recipe<T, C> recipe, Assets assets) throws ResourceException {
         for (; ; ) {
             final Asset asset = cache.get(resource);
             if (asset != null) {
@@ -62,7 +63,7 @@ public final class ManagedAssets implements Assets, AutoCloseable {
             synchronized (loadLock) {
                 // We can't use  Map#computeIfAbsent because asset can be composite and call this method recursively
                 if (!cache.containsKey(resource)) {
-                    final Wrap<T> wrap = delegate.tryLoad(resource, clazz, assets);
+                    final Wrap<T> wrap = delegate.tryLoad(resource, recipe, assets);
                     if (wrap != null) {
                         cache.put(
                                 resource,
@@ -100,8 +101,8 @@ public final class ManagedAssets implements Assets, AutoCloseable {
     }
 
     @Override
-    public <T> ReadableAsset<T> resolve(String resource, Class<T> clazz) throws ResourceException {
-        return delegate.resolve(resource, clazz);
+    public <T, C> ReadableAsset<T, C> resolve(String resource, Recipe<T, C> recipe) throws ResourceException {
+        return delegate.resolve(resource, recipe);
     }
 
     @Override

@@ -18,8 +18,10 @@ package com.github.ykiselev.opengl.assets.formats;
 
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.assets.ReadableAsset;
+import com.github.ykiselev.assets.Recipe;
 import com.github.ykiselev.assets.ResourceException;
 import com.github.ykiselev.common.io.ByteChannelAsByteBuffer;
+import com.github.ykiselev.opengl.textures.DefaultTexture2d;
 import com.github.ykiselev.opengl.textures.Texture2d;
 import com.github.ykiselev.wrap.Wrap;
 import com.github.ykiselev.wrap.Wraps;
@@ -28,9 +30,7 @@ import org.lwjgl.system.MemoryStack;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.nio.channels.ReadableByteChannel;
-import java.util.function.Supplier;
 
-import static java.util.Objects.requireNonNull;
 import static org.lwjgl.opengl.GL11.GL_LINEAR;
 import static org.lwjgl.opengl.GL11.GL_RED;
 import static org.lwjgl.opengl.GL11.GL_REPEAT;
@@ -55,19 +55,23 @@ import static org.lwjgl.system.MemoryStack.stackPush;
 /**
  * Created by Y.Kiselev on 05.06.2016.
  */
-public final class ReadableTexture2d implements ReadableAsset<Texture2d> {
+public final class ReadableTexture2d implements ReadableAsset<Texture2d, ReadableTexture2d.Context> {
 
-    private final Supplier<Texture2d> supplier;
+    public static final class Context {
 
-    private final boolean mipMapped;
+        private final boolean mipMapped;
 
-    public ReadableTexture2d(Supplier<Texture2d> supplier, boolean mipMapped) {
-        this.supplier = requireNonNull(supplier);
-        this.mipMapped = mipMapped;
+        public boolean isMipMapped() {
+            return mipMapped;
+        }
+
+        public Context(boolean mipMapped) {
+            this.mipMapped = mipMapped;
+        }
     }
 
     @Override
-    public Wrap<Texture2d> read(ReadableByteChannel channel, Assets assets) throws ResourceException {
+    public Wrap<Texture2d> read(ReadableByteChannel channel, Recipe<Texture2d, Context> recipe, Assets assets) throws ResourceException {
         final ByteBuffer image;
         final int width, height, components;
         try (Wrap<ByteBuffer> wrap = readResource(channel)) {
@@ -84,13 +88,16 @@ public final class ReadableTexture2d implements ReadableAsset<Texture2d> {
                 components = compb.get(0);
             }
         }
+        final boolean isMipMapped = recipe.context() == null
+                || recipe.context().isMipMapped();
         try {
             return Wraps.of(
                     loadTexture(
                             image,
                             width,
                             height,
-                            components
+                            components,
+                            isMipMapped
                     )
             );
         } finally {
@@ -98,8 +105,8 @@ public final class ReadableTexture2d implements ReadableAsset<Texture2d> {
         }
     }
 
-    private Texture2d loadTexture(ByteBuffer image, int width, int height, int components) {
-        final Texture2d texture = supplier.get();
+    private Texture2d loadTexture(ByteBuffer image, int width, int height, int components, boolean mipMapped) {
+        final Texture2d texture = new DefaultTexture2d();
         texture.bind();
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);

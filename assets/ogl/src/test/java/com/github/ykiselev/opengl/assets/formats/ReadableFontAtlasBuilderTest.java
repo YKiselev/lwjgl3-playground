@@ -29,7 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
  * @author Yuriy Kiselev (uze@yandex.ru)
  * @since 10.04.2019
  */
-public class ReadableFontAtlasTest {
+public class ReadableFontAtlasBuilderTest {
 
     @Test
     public void shouldReadCodePoints() {

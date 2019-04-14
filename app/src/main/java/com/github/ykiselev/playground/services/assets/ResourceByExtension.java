@@ -18,6 +18,7 @@ package com.github.ykiselev.playground.services.assets;
 
 import com.github.ykiselev.assets.ReadableAsset;
 import com.github.ykiselev.assets.ReadableAssets;
+import com.github.ykiselev.assets.Recipe;
 import com.github.ykiselev.assets.ResourceException;
 
 import java.util.Map;
@@ -35,7 +36,7 @@ public final class ResourceByExtension implements ReadableAssets {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T> ReadableAsset<T> resolve(String resource, Class<T> clazz) throws ResourceException {
+    public <T, C> ReadableAsset<T, C> resolve(String resource, Recipe<T, C> recipe) throws ResourceException {
         return map.get(extension(resource));
     }
 

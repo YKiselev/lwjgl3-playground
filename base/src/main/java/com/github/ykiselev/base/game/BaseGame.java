@@ -16,9 +16,11 @@
 
 package com.github.ykiselev.base.game;
 
-import com.github.ykiselev.common.fps.FrameInfo;
 import com.github.ykiselev.assets.Assets;
+import com.github.ykiselev.common.fps.FrameInfo;
+import com.github.ykiselev.common.trigger.Trigger;
 import com.github.ykiselev.components.Game;
+import com.github.ykiselev.opengl.OglRecipes;
 import com.github.ykiselev.opengl.buffers.FrameBuffer;
 import com.github.ykiselev.opengl.matrices.Matrix;
 import com.github.ykiselev.opengl.matrices.Vector3f;
@@ -27,14 +29,12 @@ import com.github.ykiselev.opengl.sprites.TextAlignment;
 import com.github.ykiselev.opengl.sprites.TextAttributes;
 import com.github.ykiselev.opengl.text.SpriteFont;
 import com.github.ykiselev.opengl.textures.CurrentTexture2dAsBytes;
-import com.github.ykiselev.opengl.textures.Sprite;
 import com.github.ykiselev.opengl.textures.Texture2d;
 import com.github.ykiselev.services.FileSystem;
 import com.github.ykiselev.services.MenuFactory;
 import com.github.ykiselev.services.Services;
 import com.github.ykiselev.services.commands.Commands;
 import com.github.ykiselev.services.layers.Sprites;
-import com.github.ykiselev.common.trigger.Trigger;
 import com.github.ykiselev.window.WindowEvents;
 import com.github.ykiselev.wrap.Wrap;
 import org.lwjgl.glfw.GLFW;
@@ -130,8 +130,8 @@ public final class BaseGame implements Game {
         this.frameInfo = services.resolve(FrameInfo.class);
         final Assets assets = services.resolve(Assets.class);
         spriteBatch = services.resolve(Sprites.class).newBatch();
-        cuddles = assets.load("images/htf-cuddles.jpg", Sprite.class);
-        liberationMono = assets.load("fonts/Liberation Mono.sf", SpriteFont.class);
+        cuddles = assets.load("images/htf-cuddles.jpg", OglRecipes.SPRITE);
+        liberationMono = assets.load("fonts/Liberation Mono.sf", OglRecipes.SPRITE_FONT);
         cubes = new Cubes(assets);
         pyramids = new Pyramids(assets);
         pv = MemoryUtil.memAllocFloat(16);

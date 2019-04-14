@@ -14,13 +14,17 @@
  * limitations under the License.
  */
 
-package com.github.ykiselev.opengl.textures;
+package com.github.ykiselev.assets;
 
 /**
- * Non mip-mapped texture
- * <p>
- * Created by Y.Kiselev on 05.06.2016.
+ * @author Yuriy Kiselev (uze@yandex.ru)
+ * @since 14.04.2019
  */
-public interface Sprite extends Texture2d {
+public interface Recipe<A,C> {
 
+    Class<A> type();
+
+    Object key();
+
+    C context();
 }

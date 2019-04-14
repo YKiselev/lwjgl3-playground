@@ -18,6 +18,7 @@ package com.github.ykiselev.opengl.assets.formats;
 
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.assets.ReadableAsset;
+import com.github.ykiselev.assets.Recipe;
 import com.github.ykiselev.assets.ResourceException;
 import com.github.ykiselev.opengl.assets.formats.obj.ObjModel;
 import com.github.ykiselev.opengl.assets.formats.obj.ObjModelBuilder;
@@ -33,10 +34,10 @@ import java.nio.charset.StandardCharsets;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class ReadableObjModel implements ReadableAsset<ObjModel> {
+public final class ReadableObjModel implements ReadableAsset<ObjModel, Void> {
 
     @Override
-    public Wrap<ObjModel> read(ReadableByteChannel channel, Assets assets) throws ResourceException {
+    public Wrap<ObjModel> read(ReadableByteChannel channel, Recipe<ObjModel, Void> recipe, Assets assets) throws ResourceException {
         try (BufferedReader reader = reader(channel)) {
             return Wraps.simple(
                     parse(reader)

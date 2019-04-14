@@ -18,11 +18,14 @@ package com.github.ykiselev.opengl.assets.formats;
 
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.assets.ReadableAsset;
+import com.github.ykiselev.assets.Recipe;
 import com.github.ykiselev.assets.ResourceException;
+import com.github.ykiselev.opengl.OglRecipes;
 import com.github.ykiselev.opengl.fonts.Bitmap;
 import com.github.ykiselev.opengl.fonts.CodePoints;
+import com.github.ykiselev.opengl.fonts.DefaultFontAtlas;
 import com.github.ykiselev.opengl.fonts.FontAtlas;
-import com.github.ykiselev.opengl.fonts.TrueTypeFont;
+import com.github.ykiselev.opengl.fonts.FontAtlasBuilder;
 import com.github.ykiselev.opengl.fonts.TrueTypeFontInfo;
 import com.github.ykiselev.playground.assets.common.AssetUtils;
 import com.github.ykiselev.wrap.Wrap;
@@ -46,7 +49,7 @@ import static java.util.Objects.requireNonNull;
  * @author Yuriy Kiselev (uze@yandex.ru)
  * @since 09.04.2019
  */
-public final class ReadableFontAtlas implements ReadableAsset<Map<String, Wrap<TrueTypeFont>>> {
+public final class ReadableFontAtlas implements ReadableAsset<FontAtlas, Void> {
 
     private final Supplier<Bitmap<Wrap<ByteBuffer>>> bitmapFactory;
 
@@ -55,20 +58,20 @@ public final class ReadableFontAtlas implements ReadableAsset<Map<String, Wrap<T
     }
 
     @Override
-    public Wrap<Map<String, Wrap<TrueTypeFont>>> read(ReadableByteChannel channel, Assets assets) throws ResourceException {
-        try (Wrap<Config> cfg = AssetUtils.read(channel, assets)) {
+    public Wrap<FontAtlas> read(ReadableByteChannel channel, Recipe<FontAtlas, Void> recipe, Assets assets) throws ResourceException {
+        try (Wrap<Config> cfg = AssetUtils.read(channel, OglRecipes.CONFIG, assets)) {
             final Config atlasConfig = cfg.value();
-            @SuppressWarnings("unchecked") final Map.Entry<String, TrueTypeFontInfo>[] fonts = atlasConfig.getConfig("fonts").root()
+            @SuppressWarnings("unchecked") final Map.Entry<String, Wrap<TrueTypeFontInfo>>[] fonts = atlasConfig.getConfig("fonts").root()
                     .values()
                     .stream()
                     .map(ConfigValue::unwrapped)
                     .map(String.class::cast)
                     .filter(v -> !v.isEmpty())
-                    .map(uri -> Map.entry(uri, assets.load(uri, TrueTypeFontInfo.class).value()))
+                    .map(uri -> Map.entry(uri, assets.load(uri, OglRecipes.TRUE_TYPE_FONT_INFO)))
                     .toArray(Map.Entry[]::new);
             // Sort array from smallest font to larges to improve glyph texture fill rate
-            Arrays.sort(fonts, Comparator.comparingDouble(e -> e.getValue().metrics().fontSize()));
-            try (FontAtlas atlas = new FontAtlas(bitmapFactory)) {
+            Arrays.sort(fonts, Comparator.comparingDouble(e -> e.getValue().value().metrics().fontSize()));
+            try (FontAtlasBuilder atlas = new FontAtlasBuilder(bitmapFactory)) {
                 Arrays.stream(fonts).forEach(e ->
                         atlas.addFont(
                                 e.getKey(),
@@ -77,11 +80,14 @@ public final class ReadableFontAtlas implements ReadableAsset<Map<String, Wrap<T
                         )
                 );
 
-                return Wraps.simple(
-                        atlas.drainFonts().entrySet().stream().collect(Collectors.toMap(
-                                Map.Entry::getKey,
-                                e -> Wraps.of(e.getValue())
-                        ))
+                return Wraps.of(
+                        new DefaultFontAtlas(
+                                // todo - make map immutable
+                                atlas.drainFonts().entrySet().stream().collect(Collectors.toMap(
+                                        Map.Entry::getKey,
+                                        e -> Wraps.of(e.getValue())
+                                ))
+                        )
                 );
             }
         }

@@ -39,6 +39,8 @@ import static org.lwjgl.stb.STBImage.stbi_failure_reason;
 import static org.lwjgl.stb.STBImageWrite.stbi_write_png_to_func;
 
 /**
+ * Copies pixels of current 2D texture to supplied byte buffer.
+ *
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
 public final class CurrentTexture2dAsBytes {

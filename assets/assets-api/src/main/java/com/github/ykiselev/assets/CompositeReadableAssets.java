@@ -37,13 +37,13 @@ public final class CompositeReadableAssets implements ReadableAssets {
     }
 
     @Override
-    public <T> ReadableAsset<T> resolve(String resource, Class<T> clazz) throws ResourceException {
+    public <T, C> ReadableAsset<T, C> resolve(String resource, Recipe<T, C> recipe) throws ResourceException {
         for (ReadableAssets delegate : delegates) {
-            final ReadableAsset<T> result = delegate.resolve(resource, clazz);
+            final ReadableAsset<T, C> result = delegate.resolve(resource, recipe);
             if (result != null) {
                 return result;
             }
         }
-        throw new ResourceException("Unable to resolve resource \"" + resource + "\" of class \"" + clazz + "\"");
+        throw new ResourceException("Unable to resolve resource \"" + resource + "\" using recipe \"" + recipe + "\"");
     }
 }

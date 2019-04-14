@@ -21,15 +21,15 @@ import static org.lwjgl.opengl.GL11.glGenTextures;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class DefaultMipMappedTexture2d implements MipMappedTexture2d {
+public final class DefaultTexture2d implements Texture2d {
 
     private final int id;
 
-    public DefaultMipMappedTexture2d(int id) {
+    public DefaultTexture2d(int id) {
         this.id = id;
     }
 
-    public DefaultMipMappedTexture2d() {
+    public DefaultTexture2d() {
         this(glGenTextures());
     }
 

@@ -45,11 +45,11 @@ public final class SimpleAssets implements Assets {
     }
 
     @Override
-    public <T> Wrap<T> tryLoad(String resource, Class<T> clazz, Assets assets) throws ResourceException {
+    public <T, C> Wrap<T> tryLoad(String resource, Recipe<T, C> recipe, Assets assets) throws ResourceException {
         return resources.open(resource)
                 .map(channel ->
-                        readableAssets.resolve(resource, clazz)
-                                .read(channel, assets)
+                        readableAssets.resolve(resource, recipe)
+                                .read(channel, recipe, assets)
                 ).map(v -> logAsset(resource, v))
                 .orElse(null);
     }
@@ -62,8 +62,8 @@ public final class SimpleAssets implements Assets {
     }
 
     @Override
-    public <T> ReadableAsset<T> resolve(String resource, Class<T> clazz) throws ResourceException {
-        return readableAssets.resolve(resource, clazz);
+    public <T, C> ReadableAsset<T, C> resolve(String resource, Recipe<T, C> recipe) throws ResourceException {
+        return readableAssets.resolve(resource, recipe);
     }
 
     @Override

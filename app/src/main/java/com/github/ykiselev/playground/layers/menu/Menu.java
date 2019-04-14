@@ -18,6 +18,7 @@ package com.github.ykiselev.playground.layers.menu;
 
 import com.github.ykiselev.api.Removable;
 import com.github.ykiselev.assets.Assets;
+import com.github.ykiselev.opengl.OglRecipes;
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
 import com.github.ykiselev.opengl.sprites.TextAttributes;
 import com.github.ykiselev.opengl.text.SpriteFont;
@@ -76,7 +77,7 @@ public final class Menu implements UiLayer, AutoCloseable, Removable {
         this.services = services;
         final Assets assets = services.resolve(Assets.class);
         spriteBatch = services.resolve(Sprites.class).newBatch();
-        font = assets.load("fonts/Liberation Mono 22.sf", SpriteFont.class);
+        font = assets.load("fonts/Liberation Mono 22.sf", OglRecipes.SPRITE_FONT);
         final PersistedConfiguration configuration = services.resolve(PersistedConfiguration.class);
         final Slider effectsSlider = new Slider(
                 new ConfigurationBoundSliderModel(

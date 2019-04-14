@@ -18,6 +18,7 @@ package com.github.ykiselev.opengl.assets.formats;
 
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.assets.ReadableAsset;
+import com.github.ykiselev.assets.Recipe;
 import com.github.ykiselev.assets.ResourceException;
 import com.github.ykiselev.common.io.ByteChannelAsString;
 import com.github.ykiselev.opengl.shaders.DefaultShaderObject;
@@ -42,7 +43,7 @@ import static org.lwjgl.opengl.GL20.glShaderSource;
 /**
  * Created by Y.Kiselev on 15.05.2016.
  */
-public final class ReadableShaderObject implements ReadableAsset<ShaderObject> {
+public final class ReadableShaderObject implements ReadableAsset<ShaderObject, Void> {
 
     private static final int MAX_SHADER_LOG_LENGTH = 8 * 1024;
 
@@ -55,12 +56,9 @@ public final class ReadableShaderObject implements ReadableAsset<ShaderObject> {
     }
 
     @Override
-    public Wrap<ShaderObject> read(ReadableByteChannel channel, Assets assets) throws ResourceException {
+    public Wrap<ShaderObject> read(ReadableByteChannel channel, Recipe<ShaderObject, Void> recipe, Assets assets) throws ResourceException {
         final int id = glCreateShader(type);
-        glShaderSource(
-                id,
-                new ByteChannelAsString(channel, StandardCharsets.UTF_8).read()
-        );
+        glShaderSource(id, new ByteChannelAsString(channel, StandardCharsets.UTF_8).read());
         glCompileShader(id);
         final int status = glGetShaderi(id, GL_COMPILE_STATUS);
         final String log = glGetShaderInfoLog(id, MAX_SHADER_LOG_LENGTH);
@@ -71,8 +69,6 @@ public final class ReadableShaderObject implements ReadableAsset<ShaderObject> {
                 logger.warn("Shader log: {}", log);
             }
         }
-        return Wraps.of(
-                new DefaultShaderObject(id)
-        );
+        return Wraps.of(new DefaultShaderObject(id));
     }
 }

@@ -18,13 +18,14 @@ package com.github.ykiselev.opengl.assets.formats;
 
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.assets.ReadableAsset;
+import com.github.ykiselev.assets.Recipe;
 import com.github.ykiselev.assets.ResourceException;
 import com.github.ykiselev.gfx.font.GlyphRange;
+import com.github.ykiselev.opengl.OglRecipes;
 import com.github.ykiselev.opengl.text.DefaultSpriteFont;
 import com.github.ykiselev.opengl.text.Glyph;
 import com.github.ykiselev.opengl.text.GlyphRanges;
 import com.github.ykiselev.opengl.text.SpriteFont;
-import com.github.ykiselev.opengl.textures.Sprite;
 import com.github.ykiselev.opengl.textures.Texture2d;
 import com.github.ykiselev.wrap.Wrap;
 import com.github.ykiselev.wrap.Wraps;
@@ -57,10 +58,10 @@ import static org.lwjgl.opengl.GL33.GL_TEXTURE_SWIZZLE_RGBA;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class ReadableSpriteFont implements ReadableAsset<SpriteFont> {
+public final class ReadableSpriteFont implements ReadableAsset<SpriteFont, Void> {
 
     @Override
-    public Wrap<SpriteFont> read(ReadableByteChannel channel, Assets assets) throws ResourceException {
+    public Wrap<SpriteFont> read(ReadableByteChannel channel, Recipe<SpriteFont, Void> recipe, Assets assets) throws ResourceException {
         final com.github.ykiselev.gfx.font.SpriteFont spriteFont = readSpriteFont(channel);
         final Wrap<? extends Texture2d> texture = readSpriteFontTexture(assets, spriteFont);
         texture.value().bind();
@@ -138,8 +139,8 @@ public final class ReadableSpriteFont implements ReadableAsset<SpriteFont> {
 
     private Wrap<? extends Texture2d> readSpriteFontTexture(Assets assets, com.github.ykiselev.gfx.font.SpriteFont spriteFont) {
         try (ReadableByteChannel bc = Channels.newChannel(new ByteArrayInputStream(spriteFont.image()))) {
-            return assets.resolve(Sprite.class)
-                    .read(bc, assets);
+            return assets.resolve(OglRecipes.SPRITE)
+                    .read(bc, OglRecipes.SPRITE, assets);
         } catch (IOException e) {
             throw new ResourceException(e);
         }

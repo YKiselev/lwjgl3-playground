@@ -17,6 +17,7 @@
 package com.github.ykiselev.base.game;
 
 import com.github.ykiselev.assets.Assets;
+import com.github.ykiselev.opengl.OglRecipes;
 import com.github.ykiselev.opengl.assets.formats.obj.ObjModel;
 import com.github.ykiselev.opengl.models.GenericIndexedGeometry;
 import com.github.ykiselev.opengl.shaders.ProgramObject;
@@ -40,8 +41,8 @@ public final class Cubes implements AutoCloseable {
     private final Wrap<ProgramObject> program;
 
     public Cubes(Assets assets) {
-        program = assets.load("progs/generic.conf", ProgramObject.class);
-        try (Wrap<ObjModel> model = assets.load("models/2cubes.obj", ObjModel.class)) {
+        program = assets.load("progs/generic.conf", OglRecipes.PROGRAM);
+        try (Wrap<ObjModel> model = assets.load("models/2cubes.obj", OglRecipes.OBJ_MODEL)) {
             geometry = new GenericIndexedGeometry(
                     VertexDefinitions.POSITION_TEXTURE_NORMAL,
                     model.value().toIndexedTriangles()

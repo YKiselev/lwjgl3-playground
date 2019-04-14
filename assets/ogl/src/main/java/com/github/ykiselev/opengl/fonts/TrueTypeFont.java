@@ -40,12 +40,12 @@ public final class TrueTypeFont implements AutoCloseable {
 
     private final STBTTPackedchar.Buffer chardata;
 
-    private final TrueTypeFontInfo info;
+    private final Wrap<TrueTypeFontInfo> info;
 
     private final CodePoints codePoints;
 
     public float fontSize() {
-        return info.metrics().fontSize();
+        return info.value().metrics().fontSize();
     }
 
     public int texture() {
@@ -61,10 +61,10 @@ public final class TrueTypeFont implements AutoCloseable {
     }
 
     public TrueTypeFontInfo info() {
-        return info;
+        return info.value();
     }
 
-    public TrueTypeFont(TrueTypeFontInfo info, STBTTPackedchar.Buffer chardata, CodePoints codePoints, Wrap<Texture2d> texture, int bitmapWidth, int bitmapHeight) {
+    public TrueTypeFont(Wrap<TrueTypeFontInfo> info, STBTTPackedchar.Buffer chardata, CodePoints codePoints, Wrap<Texture2d> texture, int bitmapWidth, int bitmapHeight) {
         this.info = requireNonNull(info);
         this.chardata = requireNonNull(chardata);
         this.codePoints = requireNonNull(codePoints);
@@ -78,6 +78,7 @@ public final class TrueTypeFont implements AutoCloseable {
         chardata.close();
         info.close();
         texture.close();
+        info.close();
     }
 
     @Deprecated

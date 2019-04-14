@@ -18,6 +18,7 @@ package com.github.ykiselev.playground.services.assets;
 
 import com.github.ykiselev.assets.ReadableAsset;
 import com.github.ykiselev.assets.ReadableAssets;
+import com.github.ykiselev.assets.Recipe;
 import com.github.ykiselev.assets.ResourceException;
 
 import java.util.Map;
@@ -25,20 +26,20 @@ import java.util.Map;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class ResourceByClass implements ReadableAssets {
+public final class ResourceByKey implements ReadableAssets {
 
-    private final Map<Class, ReadableAsset> map;
+    private final Map<Object, ReadableAsset> map;
 
-    public ResourceByClass(Map<Class, ReadableAsset> map) {
+    public ResourceByKey(Map<Object, ReadableAsset> map) {
         this.map = map;
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T> ReadableAsset<T> resolve(String resource, Class<T> clazz) throws ResourceException {
-        if (clazz == null) {
+    public <T, C> ReadableAsset<T, C> resolve(String resource, Recipe<T, C> recipe) throws ResourceException {
+        if (recipe == null) {
             return null;
         }
-        return map.get(clazz);
+        return map.get(recipe.key());
     }
 }

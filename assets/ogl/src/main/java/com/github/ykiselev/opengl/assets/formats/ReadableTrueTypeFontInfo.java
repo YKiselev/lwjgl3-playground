@@ -18,8 +18,10 @@ package com.github.ykiselev.opengl.assets.formats;
 
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.assets.ReadableAsset;
+import com.github.ykiselev.assets.Recipe;
 import com.github.ykiselev.assets.ResourceException;
 import com.github.ykiselev.common.io.ByteChannelAsByteBuffer;
+import com.github.ykiselev.opengl.OglRecipes;
 import com.github.ykiselev.opengl.fonts.TrueTypeFontInfo;
 import com.github.ykiselev.playground.assets.common.AssetUtils;
 import com.github.ykiselev.wrap.Wrap;
@@ -33,12 +35,12 @@ import java.nio.channels.ReadableByteChannel;
  * @author Yuriy Kiselev (uze@yandex.ru)
  * @since 08.04.2019
  */
-public final class ReadableTrueTypeFontInfo implements ReadableAsset<TrueTypeFontInfo> {
+public final class ReadableTrueTypeFontInfo implements ReadableAsset<TrueTypeFontInfo, Void> {
 
     @Override
-    public Wrap<TrueTypeFontInfo> read(ReadableByteChannel channel, Assets assets) throws ResourceException {
-        try (Wrap<Config> fallback = assets.load("fonts/default/font.conf", Config.class);
-             Wrap<Config> config = AssetUtils.read(channel, assets)) {
+    public Wrap<TrueTypeFontInfo> read(ReadableByteChannel channel, Recipe<TrueTypeFontInfo, Void> recipe, Assets assets) throws ResourceException {
+        try (Wrap<Config> fallback = assets.load("fonts/default/font.conf", OglRecipes.CONFIG);
+             Wrap<Config> config = AssetUtils.read(channel, OglRecipes.CONFIG, assets)) {
             final Config fontConfig = config.value()
                     .withFallback(fallback.value());
             final Wrap<ByteBuffer> ttf = assets.open(fontConfig.getString("asset"))

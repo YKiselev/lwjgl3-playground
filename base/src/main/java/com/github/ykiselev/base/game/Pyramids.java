@@ -17,6 +17,7 @@
 package com.github.ykiselev.base.game;
 
 import com.github.ykiselev.assets.Assets;
+import com.github.ykiselev.opengl.OglRecipes;
 import com.github.ykiselev.opengl.matrices.Matrix;
 import com.github.ykiselev.opengl.models.GenericIndexedGeometry;
 import com.github.ykiselev.opengl.models.Pyramid;
@@ -42,7 +43,7 @@ public final class Pyramids implements AutoCloseable {
     private final UniformVariable mvpUniform;
 
     public Pyramids(Assets assets) {
-        program = assets.load("progs/colored.conf", ProgramObject.class);
+        program = assets.load("progs/colored.conf", OglRecipes.PROGRAM);
         try (Pyramid p = new Pyramid()) {
             geometry = new GenericIndexedGeometry(VertexDefinitions.POSITION_COLOR, p);
         }

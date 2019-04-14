@@ -19,11 +19,11 @@ package com.github.ykiselev.playground.services.console;
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.common.closeables.Closeables;
 import com.github.ykiselev.common.closeables.CompositeAutoCloseable;
+import com.github.ykiselev.opengl.OglRecipes;
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
 import com.github.ykiselev.opengl.sprites.TextAttributes;
 import com.github.ykiselev.opengl.sprites.TextDrawingFlags;
 import com.github.ykiselev.opengl.text.SpriteFont;
-import com.github.ykiselev.opengl.textures.Sprite;
 import com.github.ykiselev.opengl.textures.Texture2d;
 import com.github.ykiselev.services.MenuFactory;
 import com.github.ykiselev.services.Services;
@@ -142,8 +142,8 @@ public final class AppConsole implements UiLayer, AutoCloseable {
         final Assets assets = services.resolve(Assets.class);
         spriteBatch = services.resolve(Sprites.class)
                 .newBatch();
-        cuddles = assets.load("images/htf-cuddles.jpg", Sprite.class);
-        font = assets.load("fonts/Liberation Mono.sf", SpriteFont.class);
+        cuddles = assets.load("images/htf-cuddles.jpg", OglRecipes.SPRITE);
+        font = assets.load("fonts/Liberation Mono.sf", OglRecipes.SPRITE_FONT);
         final TextAttributes attributes = new TextAttributes();
         attributes.font(font.value());
         attributes.add(TextDrawingFlags.USE_COLOR_CONTROL_SEQUENCES);
