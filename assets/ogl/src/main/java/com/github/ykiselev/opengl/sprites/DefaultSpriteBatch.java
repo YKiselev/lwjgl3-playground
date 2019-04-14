@@ -223,22 +223,22 @@ public final class DefaultSpriteBatch implements SpriteBatch {
             }
             qy = fy;
 
-            final float x1 = fx + charData.xadvance();
-            final float y1 = fy + font.info().metrics().lineHeight();
+            //final float x1 = fx + charData.xadvance();
+            //final float y1 = fy + font.info().metrics().lineHeight();
             if (value != ' ') {
                 final float qx0 = fx + charData.xoff();
                 final float qy0 = fy + charData.yoff();
                 final float qx1 = fx + charData.xoff2();
                 final float qy1 = fy + charData.yoff2();
 
-                final float s0 = fx * ibw;
+                final float s0 = charData.x0() * ibw;
                 final float t0 = charData.y0() * ibh;
                 final float s1 = charData.x1() * ibw;
                 final float t1 = charData.y1() * ibh;
-                quads.addQuad(fx, fy, s0, t1, x1, y1, s1, t0, color);
+                quads.addQuad(qx0, qy0, s0, t1, qx1, qy1, s1, t0, color);
             }
 
-            fx = x1;
+            fx += charData.xadvance();
 
             // apply some kerning
             if (useKerning && i < text.length()) {
@@ -255,8 +255,8 @@ public final class DefaultSpriteBatch implements SpriteBatch {
     }
 
     @Override
-    public void draw(Texture2d texture, int x, int y, int width, int height, float s0, float t0, float s1, float t1, int color) {
-        quads.use(texture.id());
+    public void draw(int texture, int x, int y, int width, int height, float s0, float t0, float s1, float t1, int color) {
+        quads.use(texture);
         quads.addQuad(x, y, s0, t0, x + width, y + height, s1, t1, color);
     }
 

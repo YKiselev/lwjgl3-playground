@@ -84,13 +84,10 @@ public final class ReadableFontAtlas implements ReadableAsset<FontAtlas, Void> {
                     .toArray(Map.Entry[]::new);
             // Sort array from smallest font to larges to improve glyph texture fill rate
             Arrays.sort(fonts, Comparator.comparingDouble(e -> e.getValue().value().metrics().fontSize()));
+            final CodePoints codePoints = CodePoints.of(readCodePoints(atlasConfig.getStringList("code-points")));
             try (FontAtlasBuilder atlas = new FontAtlasBuilder(bitmapFactory)) {
                 Arrays.stream(fonts).forEach(e ->
-                        atlas.addFont(
-                                e.getKey(),
-                                e.getValue(),
-                                CodePoints.of(readCodePoints(atlasConfig.getStringList("code-points")))
-                        )
+                        atlas.addFont(e.getKey(), e.getValue(), codePoints)
                 );
 
                 return Wraps.of(

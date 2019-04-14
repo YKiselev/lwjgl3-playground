@@ -78,6 +78,8 @@ public final class BaseGame implements Game {
 
     private final Wrap<TrueTypeFont> ttf;
 
+    private final Wrap<FontAtlas> atlas;
+
     private final TextAttributes textAttributes = new TextAttributes();
 
     private final FloatBuffer pv;
@@ -137,9 +139,8 @@ public final class BaseGame implements Game {
         spriteBatch = services.resolve(Sprites.class).newBatch();
         cuddles = assets.load("images/htf-cuddles.jpg", OglRecipes.SPRITE);
         liberationMono = assets.load("fonts/Liberation Mono.sf", OglRecipes.SPRITE_FONT);
-        try (Wrap<FontAtlas> atlas = assets.load("font-atlases/base.conf", OglRecipes.FONT_ATLAS)) {
-            ttf = atlas.value().get("console");
-        }
+        atlas = assets.load("font-atlases/base.conf", OglRecipes.FONT_ATLAS);
+        ttf = atlas.value().get("console");
         cubes = new Cubes(assets);
         pyramids = new Pyramids(assets);
         pv = MemoryUtil.memAllocFloat(16);
@@ -252,7 +253,7 @@ public final class BaseGame implements Game {
         cuddles.close();
         MemoryUtil.memFree(pv);
         frameBuffer.close();
-        ttf.close();
+        atlas.close();
     }
 
     private void drawModel(FloatBuffer vp) {
@@ -355,7 +356,9 @@ public final class BaseGame implements Game {
         textAttributes.color(Colors.rgb(255, 255, 0));
         textAttributes.font(null);
         textAttributes.trueTypeFont(ttf.value());
-        spriteBatch.draw(10, height-30, width, "This is the test! 0123456789. ~?!:#@$%^&*()_+", textAttributes);
+        spriteBatch.draw(10, height - 30, width, "This is the test! 0123456789. ~?!:#@$%^&*()_+", textAttributes);
+
+        spriteBatch.draw(ttf.value().texture(), 20,20, 400, 400, Colors.WHITE);
         /////
         spriteBatch.end();
     }

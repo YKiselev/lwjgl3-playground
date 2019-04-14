@@ -38,6 +38,7 @@ import java.util.stream.Collectors;
 import static java.util.Objects.requireNonNull;
 import static org.lwjgl.opengl.GL11.GL_ALPHA;
 import static org.lwjgl.opengl.GL11.GL_LINEAR;
+import static org.lwjgl.opengl.GL11.GL_RED;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_MAG_FILTER;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_MIN_FILTER;
@@ -134,7 +135,7 @@ public final class FontAtlasBuilder implements AutoCloseable {
 
             final int textureId = glGenTextures();
             glBindTexture(GL_TEXTURE_2D, textureId);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, bitmap.width(), bitmap.height(), 0, GL_ALPHA, GL_UNSIGNED_BYTE, bitmap.pixels().value());
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, bitmap.width(), bitmap.height(), 0, GL_RED, GL_UNSIGNED_BYTE, bitmap.pixels().value());
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 

@@ -76,7 +76,26 @@ public interface SpriteBatch extends AutoCloseable {
         draw(texture, x, y, width, height, 0f, 1f, 1f, 0f, color);
     }
 
-    void draw(Texture2d texture, int x, int y, int width, int height, float s0, float t0, float s1, float t1, int color);
+    /**
+     * Draws sprite represented as texture at specified location with specified width, height and color.
+     * </p>
+     *
+     * @param texture texture to use
+     * @param x       the left coordinate of the origin of the sprite
+     * @param y       the bottom coordinate of the origin of the sprite
+     * @param width   the width of sprite
+     * @param height  the height of sprite
+     * @param color   the RGBA color (0xff0000ff - red, 0x00ff00ff - green, 0x0000ffff - blue)
+     */
+    default void draw(int texture, int x, int y, int width, int height, int color) {
+        draw(texture, x, y, width, height, 0f, 1f, 1f, 0f, color);
+    }
+
+    default void draw(Texture2d texture, int x, int y, int width, int height, float s0, float t0, float s1, float t1, int color) {
+        draw(texture.id(), x, y, width, height, s0, t0, s1, t1, color);
+    }
+
+    void draw(int texture, int x, int y, int width, int height, float s0, float t0, float s1, float t1, int color);
 
     void fill(int x, int y, int width, int height, int color);
 
