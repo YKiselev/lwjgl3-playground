@@ -36,9 +36,9 @@ public final class OglRecipes {
 
     public static final Recipe<ShaderObject, Void> SHADER = DefaultRecipe.of(ShaderObject.class);
 
-    public static final Recipe<Texture2d, ReadableTexture2d.Context> MIP_MAP_TEXTURE = DefaultRecipe.of(Texture2d.class, new ReadableTexture2d.Context(true));
+    public static final Recipe<Texture2d, ReadableTexture2d.Context> MIP_MAP_TEXTURE = new DefaultRecipe<>("mip-map-texture", Texture2d.class, new ReadableTexture2d.Context(true));
 
-    public static final Recipe<Texture2d, ReadableTexture2d.Context> SPRITE = DefaultRecipe.of(Texture2d.class, new ReadableTexture2d.Context(false));
+    public static final Recipe<Texture2d, ReadableTexture2d.Context> SPRITE = new DefaultRecipe<>("sprite", Texture2d.class, new ReadableTexture2d.Context(false));
 
     public static final Recipe<SpriteFont, Void> SPRITE_FONT = DefaultRecipe.of(SpriteFont.class);
 
