@@ -26,11 +26,11 @@ import java.util.Map;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class ResourceByKey implements ReadableAssets {
+public final class ResourceByKey<Key> implements ReadableAssets {
 
-    private final Map<Object, ReadableAsset> map;
+    private final Map<Key, ReadableAsset> map;
 
-    public ResourceByKey(Map<Object, ReadableAsset> map) {
+    public ResourceByKey(Map<Key, ReadableAsset> map) {
         this.map = map;
     }
 

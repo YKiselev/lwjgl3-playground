@@ -26,6 +26,7 @@ import com.github.ykiselev.opengl.fonts.FontAtlas;
 import com.github.ykiselev.opengl.fonts.TrueTypeFont;
 import com.github.ykiselev.opengl.matrices.Matrix;
 import com.github.ykiselev.opengl.matrices.Vector3f;
+import com.github.ykiselev.opengl.sprites.Colors;
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
 import com.github.ykiselev.opengl.sprites.TextAlignment;
 import com.github.ykiselev.opengl.sprites.TextAttributes;
@@ -251,6 +252,7 @@ public final class BaseGame implements Game {
         cuddles.close();
         MemoryUtil.memFree(pv);
         frameBuffer.close();
+        ttf.close();
     }
 
     private void drawModel(FloatBuffer vp) {
@@ -330,6 +332,10 @@ public final class BaseGame implements Game {
         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
         GL11.glDisable(GL11.GL_DEPTH_TEST);
 
+        textAttributes.font(liberationMono.value());
+        textAttributes.alignment(TextAlignment.LEFT);
+        textAttributes.color(Colors.WHITE);
+
         spriteBatch.begin(0, 0, width, height, true);
         switch (frameBufferMode) {
             case COLOR:
@@ -345,6 +351,12 @@ public final class BaseGame implements Game {
                         frameInfo.min(), frameInfo.max(), frameInfo.avg(), frameInfo.fps(), frameBufferMode),
                 textAttributes
         );
+        // debug
+        textAttributes.color(Colors.rgb(255, 255, 0));
+        textAttributes.font(null);
+        textAttributes.trueTypeFont(ttf.value());
+        spriteBatch.draw(10, height-30, width, "This is the test! 0123456789. ~?!:#@$%^&*()_+", textAttributes);
+        /////
         spriteBatch.end();
     }
 }

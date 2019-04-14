@@ -32,7 +32,6 @@ import com.github.ykiselev.playground.assets.common.AssetUtils;
 import com.github.ykiselev.wrap.Wrap;
 import com.github.ykiselev.wrap.Wraps;
 import com.typesafe.config.Config;
-import com.typesafe.config.ConfigValue;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
@@ -40,6 +39,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -72,12 +72,15 @@ public final class ReadableFontAtlas implements ReadableAsset<FontAtlas, Void> {
         try (Wrap<Config> cfg = AssetUtils.read(channel, OglRecipes.CONFIG, assets)) {
             final Config atlasConfig = cfg.value();
             @SuppressWarnings("unchecked") final Map.Entry<String, Wrap<TrueTypeFontInfo>>[] fonts = atlasConfig.getConfig("fonts").root()
-                    .values()
+                    .entrySet()
                     .stream()
-                    .map(ConfigValue::unwrapped)
-                    .map(String.class::cast)
-                    .filter(v -> !v.isEmpty())
-                    .map(uri -> Map.entry(uri, assets.load(uri, OglRecipes.TRUE_TYPE_FONT_INFO)))
+                    .map(e -> {
+                        final String value = (String) e.getValue().unwrapped();
+                        if (value.isEmpty()) {
+                            return null;
+                        }
+                        return Map.entry(e.getKey(), assets.load(value, OglRecipes.TRUE_TYPE_FONT_INFO));
+                    }).filter(Objects::nonNull)
                     .toArray(Map.Entry[]::new);
             // Sort array from smallest font to larges to improve glyph texture fill rate
             Arrays.sort(fonts, Comparator.comparingDouble(e -> e.getValue().value().metrics().fontSize()));

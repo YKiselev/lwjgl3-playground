@@ -28,6 +28,12 @@ public final class Colors {
 
     public static final int WHITE = 0xffffffff;
 
+    /**
+     * @param r the red component (0-255)
+     * @param g the green component (0-255)
+     * @param b the blue  component (0-255)
+     * @return the color
+     */
     public static int rgb(int r, int g, int b) {
         return rgba(r, g, b, 0xff);
     }
