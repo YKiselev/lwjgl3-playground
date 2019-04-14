@@ -82,7 +82,7 @@ public final class BaseGame implements Game {
 
     private final TextAttributes textAttributes = new TextAttributes();
 
-    private final FloatBuffer pv;
+    private final FloatBuffer vp;
 
     private float radius = 8;
 
@@ -143,7 +143,7 @@ public final class BaseGame implements Game {
         ttf = atlas.value().get("console");
         cubes = new Cubes(assets);
         pyramids = new Pyramids(assets);
-        pv = MemoryUtil.memAllocFloat(16);
+        vp = MemoryUtil.memAllocFloat(16);
         frameBuffer = new FrameBuffer();
 
         textAttributes.font(liberationMono.value());
@@ -251,7 +251,7 @@ public final class BaseGame implements Game {
         pyramids.close();
         cubes.close();
         cuddles.close();
-        MemoryUtil.memFree(pv);
+        MemoryUtil.memFree(vp);
         frameBuffer.close();
         atlas.close();
     }
@@ -277,7 +277,7 @@ public final class BaseGame implements Game {
                 (float) width / height,
                 0.1f,
                 150,
-                pv
+                vp
         );
         if (radius < 1) {
             radius = 1;
@@ -299,7 +299,7 @@ public final class BaseGame implements Game {
                     new Vector3f(0, 0, 1),
                     view
             );
-            Matrix.multiply(pv, view, pv);
+            Matrix.multiply(vp, view, vp);
         }
     }
 
@@ -325,8 +325,8 @@ public final class BaseGame implements Game {
         GL11.glClearColor(0, 0, 0.5f, 1);
         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
 
-        pyramids.draw(pv);
-        drawModel(pv);
+        pyramids.draw(vp);
+        drawModel(vp);
         frameBuffer.unbind();
 
         GL11.glClearColor(0.5f, 0.5f, 0.5f, 1);
@@ -353,12 +353,14 @@ public final class BaseGame implements Game {
                 textAttributes
         );
         // debug
-        textAttributes.color(Colors.rgb(255, 255, 0));
+        textAttributes.color(Colors.WHITE);
         textAttributes.font(null);
         textAttributes.trueTypeFont(ttf.value());
-        spriteBatch.draw(10, height - 30, width, "This is the test! 0123456789. ~?!:#@$%^&*()_+", textAttributes);
+        spriteBatch.draw(10, height - 30, width, "This is the test! 0123456789.\nSecond line of text ~?!:#@$%^&*()_+", textAttributes);
 
         spriteBatch.draw(ttf.value().texture(), 20,20, 400, 400, Colors.WHITE);
+
+        spriteBatch.draw(liberationMono.value().texture(), 420,20, 400, 400, Colors.WHITE);
         /////
         spriteBatch.end();
     }

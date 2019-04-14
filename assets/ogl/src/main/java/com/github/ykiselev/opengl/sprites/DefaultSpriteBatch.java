@@ -190,8 +190,8 @@ public final class DefaultSpriteBatch implements SpriteBatch {
         int color = attributes.color();
         final float dy = font.fontSize();
         final int maxX = x + maxWidth;
-        final float ibw = font.bitmapWidth();
-        final float ibh = font.bitmapHeight();
+        final float ibw = 1.0f / font.bitmapWidth();
+        final float ibh = 1.0f / font.bitmapHeight();
         int pcp = 0;
         float fx = x;// todo - lineStart.calculate(x, font, text, 0, maxWidth);
         float fy = y - dy, qy = fy;
@@ -223,8 +223,6 @@ public final class DefaultSpriteBatch implements SpriteBatch {
             }
             qy = fy;
 
-            //final float x1 = fx + charData.xadvance();
-            //final float y1 = fy + font.info().metrics().lineHeight();
             if (value != ' ') {
                 final float qx0 = fx + charData.xoff();
                 final float qy0 = fy + charData.yoff();
