@@ -29,7 +29,7 @@ import java.nio.channels.ReadableByteChannel;
  */
 public final class AssetUtils {
 
-    public static <C> Wrap<Config> read(ReadableByteChannel channel, Recipe<Config, C> recipe, Assets assets) {
+    public static <K, C> Wrap<Config> read(ReadableByteChannel channel, Recipe<K, Config, C> recipe, Assets assets) {
         return assets.resolve(recipe)
                 .read(channel, recipe, assets);
     }

@@ -34,7 +34,7 @@ public interface Assets extends ReadableAssets, Resources {
      * @return the requested resource
      * @throws ResourceException if resource not found or something goes wrong during the resource loading process.
      */
-    default <T, C> Wrap<T> load(String resource, Recipe<T, C> recipe) throws ResourceException {
+    default <K, T, C> Wrap<T> load(String resource, Recipe<K, T, C> recipe) throws ResourceException {
         final Wrap<T> result = tryLoad(resource, recipe);
         if (result == null) {
             throw new ResourceException("Unable to load " + resource);
@@ -51,7 +51,7 @@ public interface Assets extends ReadableAssets, Resources {
      * @return the requested resource or {@code null}
      * @throws ResourceException if something goes wrong during the resource loading process.
      */
-    default <T, C> Wrap<T> tryLoad(String resource, Recipe<T, C> recipe) throws ResourceException {
+    default <K, T, C> Wrap<T> tryLoad(String resource, Recipe<K, T, C> recipe) throws ResourceException {
         return tryLoad(resource, recipe, this);
     }
 
@@ -61,9 +61,9 @@ public interface Assets extends ReadableAssets, Resources {
      * @param <T>      the type of resource
      * @param resource the resource name
      * @param recipe   the recipe to use for cooking of resource or {@code null} if not required
-     * @param assets   the asset manager to pass to {@link ReadableAsset#read(java.nio.channels.ReadableByteChannel, Assets)} to load sub-assets
+     * @param assets   the asset manager to pass to {@link ReadableAsset#read(java.nio.channels.ReadableByteChannel, com.github.ykiselev.assets.Recipe, com.github.ykiselev.assets.Assets)} to load sub-assets
      * @return the requested resource or {@code null}
      * @throws ResourceException if something goes wrong during the resource loading process.
      */
-    <T, C> Wrap<T> tryLoad(String resource, Recipe<T, C> recipe, Assets assets) throws ResourceException;
+    <K, T, C> Wrap<T> tryLoad(String resource, Recipe<K, T, C> recipe, Assets assets) throws ResourceException;
 }

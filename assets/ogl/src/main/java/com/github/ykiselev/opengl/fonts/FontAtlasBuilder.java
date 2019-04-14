@@ -18,6 +18,7 @@ package com.github.ykiselev.opengl.fonts;
 
 import com.github.ykiselev.common.lifetime.SharedResource;
 import com.github.ykiselev.common.math.PowerOfTwo;
+import com.github.ykiselev.common.memory.MemAlloc;
 import com.github.ykiselev.opengl.textures.DefaultTexture2d;
 import com.github.ykiselev.opengl.textures.Texture2d;
 import com.github.ykiselev.wrap.Wrap;
@@ -163,6 +164,16 @@ public final class FontAtlasBuilder implements AutoCloseable {
      */
     public FontAtlasBuilder(Supplier<Bitmap<Wrap<ByteBuffer>>> bitmapFactory) {
         this.bitmapFactory = requireNonNull(bitmapFactory);
+    }
+
+    /**
+     * Create font atlas builder which uses bitmaps of supplied {@code width} and {@code height} with buffers created by {@link MemAlloc} class.
+     *
+     * @param width  the width to use when creating atlas bitmap
+     * @param height the height to use when creating atlas bitmap
+     */
+    public FontAtlasBuilder(int width, int height) {
+        this(() -> new Bitmap<>(width, height, new MemAlloc(width * height)));
     }
 
     /**

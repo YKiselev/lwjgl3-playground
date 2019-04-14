@@ -22,6 +22,8 @@ import com.github.ykiselev.common.trigger.Trigger;
 import com.github.ykiselev.components.Game;
 import com.github.ykiselev.opengl.OglRecipes;
 import com.github.ykiselev.opengl.buffers.FrameBuffer;
+import com.github.ykiselev.opengl.fonts.FontAtlas;
+import com.github.ykiselev.opengl.fonts.TrueTypeFont;
 import com.github.ykiselev.opengl.matrices.Matrix;
 import com.github.ykiselev.opengl.matrices.Vector3f;
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
@@ -72,6 +74,8 @@ public final class BaseGame implements Game {
     private final Wrap<? extends Texture2d> cuddles;
 
     private final Wrap<SpriteFont> liberationMono;
+
+    private final Wrap<TrueTypeFont> ttf;
 
     private final TextAttributes textAttributes = new TextAttributes();
 
@@ -132,6 +136,9 @@ public final class BaseGame implements Game {
         spriteBatch = services.resolve(Sprites.class).newBatch();
         cuddles = assets.load("images/htf-cuddles.jpg", OglRecipes.SPRITE);
         liberationMono = assets.load("fonts/Liberation Mono.sf", OglRecipes.SPRITE_FONT);
+        try (Wrap<FontAtlas> atlas = assets.load("font-atlases/base.conf", OglRecipes.FONT_ATLAS)) {
+            ttf = atlas.value().get("console");
+        }
         cubes = new Cubes(assets);
         pyramids = new Pyramids(assets);
         pv = MemoryUtil.memAllocFloat(16);

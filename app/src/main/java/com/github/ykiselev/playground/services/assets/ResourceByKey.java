@@ -36,7 +36,7 @@ public final class ResourceByKey implements ReadableAssets {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T, C> ReadableAsset<T, C> resolve(String resource, Recipe<T, C> recipe) throws ResourceException {
+    public <K, T, C> ReadableAsset<T, C> resolve(String resource, Recipe<K, T, C> recipe) throws ResourceException {
         if (recipe == null) {
             return null;
         }

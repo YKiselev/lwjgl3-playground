@@ -71,7 +71,7 @@ public final class ReadableTexture2d implements ReadableAsset<Texture2d, Readabl
     }
 
     @Override
-    public Wrap<Texture2d> read(ReadableByteChannel channel, Recipe<Texture2d, Context> recipe, Assets assets) throws ResourceException {
+    public Wrap<Texture2d> read(ReadableByteChannel channel, Recipe<?, Texture2d, Context> recipe, Assets assets) throws ResourceException {
         final ByteBuffer image;
         final int width, height, components;
         try (Wrap<ByteBuffer> wrap = readResource(channel)) {

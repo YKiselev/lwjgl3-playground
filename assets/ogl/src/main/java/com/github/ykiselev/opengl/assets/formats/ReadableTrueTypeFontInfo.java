@@ -38,7 +38,7 @@ import java.nio.channels.ReadableByteChannel;
 public final class ReadableTrueTypeFontInfo implements ReadableAsset<TrueTypeFontInfo, Void> {
 
     @Override
-    public Wrap<TrueTypeFontInfo> read(ReadableByteChannel channel, Recipe<TrueTypeFontInfo, Void> recipe, Assets assets) throws ResourceException {
+    public Wrap<TrueTypeFontInfo> read(ReadableByteChannel channel, Recipe<?, TrueTypeFontInfo, Void> recipe, Assets assets) throws ResourceException {
         try (Wrap<Config> fallback = assets.load("fonts/default/font.conf", OglRecipes.CONFIG);
              Wrap<Config> config = AssetUtils.read(channel, OglRecipes.CONFIG, assets)) {
             final Config fontConfig = config.value()

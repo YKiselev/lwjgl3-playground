@@ -20,11 +20,11 @@ package com.github.ykiselev.assets;
  * @author Yuriy Kiselev (uze@yandex.ru)
  * @since 14.04.2019
  */
-public interface Recipe<A,C> {
+public interface Recipe<K, A, C> {
 
     Class<A> type();
 
-    Object key();
+    K key();
 
     C context();
 }

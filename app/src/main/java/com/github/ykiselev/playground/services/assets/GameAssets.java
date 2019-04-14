@@ -27,6 +27,7 @@ import com.github.ykiselev.common.closeables.Closeables;
 import com.github.ykiselev.openal.assets.ReadableVorbisAudio;
 import com.github.ykiselev.opengl.OglRecipes;
 import com.github.ykiselev.opengl.assets.formats.ReadableConfig;
+import com.github.ykiselev.opengl.assets.formats.ReadableFontAtlas;
 import com.github.ykiselev.opengl.assets.formats.ReadableObjModel;
 import com.github.ykiselev.opengl.assets.formats.ReadableProgramObject;
 import com.github.ykiselev.opengl.assets.formats.ReadableShaderObject;
@@ -55,12 +56,12 @@ public final class GameAssets implements Assets, AutoCloseable {
     }
 
     @Override
-    public <T, C> Wrap<T> tryLoad(String resource, Recipe<T, C> recipe, Assets assets) throws ResourceException {
+    public <K, T, C> Wrap<T> tryLoad(String resource, Recipe<K, T, C> recipe, Assets assets) throws ResourceException {
         return delegate.tryLoad(resource, recipe, assets);
     }
 
     @Override
-    public <T, C> ReadableAsset<T, C> resolve(String resource, Recipe<T, C> recipe) throws ResourceException {
+    public <K, T, C> ReadableAsset<T, C> resolve(String resource, Recipe<K, T, C> recipe) throws ResourceException {
         return delegate.resolve(resource, recipe);
     }
 
@@ -89,7 +90,8 @@ public final class GameAssets implements Assets, AutoCloseable {
                 OglRecipes.SPRITE.key(), readableTexture2d,
                 OglRecipes.MIP_MAP_TEXTURE.key(), readableTexture2d,
                 OglRecipes.OBJ_MODEL.key(), new ReadableObjModel(),
-                OglRecipes.TRUE_TYPE_FONT_INFO.key(), new ReadableTrueTypeFontInfo()
+                OglRecipes.TRUE_TYPE_FONT_INFO.key(), new ReadableTrueTypeFontInfo(),
+                OglRecipes.FONT_ATLAS, new ReadableFontAtlas(512, 512)
         );
         final Map<String, ReadableAsset> byExtension = Map.of(
                 "vs", new ReadableShaderObject(GL20.GL_VERTEX_SHADER),

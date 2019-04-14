@@ -27,12 +27,13 @@ public interface ReadableAssets {
      *
      * @param <T>      the type of resource
      * @param <C>      the type of recipe's context object
+     * @param <K>      the type of asset's key
      * @param resource the resource name.
      * @param recipe   the recipe to use for cooking of resource or {@code null} if not required
      * @return the readable resource or {@code null} if not found.
      * @throws ResourceException if something goes wrong
      */
-    <T, C> ReadableAsset<T, C> resolve(String resource, Recipe<T, C> recipe) throws ResourceException;
+    <K, T, C> ReadableAsset<T, C> resolve(String resource, Recipe<K, T, C> recipe) throws ResourceException;
 
     /**
      * Convenient method to resolve {@link ReadableAsset} using only recipe.
@@ -40,10 +41,11 @@ public interface ReadableAssets {
      * @param recipe the recipe to use for cooking of resource or {@code null} if not required
      * @param <T>    the type of asset class.
      * @param <C>    the type of recipe's context object
+     * @param <K>    the type of asset's key
      * @return the readable resource or {@code null} if not found.
      * @throws ResourceException if something goes wrong
      */
-    default <T, C> ReadableAsset<T, C> resolve(Recipe<T, C> recipe) throws ResourceException {
+    default <K, T, C> ReadableAsset<T, C> resolve(Recipe<K, T, C> recipe) throws ResourceException {
         return resolve(null, recipe);
     }
 

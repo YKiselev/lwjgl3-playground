@@ -60,7 +60,7 @@ public final class ReadableVorbisAudio implements ReadableAsset<AudioSamples, Vo
     }
 
     @Override
-    public Wrap<AudioSamples> read(ReadableByteChannel channel, Recipe<AudioSamples, Void> recipe, Assets assets) throws ResourceException {
+    public Wrap<AudioSamples> read(ReadableByteChannel channel, Recipe<?, AudioSamples, Void> recipe, Assets assets) throws ResourceException {
         try (STBVorbisInfo info = STBVorbisInfo.malloc()) {
             final ReadableBytes asBuffer = new ByteChannelAsByteBuffer(
                     channel, bufferSize

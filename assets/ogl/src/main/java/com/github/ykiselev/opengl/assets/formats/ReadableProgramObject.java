@@ -56,7 +56,7 @@ public final class ReadableProgramObject implements ReadableAsset<ProgramObject,
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Override
-    public Wrap<ProgramObject> read(ReadableByteChannel channel, Recipe<ProgramObject, Void> recipe, Assets assets) throws ResourceException {
+    public Wrap<ProgramObject> read(ReadableByteChannel channel, Recipe<?, ProgramObject, Void> recipe, Assets assets) throws ResourceException {
         try (Wrap<Config> fallback = assets.load("progs/default/program-object.conf", OglRecipes.CONFIG);
              Wrap<Config> cfg = AssetUtils.read(channel, OglRecipes.CONFIG, assets)) {
             final Config config = cfg.value()

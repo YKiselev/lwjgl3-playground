@@ -56,7 +56,7 @@ public final class ReadableShaderObject implements ReadableAsset<ShaderObject, V
     }
 
     @Override
-    public Wrap<ShaderObject> read(ReadableByteChannel channel, Recipe<ShaderObject, Void> recipe, Assets assets) throws ResourceException {
+    public Wrap<ShaderObject> read(ReadableByteChannel channel, Recipe<?, ShaderObject, Void> recipe, Assets assets) throws ResourceException {
         final int id = glCreateShader(type);
         glShaderSource(id, new ByteChannelAsString(channel, StandardCharsets.UTF_8).read());
         glCompileShader(id);

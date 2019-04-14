@@ -20,6 +20,7 @@ import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.assets.ReadableAsset;
 import com.github.ykiselev.assets.Recipe;
 import com.github.ykiselev.assets.ResourceException;
+import com.github.ykiselev.common.memory.MemAlloc;
 import com.github.ykiselev.opengl.OglRecipes;
 import com.github.ykiselev.opengl.fonts.Bitmap;
 import com.github.ykiselev.opengl.fonts.CodePoints;
@@ -57,8 +58,17 @@ public final class ReadableFontAtlas implements ReadableAsset<FontAtlas, Void> {
         this.bitmapFactory = requireNonNull(bitmapFactory);
     }
 
+    /**
+     * @param width  the width to use for bitmaps
+     * @param height the height to use for bitmaps
+     * @see FontAtlasBuilder#FontAtlasBuilder(int, int)
+     */
+    public ReadableFontAtlas(int width, int height) {
+        this(() -> new Bitmap<>(width, height, new MemAlloc(width * height)));
+    }
+
     @Override
-    public Wrap<FontAtlas> read(ReadableByteChannel channel, Recipe<FontAtlas, Void> recipe, Assets assets) throws ResourceException {
+    public Wrap<FontAtlas> read(ReadableByteChannel channel, Recipe<?, FontAtlas, Void> recipe, Assets assets) throws ResourceException {
         try (Wrap<Config> cfg = AssetUtils.read(channel, OglRecipes.CONFIG, assets)) {
             final Config atlasConfig = cfg.value();
             @SuppressWarnings("unchecked") final Map.Entry<String, Wrap<TrueTypeFontInfo>>[] fonts = atlasConfig.getConfig("fonts").root()

@@ -22,9 +22,9 @@ import static java.util.Objects.requireNonNull;
  * @author Yuriy Kiselev (uze@yandex.ru)
  * @since 14.04.2019
  */
-public class DefaultRecipe<A, C> implements Recipe<A, C> {
+public class DefaultRecipe<K, A, C> implements Recipe<K, A, C> {
 
-    private final String key;
+    private final K key;
 
     private final Class<A> type;
 
@@ -36,7 +36,7 @@ public class DefaultRecipe<A, C> implements Recipe<A, C> {
     }
 
     @Override
-    public Object key() {
+    public K key() {
         return key;
     }
 
@@ -45,21 +45,21 @@ public class DefaultRecipe<A, C> implements Recipe<A, C> {
         return context;
     }
 
-    public DefaultRecipe(String key, Class<A> type, C context) {
+    public DefaultRecipe(K key, Class<A> type, C context) {
         this.key = requireNonNull(key);
         this.type = requireNonNull(type);
         this.context = context;
     }
 
-    public static <A> Recipe<A, Void> of(String key, Class<A> type) {
+    public static <A, K> Recipe<K, A, Void> of(K key, Class<A> type) {
         return new DefaultRecipe<>(key, type, null);
     }
 
-    public static <A> Recipe<A, Void> of(Class<A> type) {
+    public static <A> Recipe<String, A, Void> of(Class<A> type) {
         return new DefaultRecipe<>(type.getName(), type, null);
     }
 
-    public static <A, C> Recipe<A, C> of(Class<A> type, C context) {
+    public static <A, C> Recipe<String, A, C> of(Class<A> type, C context) {
         return new DefaultRecipe<>(type.getName(), type, null);
     }
 }

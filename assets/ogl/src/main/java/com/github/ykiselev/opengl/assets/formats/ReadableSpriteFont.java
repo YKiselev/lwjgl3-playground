@@ -61,7 +61,7 @@ import static org.lwjgl.opengl.GL33.GL_TEXTURE_SWIZZLE_RGBA;
 public final class ReadableSpriteFont implements ReadableAsset<SpriteFont, Void> {
 
     @Override
-    public Wrap<SpriteFont> read(ReadableByteChannel channel, Recipe<SpriteFont, Void> recipe, Assets assets) throws ResourceException {
+    public Wrap<SpriteFont> read(ReadableByteChannel channel, Recipe<?, SpriteFont, Void> recipe, Assets assets) throws ResourceException {
         final com.github.ykiselev.gfx.font.SpriteFont spriteFont = readSpriteFont(channel);
         final Wrap<? extends Texture2d> texture = readSpriteFontTexture(assets, spriteFont);
         texture.value().bind();

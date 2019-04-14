@@ -54,7 +54,7 @@ public final class ManagedAssets implements Assets, AutoCloseable {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T, C> Wrap<T> tryLoad(String resource, Recipe<T, C> recipe, Assets assets) throws ResourceException {
+    public <K, T, C> Wrap<T> tryLoad(String resource, Recipe<K, T, C> recipe, Assets assets) throws ResourceException {
         for (; ; ) {
             final Asset asset = cache.get(resource);
             if (asset != null) {
@@ -101,7 +101,7 @@ public final class ManagedAssets implements Assets, AutoCloseable {
     }
 
     @Override
-    public <T, C> ReadableAsset<T, C> resolve(String resource, Recipe<T, C> recipe) throws ResourceException {
+    public <K, T, C> ReadableAsset<T, C> resolve(String resource, Recipe<K, T, C> recipe) throws ResourceException {
         return delegate.resolve(resource, recipe);
     }
 

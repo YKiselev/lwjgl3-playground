@@ -37,5 +37,5 @@ public interface ReadableAsset<T, C> {
      * @return wrapped de-serialized resource.
      * @throws ResourceException if something goes wrong during de-serialization of resource.
      */
-    Wrap<T> read(ReadableByteChannel channel, Recipe<T, C> recipe, Assets assets) throws ResourceException;
+    Wrap<T> read(ReadableByteChannel channel, Recipe<?, T, C> recipe, Assets assets) throws ResourceException;
 }
