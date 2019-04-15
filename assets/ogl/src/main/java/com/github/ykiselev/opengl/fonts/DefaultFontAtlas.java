@@ -16,8 +16,6 @@
 
 package com.github.ykiselev.opengl.fonts;
 
-import com.github.ykiselev.wrap.Wrap;
-
 import java.util.Map;
 import java.util.Set;
 
@@ -29,14 +27,14 @@ import static java.util.Objects.requireNonNull;
  */
 public final class DefaultFontAtlas implements FontAtlas {
 
-    private final Map<String, Wrap<TrueTypeFont>> fonts;
+    private final Map<String, TrueTypeFont> fonts;
 
-    public DefaultFontAtlas(Map<String, Wrap<TrueTypeFont>> fonts) {
+    public DefaultFontAtlas(Map<String, TrueTypeFont> fonts) {
         this.fonts = requireNonNull(fonts);
     }
 
     @Override
-    public Wrap<TrueTypeFont> get(String key) {
+    public TrueTypeFont get(String key) {
         return fonts.get(key);
     }
 

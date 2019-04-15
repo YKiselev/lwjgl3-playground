@@ -40,7 +40,7 @@ public final class ReadableConfig implements ReadableAsset<Config, Void> {
     @Override
     public Wrap<Config> read(ReadableByteChannel channel, Recipe<?, Config, Void> recipe, Assets assets) throws ResourceException {
         try (Reader reader = new BufferedReader(Channels.newReader(channel, StandardCharsets.UTF_8.newDecoder(), -1))) {
-            return Wraps.simple(
+            return Wraps.noop(
                     ConfigFactory.parseReader(reader)
             );
         } catch (IOException e) {

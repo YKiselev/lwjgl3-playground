@@ -19,6 +19,18 @@ package com.github.ykiselev.opengl.sprites;
 import com.github.ykiselev.opengl.textures.Texture2d;
 
 /**
+ * Interface with convenient methods for 2d operations like drawing sprites, text, filling rects.
+ * Note that coordinate system starts at lower left corner. Also note that text methods y-origin denotes top corner of
+ * the bounding box while sprite drawing methods y-origin is bottom corner.
+ *<pre>
+ *     (0,0)----------
+ *     |   T e x t   |
+ *     ---------------
+ *
+ *     ---------------
+ *     | S p r i t e |
+ *     (0,0)----------
+ *</pre>
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
 public interface SpriteBatch extends AutoCloseable {

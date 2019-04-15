@@ -29,7 +29,7 @@ public final class Wraps {
      * @param <T>   the type parameter
      * @return the no-op wrapper
      */
-    public static <T> Wrap<T> simple(T value) {
+    public static <T> Wrap<T> noop(T value) {
         return new Wrap<>(value) {
             @Override
             public void close() {

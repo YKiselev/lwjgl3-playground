@@ -39,7 +39,7 @@ public final class ReadableObjModel implements ReadableAsset<ObjModel, Void> {
     @Override
     public Wrap<ObjModel> read(ReadableByteChannel channel, Recipe<?, ObjModel, Void> recipe, Assets assets) throws ResourceException {
         try (BufferedReader reader = reader(channel)) {
-            return Wraps.simple(
+            return Wraps.noop(
                     parse(reader)
             );
         } catch (Exception e) {

@@ -41,7 +41,6 @@ import java.util.Comparator;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static java.util.Objects.requireNonNull;
@@ -93,10 +92,7 @@ public final class ReadableFontAtlas implements ReadableAsset<FontAtlas, Void> {
                 return Wraps.of(
                         new DefaultFontAtlas(
                                 // todo - make map immutable
-                                atlas.drainFonts().entrySet().stream().collect(Collectors.toMap(
-                                        Map.Entry::getKey,
-                                        e -> Wraps.of(e.getValue())
-                                ))
+                                atlas.drainFonts()
                         )
                 );
             }

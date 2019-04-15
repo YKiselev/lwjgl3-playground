@@ -50,7 +50,7 @@ public class SimpleAssetsTest {
                         Optional.of(mock(ReadableByteChannel.class))
                 );
         when(readableAsset.read(any(ReadableByteChannel.class), any(Recipe.class), any()))
-                .thenReturn(Wraps.simple(Math.PI));
+                .thenReturn(Wraps.noop(Math.PI));
     }
 
     @Test
@@ -58,7 +58,7 @@ public class SimpleAssetsTest {
         when(readableAssets.resolve(any(String.class), any(Recipe.class)))
                 .thenReturn(readableAsset);
         when(readableAsset.read(any(ReadableByteChannel.class), any(Recipe.class), eq(assets)))
-                .thenReturn(Wraps.simple(Math.PI));
+                .thenReturn(Wraps.noop(Math.PI));
         assertEquals(Math.PI, assets.load("x", DefaultRecipe.of(Double.class)).value(), 0.00001);
     }
 }

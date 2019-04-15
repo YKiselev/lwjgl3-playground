@@ -16,8 +16,6 @@
 
 package com.github.ykiselev.opengl.fonts;
 
-import com.github.ykiselev.wrap.Wrap;
-
 import java.util.Set;
 
 /**
@@ -28,5 +26,5 @@ public interface FontAtlas extends AutoCloseable {
 
     Set<String> keys();
 
-    Wrap<TrueTypeFont> get(String key);
+    TrueTypeFont get(String key);
 }

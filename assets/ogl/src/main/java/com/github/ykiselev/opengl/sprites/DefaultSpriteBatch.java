@@ -225,15 +225,15 @@ public final class DefaultSpriteBatch implements SpriteBatch {
 
             if (value != ' ') {
                 final float qx0 = fx + charData.xoff();
-                final float qy0 = fy + charData.yoff();
+                final float qy0 = fy - charData.yoff();
                 final float qx1 = fx + charData.xoff2();
-                final float qy1 = fy + charData.yoff2();
+                final float qy1 = fy - charData.yoff2();
 
                 final float s0 = charData.x0() * ibw;
                 final float t0 = charData.y0() * ibh;
                 final float s1 = charData.x1() * ibw;
                 final float t1 = charData.y1() * ibh;
-                quads.addQuad(qx0, qy0, s0, t1, qx1, qy1, s1, t0, color);
+                quads.addQuad(qx0, qy1, s0, t1, qx1, qy0, s1, t0, color);
             }
 
             fx += charData.xadvance();

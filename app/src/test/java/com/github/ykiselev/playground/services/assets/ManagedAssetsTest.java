@@ -47,7 +47,7 @@ public class ManagedAssetsTest {
     @Test
     public void shouldLoadOnce() {
         when(delegate.tryLoad(eq("a"), any(Recipe.class), eq(assets)))
-                .thenReturn(Wraps.simple("A"));
+                .thenReturn(Wraps.noop("A"));
         assertSame(
                 assets.load("a", DefaultRecipe.of(String.class)).value(),
                 assets.load("a", DefaultRecipe.of(String.class)).value()
