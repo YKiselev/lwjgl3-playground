@@ -16,6 +16,8 @@
 
 package com.github.ykiselev.common.lifetime;
 
+import com.github.ykiselev.common.closeables.Closeables;
+
 import java.util.function.Consumer;
 
 import static java.util.Objects.requireNonNull;
@@ -34,6 +36,10 @@ public final class CountedRef<T> implements Ref<T> {
     public CountedRef(T reference, Consumer<T> disposer) {
         this.reference = requireNonNull(reference);
         this.disposer = requireNonNull(disposer);
+    }
+
+    public static <V extends AutoCloseable> Ref<V> of(V value) {
+        return new CountedRef<>(value, Closeables::close);
     }
 
     @Override
