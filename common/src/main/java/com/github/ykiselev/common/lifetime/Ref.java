@@ -16,15 +16,88 @@
 
 package com.github.ykiselev.common.lifetime;
 
+import com.github.ykiselev.common.closeables.Closeables;
+import com.github.ykiselev.wrap.Wrap;
+
+import java.util.function.Consumer;
+
+import static java.util.Objects.requireNonNull;
+
 /**
+ * Simple value holder with reference counting.
+ *
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public interface Ref<T> extends AutoCloseable {
+public final class Ref<T> implements AutoCloseable {
 
-    T newRef();
+    private final Consumer<T> disposer;
 
-    long release();
+    private volatile T reference;
+
+    private volatile long counter = 0;
+
+    /**
+     * @param reference the reference to hold.
+     * @param disposer  the disposer to use to dispose supplied value when reference counter drops to zero upon calling {@link Ref#release()}.
+     */
+    public Ref(T reference, Consumer<T> disposer) {
+        this.reference = requireNonNull(reference);
+        this.disposer = requireNonNull(disposer);
+    }
+
+    public static <V extends AutoCloseable> Ref<V> of(V value) {
+        return new Ref<>(value, Closeables::close);
+    }
+
+    /**
+     * Increments reference counter and returns wrapped value. Upon calling {@link Wrap#close()} this reference's counter will be decremented.
+     *
+     * @return the wrapped value.
+     */
+    public synchronized Wrap<T> newRef() {
+        final T ref = this.reference;
+        if (ref == null) {
+            return null;
+        }
+        ++counter;
+        return new Wrap<T>(ref) {
+            @Override
+            public void close() {
+                release();
+            }
+        };
+    }
+
+    /**
+     * Decrements reference counter. If after decrement counter is equal to zero value is disposed using configured {@code disposer}.
+     *
+     * @return the counter value after decrement.
+     */
+    public synchronized long release() {
+        final long value = --counter;
+        if (value == 0 && reference != null) {
+            try {
+                disposer.accept(reference);
+            } finally {
+                reference = null;
+            }
+        }
+        return value;
+    }
 
     @Override
-    void close() throws IllegalStateException;
+    public void close() {
+        release();
+        if (reference != null) {
+            throw new IllegalStateException("Resource leakage detected: Non-null reference after closing: " + reference);
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "CountedRef{" +
+                "reference=" + reference +
+                ", counter=" + counter +
+                '}';
+    }
 }

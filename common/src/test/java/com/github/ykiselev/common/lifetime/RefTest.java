@@ -21,31 +21,37 @@ import org.junit.jupiter.api.Test;
 
 import java.util.function.Consumer;
 
-import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
- * @author Yuriy Kiselev (uze@yandex.ru)
- * @since 07.04.2019
+ * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public class SharedResourceTest {
+public class RefTest {
+
+    public interface A {
+
+        String name();
+    }
 
     @Test
-    public void shouldIncrementReference() {
-        final AutoCloseable target = mock(AutoCloseable.class);
-        final Consumer<AutoCloseable> disposer = mock(Consumer.class);
-        final SharedResource<AutoCloseable> res = new SharedResource<>(target, (sr, v) -> disposer.accept(v));
-        final Wrap<AutoCloseable> share1 = res.share();
-        final Wrap<AutoCloseable> share2 = res.share();
-        assertSame(target, share1.value());
-        assertSame(target, share1.value());
+    public void shouldCount() {
+        final Consumer<A> disposer = mock(Consumer.class);
+        final A target = mock(A.class);
+        when(target.name()).thenReturn("xyz");
 
-        share1.close();
-        share2.close();
-        res.close();
-
+        final Ref<A> ref = new Ref<>(target, disposer);
+        final Wrap<A> copy1 = ref.newRef();
+        final Wrap<A> copy2 = ref.newRef();
+        assertEquals("xyz", copy1.value().name());
+        assertEquals("xyz", copy2.value().name());
+        ref.release();
+        ref.release();
+        ref.close();
         verify(disposer, times(1)).accept(target);
     }
+
 }

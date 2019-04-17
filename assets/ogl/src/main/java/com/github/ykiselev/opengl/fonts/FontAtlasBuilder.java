@@ -16,7 +16,7 @@
 
 package com.github.ykiselev.opengl.fonts;
 
-import com.github.ykiselev.common.lifetime.SharedResource;
+import com.github.ykiselev.common.lifetime.Ref;
 import com.github.ykiselev.common.math.PowerOfTwo;
 import com.github.ykiselev.common.memory.MemAlloc;
 import com.github.ykiselev.opengl.textures.DefaultTexture2d;
@@ -152,15 +152,13 @@ public final class FontAtlasBuilder implements AutoCloseable {
                 glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
             }
 
-            final SharedResource<Texture2d> sharedTexture = new SharedResource<>(
-                    new DefaultTexture2d(textureId), (sr, t) -> t.close()
-            );
+            final Ref<Texture2d> sharedTexture = Ref.of(new DefaultTexture2d(textureId));
 
             return fonts.stream()
                     .collect(Collectors.toMap(
                             pf -> pf.key,
                             pf -> new TrueTypeFont(pf.info, pf.charData, pf.codePoints,
-                                    sharedTexture.share(), bitmap.width(), bitmap.height())
+                                    sharedTexture.newRef(), bitmap.width(), bitmap.height())
                     ));
         }
     }

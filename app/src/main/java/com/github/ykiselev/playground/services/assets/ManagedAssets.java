@@ -21,7 +21,6 @@ import com.github.ykiselev.assets.ReadableAsset;
 import com.github.ykiselev.assets.Recipe;
 import com.github.ykiselev.assets.ResourceException;
 import com.github.ykiselev.common.closeables.Closeables;
-import com.github.ykiselev.common.lifetime.CountedRef;
 import com.github.ykiselev.common.lifetime.Ref;
 import com.github.ykiselev.wrap.Wrap;
 import org.slf4j.Logger;
@@ -139,24 +138,12 @@ public final class ManagedAssets implements Assets, AutoCloseable {
         private final Ref<Wrap<?>> ref;
 
         RefAsset(String resource, Wrap<?> value) {
-            this.ref = new CountedRef<>(
-                    value,
-                    v -> remove(resource, this, value)
-            );
+            this.ref = new Ref<>(value, v -> remove(resource, this, v));
         }
 
         @Override
         public Wrap<?> value() {
-            final Wrap<?> wrap = ref.newRef();
-            if (wrap != null) {
-                return new Wrap<Object>(wrap.value()) {
-                    @Override
-                    public void close() {
-                        ref.release();
-                    }
-                };
-            }
-            return null;
+            return ref.newRef();
         }
 
         @Override
