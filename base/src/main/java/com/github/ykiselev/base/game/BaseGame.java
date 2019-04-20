@@ -356,13 +356,12 @@ public final class BaseGame implements Game {
         textAttributes.color(Colors.rgb(255, 255, 0));
         textAttributes.font(null);
         textAttributes.trueTypeFont(ttf);
-        spriteBatch.fill(10, 10, 100, 100, Colors.rgb(0, 255, 128));
+        //spriteBatch.fill(10, 10, 100, 100, Colors.rgb(0, 255, 128));
         //spriteBatch.fill(10, height-40, 500, 100, Colors.rgb(0, 128, 255));
         spriteBatch.draw(10, height - 30, width, "This is the test! 0123456789.\nSecond line of text ~?!:#@$%^&*()_+", textAttributes);
 
-        spriteBatch.draw(ttf.texture(), 20, 20, 400, 400, Colors.WHITE);
-
-        spriteBatch.draw(liberationMono.value().texture(), 420, 20, 400, 400, Colors.WHITE);
+        //spriteBatch.draw(ttf.texture(), 20, 20, 400, 400, Colors.WHITE);
+        //spriteBatch.draw(liberationMono.value().texture(), 420, 20, 400, 400, Colors.WHITE);
         /////
         spriteBatch.end();
     }

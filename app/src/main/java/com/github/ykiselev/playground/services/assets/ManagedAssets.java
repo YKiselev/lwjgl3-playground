@@ -76,7 +76,7 @@ public final class ManagedAssets implements Assets, AutoCloseable {
         }
     }
 
-    private void remove(String resource, Asset asset, Object object) {
+    private void removeFromCache(String resource, Asset asset) {
         logger.trace("Removing \"{}\"", resource);
         final Asset removed;
         synchronized (loadLock) {
@@ -84,18 +84,6 @@ public final class ManagedAssets implements Assets, AutoCloseable {
         }
         if (asset != removed) {
             logger.error("Expected {} but removed {}!", asset, removed);
-        }
-        if (object instanceof AutoCloseable) {
-            dispose((AutoCloseable) object);
-        }
-    }
-
-    private void dispose(AutoCloseable obj) {
-        logger.trace("Disposing {}", obj);
-        try {
-            obj.close();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
         }
     }
 
@@ -135,10 +123,14 @@ public final class ManagedAssets implements Assets, AutoCloseable {
      */
     private final class RefAsset implements Asset, AutoCloseable {
 
-        private final Ref<Wrap<?>> ref;
+        private final Ref<?> ref;
 
         RefAsset(String resource, Wrap<?> value) {
-            this.ref = new Ref<>(value, v -> remove(resource, this, v));
+            this.ref = new Ref<>(value.value(), v -> {
+                removeFromCache(resource, this);
+                logger.trace("Disposing {}", v);
+                value.close();
+            });
         }
 
         @Override

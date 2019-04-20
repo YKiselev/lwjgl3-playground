@@ -60,7 +60,7 @@ public final class Ref<T> implements AutoCloseable {
             return null;
         }
         ++counter;
-        return new Wrap<T>(ref) {
+        return new Wrap<>(ref) {
             @Override
             public void close() {
                 release();
@@ -75,19 +75,23 @@ public final class Ref<T> implements AutoCloseable {
      */
     public synchronized long release() {
         final long value = --counter;
-        if (value == 0 && reference != null) {
+        freeIfUnused();
+        return value;
+    }
+
+    private synchronized void freeIfUnused() {
+        if (counter == 0 && reference != null) {
             try {
                 disposer.accept(reference);
             } finally {
                 reference = null;
             }
         }
-        return value;
     }
 
     @Override
     public void close() {
-        release();
+        freeIfUnused();
         if (reference != null) {
             throw new IllegalStateException("Resource leakage detected: Non-null reference after closing: " + reference);
         }
