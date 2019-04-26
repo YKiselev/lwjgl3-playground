@@ -16,7 +16,7 @@
 
 package com.github.ykiselev.playground.services.console;
 
-import com.github.ykiselev.services.commands.Tokenizer;
+import com.github.ykiselev.spi.services.commands.Tokenizer;
 import com.github.ykiselev.common.test.ParallelRunner;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;

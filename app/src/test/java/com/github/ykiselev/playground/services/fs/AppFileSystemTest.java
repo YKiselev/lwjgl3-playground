@@ -16,7 +16,7 @@
 
 package com.github.ykiselev.playground.services.fs;
 
-import com.github.ykiselev.services.FileSystem;
+import com.github.ykiselev.spi.services.FileSystem;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;

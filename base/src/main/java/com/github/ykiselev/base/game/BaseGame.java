@@ -19,7 +19,6 @@ package com.github.ykiselev.base.game;
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.common.fps.FrameInfo;
 import com.github.ykiselev.common.trigger.Trigger;
-import com.github.ykiselev.components.Game;
 import com.github.ykiselev.opengl.OglRecipes;
 import com.github.ykiselev.opengl.buffers.FrameBuffer;
 import com.github.ykiselev.opengl.fonts.FontAtlas;
@@ -33,12 +32,9 @@ import com.github.ykiselev.opengl.sprites.TextAttributes;
 import com.github.ykiselev.opengl.text.SpriteFont;
 import com.github.ykiselev.opengl.textures.CurrentTexture2dAsBytes;
 import com.github.ykiselev.opengl.textures.Texture2d;
-import com.github.ykiselev.services.FileSystem;
-import com.github.ykiselev.services.MenuFactory;
-import com.github.ykiselev.services.Services;
-import com.github.ykiselev.services.commands.Commands;
-import com.github.ykiselev.services.layers.Sprites;
-import com.github.ykiselev.window.WindowEvents;
+import com.github.ykiselev.spi.components.Game;
+import com.github.ykiselev.spi.services.Services;
+import com.github.ykiselev.spi.window.WindowEvents;
 import com.github.ykiselev.wrap.Wrap;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11;
@@ -67,8 +63,6 @@ public final class BaseGame implements Game {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final Services services;
-
-    private final FrameInfo frameInfo;
 
     private final SpriteBatch spriteBatch;
 
@@ -134,9 +128,8 @@ public final class BaseGame implements Game {
 
     public BaseGame(Services services) {
         this.services = requireNonNull(services);
-        this.frameInfo = services.resolve(FrameInfo.class);
-        final Assets assets = services.resolve(Assets.class);
-        spriteBatch = services.resolve(Sprites.class).newBatch();
+        final Assets assets = services.assets;
+        spriteBatch = services.sprites.newBatch();
         cuddles = assets.load("images/htf-cuddles.jpg", OglRecipes.SPRITE);
         liberationMono = assets.load("fonts/Liberation Mono.sf", OglRecipes.SPRITE_FONT);
         atlas = assets.load("font-atlases/base.conf", OglRecipes.FONT_ATLAS);
@@ -159,13 +152,11 @@ public final class BaseGame implements Game {
         if (action == GLFW.GLFW_PRESS) {
             switch (key) {
                 case GLFW.GLFW_KEY_ESCAPE:
-                    services.resolve(MenuFactory.class)
-                            .showMenu();
+                    services.commands.execute("show-menu");
                     break;
 
                 case GLFW.GLFW_KEY_GRAVE_ACCENT:
-                    services.resolve(Commands.class)
-                            .execute("toggle-console");
+                    services.commands.execute("toggle-console");
                     break;
 
                 case GLFW.GLFW_KEY_PRINT_SCREEN:
@@ -200,8 +191,7 @@ public final class BaseGame implements Game {
     private void dumpToFile(Texture2d texture, String name) throws IOException {
         texture.bind();
         try {
-            final FileSystem fs = services.resolve(FileSystem.class);
-            try (WritableByteChannel channel = fs.openForWriting(name, false)) {
+            try (WritableByteChannel channel = services.fileSystem.openForWriting(name, false)) {
                 new CurrentTexture2dAsBytes().write(bb -> {
                     try {
                         channel.write(bb);
@@ -347,6 +337,7 @@ public final class BaseGame implements Game {
                 spriteBatch.draw(frameBuffer.depth(), 0, 0, width, height, 0, 0, 1, 1, 0xffffffff);
                 break;
         }
+        final FrameInfo frameInfo = services.frameInfo;
         spriteBatch.draw(0, height, width,
                 String.format("time (ms): min: %.1f, max: %.1f, avg: %.1f, fps: %.2f, frame buffer mode: %s",
                         frameInfo.min(), frameInfo.max(), frameInfo.avg(), frameInfo.fps(), frameBufferMode),

@@ -16,7 +16,7 @@
 
 package com.github.ykiselev.spi;
 
-import com.github.ykiselev.components.Game;
+import com.github.ykiselev.spi.components.Game;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).

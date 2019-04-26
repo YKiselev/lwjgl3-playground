@@ -16,7 +16,7 @@
 
 package com.github.ykiselev.playground.services.console;
 
-import com.github.ykiselev.api.Named;
+import com.github.ykiselev.spi.api.Named;
 import com.github.ykiselev.common.circular.ArrayCircularBuffer;
 import com.github.ykiselev.common.circular.CircularBuffer;
 import com.github.ykiselev.common.iterators.EndlessIterator;
@@ -25,14 +25,13 @@ import com.github.ykiselev.opengl.sprites.Colors;
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
 import com.github.ykiselev.opengl.sprites.TextAttributes;
 import com.github.ykiselev.opengl.sprites.TextDrawingFlags;
-import com.github.ykiselev.services.Services;
-import com.github.ykiselev.services.commands.CommandException;
-import com.github.ykiselev.services.commands.Commands;
-import com.github.ykiselev.services.commands.Commands.ExecutionContext;
-import com.github.ykiselev.services.configuration.Config;
-import com.github.ykiselev.services.configuration.PersistedConfiguration;
-import com.github.ykiselev.services.configuration.values.ConfigValue;
-import com.github.ykiselev.services.layers.DrawingContext;
+import com.github.ykiselev.spi.services.commands.CommandException;
+import com.github.ykiselev.spi.services.commands.Commands;
+import com.github.ykiselev.spi.services.commands.Commands.ExecutionContext;
+import com.github.ykiselev.spi.services.configuration.Config;
+import com.github.ykiselev.spi.services.configuration.PersistedConfiguration;
+import com.github.ykiselev.spi.services.configuration.values.ConfigValue;
+import com.github.ykiselev.spi.services.layers.DrawingContext;
 import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,7 +56,9 @@ public final class DefaultCommandLine implements CommandLine {
 
     private final CircularBuffer<String> history;
 
-    private final Services services;
+    private final PersistedConfiguration persistedConfiguration;
+
+    private final Commands commands;
 
     private final ExecutionContext context = new ExecutionContext() {
         @Override
@@ -67,7 +68,7 @@ public final class DefaultCommandLine implements CommandLine {
 
         @Override
         public void onUnknownCommand(List<String> args) {
-            final Config cfg = services.resolve(PersistedConfiguration.class).root();
+            final Config cfg = persistedConfiguration.root();
             final String name = args.get(0);
             if (cfg.hasVariable(name)) {
                 try {
@@ -102,8 +103,9 @@ public final class DefaultCommandLine implements CommandLine {
      */
     private String fragment;
 
-    public DefaultCommandLine(Services services, int historySize, Function<String, Collection<Named>> searchProvider) {
-        this.services = requireNonNull(services);
+    public DefaultCommandLine(PersistedConfiguration persistedConfiguration, Commands commands, int historySize, Function<String, Collection<Named>> searchProvider) {
+        this.persistedConfiguration = requireNonNull(persistedConfiguration);
+        this.commands = requireNonNull(commands);
         this.history = new ArrayCircularBuffer<>(String.class, historySize);
         this.searchProvider = requireNonNull(searchProvider);
     }
@@ -270,8 +272,7 @@ public final class DefaultCommandLine implements CommandLine {
         final String commandLine = buf.toString();
         reset();
         try {
-            services.resolve(Commands.class)
-                    .execute(commandLine, context);
+            commands.execute(commandLine, context);
             addToHistory(commandLine);
         } catch (CommandException ex) {
             logger.error(MARKER, ex.getMessage());

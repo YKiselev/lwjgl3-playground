@@ -16,14 +16,12 @@
 
 package com.github.ykiselev.playground.services.sound;
 
-import com.github.ykiselev.services.configuration.PersistedConfiguration;
-import com.github.ykiselev.services.Services;
-import com.github.ykiselev.services.SoundEffects;
+import com.github.ykiselev.spi.services.SoundEffects;
+import com.github.ykiselev.spi.services.configuration.PersistedConfiguration;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static java.util.Objects.requireNonNull;
 import static org.lwjgl.openal.ALC10.alcOpenDevice;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
@@ -34,8 +32,6 @@ public final class AppSoundEffects implements SoundEffects, AutoCloseable {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final Services services;
-
     private final AutoCloseable subscriptions;
 
     private volatile String deviceName;
@@ -44,10 +40,8 @@ public final class AppSoundEffects implements SoundEffects, AutoCloseable {
 
     private final SoundDevice device;
 
-    public AppSoundEffects(Services services) {
-        this.services = requireNonNull(services);
-        this.subscriptions = services.resolve(PersistedConfiguration.class)
-                .wire()
+    public AppSoundEffects(PersistedConfiguration persistedConfiguration) {
+        this.subscriptions = persistedConfiguration.wire()
                 .withString("sound.device", () -> deviceName, this::setDeviceName, true)
                 .withBoolean("sound.enabled", () -> enabled, v -> enabled = v, true)
                 .build();
@@ -61,7 +55,7 @@ public final class AppSoundEffects implements SoundEffects, AutoCloseable {
                     throw new IllegalArgumentException("No device found!");
                 }
             }
-            this.device = new OpenAlSoundDevice(services, device);
+            this.device = new OpenAlSoundDevice(persistedConfiguration, device);
         } else {
             this.device = new NullDevice();
         }

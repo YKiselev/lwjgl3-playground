@@ -18,10 +18,8 @@ package com.github.ykiselev.playground.services;
 
 import com.github.ykiselev.common.closeables.Closeables;
 import com.github.ykiselev.playground.layers.menu.Menu;
-import com.github.ykiselev.services.MenuFactory;
-import com.github.ykiselev.services.Services;
-import com.github.ykiselev.services.layers.UiLayers;
-import com.github.ykiselev.services.schedule.Schedule;
+import com.github.ykiselev.spi.services.MenuFactory;
+import com.github.ykiselev.spi.services.Services;
 
 import java.util.concurrent.TimeUnit;
 
@@ -67,10 +65,9 @@ public final class AppMenuFactory implements MenuFactory {
         synchronized (lock) {
             if (menu == null) {
                 menu = new Menu(services);
-                services.resolve(Schedule.class)
-                        .schedule(10, TimeUnit.SECONDS, this::recycle);
+                services.schedule.schedule(10, TimeUnit.SECONDS, this::recycle);
             }
-            services.resolve(UiLayers.class).add(menu);
+            services.uiLayers.add(menu);
         }
     }
 }

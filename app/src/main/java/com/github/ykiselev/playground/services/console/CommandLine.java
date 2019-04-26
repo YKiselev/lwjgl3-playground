@@ -16,7 +16,7 @@
 
 package com.github.ykiselev.playground.services.console;
 
-import com.github.ykiselev.services.layers.DrawingContext;
+import com.github.ykiselev.spi.services.layers.DrawingContext;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 

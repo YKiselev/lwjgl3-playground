@@ -17,13 +17,12 @@
 package com.github.ykiselev.playground.services.config;
 
 import com.github.ykiselev.common.cow.CopyOnModify;
-import com.github.ykiselev.services.FileSystem;
-import com.github.ykiselev.services.Services;
-import com.github.ykiselev.services.configuration.Config;
-import com.github.ykiselev.services.configuration.ConfigurationException;
-import com.github.ykiselev.services.configuration.ConfigurationException.VariableAlreadyExistsException;
-import com.github.ykiselev.services.configuration.PersistedConfiguration;
-import com.github.ykiselev.services.configuration.values.ConfigValue;
+import com.github.ykiselev.spi.services.FileSystem;
+import com.github.ykiselev.spi.services.configuration.Config;
+import com.github.ykiselev.spi.services.configuration.ConfigurationException;
+import com.github.ykiselev.spi.services.configuration.ConfigurationException.VariableAlreadyExistsException;
+import com.github.ykiselev.spi.services.configuration.PersistedConfiguration;
+import com.github.ykiselev.spi.services.configuration.values.ConfigValue;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -72,8 +71,8 @@ public final class AppConfig implements PersistedConfiguration, AutoCloseable {
         loadAll("app.conf");
     }
 
-    public AppConfig(Services services) {
-        this(new AppFileConfig(services.resolve(FileSystem.class)));
+    public AppConfig(FileSystem fileSystem) {
+        this(new AppFileConfig(fileSystem));
     }
 
     @Override

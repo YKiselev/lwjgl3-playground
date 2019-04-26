@@ -16,8 +16,8 @@
 
 package com.github.ykiselev.playground.events;
 
-import com.github.ykiselev.services.events.EventFilter;
-import com.github.ykiselev.services.events.Events;
+import com.github.ykiselev.spi.services.events.EventFilter;
+import com.github.ykiselev.spi.services.events.Events;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

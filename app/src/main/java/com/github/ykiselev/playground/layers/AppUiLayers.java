@@ -17,9 +17,9 @@
 package com.github.ykiselev.playground.layers;
 
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
-import com.github.ykiselev.services.layers.UiLayer;
-import com.github.ykiselev.services.layers.UiLayers;
-import com.github.ykiselev.window.WindowEvents;
+import com.github.ykiselev.spi.services.layers.UiLayer;
+import com.github.ykiselev.spi.services.layers.UiLayers;
+import com.github.ykiselev.spi.window.WindowEvents;
 
 import java.util.ArrayList;
 import java.util.Comparator;

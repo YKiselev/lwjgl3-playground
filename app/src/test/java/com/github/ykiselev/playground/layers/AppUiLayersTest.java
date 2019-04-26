@@ -16,9 +16,9 @@
 
 package com.github.ykiselev.playground.layers;
 
-import com.github.ykiselev.services.layers.UiLayer;
-import com.github.ykiselev.services.layers.UiLayers;
-import com.github.ykiselev.window.WindowEvents;
+import com.github.ykiselev.spi.services.layers.UiLayer;
+import com.github.ykiselev.spi.services.layers.UiLayers;
+import com.github.ykiselev.spi.window.WindowEvents;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;

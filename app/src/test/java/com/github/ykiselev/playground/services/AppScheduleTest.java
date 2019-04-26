@@ -17,7 +17,7 @@
 package com.github.ykiselev.playground.services;
 
 import com.github.ykiselev.playground.services.schedule.AppSchedule;
-import com.github.ykiselev.services.schedule.Repeatable;
+import com.github.ykiselev.spi.services.schedule.Repeatable;
 import org.junit.jupiter.api.Test;
 import org.mockito.stubbing.Answer;
 

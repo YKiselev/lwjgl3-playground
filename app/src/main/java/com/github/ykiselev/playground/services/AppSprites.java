@@ -22,8 +22,7 @@ import com.github.ykiselev.opengl.sprites.ColorTable;
 import com.github.ykiselev.opengl.sprites.DefaultSpriteBatch;
 import com.github.ykiselev.opengl.sprites.SimpleColorTable;
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
-import com.github.ykiselev.services.Services;
-import com.github.ykiselev.services.layers.Sprites;
+import com.github.ykiselev.spi.services.layers.Sprites;
 
 import static java.util.Objects.requireNonNull;
 
@@ -32,7 +31,7 @@ import static java.util.Objects.requireNonNull;
  */
 public final class AppSprites implements Sprites, AutoCloseable {
 
-    private final Services services;
+    private final Assets assets;
 
     /**
      * Xterm color table
@@ -84,13 +83,12 @@ public final class AppSprites implements Sprites, AutoCloseable {
             }
     );
 
-    public AppSprites(Services services) {
-        this.services = requireNonNull(services);
+    public AppSprites(Assets assets) {
+        this.assets = requireNonNull(assets);
     }
 
     @Override
     public SpriteBatch newBatch() {
-        final Assets assets = services.resolve(Assets.class);
         return new DefaultSpriteBatch(
                 assets.load("progs/sprite-batch.conf", OglRecipes.PROGRAM),
                 assets.load("images/white.png", OglRecipes.SPRITE),

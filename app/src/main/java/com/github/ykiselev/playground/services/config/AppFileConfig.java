@@ -16,7 +16,7 @@
 
 package com.github.ykiselev.playground.services.config;
 
-import com.github.ykiselev.services.FileSystem;
+import com.github.ykiselev.spi.services.FileSystem;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigRenderOptions;

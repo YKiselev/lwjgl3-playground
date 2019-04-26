@@ -18,12 +18,9 @@ package com.github.ykiselev.playground.services;
 
 import com.github.ykiselev.common.closeables.Closeables;
 import com.github.ykiselev.common.closeables.CompositeAutoCloseable;
-import com.github.ykiselev.components.Game;
-import com.github.ykiselev.services.GameContainer;
-import com.github.ykiselev.services.Services;
-import com.github.ykiselev.services.commands.Commands;
-import com.github.ykiselev.services.configuration.PersistedConfiguration;
-import com.github.ykiselev.services.layers.UiLayers;
+import com.github.ykiselev.spi.components.Game;
+import com.github.ykiselev.spi.services.GameContainer;
+import com.github.ykiselev.spi.services.Services;
 import com.github.ykiselev.spi.GameFactory;
 
 import java.util.ServiceLoader;
@@ -48,10 +45,8 @@ public final class AppGameContainer implements GameContainer {
     public AppGameContainer(Services services) {
         this.services = requireNonNull(services);
         this.subscriptions = new CompositeAutoCloseable(
-                services.resolve(Commands.class)
-                        .add("new-game", this::newGame),
-                services.resolve(PersistedConfiguration.class)
-                        .wire()
+                services.commands.add("new-game", this::newGame),
+                services.persistedConfiguration.wire()
                         .withBoolean("game.isPresent", () -> game != null, false)
                         .build()
         );
@@ -79,17 +74,15 @@ public final class AppGameContainer implements GameContainer {
                     .findFirst()
                     .map(f -> f.create(services))
                     .orElseThrow(() -> new IllegalStateException("Game factory service not found!"));
-            final UiLayers uiLayers = services.resolve(UiLayers.class);
-            uiLayers.add(game);
-            uiLayers.removePopups();
+            services.uiLayers.add(game);
+            services.uiLayers.removePopups();
         }
     }
 
     private void closeGame() {
         synchronized (lock) {
             if (game != null) {
-                services.resolve(UiLayers.class)
-                        .remove(game);
+                services.uiLayers.remove(game);
                 Closeables.close(game);
                 game = null;
             }

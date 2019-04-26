@@ -59,7 +59,7 @@ public class ManagedAssetsTest {
         final AutoCloseable a = mock(AutoCloseable.class);
         doReturn(Wraps.of(a))
                 .when(delegate).tryLoad(eq("ac"), any(Recipe.class), eq(assets));
-        assertNotNull(assets.load("ac", DefaultRecipe.of(AutoCloseable.class)));
+        assets.load("ac", DefaultRecipe.of(AutoCloseable.class)).close();
         assets.close();
         verify(a, times(1)).close();
     }
@@ -69,7 +69,7 @@ public class ManagedAssetsTest {
         final Closeable c = mock(Closeable.class);
         doReturn(Wraps.of(c)).
                 when(delegate).tryLoad(eq("c"), any(Recipe.class), eq(assets));
-        assertNotNull(assets.load("c", DefaultRecipe.of(Closeable.class)));
+        assets.load("c", DefaultRecipe.of(Closeable.class)).close();
         assets.close();
         verify(c, times(1)).close();
     }

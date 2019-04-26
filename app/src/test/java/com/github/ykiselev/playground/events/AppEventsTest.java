@@ -16,8 +16,8 @@
 
 package com.github.ykiselev.playground.events;
 
-import com.github.ykiselev.services.events.EventFilter;
-import com.github.ykiselev.services.events.Events;
+import com.github.ykiselev.spi.services.events.EventFilter;
+import com.github.ykiselev.spi.services.events.Events;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

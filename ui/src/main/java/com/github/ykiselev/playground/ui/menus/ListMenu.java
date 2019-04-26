@@ -23,9 +23,9 @@ import com.github.ykiselev.opengl.sprites.TextAttributes;
 import com.github.ykiselev.opengl.text.Glyph;
 import com.github.ykiselev.opengl.text.SpriteFont;
 import com.github.ykiselev.playground.ui.UiElement;
-import com.github.ykiselev.services.layers.DrawingContext;
-import com.github.ykiselev.services.layers.UiLayer;
-import com.github.ykiselev.window.WindowEvents;
+import com.github.ykiselev.spi.services.layers.DrawingContext;
+import com.github.ykiselev.spi.services.layers.UiLayer;
+import com.github.ykiselev.spi.window.WindowEvents;
 
 import java.util.Arrays;
 import java.util.List;

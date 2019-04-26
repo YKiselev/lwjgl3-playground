@@ -115,7 +115,6 @@ public final class ManagedAssets implements Assets, AutoCloseable {
     private interface Asset {
 
         Wrap<?> value();
-
     }
 
     /**

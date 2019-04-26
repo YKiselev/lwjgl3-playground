@@ -16,7 +16,7 @@
 
 package com.github.ykiselev.playground.ui.models.checkbox;
 
-import com.github.ykiselev.services.configuration.Config;
+import com.github.ykiselev.spi.services.configuration.Config;
 
 import static java.util.Objects.requireNonNull;
 

@@ -16,8 +16,8 @@
 
 package com.github.ykiselev.playground.ui;
 
-import com.github.ykiselev.services.layers.DrawingContext;
-import com.github.ykiselev.window.WindowEvents;
+import com.github.ykiselev.spi.services.layers.DrawingContext;
+import com.github.ykiselev.spi.window.WindowEvents;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).

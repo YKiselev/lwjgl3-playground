@@ -16,12 +16,13 @@
 
 package com.github.ykiselev.playground.layers.menu;
 
-import com.github.ykiselev.api.Removable;
+import com.github.ykiselev.spi.api.Removable;
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.opengl.OglRecipes;
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
 import com.github.ykiselev.opengl.sprites.TextAttributes;
 import com.github.ykiselev.opengl.text.SpriteFont;
+import com.github.ykiselev.spi.services.Services;
 import com.github.ykiselev.playground.ui.elements.CheckBox;
 import com.github.ykiselev.playground.ui.elements.Link;
 import com.github.ykiselev.playground.ui.elements.Slider;
@@ -31,16 +32,11 @@ import com.github.ykiselev.playground.ui.models.checkbox.ConfigurationBoundCheck
 import com.github.ykiselev.playground.ui.models.checkbox.SimpleCheckBoxModel;
 import com.github.ykiselev.playground.ui.models.slider.ConfigurationBoundSliderModel;
 import com.github.ykiselev.playground.ui.models.slider.SliderDefinition;
-import com.github.ykiselev.services.GameContainer;
-import com.github.ykiselev.services.Services;
-import com.github.ykiselev.services.commands.Commands;
-import com.github.ykiselev.services.configuration.PersistedConfiguration;
-import com.github.ykiselev.services.layers.DrawingContext;
-import com.github.ykiselev.services.layers.Sprites;
-import com.github.ykiselev.services.layers.UiLayer;
-import com.github.ykiselev.services.layers.UiLayers;
-import com.github.ykiselev.window.DelegatingWindowEvents;
-import com.github.ykiselev.window.WindowEvents;
+import com.github.ykiselev.spi.services.configuration.PersistedConfiguration;
+import com.github.ykiselev.spi.services.layers.DrawingContext;
+import com.github.ykiselev.spi.services.layers.UiLayer;
+import com.github.ykiselev.spi.window.DelegatingWindowEvents;
+import com.github.ykiselev.spi.window.WindowEvents;
 import com.github.ykiselev.wrap.Wrap;
 
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
@@ -75,10 +71,10 @@ public final class Menu implements UiLayer, AutoCloseable, Removable {
 
     public Menu(Services services) {
         this.services = services;
-        final Assets assets = services.resolve(Assets.class);
-        spriteBatch = services.resolve(Sprites.class).newBatch();
+        final Assets assets = services.assets;
+        spriteBatch = services.sprites.newBatch();
         font = assets.load("fonts/Liberation Mono 22.sf", OglRecipes.SPRITE_FONT);
-        final PersistedConfiguration configuration = services.resolve(PersistedConfiguration.class);
+        final PersistedConfiguration configuration = services.persistedConfiguration;
         final Slider effectsSlider = new Slider(
                 new ConfigurationBoundSliderModel(
                         new SliderDefinition(0, 10, 1),
@@ -117,7 +113,7 @@ public final class Menu implements UiLayer, AutoCloseable, Removable {
                 new MenuItem(
                         new Link(
                                 "New",
-                                () -> services.resolve(GameContainer.class).newGame()
+                                () -> services.commands.execute("new-game")
                         )
                 ),
                 new MenuItem(
@@ -148,8 +144,7 @@ public final class Menu implements UiLayer, AutoCloseable, Removable {
                 new MenuItem(
                         new Link(
                                 "Exit",
-                                () -> services.resolve(Commands.class)
-                                        .execute("quit")
+                                () -> services.commands.execute("quit")
                         )
                 )
         );
@@ -160,8 +155,7 @@ public final class Menu implements UiLayer, AutoCloseable, Removable {
                     return true;
                 }
                 if (action == GLFW_PRESS && key == GLFW_KEY_ESCAPE) {
-                    services.resolve(UiLayers.class)
-                            .pop(Menu.this);
+                    services.uiLayers.pop(Menu.this);
                     return true;
                 }
                 return true;

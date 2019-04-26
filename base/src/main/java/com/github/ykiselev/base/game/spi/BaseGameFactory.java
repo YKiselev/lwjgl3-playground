@@ -17,9 +17,9 @@
 package com.github.ykiselev.base.game.spi;
 
 import com.github.ykiselev.base.game.BaseGame;
-import com.github.ykiselev.components.Game;
-import com.github.ykiselev.services.Services;
+import com.github.ykiselev.spi.components.Game;
 import com.github.ykiselev.spi.GameFactory;
+import com.github.ykiselev.spi.services.Services;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).

@@ -13,6 +13,8 @@ module ykiselev.playground.app {
     requires org.apache.logging.log4j.core;
     requires config;
     requires org.apache.logging.log4j.iostreams;
+    requires commons.lang3;
+
     requires static org.jetbrains.annotations;
 
     requires ykiselev.wrap;

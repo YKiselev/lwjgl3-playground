@@ -17,10 +17,10 @@
 package com.github.ykiselev.playground.services.console;
 
 import com.github.ykiselev.common.ThrowingRunnable;
-import com.github.ykiselev.services.commands.CommandException.CommandExecutionFailedException;
-import com.github.ykiselev.services.commands.CommandException.CommandStackOverflowException;
-import com.github.ykiselev.services.commands.CommandException.UnknownCommandException;
-import com.github.ykiselev.services.commands.Commands;
+import com.github.ykiselev.spi.services.commands.CommandException.CommandExecutionFailedException;
+import com.github.ykiselev.spi.services.commands.CommandException.CommandStackOverflowException;
+import com.github.ykiselev.spi.services.commands.CommandException.UnknownCommandException;
+import com.github.ykiselev.spi.services.commands.Commands;
 import com.github.ykiselev.common.test.ParallelRunner;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;

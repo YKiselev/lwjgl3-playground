@@ -16,7 +16,7 @@
 
 package com.github.ykiselev.playground.app.window;
 
-import com.github.ykiselev.window.WindowEvents;
+import com.github.ykiselev.spi.window.WindowEvents;
 import org.lwjgl.glfw.GLFWCharCallback;
 import org.lwjgl.glfw.GLFWCursorPosCallback;
 import org.lwjgl.glfw.GLFWFramebufferSizeCallback;

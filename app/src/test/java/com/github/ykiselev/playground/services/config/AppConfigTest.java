@@ -16,10 +16,10 @@
 
 package com.github.ykiselev.playground.services.config;
 
-import com.github.ykiselev.services.configuration.ConfigurationException.VariableNotFoundException;
-import com.github.ykiselev.services.configuration.PersistedConfiguration;
-import com.github.ykiselev.services.configuration.values.ConfigValue;
-import com.github.ykiselev.services.configuration.values.Values;
+import com.github.ykiselev.spi.services.configuration.ConfigurationException.VariableNotFoundException;
+import com.github.ykiselev.spi.services.configuration.PersistedConfiguration;
+import com.github.ykiselev.spi.services.configuration.values.ConfigValue;
+import com.github.ykiselev.spi.services.configuration.values.Values;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;

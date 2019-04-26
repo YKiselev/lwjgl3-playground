@@ -16,8 +16,7 @@
 
 package com.github.ykiselev.playground.services.sound;
 
-import com.github.ykiselev.services.Services;
-import com.github.ykiselev.services.configuration.PersistedConfiguration;
+import com.github.ykiselev.spi.services.configuration.PersistedConfiguration;
 import org.lwjgl.openal.AL;
 import org.lwjgl.openal.ALC10;
 import org.lwjgl.openal.ALC11;
@@ -63,10 +62,9 @@ final class OpenAlSoundDevice implements SoundDevice {
 
     private final AutoCloseable subscriptions;
 
-    OpenAlSoundDevice(Services services, long device) {
+    OpenAlSoundDevice(PersistedConfiguration persistedConfiguration, long device) {
         this.device = device;
-        this.subscriptions = services.resolve(PersistedConfiguration.class)
-                .wire()
+        this.subscriptions = persistedConfiguration.wire()
                 .withInt("sound.effects.level", () -> effectsLevel, this::setEffectsLevel, true)
                 .withInt("sound.music.level", () -> musicLevel, v -> musicLevel = v, true)
                 .build();

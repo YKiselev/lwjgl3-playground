@@ -21,7 +21,7 @@ import com.github.ykiselev.opengl.sprites.SpriteBatch;
 import com.github.ykiselev.opengl.sprites.TextAlignment;
 import com.github.ykiselev.opengl.sprites.TextBuilder;
 import com.github.ykiselev.opengl.text.SpriteFont;
-import com.github.ykiselev.services.layers.DrawingContext;
+import com.github.ykiselev.spi.services.layers.DrawingContext;
 
 import static java.util.Objects.requireNonNull;
 

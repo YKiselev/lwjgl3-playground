@@ -16,7 +16,7 @@
 
 package com.github.ykiselev.playground.services.console;
 
-import com.github.ykiselev.services.commands.Tokenizer;
+import com.github.ykiselev.spi.services.commands.Tokenizer;
 
 import java.util.Collection;
 

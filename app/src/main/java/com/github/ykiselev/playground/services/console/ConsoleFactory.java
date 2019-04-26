@@ -16,13 +16,10 @@
 
 package com.github.ykiselev.playground.services.console;
 
-import com.github.ykiselev.api.Named;
+import com.github.ykiselev.spi.api.Named;
 import com.github.ykiselev.common.circular.CircularBuffer;
+import com.github.ykiselev.spi.services.Services;
 import com.github.ykiselev.playground.services.console.appender.AppConsoleLog4j2Appender;
-import com.github.ykiselev.services.Services;
-import com.github.ykiselev.services.commands.Commands;
-import com.github.ykiselev.services.configuration.PersistedConfiguration;
-import com.github.ykiselev.services.layers.UiLayers;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.config.Configuration;
@@ -49,19 +46,16 @@ public final class ConsoleFactory {
         final AppConsole console = new AppConsole(
                 services,
                 new ConsoleBuffer(getBuffer()),
-                new DefaultCommandLine(services, 20, this::search)
+                new DefaultCommandLine(services.persistedConfiguration, services.commands, 20, this::search)
         );
-        services.resolve(UiLayers.class)
-                .add(console);
+        services.uiLayers.add(console);
         return console;
     }
 
     private Collection<Named> search(String fragment) {
         return Stream.concat(
-                services.resolve(PersistedConfiguration.class)
-                        .values(),
-                services.resolve(Commands.class)
-                        .commands()
+                services.persistedConfiguration.values(),
+                services.commands.commands()
         ).filter(v -> v.name().startsWith(fragment))
                 .sorted(Comparator.comparing(Named::name))
                 .collect(Collectors.toList());

@@ -16,17 +16,19 @@
 
 package com.github.ykiselev.playground.app.window;
 
-import com.github.ykiselev.window.WindowEvents;
+import com.github.ykiselev.spi.window.WindowEvents;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.system.Callback;
 import org.lwjgl.system.MemoryStack;
 
+import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
 import static java.util.Objects.requireNonNull;
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.glfwDestroyWindow;
 import static org.lwjgl.glfw.GLFW.glfwGetFramebufferSize;
+import static org.lwjgl.glfw.GLFW.glfwGetWindowContentScale;
 import static org.lwjgl.glfw.GLFW.glfwHideWindow;
 import static org.lwjgl.glfw.GLFW.glfwMakeContextCurrent;
 import static org.lwjgl.glfw.GLFW.glfwPollEvents;
@@ -159,5 +161,9 @@ public final class AppWindow implements AutoCloseable {
             frameBufferResized = false;
             windowEvents.frameBufferResized(width, height);
         }
+    }
+
+    public void getContentScale(FloatBuffer xScale, FloatBuffer yScale) {
+        glfwGetWindowContentScale(window, xScale, yScale);
     }
 }

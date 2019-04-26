@@ -17,12 +17,12 @@
 package com.github.ykiselev.playground.services.console;
 
 import com.github.ykiselev.common.cow.CopyOnModify;
-import com.github.ykiselev.services.commands.Command;
-import com.github.ykiselev.services.commands.CommandException.CommandAlreadyRegisteredException;
-import com.github.ykiselev.services.commands.CommandException.CommandExecutionFailedException;
-import com.github.ykiselev.services.commands.CommandException.CommandStackOverflowException;
-import com.github.ykiselev.services.commands.Commands;
-import com.github.ykiselev.services.commands.Tokenizer;
+import com.github.ykiselev.spi.services.commands.Command;
+import com.github.ykiselev.spi.services.commands.CommandException.CommandAlreadyRegisteredException;
+import com.github.ykiselev.spi.services.commands.CommandException.CommandExecutionFailedException;
+import com.github.ykiselev.spi.services.commands.CommandException.CommandStackOverflowException;
+import com.github.ykiselev.spi.services.commands.Commands;
+import com.github.ykiselev.spi.services.commands.Tokenizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -116,9 +116,8 @@ public final class AppCommands implements Commands {
     @Override
     public Stream<Command> commands() {
         return handlers.value()
-                .entrySet()
-                .stream()
-                .map(Map.Entry::getValue);
+                .values()
+                .stream();
     }
 
     @Override

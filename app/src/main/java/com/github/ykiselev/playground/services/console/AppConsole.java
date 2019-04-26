@@ -16,7 +16,6 @@
 
 package com.github.ykiselev.playground.services.console;
 
-import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.common.closeables.Closeables;
 import com.github.ykiselev.common.closeables.CompositeAutoCloseable;
 import com.github.ykiselev.opengl.OglRecipes;
@@ -25,16 +24,10 @@ import com.github.ykiselev.opengl.sprites.TextAttributes;
 import com.github.ykiselev.opengl.sprites.TextDrawingFlags;
 import com.github.ykiselev.opengl.text.SpriteFont;
 import com.github.ykiselev.opengl.textures.Texture2d;
-import com.github.ykiselev.services.MenuFactory;
-import com.github.ykiselev.services.Services;
-import com.github.ykiselev.services.commands.Commands;
-import com.github.ykiselev.services.configuration.PersistedConfiguration;
-import com.github.ykiselev.services.layers.DrawingContext;
-import com.github.ykiselev.services.layers.Sprites;
-import com.github.ykiselev.services.layers.UiLayer;
-import com.github.ykiselev.services.layers.UiLayers;
-import com.github.ykiselev.services.schedule.Schedule;
-import com.github.ykiselev.window.WindowEvents;
+import com.github.ykiselev.spi.services.Services;
+import com.github.ykiselev.spi.services.layers.DrawingContext;
+import com.github.ykiselev.spi.services.layers.UiLayer;
+import com.github.ykiselev.spi.window.WindowEvents;
 import com.github.ykiselev.wrap.Wrap;
 import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
@@ -122,28 +115,23 @@ public final class AppConsole implements UiLayer, AutoCloseable {
         this.buffer = requireNonNull(buffer);
         this.commandLine = requireNonNull(commandLine);
         this.ac = new CompositeAutoCloseable(
-                services.resolve(PersistedConfiguration.class)
-                        .wire()
+                services.persistedConfiguration.wire()
                         .withDouble("console.showTime", () -> showTime, v -> showTime = v, true)
                         .withHexInt("console.textColor", () -> textColor, v -> textColor = v, true)
                         .withHexInt("console.backgroundColor", () -> backgroundColor, v -> backgroundColor = v, true)
                         .build(),
-                services.resolve(Commands.class)
-                        .add()
+                services.commands.add()
                         .with("toggle-console", this::onToggleConsole)
                         .with("echo", this::onEcho)
                         .build()
         );
-        services.resolve(Schedule.class)
-                .schedule(10, TimeUnit.SECONDS, () -> {
-                    logger.info("draws: {}, avg {} draws/sec", frames, 1e9 * frames / totalTime);
-                    return true;
-                });
-        final Assets assets = services.resolve(Assets.class);
-        spriteBatch = services.resolve(Sprites.class)
-                .newBatch();
-        cuddles = assets.load("images/htf-cuddles.jpg", OglRecipes.SPRITE);
-        font = assets.load("fonts/Liberation Mono.sf", OglRecipes.SPRITE_FONT);
+        services.schedule.schedule(10, TimeUnit.SECONDS, () -> {
+            logger.info("draws: {}, avg {} draws/sec", frames, 1e9 * frames / totalTime);
+            return true;
+        });
+        spriteBatch = services.sprites.newBatch();
+        cuddles = services.assets.load("images/htf-cuddles.jpg", OglRecipes.SPRITE);
+        font = services.assets.load("fonts/Liberation Mono.sf", OglRecipes.SPRITE_FONT);
         final TextAttributes attributes = new TextAttributes();
         attributes.font(font.value());
         attributes.add(TextDrawingFlags.USE_COLOR_CONTROL_SEQUENCES);
@@ -191,8 +179,7 @@ public final class AppConsole implements UiLayer, AutoCloseable {
                     showing = false;
                     consoleHeight = 0;
                     inputAllowed = false;
-                    services.resolve(MenuFactory.class)
-                            .showMenu();
+                    services.commands.execute("show-menu");
                     return true;
 
                 case GLFW.GLFW_KEY_GRAVE_ACCENT:
@@ -286,8 +273,7 @@ public final class AppConsole implements UiLayer, AutoCloseable {
 
     @Override
     public void close() {
-        services.resolve(UiLayers.class)
-                .remove(this);
+        services.uiLayers.remove(this);
         Closeables.closeAll(font, cuddles, spriteBatch, ac);
     }
 }
