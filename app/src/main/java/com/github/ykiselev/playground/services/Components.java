@@ -17,6 +17,8 @@
 package com.github.ykiselev.playground.services;
 
 import com.github.ykiselev.common.closeables.Closeables;
+import com.github.ykiselev.playground.services.console.AppConsole;
+import com.github.ykiselev.playground.services.console.ConsoleFactory;
 import com.github.ykiselev.spi.services.GameContainer;
 import com.github.ykiselev.spi.services.MenuFactory;
 import com.github.ykiselev.spi.services.Services;
@@ -31,18 +33,21 @@ public final class Components implements AutoCloseable {
 
     public final Services services;
 
+    public final AppConsole console;
+
     public final MenuFactory menuFactory;
 
     public final GameContainer gameContainer;
 
     public Components(Services services) {
         this.services = requireNonNull(services);
+        this.console = ConsoleFactory.create(services);
         this.menuFactory = new AppMenuFactory(services);
         this.gameContainer = new AppGameContainer(services);
     }
 
     @Override
     public void close() {
-        Closeables.closeAll(menuFactory, gameContainer);
+        Closeables.closeAll(menuFactory, gameContainer, console);
     }
 }

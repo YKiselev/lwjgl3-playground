@@ -16,49 +16,40 @@
 
 package com.github.ykiselev.playground.services.console;
 
-import com.github.ykiselev.spi.api.Named;
 import com.github.ykiselev.common.circular.CircularBuffer;
-import com.github.ykiselev.spi.services.Services;
 import com.github.ykiselev.playground.services.console.appender.AppConsoleLog4j2Appender;
+import com.github.ykiselev.spi.api.Named;
+import com.github.ykiselev.spi.services.Services;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.config.Configuration;
 
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static java.util.Objects.requireNonNull;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
 public final class ConsoleFactory {
 
-    private final Services services;
-
-    public ConsoleFactory(Services services) {
-        this.services = requireNonNull(services);
-    }
-
-    public AppConsole create() {
+    public static AppConsole create(Services services) {
+        final Function<String, Collection<Named>> search = fragment ->
+                Stream.concat(
+                        services.persistedConfiguration.values(),
+                        services.commands.commands()
+                ).filter(v -> v.name().startsWith(fragment))
+                        .sorted(Comparator.comparing(Named::name))
+                        .collect(Collectors.toList());
         final AppConsole console = new AppConsole(
                 services,
                 new ConsoleBuffer(getBuffer()),
-                new DefaultCommandLine(services.persistedConfiguration, services.commands, 20, this::search)
+                new DefaultCommandLine(services.persistedConfiguration, services.commands, 20, search)
         );
         services.uiLayers.add(console);
         return console;
-    }
-
-    private Collection<Named> search(String fragment) {
-        return Stream.concat(
-                services.persistedConfiguration.values(),
-                services.commands.commands()
-        ).filter(v -> v.name().startsWith(fragment))
-                .sorted(Comparator.comparing(Named::name))
-                .collect(Collectors.toList());
     }
 
     private static CircularBuffer<String> getBuffer() {
