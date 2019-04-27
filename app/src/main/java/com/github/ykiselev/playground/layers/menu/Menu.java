@@ -49,8 +49,6 @@ public final class Menu implements UiLayer, AutoCloseable, Removable {
 
     private final ListMenu listMenu;
 
-    private final Services services;
-
     private boolean pushed = false;
 
     private final WindowEvents windowEvents;
@@ -70,7 +68,6 @@ public final class Menu implements UiLayer, AutoCloseable, Removable {
     }
 
     public Menu(Services services) {
-        this.services = services;
         final Assets assets = services.assets;
         spriteBatch = services.sprites.newBatch();
         font = assets.load("fonts/Liberation Mono 22.sf", OglRecipes.SPRITE_FONT);

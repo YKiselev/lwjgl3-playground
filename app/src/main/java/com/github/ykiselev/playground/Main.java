@@ -41,8 +41,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.PrintStream;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
 
-import static java.util.Objects.requireNonNull;
 import static org.lwjgl.glfw.GLFW.glfwGetTime;
 import static org.lwjgl.glfw.GLFW.glfwInit;
 import static org.lwjgl.glfw.GLFW.glfwSetErrorCallback;
@@ -77,182 +78,14 @@ public final class Main {
     }
 
     public static void main(String[] args) {
-        final class GlfwLayer implements AppLayerDelegate {
-
-            private final AppLayerDelegate delegate;
-
-            private GlfwLayer(AppLayerDelegate delegate) {
-                this.delegate = delegate;
-            }
-
-            @Override
-            public void run(ProgramArguments arguments) throws Exception {
-                glfwInit();
-                try {
-                    delegate.run(arguments);
-                } finally {
-                    glfwTerminate();
-                }
-            }
-        }
-
-        final class ErrorCallbackLayer implements AppLayerDelegate {
-
-            private final AppLayerDelegate delegate;
-
-            private ErrorCallbackLayer(AppLayerDelegate delegate) {
-                this.delegate = delegate;
-            }
-
-            @Override
-            public void run(ProgramArguments arguments) throws Exception {
-                try (GLFWErrorCallback callback = GLFWErrorCallback.createPrint(System.err)) {
-                    final GLFWErrorCallback previous = glfwSetErrorCallback(callback);
-                    try {
-                        delegate.run(arguments);
-                    } finally {
-                        glfwSetErrorCallback(previous);
-                    }
-                }
-            }
-        }
-
-        final class StdOutLoggingLayer implements AppLayerDelegate {
-
-            private final AppLayerDelegate delegate;
-
-            private StdOutLoggingLayer(AppLayerDelegate delegate) {
-                this.delegate = delegate;
-            }
-
-            @Override
-            public void run(ProgramArguments arguments) throws Exception {
-                final PrintStream std = IoBuilder.forLogger("STD").buildPrintStream();
-                System.setOut(std);
-                System.setErr(std);
-                delegate.run(arguments);
-            }
-        }
-
-        final class ServiceLayer implements AppLayerDelegate {
-
-            private final ServiceLayerDelegate delegate;
-
-            private ServiceLayer(ServiceLayerDelegate delegate) {
-                this.delegate = requireNonNull(delegate);
-            }
-
-            @Override
-            public void run(ProgramArguments arguments) throws Exception {
-                try (Services services = create(arguments)) {
-                    delegate.run(services);
-                }
-            }
-
-            private Services create(ProgramArguments args) {
-                final FileSystem fileSystem = new AppFileSystem(
-                        new DiskResources(args.assetPaths()),
-                        new ClassPathResources(getClass().getClassLoader())
-                );
-                final Assets assets = GameAssets.create(fileSystem);
-                final AppConfig config = new AppConfig(fileSystem);
-                return new Services(
-                        args,
-                        fileSystem,
-                        new AppCommands(new DefaultTokenizer()),
-                        config,
-                        new AppSchedule(),
-                        new AppUiLayers(),
-                        assets,
-                        new AppSprites(assets),
-                        new AppSoundEffects(config),
-                        new FrameInfo(60)
-                );
-            }
-        }
-
-        final class WindowLayer implements ServiceLayerDelegate {
-
-            private final WindowLayerDelegate delegate;
-
-            private WindowLayer(WindowLayerDelegate delegate) {
-                this.delegate = delegate;
-            }
-
-            @Override
-            public void run(Services services) throws Exception {
-                try (AppWindow window = createWindow(services)) {
-                    window.show();
-                    glfwSwapInterval(services.arguments.swapInterval());
-                    delegate.run(services, window);
-                }
-            }
-
-            private AppWindow createWindow(Services services) {
-                return new WindowBuilder()
-                        .fullScreen(services.arguments.fullScreen())
-                        .version(3, 3)
-                        .coreProfile()
-                        .debug(true)
-                        .primaryMonitor()
-                        .dimensions(800, 600)
-                        .events(services.uiLayers.events())
-                        .build("LWJGL Playground");
-            }
-        }
-
-        final class GameLayer implements WindowLayerDelegate {
-
-            private GameLayerDelegate delegate;
-
-            private GameLayer(GameLayerDelegate delegate) {
-                this.delegate = delegate;
-            }
-
-            @Override
-            public void run(Services services, AppWindow window) throws Exception {
-                try (Components components = new Components(services)) {
-                    delegate.run(window, components);
-                }
-            }
-        }
-
-        final class MainLoop implements GameLayerDelegate {
-
-            private volatile boolean exitFlag;
-
-            @Override
-            public void run(AppWindow window, Components components) throws Exception {
-                final Services services = components.services;
-                try (AutoCloseable ac = services.commands.add("quit", () -> exitFlag = true)) {
-                    LOGGER.info("Entering main loop...");
-                    // todo - remove that
-                    components.gameContainer.newGame();
-                    //
-                    while (!window.shouldClose() && !exitFlag) {
-                        final double t0 = glfwGetTime();
-                        components.gameContainer.update();
-                        window.checkEvents();
-                        services.uiLayers.draw();
-                        window.swapBuffers();
-                        services.schedule.processPendingTasks(2);
-                        final double t1 = glfwGetTime();
-                        services.frameInfo.add((t1 - t0) * 1000.0);
-                    }
-
-                    services.persistedConfiguration.persist();
-                }
-            }
-        }
-
         try {
-            new GlfwLayer(
-                    new ErrorCallbackLayer(
-                            new StdOutLoggingLayer(
-                                    new ServiceLayer(
-                                            new WindowLayer(
-                                                    new GameLayer(
-                                                            new MainLoop()
+            withGlfw(
+                    withErrorCallback(
+                            withStdOutLogging(
+                                    withServices(
+                                            withWindow(
+                                                    withGame(
+                                                            withMainLoop()
                                                     )
                                             )
                                     )
@@ -263,5 +96,115 @@ public final class Main {
             LOGGER.error("Unhandled exception!", e);
             System.exit(1);
         }
+    }
+
+    private static AppLayerDelegate withGlfw(AppLayerDelegate delegate) {
+        return arguments -> {
+            glfwInit();
+            try {
+                delegate.run(arguments);
+            } finally {
+                glfwTerminate();
+            }
+        };
+    }
+
+    private static AppLayerDelegate withErrorCallback(AppLayerDelegate delegate) {
+        return arguments -> {
+            try (GLFWErrorCallback callback = GLFWErrorCallback.createPrint(System.err)) {
+                final GLFWErrorCallback previous = glfwSetErrorCallback(callback);
+                try {
+                    delegate.run(arguments);
+                } finally {
+                    glfwSetErrorCallback(previous);
+                }
+            }
+        };
+    }
+
+    private static AppLayerDelegate withStdOutLogging(AppLayerDelegate delegate) {
+        return arguments -> {
+            final PrintStream std = IoBuilder.forLogger("STD").buildPrintStream();
+            System.setOut(std);
+            System.setErr(std);
+            delegate.run(arguments);
+        };
+    }
+
+    private static AppLayerDelegate withServices(ServiceLayerDelegate delegate) {
+        return arguments -> {
+            final FileSystem fileSystem = new AppFileSystem(
+                    new DiskResources(arguments.assetPaths()),
+                    new ClassPathResources(Main.class.getClassLoader())
+            );
+            final Assets assets = GameAssets.create(fileSystem);
+            final AppConfig config = new AppConfig(fileSystem);
+            final Supplier<Services> supplier = () -> new Services(
+                    arguments,
+                    fileSystem,
+                    new AppCommands(new DefaultTokenizer()),
+                    config,
+                    new AppSchedule(),
+                    new AppUiLayers(),
+                    assets,
+                    new AppSprites(assets),
+                    new AppSoundEffects(config),
+                    new FrameInfo(60)
+            );
+
+            try (Services services = supplier.get()) {
+                delegate.run(services);
+            }
+        };
+    }
+
+    private static ServiceLayerDelegate withWindow(WindowLayerDelegate delegate) {
+        return services -> {
+            final WindowBuilder builder = new WindowBuilder()
+                    .fullScreen(services.arguments.fullScreen())
+                    .version(3, 3)
+                    .coreProfile()
+                    .debug(true)
+                    .primaryMonitor()
+                    .dimensions(800, 600)
+                    .events(services.uiLayers.events());
+            try (AppWindow window = builder.build("LWJGL PLayground")) {
+                window.show();
+                glfwSwapInterval(services.arguments.swapInterval());
+                delegate.run(services, window);
+            }
+        };
+    }
+
+    private static WindowLayerDelegate withGame(GameLayerDelegate delegate) {
+        return (services, window) -> {
+            try (Components components = new Components(services)) {
+                delegate.run(window, components);
+            }
+        };
+    }
+
+    private static GameLayerDelegate withMainLoop() {
+        return (window, components) -> {
+            final AtomicBoolean exitFlag = new AtomicBoolean();
+            final Services services = components.services;
+            try (AutoCloseable ac = services.commands.add("quit", () -> exitFlag.set(true))) {
+                LOGGER.info("Entering main loop...");
+                // todo - remove that
+                components.gameContainer.newGame();
+                //
+                while (!window.shouldClose() && !exitFlag.get()) {
+                    final double t0 = glfwGetTime();
+                    components.gameContainer.update();
+                    window.checkEvents();
+                    services.uiLayers.draw();
+                    window.swapBuffers();
+                    services.schedule.processPendingTasks(2);
+                    final double t1 = glfwGetTime();
+                    services.frameInfo.add((t1 - t0) * 1000.0);
+                }
+                services.persistedConfiguration.persist();
+            }
+        };
     }
 }
