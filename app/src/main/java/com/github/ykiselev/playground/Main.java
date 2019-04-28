@@ -21,7 +21,7 @@ import com.github.ykiselev.playground.app.window.AppWindow;
 import com.github.ykiselev.playground.app.window.WindowBuilder;
 import com.github.ykiselev.playground.layers.AppUiLayers;
 import com.github.ykiselev.playground.services.AppGame;
-import com.github.ykiselev.playground.services.AppMenuFactory;
+import com.github.ykiselev.playground.services.AppMenu;
 import com.github.ykiselev.playground.services.AppSprites;
 import com.github.ykiselev.playground.services.assets.GameAssets;
 import com.github.ykiselev.playground.services.config.AppConfig;
@@ -188,7 +188,7 @@ public final class Main {
     private WindowLayerDelegate withGame(GameLayerDelegate delegate) {
         return (services, window) -> {
             try (AppConsole console = ConsoleFactory.create(services);
-                 AppMenuFactory menuFactory = new AppMenuFactory(services);
+                 AppMenu menu = new AppMenu(services);
                  AppGame game = new AppGame(services)) {
                 delegate.run(window, services, game);
             }

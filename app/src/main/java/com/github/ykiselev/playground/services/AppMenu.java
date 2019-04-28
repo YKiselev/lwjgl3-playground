@@ -18,7 +18,6 @@ package com.github.ykiselev.playground.services;
 
 import com.github.ykiselev.common.closeables.Closeables;
 import com.github.ykiselev.playground.layers.menu.Menu;
-import com.github.ykiselev.spi.services.MenuFactory;
 import com.github.ykiselev.spi.services.Services;
 
 import java.util.concurrent.TimeUnit;
@@ -28,16 +27,19 @@ import static java.util.Objects.requireNonNull;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class AppMenuFactory implements MenuFactory {
+public final class AppMenu implements AutoCloseable {
 
     private final Services services;
+
+    private final AutoCloseable ac;
 
     private volatile Menu menu;
 
     private final Object lock = new Object();
 
-    public AppMenuFactory(Services services) {
+    public AppMenu(Services services) {
         this.services = requireNonNull(services);
+        this.ac = services.commands.add("show-menu", this::showMenu);
     }
 
     private boolean recycle() {
@@ -55,13 +57,12 @@ public final class AppMenuFactory implements MenuFactory {
     @Override
     public void close() {
         synchronized (lock) {
-            Closeables.close(menu);
+            Closeables.closeAll(menu, ac);
             menu = null;
         }
     }
 
-    @Override
-    public void showMenu() {
+    private void showMenu() {
         synchronized (lock) {
             if (menu == null) {
                 menu = new Menu(services);
