@@ -17,7 +17,6 @@
 package com.github.ykiselev.spi.services;
 
 import com.github.ykiselev.assets.Assets;
-import com.github.ykiselev.common.closeables.Closeables;
 import com.github.ykiselev.common.fps.FrameInfo;
 import com.github.ykiselev.spi.ProgramArguments;
 import com.github.ykiselev.spi.services.commands.Commands;
@@ -32,7 +31,7 @@ import static java.util.Objects.requireNonNull;
  * @author Yuriy Kiselev (uze@yandex.ru)
  * @since 24.04.2019
  */
-public final class Services implements AutoCloseable {
+public final class Services {
 
     public final ProgramArguments arguments;
 
@@ -65,11 +64,5 @@ public final class Services implements AutoCloseable {
         this.sprites = requireNonNull(sprites);
         this.soundEffects = requireNonNull(soundEffects);
         this.frameInfo = requireNonNull(frameInfo);
-    }
-
-    @Override
-    public void close() {
-        Closeables.closeAll(fileSystem, commands, persistedConfiguration,
-                schedule, uiLayers, assets, sprites, soundEffects);
     }
 }

@@ -16,16 +16,18 @@
 
 package com.github.ykiselev.playground;
 
-import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.common.fps.FrameInfo;
 import com.github.ykiselev.playground.app.window.AppWindow;
 import com.github.ykiselev.playground.app.window.WindowBuilder;
 import com.github.ykiselev.playground.layers.AppUiLayers;
+import com.github.ykiselev.playground.services.AppGame;
+import com.github.ykiselev.playground.services.AppMenuFactory;
 import com.github.ykiselev.playground.services.AppSprites;
-import com.github.ykiselev.playground.services.Components;
 import com.github.ykiselev.playground.services.assets.GameAssets;
 import com.github.ykiselev.playground.services.config.AppConfig;
 import com.github.ykiselev.playground.services.console.AppCommands;
+import com.github.ykiselev.playground.services.console.AppConsole;
+import com.github.ykiselev.playground.services.console.ConsoleFactory;
 import com.github.ykiselev.playground.services.console.DefaultTokenizer;
 import com.github.ykiselev.playground.services.fs.AppFileSystem;
 import com.github.ykiselev.playground.services.fs.ClassPathResources;
@@ -33,7 +35,7 @@ import com.github.ykiselev.playground.services.fs.DiskResources;
 import com.github.ykiselev.playground.services.schedule.AppSchedule;
 import com.github.ykiselev.playground.services.sound.AppSoundEffects;
 import com.github.ykiselev.spi.ProgramArguments;
-import com.github.ykiselev.spi.services.FileSystem;
+import com.github.ykiselev.spi.api.Updateable;
 import com.github.ykiselev.spi.services.Services;
 import org.apache.logging.log4j.io.IoBuilder;
 import org.lwjgl.glfw.GLFWErrorCallback;
@@ -42,7 +44,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.PrintStream;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Supplier;
 
 import static org.lwjgl.glfw.GLFW.glfwGetTime;
 import static org.lwjgl.glfw.GLFW.glfwInit;
@@ -55,7 +56,7 @@ import static org.lwjgl.glfw.GLFW.glfwTerminate;
  */
 public final class Main {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private interface AppLayerDelegate {
 
@@ -74,10 +75,14 @@ public final class Main {
 
     interface GameLayerDelegate {
 
-        void run(AppWindow window, Components components) throws Exception;
+        void run(AppWindow window, Services services, Updateable game) throws Exception;
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
+        new Main().run(new ProgramArguments(args));
+    }
+
+    private void run(ProgramArguments arguments) throws Exception {
         try {
             withGlfw(
                     withErrorCallback(
@@ -91,14 +96,14 @@ public final class Main {
                                     )
                             )
                     )
-            ).run(new ProgramArguments(args));
+            ).run(arguments);
         } catch (Exception e) {
-            LOGGER.error("Unhandled exception!", e);
-            System.exit(1);
+            logger.error("Unhandled exception!", e);
+            throw e;
         }
     }
 
-    private static AppLayerDelegate withGlfw(AppLayerDelegate delegate) {
+    private AppLayerDelegate withGlfw(AppLayerDelegate delegate) {
         return arguments -> {
             glfwInit();
             try {
@@ -109,7 +114,7 @@ public final class Main {
         };
     }
 
-    private static AppLayerDelegate withErrorCallback(AppLayerDelegate delegate) {
+    private AppLayerDelegate withErrorCallback(AppLayerDelegate delegate) {
         return arguments -> {
             try (GLFWErrorCallback callback = GLFWErrorCallback.createPrint(System.err)) {
                 final GLFWErrorCallback previous = glfwSetErrorCallback(callback);
@@ -122,7 +127,7 @@ public final class Main {
         };
     }
 
-    private static AppLayerDelegate withStdOutLogging(AppLayerDelegate delegate) {
+    private AppLayerDelegate withStdOutLogging(AppLayerDelegate delegate) {
         return arguments -> {
             final PrintStream std = IoBuilder.forLogger("STD").buildPrintStream();
             System.setOut(std);
@@ -131,34 +136,38 @@ public final class Main {
         };
     }
 
-    private static AppLayerDelegate withServices(ServiceLayerDelegate delegate) {
+    private AppLayerDelegate withServices(ServiceLayerDelegate delegate) {
         return arguments -> {
-            final FileSystem fileSystem = new AppFileSystem(
+            try (AppFileSystem fileSystem = new AppFileSystem(
                     new DiskResources(arguments.assetPaths()),
-                    new ClassPathResources(Main.class.getClassLoader())
-            );
-            final Assets assets = GameAssets.create(fileSystem);
-            final AppConfig config = new AppConfig(fileSystem);
-            final Supplier<Services> supplier = () -> new Services(
-                    arguments,
-                    fileSystem,
-                    new AppCommands(new DefaultTokenizer()),
-                    config,
-                    new AppSchedule(),
-                    new AppUiLayers(),
-                    assets,
-                    new AppSprites(assets),
-                    new AppSoundEffects(config),
-                    new FrameInfo(60)
-            );
-
-            try (Services services = supplier.get()) {
-                delegate.run(services);
+                    new ClassPathResources(Main.class.getClassLoader()));
+                 GameAssets assets = GameAssets.create(fileSystem);
+                 AppCommands commands = new AppCommands(new DefaultTokenizer());
+                 AppConfig config = new AppConfig(fileSystem);
+                 AppSchedule schedule = new AppSchedule();
+                 AppUiLayers uiLayers = new AppUiLayers();
+                 AppSprites sprites = new AppSprites(assets);
+                 AppSoundEffects soundEffects = new AppSoundEffects(config)
+            ) {
+                delegate.run(
+                        new Services(
+                                arguments,
+                                fileSystem,
+                                commands,
+                                config,
+                                schedule,
+                                uiLayers,
+                                assets,
+                                sprites,
+                                soundEffects,
+                                new FrameInfo(60)
+                        )
+                );
             }
         };
     }
 
-    private static ServiceLayerDelegate withWindow(WindowLayerDelegate delegate) {
+    private ServiceLayerDelegate withWindow(WindowLayerDelegate delegate) {
         return services -> {
             final WindowBuilder builder = new WindowBuilder()
                     .fullScreen(services.arguments.fullScreen())
@@ -176,26 +185,27 @@ public final class Main {
         };
     }
 
-    private static WindowLayerDelegate withGame(GameLayerDelegate delegate) {
+    private WindowLayerDelegate withGame(GameLayerDelegate delegate) {
         return (services, window) -> {
-            try (Components components = new Components(services)) {
-                delegate.run(window, components);
+            try (AppConsole console = ConsoleFactory.create(services);
+                 AppMenuFactory menuFactory = new AppMenuFactory(services);
+                 AppGame game = new AppGame(services)) {
+                delegate.run(window, services, game);
             }
         };
     }
 
-    private static GameLayerDelegate withMainLoop() {
-        return (window, components) -> {
+    private GameLayerDelegate withMainLoop() {
+        return (window, services, game) -> {
             final AtomicBoolean exitFlag = new AtomicBoolean();
-            final Services services = components.services;
             try (AutoCloseable ac = services.commands.add("quit", () -> exitFlag.set(true))) {
-                LOGGER.info("Entering main loop...");
+                logger.info("Entering main loop...");
                 // todo - remove that
-                components.gameContainer.newGame();
+                services.commands.execute("new-game");
                 //
                 while (!window.shouldClose() && !exitFlag.get()) {
                     final double t0 = glfwGetTime();
-                    components.gameContainer.update();
+                    game.update();
                     window.checkEvents();
                     services.uiLayers.draw();
                     window.swapBuffers();

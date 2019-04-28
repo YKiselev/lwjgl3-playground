@@ -18,21 +18,19 @@ package com.github.ykiselev.playground.services;
 
 import com.github.ykiselev.common.closeables.Closeables;
 import com.github.ykiselev.common.closeables.CompositeAutoCloseable;
-import com.github.ykiselev.spi.components.Game;
-import com.github.ykiselev.spi.services.GameContainer;
-import com.github.ykiselev.spi.services.Services;
 import com.github.ykiselev.spi.GameFactory;
+import com.github.ykiselev.spi.api.Updateable;
+import com.github.ykiselev.spi.components.Game;
+import com.github.ykiselev.spi.services.Services;
 
 import java.util.ServiceLoader;
 
 import static java.util.Objects.requireNonNull;
 
 /**
- * todo - find a better name!
- *
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class AppGameContainer implements GameContainer {
+public final class AppGame implements Updateable, AutoCloseable {
 
     private final Services services;
 
@@ -42,7 +40,7 @@ public final class AppGameContainer implements GameContainer {
 
     private final AutoCloseable subscriptions;
 
-    public AppGameContainer(Services services) {
+    public AppGame(Services services) {
         this.services = requireNonNull(services);
         this.subscriptions = new CompositeAutoCloseable(
                 services.commands.add("new-game", this::newGame),
@@ -66,8 +64,7 @@ public final class AppGameContainer implements GameContainer {
         Closeables.close(subscriptions);
     }
 
-    @Override
-    public void newGame() {
+    private void newGame() {
         synchronized (lock) {
             closeGame();
             game = ServiceLoader.load(GameFactory.class)

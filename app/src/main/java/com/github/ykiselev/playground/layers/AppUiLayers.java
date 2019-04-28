@@ -28,7 +28,7 @@ import java.util.List;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class AppUiLayers implements UiLayers {
+public final class AppUiLayers implements UiLayers, AutoCloseable {
 
     private static final Comparator<UiLayer> LAYER_COMPARATOR = Comparator.comparingInt(
             layer -> layer.kind().ordinal()
@@ -166,5 +166,10 @@ public final class AppUiLayers implements UiLayers {
         if (layers.remove(layer)) {
             layer.onPop();
         }
+    }
+
+    @Override
+    public void close() {
+        // no-op for now
     }
 }

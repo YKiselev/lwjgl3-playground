@@ -40,7 +40,7 @@ import static java.util.Objects.requireNonNull;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class AppCommands implements Commands {
+public final class AppCommands implements Commands, AutoCloseable {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -68,6 +68,11 @@ public final class AppCommands implements Commands {
      */
     public AppCommands(Tokenizer tokenizer) {
         this(tokenizer, 16);
+    }
+
+    @Override
+    public void close() {
+        // no-op for now
     }
 
     @Override

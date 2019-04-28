@@ -28,7 +28,7 @@ import static java.util.Objects.requireNonNull;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class AppSchedule implements Schedule {
+public final class AppSchedule implements Schedule, AutoCloseable {
 
     private final PriorityQueue<Task> tasks = new PriorityQueue<>();
 
@@ -40,6 +40,11 @@ public final class AppSchedule implements Schedule {
 
     public AppSchedule() {
         this(System::currentTimeMillis);
+    }
+
+    @Override
+    public void close() {
+        // no-op for now
     }
 
     private void add(Task t) {

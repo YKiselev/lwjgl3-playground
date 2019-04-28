@@ -80,7 +80,7 @@ public final class GameAssets implements Assets, AutoCloseable {
         return delegate.openAll(resource);
     }
 
-    public static Assets create(Resources resources) {
+    public static GameAssets create(Resources resources) {
         final ReadableConfig readableConfig = new ReadableConfig();
         final ReadableTexture2d readableTexture2d = new ReadableTexture2d();
         final Map<String, ReadableAsset> byKey = Map.of(

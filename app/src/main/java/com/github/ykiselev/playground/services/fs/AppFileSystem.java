@@ -41,7 +41,7 @@ import java.util.stream.Stream;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class AppFileSystem implements FileSystem {
+public final class AppFileSystem implements FileSystem, AutoCloseable {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -132,5 +132,10 @@ public final class AppFileSystem implements FileSystem {
         } catch (IOException e) {
             throw new ResourceException(e);
         }
+    }
+
+    @Override
+    public void close() {
+        // no-op for now
     }
 }
