@@ -19,6 +19,8 @@ package com.github.ykiselev.playground.app.window;
 import com.github.ykiselev.spi.window.Window;
 import com.github.ykiselev.spi.window.WindowEvents;
 import org.jetbrains.annotations.Nullable;
+import org.lwjgl.opengl.GL;
+import org.lwjgl.opengl.GLCapabilities;
 import org.lwjgl.system.Callback;
 import org.lwjgl.system.MemoryStack;
 
@@ -45,6 +47,8 @@ public final class AppWindow implements AutoCloseable, Window {
 
     private final long window;
 
+    private final GLCapabilities capabilities;
+
     /**
      * Force frame buffer resize on window creation
      */
@@ -56,8 +60,9 @@ public final class AppWindow implements AutoCloseable, Window {
 
     private final Callback debugMessageCallback;
 
-    public AppWindow(long window, WindowEvents windowEvents, @Nullable Callback debugMessageCallback) {
+    public AppWindow(long window, GLCapabilities capabilities, WindowEvents windowEvents, @Nullable Callback debugMessageCallback) {
         this.window = window;
+        this.capabilities = requireNonNull(capabilities);
         this.windowEvents = requireNonNull(windowEvents);
         this.debugMessageCallback = debugMessageCallback;
     }
@@ -113,6 +118,7 @@ public final class AppWindow implements AutoCloseable, Window {
 
     @Override
     public void close() {
+        GL.setCapabilities(null);
         glfwFreeCallbacks(window);
         glfwDestroyWindow(window);
         if (debugMessageCallback != null) {
@@ -132,8 +138,11 @@ public final class AppWindow implements AutoCloseable, Window {
         return glfwWindowShouldClose(window);
     }
 
-    public void checkEvents() {
+    public void makeCurrent() {
         glfwMakeContextCurrent(window);
+    }
+
+    public void checkEvents() {
         checkForFrameBufferResize();
         checkWindowResize();
         glfwPollEvents();

@@ -78,7 +78,6 @@ public final class TrueTypeFont implements AutoCloseable {
         chardata.close();
         info.close();
         texture.close();
-        info.close();
     }
 
     @Deprecated
@@ -89,51 +88,4 @@ public final class TrueTypeFont implements AutoCloseable {
     public STBTTPackedchar.Buffer charData(int codePoint) {
         return chardata.position(codePoints.indexOf(codePoint));
     }
-
-/* todo - move all drawing code to the sprite batch
-
-    public void print(float x, float y, String text) {
-        print(x, y, text, true);
-    }
-
-    public void print(float x, float y, String text, boolean kerning) {
-        xb.put(0, x);
-        yb.put(0, y);
-
-        glEnable(GL_TEXTURE_2D);
-        glBindTexture(GL_TEXTURE_2D, texture);
-
-        try (MemoryStack stack = stackPush()) {
-            glBegin(GL_QUADS);
-            for (int i = 0; i < text.length(); ) {
-                final int cp = text.codePointAt(i);
-                i += Character.charCount(cp);
-
-                stbtt_GetPackedQuad(chardata, bitmapWidth, bitmapHeight, codePoints.indexOf(cp), xb, yb, q, false);
-                // apply some kerning
-                if (kerning && i < text.length()) {
-                    final int cp2 = text.codePointAt(i);
-                    final float advance = info.getKernAdvance(cp, cp2);
-                    xb.put(0, xb.get(0) + advance);
-                }
-                drawBoxTC(
-                        q.x0(), q.y0(), q.x1(), q.y1(),
-                        q.s0(), q.t0(), q.s1(), q.t1()
-                );
-            }
-            glEnd();
-        }
-    }
-
-    private static void drawBoxTC(float x0, float y0, float x1, float y1, float s0, float t0, float s1, float t1) {
-        glTexCoord2f(s0, t0);
-        glVertex2f(x0, y0);
-        glTexCoord2f(s1, t0);
-        glVertex2f(x1, y0);
-        glTexCoord2f(s1, t1);
-        glVertex2f(x1, y1);
-        glTexCoord2f(s0, t1);
-        glVertex2f(x0, y1);
-    }
-*/
 }

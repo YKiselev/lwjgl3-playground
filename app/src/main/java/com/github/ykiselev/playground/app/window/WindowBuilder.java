@@ -25,6 +25,7 @@ import org.lwjgl.glfw.GLFWMouseButtonCallback;
 import org.lwjgl.glfw.GLFWScrollCallback;
 import org.lwjgl.glfw.GLFWWindowSizeCallback;
 import org.lwjgl.opengl.GL;
+import org.lwjgl.opengl.GLCapabilities;
 import org.lwjgl.opengl.GLUtil;
 import org.lwjgl.system.Callback;
 
@@ -41,6 +42,7 @@ import static org.lwjgl.glfw.GLFW.GLFW_OPENGL_PROFILE;
 import static org.lwjgl.glfw.GLFW.GLFW_RESIZABLE;
 import static org.lwjgl.glfw.GLFW.GLFW_TRUE;
 import static org.lwjgl.glfw.GLFW.glfwCreateWindow;
+import static org.lwjgl.glfw.GLFW.glfwDefaultWindowHints;
 import static org.lwjgl.glfw.GLFW.glfwGetPrimaryMonitor;
 import static org.lwjgl.glfw.GLFW.glfwGetWindowAttrib;
 import static org.lwjgl.glfw.GLFW.glfwMakeContextCurrent;
@@ -92,6 +94,10 @@ public final class WindowBuilder {
             return true;
         }
     };
+
+    public WindowBuilder() {
+        glfwDefaultWindowHints();
+    }
 
     public WindowBuilder windowed() {
         fullScreen = false;
@@ -169,14 +175,14 @@ public final class WindowBuilder {
             throw new IllegalStateException("Failed to create window");
         }
         glfwMakeContextCurrent(window);
-        GL.createCapabilities();
+        final GLCapabilities capabilities = GL.createCapabilities();
         final Callback debugMessageCallback;
         if (glfwGetWindowAttrib(window, GLFW_OPENGL_DEBUG_CONTEXT) == GLFW_TRUE) {
             debugMessageCallback = GLUtil.setupDebugMessageCallback();
         } else {
             debugMessageCallback = null;
         }
-        final AppWindow result = new AppWindow(window, events, debugMessageCallback);
+        final AppWindow result = new AppWindow(window, capabilities, events, debugMessageCallback);
         glfwSetFramebufferSizeCallback(window, GLFWFramebufferSizeCallback.create(result::onFrameBufferSize));
         glfwSetWindowSizeCallback(window, GLFWWindowSizeCallback.create(result::onWindowSize));
         glfwSetKeyCallback(window, GLFWKeyCallback.create(result::onKey));

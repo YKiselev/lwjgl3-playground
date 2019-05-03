@@ -37,6 +37,12 @@ import java.nio.channels.ReadableByteChannel;
  */
 public final class ReadableTrueTypeFontInfo implements ReadableAsset<TrueTypeFontInfo, Void> {
 
+    private final float scale;
+
+    public ReadableTrueTypeFontInfo(float scale) {
+        this.scale = scale;
+    }
+
     @Override
     public Wrap<TrueTypeFontInfo> read(ReadableByteChannel channel, Recipe<?, TrueTypeFontInfo, Void> recipe, Assets assets) throws ResourceException {
         try (Wrap<Config> fallback = assets.load("fonts/default/font.conf", OglRecipes.CONFIG);
@@ -48,9 +54,7 @@ public final class ReadableTrueTypeFontInfo implements ReadableAsset<TrueTypeFon
                     .map(ByteChannelAsByteBuffer::read)
                     .orElseThrow(() -> new ResourceException("Unable to load font: \"" + fontConfig.getString("asset") + "\""));
 
-            final float fontSize = (float) fontConfig.getDouble("size");
-
-            return Wraps.of(TrueTypeFontInfo.load(ttf, fontSize));
+            return Wraps.of(TrueTypeFontInfo.load(ttf, (float) (fontConfig.getDouble("size") * scale)));
         }
     }
 }

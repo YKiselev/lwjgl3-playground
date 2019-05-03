@@ -36,6 +36,7 @@ import com.github.ykiselev.playground.services.fs.DiskResources;
 import com.github.ykiselev.playground.services.schedule.AppSchedule;
 import com.github.ykiselev.playground.services.sound.AppSoundEffects;
 import com.github.ykiselev.spi.GameHost;
+import com.github.ykiselev.spi.MonitorInfo;
 import com.github.ykiselev.spi.ProgramArguments;
 import com.github.ykiselev.spi.api.Updateable;
 import com.github.ykiselev.spi.services.FileSystem;
@@ -47,11 +48,15 @@ import com.github.ykiselev.spi.services.layers.Sprites;
 import com.github.ykiselev.spi.services.layers.UiLayers;
 import com.github.ykiselev.spi.services.schedule.Schedule;
 import org.apache.logging.log4j.io.IoBuilder;
+import org.lwjgl.PointerBuffer;
+import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWErrorCallback;
+import org.lwjgl.system.MemoryStack;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.PrintStream;
+import java.nio.FloatBuffer;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.lwjgl.glfw.GLFW.glfwGetTime;
@@ -74,7 +79,8 @@ public final class Main {
 
     private interface ServiceLayerDelegate {
 
-        void run(ProgramArguments arguments, FileSystem fileSystem, Commands commands, PersistedConfiguration configuration, Schedule schedule, UiLayers uiLayers, Assets assets, Sprites sprites, SoundEffects soundEffects) throws Exception;
+        void run(ProgramArguments arguments, FileSystem fileSystem, Commands commands, PersistedConfiguration configuration,
+                 Schedule schedule, UiLayers uiLayers, Assets assets, Sprites sprites, SoundEffects soundEffects) throws Exception;
     }
 
     private interface WindowLayerDelegate {
@@ -84,7 +90,7 @@ public final class Main {
 
     interface GameLayerDelegate {
 
-        void run(AppWindow window, Services services, Updateable game) throws Exception;
+        void run(AppWindow window, GameHost host, Updateable game) throws Exception;
     }
 
     public static void main(String[] args) throws Exception {
@@ -147,10 +153,12 @@ public final class Main {
 
     private AppLayerDelegate withServices(ServiceLayerDelegate delegate) {
         return arguments -> {
+            final long monitor = getMonitor(arguments.monitor());
+            final MonitorInfo monitorInfo = getMonitorInfo(monitor);
             try (AppFileSystem fileSystem = new AppFileSystem(
                     new DiskResources(arguments.assetPaths()),
                     new ClassPathResources(Main.class.getClassLoader()));
-                 GameAssets assets = GameAssets.create(fileSystem);
+                 GameAssets assets = GameAssets.create(fileSystem, monitorInfo);
                  AppCommands commands = new AppCommands(new DefaultTokenizer());
                  AppConfig config = new AppConfig(fileSystem);
                  AppSchedule schedule = new AppSchedule();
@@ -180,7 +188,7 @@ public final class Main {
                     .version(3, 3)
                     .coreProfile()
                     .debug(true)
-                    .primaryMonitor()
+                    .monitor(arguments.monitor())
                     .dimensions(800, 600)
                     .events(uiLayers.events());
             try (AppWindow window = builder.build("LWJGL PLayground")) {
@@ -211,32 +219,53 @@ public final class Main {
             try (AppConsole console = ConsoleFactory.create(services);
                  AppMenu menu = new AppMenu(services);
                  AppGame game = new AppGame(gameHost)) {
-                delegate.run(window, services, game);
+                delegate.run(window, gameHost, game);
             }
         };
     }
 
     private GameLayerDelegate withMainLoop() {
-        return (window, services, game) -> {
+        return (window, host, game) -> {
             final AtomicBoolean exitFlag = new AtomicBoolean();
-            final FrameInfo frameInfo = new FrameInfo(60);
-            try (AutoCloseable ac = services.commands.add("quit", () -> exitFlag.set(true))) {
+            try (AutoCloseable ac = host.services.commands.add("quit", () -> exitFlag.set(true))) {
                 logger.info("Entering main loop...");
                 // todo - remove that
-                services.commands.execute("new-game");
+                host.services.commands.execute("new-game");
                 //
                 while (!window.shouldClose() && !exitFlag.get()) {
                     final double t0 = glfwGetTime();
+                    window.makeCurrent();
                     game.update();
                     window.checkEvents();
-                    services.uiLayers.draw();
+                    host.services.uiLayers.draw();
                     window.swapBuffers();
-                    services.schedule.processPendingTasks(2);
+                    host.services.schedule.processPendingTasks(2);
                     final double t1 = glfwGetTime();
-                    frameInfo.add((t1 - t0) * 1000.0);
+                    host.frameInfo.add((t1 - t0) * 1000.0);
                 }
-                services.persistedConfiguration.persist();
+                host.services.persistedConfiguration.persist();
             }
         };
     }
+
+    private long getMonitor(int index) {
+        if (index < 0) {
+            return GLFW.glfwGetPrimaryMonitor();
+        }
+        final PointerBuffer monitors = GLFW.glfwGetMonitors();
+        if (monitors == null || monitors.remaining() <= index) {
+            return GLFW.glfwGetPrimaryMonitor();
+        }
+        return monitors.get(index);
+    }
+
+    private MonitorInfo getMonitorInfo(long monitor) {
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            final FloatBuffer xs = stack.mallocFloat(1);
+            final FloatBuffer ys = stack.mallocFloat(1);
+            GLFW.glfwGetMonitorContentScale(monitor, xs, ys);
+            return new MonitorInfo(xs.get(0), ys.get(0));
+        }
+    }
+
 }

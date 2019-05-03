@@ -106,6 +106,16 @@ public final class ProgramArguments {
     }
 
     /**
+     * @return the index of monitor to use
+     */
+    public int monitor() {
+        return Integer.valueOf(
+                value("monitor")
+                        .orElse("0")
+        );
+    }
+
+    /**
      * Writable folder to store mod configs, caches, etc.
      *
      * @return the path to write-enabled folder.

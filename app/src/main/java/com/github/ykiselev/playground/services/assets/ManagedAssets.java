@@ -77,7 +77,7 @@ public final class ManagedAssets implements Assets, AutoCloseable {
     }
 
     private void removeFromCache(String resource, Asset asset) {
-        logger.trace("Removing \"{}\"", resource);
+        logger.debug("Removing \"{}\"", resource);
         final Asset removed;
         synchronized (loadLock) {
             removed = cache.remove(resource);

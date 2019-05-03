@@ -34,6 +34,7 @@ import com.github.ykiselev.opengl.assets.formats.ReadableShaderObject;
 import com.github.ykiselev.opengl.assets.formats.ReadableSpriteFont;
 import com.github.ykiselev.opengl.assets.formats.ReadableTexture2d;
 import com.github.ykiselev.opengl.assets.formats.ReadableTrueTypeFontInfo;
+import com.github.ykiselev.spi.MonitorInfo;
 import com.github.ykiselev.wrap.Wrap;
 import org.lwjgl.opengl.GL20;
 
@@ -80,7 +81,7 @@ public final class GameAssets implements Assets, AutoCloseable {
         return delegate.openAll(resource);
     }
 
-    public static GameAssets create(Resources resources) {
+    public static GameAssets create(Resources resources, MonitorInfo monitorInfo) {
         final ReadableConfig readableConfig = new ReadableConfig();
         final ReadableTexture2d readableTexture2d = new ReadableTexture2d();
         final Map<String, ReadableAsset> byKey = Map.of(
@@ -90,7 +91,7 @@ public final class GameAssets implements Assets, AutoCloseable {
                 OglRecipes.SPRITE.key(), readableTexture2d,
                 OglRecipes.MIP_MAP_TEXTURE.key(), readableTexture2d,
                 OglRecipes.OBJ_MODEL.key(), new ReadableObjModel(),
-                OglRecipes.TRUE_TYPE_FONT_INFO.key(), new ReadableTrueTypeFontInfo(),
+                OglRecipes.TRUE_TYPE_FONT_INFO.key(), new ReadableTrueTypeFontInfo(monitorInfo.yScale),
                 OglRecipes.FONT_ATLAS.key(), new ReadableFontAtlas(512, 512)
         );
         final Map<String, ReadableAsset> byExtension = Map.of(
