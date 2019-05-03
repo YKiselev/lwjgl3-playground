@@ -16,6 +16,7 @@
 
 package com.github.ykiselev.playground.app.window;
 
+import com.github.ykiselev.spi.window.Window;
 import com.github.ykiselev.spi.window.WindowEvents;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.system.Callback;
@@ -40,7 +41,7 @@ import static org.lwjgl.glfw.GLFW.glfwWindowShouldClose;
  * Window class.
  * Creates window and sets keyboard, mouse and frame buffer resize callbacks
  */
-public final class AppWindow implements AutoCloseable {
+public final class AppWindow implements AutoCloseable, Window {
 
     private final long window;
 
@@ -163,6 +164,7 @@ public final class AppWindow implements AutoCloseable {
         }
     }
 
+    @Override
     public void getContentScale(FloatBuffer xScale, FloatBuffer yScale) {
         glfwGetWindowContentScale(window, xScale, yScale);
     }

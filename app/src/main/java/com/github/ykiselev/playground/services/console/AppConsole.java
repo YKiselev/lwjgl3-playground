@@ -34,7 +34,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import static java.lang.Math.max;
 import static java.util.Objects.requireNonNull;
@@ -101,10 +100,6 @@ public final class AppConsole implements UiLayer, AutoCloseable {
 
     private double prevTime;
 
-    private long totalTime;
-
-    private long frames;
-
     @Override
     public WindowEvents events() {
         return events;
@@ -125,10 +120,6 @@ public final class AppConsole implements UiLayer, AutoCloseable {
                         .with("echo", this::onEcho)
                         .build()
         );
-        services.schedule.schedule(10, TimeUnit.SECONDS, () -> {
-            logger.info("draws: {}, avg {} draws/sec", frames, 1e9 * frames / totalTime);
-            return true;
-        });
         spriteBatch = services.sprites.newBatch();
         cuddles = services.assets.load("images/htf-cuddles.jpg", OglRecipes.SPRITE);
         font = services.assets.load("fonts/Liberation Mono.sf", OglRecipes.SPRITE_FONT);
@@ -249,9 +240,11 @@ public final class AppConsole implements UiLayer, AutoCloseable {
 
     private void calculateHeight(int viewHeight) {
         final double t = glfwGetTime(), deltaTime = t - prevTime;
+        // well, it's much easier to do with per frame increments than with total toggle delta time,
+        // especially when toggle button is pressed again while previous toggle cycle is not yet complete
         prevTime = t;
         final double deltaHeight = (showing ? 1 : -1) * viewHeight * deltaTime / showTime;
-        consoleHeight = max(0, Math.min(viewHeight, consoleHeight + deltaHeight));
+        this.consoleHeight = max(0, Math.min(viewHeight, this.consoleHeight + deltaHeight));
     }
 
     private void drawConsole(int x0, int y0, int width, int height) {

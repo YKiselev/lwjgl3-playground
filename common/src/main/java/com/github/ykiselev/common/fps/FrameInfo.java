@@ -35,32 +35,53 @@ public final class FrameInfo {
         return window.length;
     }
 
+    /**
+     * @return total number of calls to {@link FrameInfo#add(double)}
+     */
     public long totalFrames() {
         return totalFrames;
     }
 
+    /**
+     * @return the minimum frame time (in milliseconds) in current window
+     */
     public double min() {
         return min;
     }
 
+    /**
+     * @return the maximum frame time (in milliseconds) in current window
+     */
     public double max() {
         return max;
     }
 
+    /**
+     * Note: accuracy of this value depends on window size.
+     *
+     * @return average frame time (in milliseconds) across values of current window
+     */
     public double avg() {
         return avg;
     }
 
+    /**
+     * @return frames per second derived from average frame time (1000/avg())
+     * @see FrameInfo#avg
+     */
     public double fps() {
         return avg != 0 ? 1000.0 / avg : 0;
     }
 
     /**
-     * Size ofwindow to aggregate frame times.
+     * Size of window to aggregate frame times.
      *
      * @param windowSize the size of sliding window to collect frame times
      */
     public FrameInfo(int windowSize) {
+        if (windowSize < 1) {
+            throw new IllegalArgumentException("Window size should be >= 1!");
+        }
         this.window = new double[windowSize];
     }
 

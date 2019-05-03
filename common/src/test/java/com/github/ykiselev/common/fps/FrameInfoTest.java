@@ -19,11 +19,26 @@ package com.github.ykiselev.common.fps;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
 public class FrameInfoTest {
+
+    @Test
+    public void shouldThrow() {
+        assertThrows(IllegalArgumentException.class, () -> new FrameInfo(0));
+    }
+
+    @Test
+    public void shouldSupportSmallWindow() {
+        FrameInfo info = new FrameInfo(1);
+        info.add(1);
+        info.add(3);
+        assertEquals(2, info.totalFrames());
+        assertEquals(3.0, info.avg());
+    }
 
     @Test
     public void shouldCaclulate() {
