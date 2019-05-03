@@ -16,8 +16,6 @@
 
 package com.github.ykiselev.spi;
 
-import com.github.ykiselev.spi.services.Services;
-
 /**
  * Implementing classes should have public no-arg constructor.
  *
@@ -25,5 +23,5 @@ import com.github.ykiselev.spi.services.Services;
  */
 public interface Factory<T> {
 
-    T create(Services services);
+    T create(GameHost host);
 }

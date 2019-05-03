@@ -19,6 +19,8 @@ package com.github.ykiselev.spi;
 import com.github.ykiselev.common.fps.FrameInfo;
 import com.github.ykiselev.spi.services.Services;
 
+import static java.util.Objects.requireNonNull;
+
 /**
  * @author Yuriy Kiselev (uze@yandex.ru)
  * @since 03.05.2019
@@ -32,8 +34,8 @@ public final class GameHost {
     public final FrameInfo frameInfo;
 
     public GameHost(ProgramArguments arguments, Services services, FrameInfo frameInfo) {
-        this.arguments = arguments;
-        this.services = services;
-        this.frameInfo = frameInfo;
+        this.arguments = requireNonNull(arguments);
+        this.services = requireNonNull(services);
+        this.frameInfo = requireNonNull(frameInfo);
     }
 }

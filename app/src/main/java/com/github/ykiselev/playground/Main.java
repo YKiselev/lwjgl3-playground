@@ -16,6 +16,7 @@
 
 package com.github.ykiselev.playground;
 
+import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.common.fps.FrameInfo;
 import com.github.ykiselev.playground.app.window.AppWindow;
 import com.github.ykiselev.playground.app.window.WindowBuilder;
@@ -34,9 +35,17 @@ import com.github.ykiselev.playground.services.fs.ClassPathResources;
 import com.github.ykiselev.playground.services.fs.DiskResources;
 import com.github.ykiselev.playground.services.schedule.AppSchedule;
 import com.github.ykiselev.playground.services.sound.AppSoundEffects;
+import com.github.ykiselev.spi.GameHost;
 import com.github.ykiselev.spi.ProgramArguments;
 import com.github.ykiselev.spi.api.Updateable;
+import com.github.ykiselev.spi.services.FileSystem;
 import com.github.ykiselev.spi.services.Services;
+import com.github.ykiselev.spi.services.SoundEffects;
+import com.github.ykiselev.spi.services.commands.Commands;
+import com.github.ykiselev.spi.services.configuration.PersistedConfiguration;
+import com.github.ykiselev.spi.services.layers.Sprites;
+import com.github.ykiselev.spi.services.layers.UiLayers;
+import com.github.ykiselev.spi.services.schedule.Schedule;
 import org.apache.logging.log4j.io.IoBuilder;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.slf4j.Logger;
@@ -65,12 +74,12 @@ public final class Main {
 
     private interface ServiceLayerDelegate {
 
-        void run(Services services) throws Exception;
+        void run(ProgramArguments arguments, FileSystem fileSystem, Commands commands, PersistedConfiguration configuration, Schedule schedule, UiLayers uiLayers, Assets assets, Sprites sprites, SoundEffects soundEffects) throws Exception;
     }
 
     private interface WindowLayerDelegate {
 
-        void run(Services services, AppWindow window) throws Exception;
+        void run(ProgramArguments arguments, Services services, AppWindow window) throws Exception;
     }
 
     interface GameLayerDelegate {
@@ -150,46 +159,58 @@ public final class Main {
                  AppSoundEffects soundEffects = new AppSoundEffects(config)
             ) {
                 delegate.run(
-                        new Services(
-                                arguments,
-                                fileSystem,
-                                commands,
-                                config,
-                                schedule,
-                                uiLayers,
-                                assets,
-                                sprites,
-                                soundEffects,
-                                new FrameInfo(60)
-                        )
+                        arguments,
+                        fileSystem,
+                        commands,
+                        config,
+                        schedule,
+                        uiLayers,
+                        assets,
+                        sprites,
+                        soundEffects
                 );
             }
         };
     }
 
     private ServiceLayerDelegate withWindow(WindowLayerDelegate delegate) {
-        return services -> {
+        return (arguments, fileSystem, commands, configuration, schedule, uiLayers, assets, sprites, soundEffects) -> {
             final WindowBuilder builder = new WindowBuilder()
-                    .fullScreen(services.arguments.fullScreen())
+                    .fullScreen(arguments.fullScreen())
                     .version(3, 3)
                     .coreProfile()
                     .debug(true)
                     .primaryMonitor()
                     .dimensions(800, 600)
-                    .events(services.uiLayers.events());
+                    .events(uiLayers.events());
             try (AppWindow window = builder.build("LWJGL PLayground")) {
                 window.show();
-                glfwSwapInterval(services.arguments.swapInterval());
-                delegate.run(services, window);
+                glfwSwapInterval(arguments.swapInterval());
+                delegate.run(
+                        arguments,
+                        new Services(
+                                fileSystem,
+                                commands,
+                                configuration,
+                                schedule,
+                                uiLayers,
+                                assets,
+                                sprites,
+                                soundEffects,
+                                window
+                        ),
+                        window
+                );
             }
         };
     }
 
     private WindowLayerDelegate withGame(GameLayerDelegate delegate) {
-        return (services, window) -> {
+        return (arguments, services, window) -> {
+            final GameHost gameHost = new GameHost(arguments, services, new FrameInfo(60));
             try (AppConsole console = ConsoleFactory.create(services);
                  AppMenu menu = new AppMenu(services);
-                 AppGame game = new AppGame(services)) {
+                 AppGame game = new AppGame(gameHost)) {
                 delegate.run(window, services, game);
             }
         };
@@ -198,6 +219,7 @@ public final class Main {
     private GameLayerDelegate withMainLoop() {
         return (window, services, game) -> {
             final AtomicBoolean exitFlag = new AtomicBoolean();
+            final FrameInfo frameInfo = new FrameInfo(60);
             try (AutoCloseable ac = services.commands.add("quit", () -> exitFlag.set(true))) {
                 logger.info("Entering main loop...");
                 // todo - remove that
@@ -211,7 +233,7 @@ public final class Main {
                     window.swapBuffers();
                     services.schedule.processPendingTasks(2);
                     final double t1 = glfwGetTime();
-                    services.frameInfo.add((t1 - t0) * 1000.0);
+                    frameInfo.add((t1 - t0) * 1000.0);
                 }
                 services.persistedConfiguration.persist();
             }

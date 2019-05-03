@@ -19,9 +19,9 @@ package com.github.ykiselev.playground.services;
 import com.github.ykiselev.common.closeables.Closeables;
 import com.github.ykiselev.common.closeables.CompositeAutoCloseable;
 import com.github.ykiselev.spi.GameFactory;
+import com.github.ykiselev.spi.GameHost;
 import com.github.ykiselev.spi.api.Updateable;
 import com.github.ykiselev.spi.components.Game;
-import com.github.ykiselev.spi.services.Services;
 
 import java.util.ServiceLoader;
 
@@ -32,7 +32,7 @@ import static java.util.Objects.requireNonNull;
  */
 public final class AppGame implements Updateable, AutoCloseable {
 
-    private final Services services;
+    private final GameHost host;
 
     private volatile Game game;
 
@@ -40,11 +40,11 @@ public final class AppGame implements Updateable, AutoCloseable {
 
     private final AutoCloseable subscriptions;
 
-    public AppGame(Services services) {
-        this.services = requireNonNull(services);
+    public AppGame(GameHost host) {
+        this.host = requireNonNull(host);
         this.subscriptions = new CompositeAutoCloseable(
-                services.commands.add("new-game", this::newGame),
-                services.persistedConfiguration.wire()
+                host.services.commands.add("new-game", this::newGame),
+                host.services.persistedConfiguration.wire()
                         .withBoolean("game.isPresent", () -> game != null, false)
                         .build()
         );
@@ -69,17 +69,17 @@ public final class AppGame implements Updateable, AutoCloseable {
             closeGame();
             game = ServiceLoader.load(GameFactory.class)
                     .findFirst()
-                    .map(f -> f.create(services))
+                    .map(f -> f.create(host))
                     .orElseThrow(() -> new IllegalStateException("Game factory service not found!"));
-            services.uiLayers.add(game);
-            services.uiLayers.removePopups();
+            host.services.uiLayers.add(game);
+            host.services.uiLayers.removePopups();
         }
     }
 
     private void closeGame() {
         synchronized (lock) {
             if (game != null) {
-                services.uiLayers.remove(game);
+                host.services.uiLayers.remove(game);
                 Closeables.close(game);
                 game = null;
             }
