@@ -22,11 +22,19 @@ package com.github.ykiselev.spi;
  */
 public final class MonitorInfo {
 
+    public final long monitor;
+
     public final float xScale;
 
     public final float yScale;
 
-    public MonitorInfo(float xScale, float yScale) {
+    /**
+     * @param monitor LWGL monitor handle
+     * @param xScale  monitor content x scale
+     * @param yScale  monitor content y scale
+     */
+    public MonitorInfo(long monitor, float xScale, float yScale) {
+        this.monitor = monitor;
         this.xScale = xScale;
         this.yScale = yScale;
     }

@@ -264,7 +264,7 @@ public final class Main {
             final FloatBuffer xs = stack.mallocFloat(1);
             final FloatBuffer ys = stack.mallocFloat(1);
             GLFW.glfwGetMonitorContentScale(monitor, xs, ys);
-            return new MonitorInfo(xs.get(0), ys.get(0));
+            return new MonitorInfo(monitor, xs.get(0), ys.get(0));
         }
     }
 
