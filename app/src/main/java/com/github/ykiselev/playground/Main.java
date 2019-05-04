@@ -38,7 +38,6 @@ import com.github.ykiselev.playground.services.sound.AppSoundEffects;
 import com.github.ykiselev.spi.GameHost;
 import com.github.ykiselev.spi.MonitorInfo;
 import com.github.ykiselev.spi.ProgramArguments;
-import com.github.ykiselev.spi.api.Updateable;
 import com.github.ykiselev.spi.services.FileSystem;
 import com.github.ykiselev.spi.services.Services;
 import com.github.ykiselev.spi.services.SoundEffects;
@@ -57,8 +56,11 @@ import org.slf4j.LoggerFactory;
 
 import java.io.PrintStream;
 import java.nio.FloatBuffer;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static java.util.Objects.requireNonNull;
 import static org.lwjgl.glfw.GLFW.glfwGetTime;
 import static org.lwjgl.glfw.GLFW.glfwInit;
 import static org.lwjgl.glfw.GLFW.glfwSetErrorCallback;
@@ -72,25 +74,9 @@ public final class Main {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private interface AppLayerDelegate {
+    private interface Delegate {
 
-        void run(ProgramArguments arguments) throws Exception;
-    }
-
-    private interface ServiceLayerDelegate {
-
-        void run(ProgramArguments arguments, FileSystem fileSystem, Commands commands, PersistedConfiguration configuration,
-                 Schedule schedule, UiLayers uiLayers, Assets assets, Sprites sprites, SoundEffects soundEffects) throws Exception;
-    }
-
-    private interface WindowLayerDelegate {
-
-        void run(ProgramArguments arguments, Services services, AppWindow window) throws Exception;
-    }
-
-    interface GameLayerDelegate {
-
-        void run(AppWindow window, GameHost host, Updateable game) throws Exception;
+        void run(Context services) throws Exception;
     }
 
     public static void main(String[] args) throws Exception {
@@ -102,39 +88,63 @@ public final class Main {
             withGlfw(
                     withErrorCallback(
                             withStdOutLogging(
-                                    withServices(
-                                            withWindow(
-                                                    withGame(
-                                                            withMainLoop()
+                                    withFileSystem(
+                                            withMonitorInfo(
+                                                    withAssets(
+                                                            withCommands(
+                                                                    withPersistedConfiguration(
+                                                                            withSchedule(
+                                                                                    withUiLayers(
+                                                                                            withSprites(
+                                                                                                    withSoundEffects(
+                                                                                                            withWindow(
+                                                                                                                    withServices(
+                                                                                                                            withGameHost(
+                                                                                                                                    withConsole(
+                                                                                                                                            withMenu(
+                                                                                                                                                    withGame(
+                                                                                                                                                            withMainLoop()
+                                                                                                                                                    )
+                                                                                                                                            )
+                                                                                                                                    )
+                                                                                                                            )
+                                                                                                                    )
+                                                                                                            )
+                                                                                                    )
+                                                                                            )
+                                                                                    )
+                                                                            )
+                                                                    )
+                                                            )
                                                     )
                                             )
                                     )
                             )
                     )
-            ).run(arguments);
+            ).run(new Context(ProgramArguments.class, arguments));
         } catch (Exception e) {
             logger.error("Unhandled exception!", e);
             throw e;
         }
     }
 
-    private AppLayerDelegate withGlfw(AppLayerDelegate delegate) {
-        return arguments -> {
+    private Delegate withGlfw(Delegate delegate) {
+        return context -> {
             glfwInit();
             try {
-                delegate.run(arguments);
+                delegate.run(context);
             } finally {
                 glfwTerminate();
             }
         };
     }
 
-    private AppLayerDelegate withErrorCallback(AppLayerDelegate delegate) {
-        return arguments -> {
+    private Delegate withErrorCallback(Delegate delegate) {
+        return context -> {
             try (GLFWErrorCallback callback = GLFWErrorCallback.createPrint(System.err)) {
                 final GLFWErrorCallback previous = glfwSetErrorCallback(callback);
                 try {
-                    delegate.run(arguments);
+                    delegate.run(context);
                 } finally {
                     glfwSetErrorCallback(previous);
                 }
@@ -142,108 +152,193 @@ public final class Main {
         };
     }
 
-    private AppLayerDelegate withStdOutLogging(AppLayerDelegate delegate) {
-        return arguments -> {
+    private Delegate withStdOutLogging(Delegate delegate) {
+        return context -> {
             final PrintStream std = IoBuilder.forLogger("STD").buildPrintStream();
             System.setOut(std);
             System.setErr(std);
-            delegate.run(arguments);
+            delegate.run(context);
         };
     }
 
-    private AppLayerDelegate withServices(ServiceLayerDelegate delegate) {
-        return arguments -> {
-            final long monitor = getMonitor(arguments.monitor());
-            final MonitorInfo monitorInfo = getMonitorInfo(monitor);
+    private Delegate withFileSystem(Delegate delegate) {
+        return context -> {
+            final ProgramArguments arguments = context.get(ProgramArguments.class);
             try (AppFileSystem fileSystem = new AppFileSystem(
                     new DiskResources(arguments.assetPaths()),
-                    new ClassPathResources(Main.class.getClassLoader()));
-                 GameAssets assets = GameAssets.create(fileSystem, monitorInfo);
-                 AppCommands commands = new AppCommands(new DefaultTokenizer());
-                 AppConfig config = new AppConfig(fileSystem);
-                 AppSchedule schedule = new AppSchedule();
-                 AppUiLayers uiLayers = new AppUiLayers();
-                 AppSprites sprites = new AppSprites(assets);
-                 AppSoundEffects soundEffects = new AppSoundEffects(config)
+                    new ClassPathResources(Main.class.getClassLoader()))
             ) {
-                delegate.run(
-                        arguments,
-                        fileSystem,
-                        commands,
-                        config,
-                        schedule,
-                        uiLayers,
-                        assets,
-                        sprites,
-                        soundEffects
-                );
+                delegate.run(context.with(FileSystem.class, fileSystem));
             }
         };
     }
 
-    private ServiceLayerDelegate withWindow(WindowLayerDelegate delegate) {
-        return (arguments, fileSystem, commands, configuration, schedule, uiLayers, assets, sprites, soundEffects) -> {
+    private Delegate withMonitorInfo(Delegate delegate) {
+        return context -> {
+            final long monitor = getMonitor(context.get(ProgramArguments.class).monitor());
+            final MonitorInfo monitorInfo = getMonitorInfo(monitor);
+            delegate.run(context.with(MonitorInfo.class, monitorInfo));
+        };
+    }
+
+    private Delegate withAssets(Delegate delegate) {
+        return context -> {
+            try (GameAssets assets = GameAssets.create(context.get(FileSystem.class), context.get(MonitorInfo.class))) {
+                delegate.run(context.with(Assets.class, assets));
+            }
+        };
+    }
+
+    private Delegate withCommands(Delegate delegate) {
+        return context -> {
+            try (AppCommands commands = new AppCommands(new DefaultTokenizer())) {
+                delegate.run(context.with(Commands.class, commands));
+            }
+        };
+    }
+
+    private Delegate withPersistedConfiguration(Delegate delegate) {
+        return context -> {
+            try (AppConfig config = new AppConfig(context.get(FileSystem.class))) {
+                delegate.run(context.with(PersistedConfiguration.class, config));
+            }
+        };
+    }
+
+    private Delegate withSchedule(Delegate delegate) {
+        return context -> {
+            try (AppSchedule schedule = new AppSchedule()) {
+                delegate.run(context.with(Schedule.class, schedule));
+            }
+        };
+    }
+
+    private Delegate withUiLayers(Delegate delegate) {
+        return context -> {
+            try (AppUiLayers uiLayers = new AppUiLayers()) {
+                delegate.run(context.with(UiLayers.class, uiLayers));
+            }
+        };
+    }
+
+    private Delegate withSprites(Delegate delegate) {
+        return context -> {
+            try (AppSprites sprites = new AppSprites(context.get(Assets.class))) {
+                delegate.run(context.with(Sprites.class, sprites));
+            }
+        };
+    }
+
+    private Delegate withSoundEffects(Delegate delegate) {
+        return context -> {
+            try (AppSoundEffects soundEffects = new AppSoundEffects(context.get(PersistedConfiguration.class))) {
+                delegate.run(context.with(SoundEffects.class, soundEffects));
+            }
+        };
+    }
+
+    private Delegate withWindow(Delegate delegate) {
+        return context -> {
             final WindowBuilder builder = new WindowBuilder()
-                    .fullScreen(arguments.fullScreen())
+                    .fullScreen(context.get(ProgramArguments.class).fullScreen())
                     .version(3, 3)
                     .coreProfile()
                     .debug(true)
-                    .monitor(arguments.monitor())
+                    .monitor(context.get(MonitorInfo.class).monitor)
                     .dimensions(800, 600)
-                    .events(uiLayers.events());
+                    .events(context.get(UiLayers.class).events());
             try (AppWindow window = builder.build("LWJGL PLayground")) {
                 window.show();
-                glfwSwapInterval(arguments.swapInterval());
+                window.makeCurrent();
+                delegate.run(context.with(AppWindow.class, window));
+            }
+        };
+    }
+
+    private Delegate withServices(Delegate delegate) {
+        return context ->
                 delegate.run(
-                        arguments,
-                        new Services(
-                                fileSystem,
-                                commands,
-                                configuration,
-                                schedule,
-                                uiLayers,
-                                assets,
-                                sprites,
-                                soundEffects,
-                                window
-                        ),
-                        window
+                        context.with(
+                                Services.class,
+                                new Services(
+                                        context.get(FileSystem.class),
+                                        context.get(Commands.class),
+                                        context.get(PersistedConfiguration.class),
+                                        context.get(Schedule.class),
+                                        context.get(UiLayers.class),
+                                        context.get(Assets.class),
+                                        context.get(Sprites.class),
+                                        context.get(SoundEffects.class),
+                                        context.get(AppWindow.class)
+                                )
+                        )
                 );
+    }
+
+    private Delegate withGameHost(Delegate delegate) {
+        return context ->
+                delegate.run(
+                        context.with(
+                                GameHost.class,
+                                new GameHost(
+                                        context.get(ProgramArguments.class),
+                                        context.get(Services.class),
+                                        new FrameInfo(60)
+                                )
+                        )
+                );
+    }
+
+    private Delegate withConsole(Delegate delegate) {
+        return context -> {
+            try (AppConsole console = ConsoleFactory.create(context.get(Services.class))) {
+                delegate.run(context.with(AppConsole.class, console));
             }
         };
     }
 
-    private WindowLayerDelegate withGame(GameLayerDelegate delegate) {
-        return (arguments, services, window) -> {
-            final GameHost gameHost = new GameHost(arguments, services, new FrameInfo(60));
-            try (AppConsole console = ConsoleFactory.create(services);
-                 AppMenu menu = new AppMenu(services);
-                 AppGame game = new AppGame(gameHost)) {
-                delegate.run(window, gameHost, game);
+    private Delegate withMenu(Delegate delegate) {
+        return context -> {
+            try (AppMenu menu = new AppMenu(context.get(Services.class))) {
+                delegate.run(context.with(AppMenu.class, menu));
             }
         };
     }
 
-    private GameLayerDelegate withMainLoop() {
-        return (window, host, game) -> {
+    private Delegate withGame(Delegate delegate) {
+        return context -> {
+            try (AppGame game = new AppGame(context.get(GameHost.class))) {
+                delegate.run(context.with(AppGame.class, game));
+            }
+        };
+    }
+
+    private Delegate withMainLoop() {
+        return context -> {
             final AtomicBoolean exitFlag = new AtomicBoolean();
-            try (AutoCloseable ac = host.services.commands.add("quit", () -> exitFlag.set(true))) {
+            final Services services = context.get(Services.class);
+            final AppWindow window = context.get(AppWindow.class);
+            final GameHost host = context.get(GameHost.class);
+            final AppGame game = context.get(AppGame.class);
+            try (AutoCloseable ac = services.commands.add("quit", () -> exitFlag.set(true))) {
                 logger.info("Entering main loop...");
+                window.makeCurrent();
+                glfwSwapInterval(host.arguments.swapInterval());
                 // todo - remove that
-                host.services.commands.execute("new-game");
+                services.commands.execute("new-game");
                 //
                 while (!window.shouldClose() && !exitFlag.get()) {
                     final double t0 = glfwGetTime();
                     window.makeCurrent();
                     game.update();
                     window.checkEvents();
-                    host.services.uiLayers.draw();
+                    services.uiLayers.draw();
                     window.swapBuffers();
-                    host.services.schedule.processPendingTasks(2);
+                    services.schedule.processPendingTasks(2);
                     final double t1 = glfwGetTime();
                     host.frameInfo.add((t1 - t0) * 1000.0);
                 }
-                host.services.persistedConfiguration.persist();
+                services.persistedConfiguration.persist();
             }
         };
     }
@@ -268,4 +363,32 @@ public final class Main {
         }
     }
 
+    private static final class Context {
+
+        private final Map<Class<?>, Object> map;
+
+        private Context(Map<Class<?>, Object> map) {
+            this.map = map;
+        }
+
+        private Context(Class<?> key, Object value) {
+            this(Map.of(key, value));
+        }
+
+        Context with(Class<?> key, Object value) {
+            @SuppressWarnings("unchecked") final Map.Entry<Class<?>, Object>[] entries = new Map.Entry[map.size() + 1];
+            final Iterator<Map.Entry<Class<?>, Object>> it = map.entrySet().iterator();
+            int i = 0;
+            while (it.hasNext()) {
+                entries[i++] = it.next();
+            }
+            entries[i] = Map.entry(key, value);
+            return new Context(Map.ofEntries(entries));
+        }
+
+        @SuppressWarnings("unchecked")
+        <T> T get(Class<T> clazz) {
+            return (T) requireNonNull(map.get(clazz));
+        }
+    }
 }
