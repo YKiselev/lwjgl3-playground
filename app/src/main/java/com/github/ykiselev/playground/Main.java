@@ -56,8 +56,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.PrintStream;
 import java.nio.FloatBuffer;
-import java.util.Iterator;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.util.Objects.requireNonNull;
@@ -365,30 +363,45 @@ public final class Main {
 
     private static final class Context {
 
-        private final Map<Class<?>, Object> map;
+        static final class Node {
 
-        private Context(Map<Class<?>, Object> map) {
-            this.map = map;
+            final Class<?> key;
+
+            final Object value;
+
+            final Node next;
+
+            Node(Class<?> key, Object value, Node next) {
+                this.key = key;
+                this.value = value;
+                this.next = next;
+            }
         }
 
-        private Context(Class<?> key, Object value) {
-            this(Map.of(key, value));
+        private final Node head;
+
+        Context(Node head) {
+            this.head = head;
+        }
+
+        Context(Class<?> key, Object value) {
+            this(new Node(key, value, null));
         }
 
         Context with(Class<?> key, Object value) {
-            @SuppressWarnings("unchecked") final Map.Entry<Class<?>, Object>[] entries = new Map.Entry[map.size() + 1];
-            final Iterator<Map.Entry<Class<?>, Object>> it = map.entrySet().iterator();
-            int i = 0;
-            while (it.hasNext()) {
-                entries[i++] = it.next();
-            }
-            entries[i] = Map.entry(key, value);
-            return new Context(Map.ofEntries(entries));
+            return new Context(new Node(key, value, head));
         }
 
         @SuppressWarnings("unchecked")
         <T> T get(Class<T> clazz) {
-            return (T) requireNonNull(map.get(clazz));
+            Node node = this.head;
+            while (node != null) {
+                if (clazz.equals(node.key)) {
+                    return (T) requireNonNull(node.value);
+                }
+                node = node.next;
+            }
+            throw new IllegalArgumentException("Not found: " + clazz);
         }
     }
 }
