@@ -14,19 +14,13 @@
  * limitations under the License.
  */
 
-package com.github.ykiselev.playground;
-
-import com.github.ykiselev.playground.init.AppComposition;
-import com.github.ykiselev.spi.ProgramArguments;
+package com.github.ykiselev.playground.init;
 
 /**
- * @author Yuriy Kiselev (uze@yandex.ru).
+ * @author Yuriy Kiselev (uze@yandex.ru)
+ * @since 05.05.2019
  */
-public final class Main {
+interface Delegate {
 
-    public static void main(String[] args) throws Exception {
-        new AppComposition()
-                .run(new ProgramArguments(args));
-    }
-
+    void run(Context services) throws Exception;
 }
