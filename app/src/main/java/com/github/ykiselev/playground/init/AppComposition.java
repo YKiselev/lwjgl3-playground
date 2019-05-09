@@ -313,7 +313,7 @@ public final class AppComposition {
                 logger.info("Entering main loop...");
                 window.makeCurrent();
                 glfwSwapInterval(host.arguments.swapInterval());
-                // todo - remove that
+                // todo - remove that (why?)
                 services.commands.execute("new-game");
                 //
                 while (!window.shouldClose() && !exitFlag.get()) {

@@ -23,6 +23,7 @@ import org.lwjgl.glfw.GLFWFramebufferSizeCallback;
 import org.lwjgl.glfw.GLFWKeyCallback;
 import org.lwjgl.glfw.GLFWMouseButtonCallback;
 import org.lwjgl.glfw.GLFWScrollCallback;
+import org.lwjgl.glfw.GLFWWindowRefreshCallback;
 import org.lwjgl.glfw.GLFWWindowSizeCallback;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GLCapabilities;
@@ -52,6 +53,7 @@ import static org.lwjgl.glfw.GLFW.glfwSetFramebufferSizeCallback;
 import static org.lwjgl.glfw.GLFW.glfwSetKeyCallback;
 import static org.lwjgl.glfw.GLFW.glfwSetMouseButtonCallback;
 import static org.lwjgl.glfw.GLFW.glfwSetScrollCallback;
+import static org.lwjgl.glfw.GLFW.glfwSetWindowRefreshCallback;
 import static org.lwjgl.glfw.GLFW.glfwSetWindowSizeCallback;
 import static org.lwjgl.glfw.GLFW.glfwWindowHint;
 import static org.lwjgl.opengl.GL11.GL_FALSE;
@@ -190,6 +192,7 @@ public final class WindowBuilder {
         glfwSetCursorPosCallback(window, GLFWCursorPosCallback.create(result::onCursorPosition));
         glfwSetScrollCallback(window, GLFWScrollCallback.create(result::onScroll));
         glfwSetMouseButtonCallback(window, GLFWMouseButtonCallback.create(result::onMouseButton));
+        glfwSetWindowRefreshCallback(window, GLFWWindowRefreshCallback.create(result::onRefresh));
         return result;
     }
 }

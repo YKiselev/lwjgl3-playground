@@ -116,6 +116,12 @@ public final class AppWindow implements AutoCloseable, Window {
         windowEvents.scrollEvent(dx, dy);
     }
 
+    /**
+     * Event handlers left package-private to be accessible form {@link WindowBuilder} class.
+     */
+    void onRefresh(long window) {
+    }
+
     @Override
     public void close() {
         GL.setCapabilities(null);
