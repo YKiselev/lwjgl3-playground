@@ -6,7 +6,7 @@ module ykiselev.playground.common {
     requires ykiselev.wrap;
     requires ykiselev.assets.api;
     requires org.lwjgl;
-    requires commons.io;
+    requires org.apache.commons.io;
     requires config;
     requires static java.management;
 
