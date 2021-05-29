@@ -80,7 +80,7 @@ public final class Matrix {
      * @param bottom the bottom screen coordinate (usually 0)
      * @param near   the near z value (for example -1)
      * @param far    the far z coordinate (for example 1)
-     * @param m      the buffer to store rersulting matrix in.
+     * @param m      the buffer to store resulting matrix in.
      */
     public static void orthographic(float left, float right, float top, float bottom, float near, float far, FloatBuffer m) {
         m.clear()

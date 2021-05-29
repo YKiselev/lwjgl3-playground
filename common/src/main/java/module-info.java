@@ -28,4 +28,5 @@ module ykiselev.playground.common {
     exports com.github.ykiselev.common.tree;
     exports com.github.ykiselev.common.trigger;
     exports com.github.ykiselev.common.math;
+    exports com.github.ykiselev.common.recursion;
 }
