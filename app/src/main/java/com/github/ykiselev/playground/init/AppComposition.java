@@ -75,43 +75,6 @@ public final class AppComposition {
 
     public void run(ProgramArguments arguments) throws Exception {
         try {
-/*            withGlfw(
-                    withErrorCallback(
-                            withStdOutLogging(
-                                    withFileSystem(
-                                            withMonitorInfo(
-                                                    withAssets(
-                                                            withCommands(
-                                                                    withPersistedConfiguration(
-                                                                            withSchedule(
-                                                                                    withUiLayers(
-                                                                                            withSprites(
-                                                                                                    withSoundEffects(
-                                                                                                            withWindow(
-                                                                                                                    withServices(
-                                                                                                                            withGameHost(
-                                                                                                                                    withConsole(
-                                                                                                                                            withMenu(
-                                                                                                                                                    withGame(
-                                                                                                                                                            withMainLoop()
-                                                                                                                                                    )
-                                                                                                                                            )
-                                                                                                                                    )
-                                                                                                                            )
-                                                                                                                    )
-                                                                                                            )
-                                                                                                    )
-                                                                                            )
-                                                                                    )
-                                                                            )
-                                                                    )
-                                                            )
-                                                    )
-                                            )
-                                    )
-                            )
-                    )
-            )*/
             delegate.run(new Context(ProgramArguments.class, arguments));
         } catch (Exception e) {
             logger.error("Unhandled exception!", e);
@@ -243,7 +206,7 @@ public final class AppComposition {
                     .monitor(context.get(MonitorInfo.class).monitor)
                     .dimensions(800, 600)
                     .events(context.get(UiLayers.class).events());
-            try (AppWindow window = builder.build("LWJGL PLayground")) {
+            try (AppWindow window = builder.build("LWJGL Playground")) {
                 window.show();
                 window.makeCurrent();
                 delegate.run(context.with(AppWindow.class, window));
