@@ -25,7 +25,25 @@ import com.github.ykiselev.spi.ProgramArguments;
 public final class Main {
 
     public static void main(String[] args) throws Exception {
-        new AppComposition()
+        AppComposition.withMainLoop()
+                .withGame()
+                .withMenu()
+                .withConsole()
+                .withGameHost()
+                .withServices()
+                .withWindow()
+                .withSoundEffects()
+                .withSprites()
+                .withUiLayers()
+                .withSchedule()
+                .withPersistedConfiguration()
+                .withCommands()
+                .withAssets()
+                .withMonitorInfo()
+                .withFileSystem()
+                .withErrorCallback()
+                .withStdOutLogging()
+                .withGlfw()
                 .run(new ProgramArguments(args));
     }
 

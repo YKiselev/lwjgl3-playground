@@ -65,11 +65,17 @@ import static org.lwjgl.glfw.GLFW.glfwTerminate;
  */
 public final class AppComposition {
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+    private static final Logger logger = LoggerFactory.getLogger(AppComposition.class);
+
+    private final Delegate delegate;
+
+    private AppComposition(Delegate delegate) {
+        this.delegate = delegate;
+    }
 
     public void run(ProgramArguments arguments) throws Exception {
         try {
-            withGlfw(
+/*            withGlfw(
                     withErrorCallback(
                             withStdOutLogging(
                                     withFileSystem(
@@ -105,26 +111,27 @@ public final class AppComposition {
                                     )
                             )
                     )
-            ).run(new Context(ProgramArguments.class, arguments));
+            )*/
+            delegate.run(new Context(ProgramArguments.class, arguments));
         } catch (Exception e) {
             logger.error("Unhandled exception!", e);
             throw e;
         }
     }
 
-    private Delegate withGlfw(Delegate delegate) {
-        return context -> {
+    public AppComposition withGlfw() {
+        return new AppComposition(context -> {
             glfwInit();
             try {
                 delegate.run(context);
             } finally {
                 glfwTerminate();
             }
-        };
+        });
     }
 
-    private Delegate withErrorCallback(Delegate delegate) {
-        return context -> {
+    public AppComposition withErrorCallback() {
+        return new AppComposition(context -> {
             try (GLFWErrorCallback callback = GLFWErrorCallback.createPrint(System.err)) {
                 final GLFWErrorCallback previous = glfwSetErrorCallback(callback);
                 try {
@@ -133,20 +140,20 @@ public final class AppComposition {
                     glfwSetErrorCallback(previous);
                 }
             }
-        };
+        });
     }
 
-    private Delegate withStdOutLogging(Delegate delegate) {
-        return context -> {
+    public AppComposition withStdOutLogging() {
+        return new AppComposition(context -> {
             final PrintStream std = IoBuilder.forLogger("STD").buildPrintStream();
             System.setOut(std);
             System.setErr(std);
             delegate.run(context);
-        };
+        });
     }
 
-    private Delegate withFileSystem(Delegate delegate) {
-        return context -> {
+    public AppComposition withFileSystem() {
+        return new AppComposition(context -> {
             final ProgramArguments arguments = context.get(ProgramArguments.class);
             try (AppFileSystem fileSystem = new AppFileSystem(
                     new DiskResources(arguments.assetPaths()),
@@ -154,11 +161,11 @@ public final class AppComposition {
             ) {
                 delegate.run(context.with(FileSystem.class, fileSystem));
             }
-        };
+        });
     }
 
-    private Delegate withMonitorInfo(Delegate delegate) {
-        return context -> {
+    public AppComposition withMonitorInfo() {
+        return new AppComposition(context -> {
             delegate.run(
                     context.with(
                             MonitorInfo.class,
@@ -167,72 +174,72 @@ public final class AppComposition {
                             )
                     )
             );
-        };
+        });
     }
 
-    private Delegate withAssets(Delegate delegate) {
-        return context -> {
+    public AppComposition withAssets() {
+        return new AppComposition(context -> {
             try (GameAssets assets = GameAssets.create(context.get(FileSystem.class), context.get(MonitorInfo.class))) {
                 delegate.run(context.with(Assets.class, assets));
             }
-        };
+        });
     }
 
-    private Delegate withCommands(Delegate delegate) {
-        return context -> {
+    public AppComposition withCommands() {
+        return new AppComposition(context -> {
             try (AppCommands commands = new AppCommands(new DefaultTokenizer())) {
                 delegate.run(context.with(Commands.class, commands));
             }
-        };
+        });
     }
 
-    private Delegate withPersistedConfiguration(Delegate delegate) {
-        return context -> {
+    public AppComposition withPersistedConfiguration() {
+        return new AppComposition(context -> {
             try (AppConfig config = new AppConfig(context.get(FileSystem.class))) {
                 delegate.run(context.with(PersistedConfiguration.class, config));
             }
-        };
+        });
     }
 
-    private Delegate withSchedule(Delegate delegate) {
-        return context -> {
+    public AppComposition withSchedule() {
+        return new AppComposition(context -> {
             try (AppSchedule schedule = new AppSchedule()) {
                 delegate.run(context.with(Schedule.class, schedule));
             }
-        };
+        });
     }
 
-    private Delegate withUiLayers(Delegate delegate) {
-        return context -> {
+    public AppComposition withUiLayers() {
+        return new AppComposition(context -> {
             try (AppUiLayers uiLayers = new AppUiLayers()) {
                 delegate.run(context.with(UiLayers.class, uiLayers));
             }
-        };
+        });
     }
 
-    private Delegate withSprites(Delegate delegate) {
-        return context -> {
+    public AppComposition withSprites() {
+        return new AppComposition(context -> {
             try (AppSprites sprites = new AppSprites(context.get(Assets.class))) {
                 delegate.run(context.with(Sprites.class, sprites));
             }
-        };
+        });
     }
 
-    private Delegate withSoundEffects(Delegate delegate) {
-        return context -> {
+    public AppComposition withSoundEffects() {
+        return new AppComposition(context -> {
             try (AppSoundEffects soundEffects = new AppSoundEffects(context.get(PersistedConfiguration.class))) {
                 delegate.run(context.with(SoundEffects.class, soundEffects));
             }
-        };
+        });
     }
 
-    private Delegate withWindow(Delegate delegate) {
-        return context -> {
+    public AppComposition withWindow() {
+        return new AppComposition(context -> {
             final WindowBuilder builder = new WindowBuilder()
                     .fullScreen(context.get(ProgramArguments.class).fullScreen())
                     .version(3, 3)
                     .coreProfile()
-                    .debug(true)
+                    //.debug(true)
                     .monitor(context.get(MonitorInfo.class).monitor)
                     .dimensions(800, 600)
                     .events(context.get(UiLayers.class).events());
@@ -241,11 +248,11 @@ public final class AppComposition {
                 window.makeCurrent();
                 delegate.run(context.with(AppWindow.class, window));
             }
-        };
+        });
     }
 
-    private Delegate withServices(Delegate delegate) {
-        return context ->
+    public AppComposition withServices() {
+        return new AppComposition(context ->
                 delegate.run(
                         context.with(
                                 Services.class,
@@ -261,11 +268,11 @@ public final class AppComposition {
                                         context.get(AppWindow.class)
                                 )
                         )
-                );
+                ));
     }
 
-    private Delegate withGameHost(Delegate delegate) {
-        return context ->
+    public AppComposition withGameHost() {
+        return new AppComposition(context ->
                 delegate.run(
                         context.with(
                                 GameHost.class,
@@ -275,41 +282,44 @@ public final class AppComposition {
                                         new FrameInfo(60)
                                 )
                         )
-                );
+                ));
     }
 
-    private Delegate withConsole(Delegate delegate) {
-        return context -> {
+    public AppComposition withConsole() {
+        return new AppComposition(context -> {
             try (AppConsole console = ConsoleFactory.create(context.get(Services.class))) {
                 delegate.run(context.with(AppConsole.class, console));
             }
-        };
+        });
     }
 
-    private Delegate withMenu(Delegate delegate) {
-        return context -> {
+    public AppComposition withMenu() {
+        return new AppComposition(context -> {
             try (AppMenu menu = new AppMenu(context.get(Services.class))) {
                 delegate.run(context.with(AppMenu.class, menu));
             }
-        };
+        });
     }
 
-    private Delegate withGame(Delegate delegate) {
-        return context -> {
+    public AppComposition withGame() {
+        return new AppComposition(context -> {
             try (AppGame game = new AppGame(context.get(GameHost.class))) {
                 delegate.run(context.with(AppGame.class, game));
             }
-        };
+        });
     }
 
-    private Delegate withMainLoop() {
-        return context -> {
+    public static AppComposition withMainLoop() {
+        return new AppComposition(context -> {
             final AtomicBoolean exitFlag = new AtomicBoolean();
             final Services services = context.get(Services.class);
             final AppWindow window = context.get(AppWindow.class);
             final GameHost host = context.get(GameHost.class);
             final AppGame game = context.get(AppGame.class);
-            try (AutoCloseable ac = services.commands.add("quit", () -> exitFlag.set(true))) {
+            try (AutoCloseable ac = services.commands.add("quit", () -> {
+                logger.info("Exiting app...");
+                exitFlag.set(true);
+            })) {
                 logger.info("Entering main loop...");
                 window.makeCurrent();
                 glfwSwapInterval(host.arguments.swapInterval());
@@ -329,6 +339,6 @@ public final class AppComposition {
                 }
                 services.persistedConfiguration.persist();
             }
-        };
+        });
     }
 }
