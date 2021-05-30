@@ -100,7 +100,7 @@ final class ConsoleBuffer {
 
     void draw(DrawingContext ctx, int x0, int y0, int width, int height) {
         final TextAttributes textAttributes = ctx.textAttributes();
-        final Font font = ctx.font();
+        final Font font = ctx.textAttributes().font();
         final int lines = buffer.copyTo(snapshot);
 
         calculateOffset(font, snapshot, lines, height, width);

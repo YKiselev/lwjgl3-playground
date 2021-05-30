@@ -172,7 +172,7 @@ public final class DefaultCommandLine implements CommandLine {
 
     @Override
     public void draw(DrawingContext ctx, int x0, int y0, int width, int height) {
-        final Font font = ctx.font();
+        final Font font = ctx.textAttributes().font();
         final int y = y0 + font.lineSpace() + 3;
         final SpriteBatch batch = ctx.batch();
         final TextAttributes attributes = ctx.textAttributes();
