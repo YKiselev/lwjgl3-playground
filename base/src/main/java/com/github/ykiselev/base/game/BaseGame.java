@@ -139,7 +139,7 @@ public final class BaseGame implements Game {
         vp = MemoryUtil.memAllocFloat(16);
         frameBuffer = new FrameBuffer();
 
-        textAttributes.font(liberationMono.value());
+        textAttributes.spriteFont(liberationMono.value());
         textAttributes.alignment(TextAlignment.LEFT);
     }
 
@@ -323,7 +323,7 @@ public final class BaseGame implements Game {
         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
         GL11.glDisable(GL11.GL_DEPTH_TEST);
 
-        textAttributes.font(liberationMono.value());
+        textAttributes.spriteFont(liberationMono.value());
         textAttributes.alignment(TextAlignment.LEFT);
         textAttributes.color(Colors.WHITE);
 
@@ -345,7 +345,7 @@ public final class BaseGame implements Game {
         );
         // debug
         textAttributes.color(Colors.rgb(255, 255, 0));
-        textAttributes.font(null);
+        textAttributes.spriteFont(null);
         textAttributes.trueTypeFont(ttf);
         //spriteBatch.fill(10, 10, 100, 100, Colors.rgb(0, 255, 128));
         //spriteBatch.fill(10, height-40, 500, 100, Colors.rgb(0, 128, 255));

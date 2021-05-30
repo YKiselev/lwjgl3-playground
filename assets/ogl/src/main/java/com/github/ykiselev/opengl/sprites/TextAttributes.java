@@ -17,6 +17,7 @@
 package com.github.ykiselev.opengl.sprites;
 
 import com.github.ykiselev.opengl.fonts.TrueTypeFont;
+import com.github.ykiselev.opengl.text.Font;
 import com.github.ykiselev.opengl.text.SpriteFont;
 
 import java.util.EnumSet;
@@ -29,7 +30,7 @@ import static java.util.Objects.requireNonNull;
  */
 public final class TextAttributes {
 
-    private SpriteFont font;
+    private SpriteFont spriteFont;
 
     private TrueTypeFont trueTypeFont;
 
@@ -39,12 +40,13 @@ public final class TextAttributes {
 
     private Set<TextDrawingFlags> flags = EnumSet.noneOf(TextDrawingFlags.class);
 
-    public SpriteFont font() {
-        return font;
+    public SpriteFont spriteFont() {
+        return spriteFont;
     }
 
-    public void font(SpriteFont font) {
-        this.font = font;
+    public void spriteFont(SpriteFont font) {
+        this.trueTypeFont = null;
+        this.spriteFont = font;
     }
 
     public TrueTypeFont trueTypeFont() {
@@ -52,7 +54,12 @@ public final class TextAttributes {
     }
 
     public void trueTypeFont(TrueTypeFont trueTypeFont) {
+        this.spriteFont = null;
         this.trueTypeFont = trueTypeFont;
+    }
+
+    public Font font() {
+        return trueTypeFont != null ? trueTypeFont : spriteFont;
     }
 
     public TextAlignment alignment() {

@@ -93,5 +93,11 @@ public class CodePointsTest {
 
         assertEquals(11, codePoints.indexOf(220));
         assertEquals(21, codePoints.indexOf(230));
+
+        assertEquals(3, codePoints.indexOf(99, 3));
+        assertEquals(5, codePoints.indexOf(11, 5));
+
+        assertEquals(7, codePoints.indexOf(219, 7));
+        assertEquals(8, codePoints.indexOf(231, 8));
     }
 }

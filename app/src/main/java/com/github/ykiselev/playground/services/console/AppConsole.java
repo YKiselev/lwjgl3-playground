@@ -19,10 +19,12 @@ package com.github.ykiselev.playground.services.console;
 import com.github.ykiselev.common.closeables.Closeables;
 import com.github.ykiselev.common.closeables.CompositeAutoCloseable;
 import com.github.ykiselev.opengl.OglRecipes;
+import com.github.ykiselev.opengl.fonts.FontAtlas;
+import com.github.ykiselev.opengl.fonts.TrueTypeFont;
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
 import com.github.ykiselev.opengl.sprites.TextAttributes;
 import com.github.ykiselev.opengl.sprites.TextDrawingFlags;
-import com.github.ykiselev.opengl.text.SpriteFont;
+import com.github.ykiselev.opengl.text.Font;
 import com.github.ykiselev.opengl.textures.Texture2d;
 import com.github.ykiselev.spi.services.Services;
 import com.github.ykiselev.spi.services.layers.DrawingContext;
@@ -52,7 +54,9 @@ public final class AppConsole implements UiLayer, AutoCloseable {
 
     private final Wrap<? extends Texture2d> cuddles;
 
-    private final Wrap<SpriteFont> font;
+    private final Wrap<FontAtlas> atlas;
+
+
 
     private final WindowEvents events = new WindowEvents() {
         @Override
@@ -122,18 +126,15 @@ public final class AppConsole implements UiLayer, AutoCloseable {
         );
         spriteBatch = services.sprites.newBatch();
         cuddles = services.assets.load("images/htf-cuddles.jpg", OglRecipes.SPRITE);
-        font = services.assets.load("fonts/Liberation Mono.sf", OglRecipes.SPRITE_FONT);
+        atlas = services.assets.load("font-atlases/base.conf", OglRecipes.FONT_ATLAS);
+        final TrueTypeFont ttf = atlas.value().get("console");
+        //font = services.assets.load("fonts/Liberation Mono.sf", OglRecipes.SPRITE_FONT);
         final TextAttributes attributes = new TextAttributes();
-        attributes.font(font.value());
+        attributes.trueTypeFont(ttf);
         attributes.add(TextDrawingFlags.USE_COLOR_CONTROL_SEQUENCES);
         drawingContext = new DrawingContext() {
 
             private final StringBuilder sb = new StringBuilder();
-
-            @Override
-            public SpriteFont font() {
-                return font.value();
-            }
 
             @Override
             public SpriteBatch batch() {
@@ -267,6 +268,6 @@ public final class AppConsole implements UiLayer, AutoCloseable {
     @Override
     public void close() {
         services.uiLayers.remove(this);
-        Closeables.closeAll(font, cuddles, spriteBatch, ac);
+        Closeables.closeAll(atlas, cuddles, spriteBatch, ac);
     }
 }

@@ -158,7 +158,7 @@ public final class ListMenu implements UiLayer {
 
         context.batch().fill(0, 0, width, height, 0x000030df);
 
-        final SpriteFont font = context.font();
+        final SpriteFont font = context.textAttributes().spriteFont();
         final int cursorWidth;
         final Glyph glyph = font.glyph((char) 0x23f5);
         if (glyph != null) {

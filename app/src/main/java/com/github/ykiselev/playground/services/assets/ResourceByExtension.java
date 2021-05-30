@@ -28,16 +28,16 @@ import java.util.Map;
  */
 public final class ResourceByExtension implements ReadableAssets {
 
-    private final Map<String, ReadableAsset> map;
+    private final Map<String, ReadableAsset<?,?>> map;
 
-    public ResourceByExtension(Map<String, ReadableAsset> map) {
+    public ResourceByExtension(Map<String, ReadableAsset<?,?>> map) {
         this.map = map;
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public <K, T, C> ReadableAsset<T, C> resolve(String resource, Recipe<K, T, C> recipe) throws ResourceException {
-        return map.get(extension(resource));
+        return (ReadableAsset<T, C>) map.get(extension(resource));
     }
 
     private String extension(String resource) {

@@ -18,9 +18,8 @@ package com.github.ykiselev.playground.services.console;
 
 import com.github.ykiselev.common.circular.CircularBuffer;
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
-import com.github.ykiselev.opengl.sprites.TextAlignment;
-import com.github.ykiselev.opengl.sprites.TextBuilder;
-import com.github.ykiselev.opengl.text.SpriteFont;
+import com.github.ykiselev.opengl.sprites.TextAttributes;
+import com.github.ykiselev.opengl.text.Font;
 import com.github.ykiselev.spi.services.layers.DrawingContext;
 
 import static java.util.Objects.requireNonNull;
@@ -37,8 +36,6 @@ final class ConsoleBuffer {
     private final CircularBuffer<String> buffer;
 
     private final String[] snapshot;
-
-    private final TextBuilder textBuilder = new TextBuilder(200);
 
     private int offset;
 
@@ -65,12 +62,11 @@ final class ConsoleBuffer {
         }
     }
 
-    private void calculateOffset(SpriteFont font, String[] lines, int count, int viewHeight, int width) {
-        //final int lineHeight = font.height() + font.glyphYBorder();
+    private void calculateOffset(Font font, String[] lines, int count, int viewHeight, int width) {
         final int scrollSize = Math.max(1, viewHeight / 5);
         int totalHeight = 0;
         for (int i = count - 1; i >= 0; i--) {
-            totalHeight += font.height(lines[i], width) + font.glyphYBorder();
+            totalHeight += font.height(lines[i], width);
         }
         final int maxOffset = Math.max(0, totalHeight - viewHeight);
         switch (scrollAction) {
@@ -103,32 +99,21 @@ final class ConsoleBuffer {
     }
 
     void draw(DrawingContext ctx, int x0, int y0, int width, int height) {
-        final SpriteFont font = ctx.font();
-        //
-        textBuilder.font(font);
-        textBuilder.alignment(TextAlignment.LEFT);
-        textBuilder.maxWidth(width);
-        //
+        final TextAttributes textAttributes = ctx.textAttributes();
+        final Font font = ctx.font();
         final int lines = buffer.copyTo(snapshot);
 
         calculateOffset(font, snapshot, lines, height, width);
 
         final SpriteBatch batch = ctx.batch();
-        for (int i = lines - 1, skipped = 0, y = y0 + font.height() + font.glyphYBorder(); i >= 0; i--) {
+        for (int i = lines - 1, skipped = 0, y = y0 + font.lineSpace(); i >= 0; i--) {
             final String line = snapshot[i];
-            if (false) {
-                textBuilder.clear();
-                final int lineHeight = textBuilder.draw(line);
+            final int lineHeight = font.height(line, width);
+            if (skipped >= offset) {
                 y += lineHeight;
-                ctx.batch().draw(textBuilder, x0, y);
+                batch.draw(x0, y, width, line, textAttributes);
             } else {
-                final int lineHeight = font.height(line, width);
-                if (skipped >= offset) {
-                    y += lineHeight;
-                    batch.draw(x0, y, width, line, ctx.textAttributes());
-                } else {
-                    skipped += lineHeight;
-                }
+                skipped += lineHeight;
             }
             if (y >= height) {
                 break;

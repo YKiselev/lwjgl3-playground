@@ -16,6 +16,7 @@
 
 package com.github.ykiselev.opengl.text;
 
+import com.github.ykiselev.opengl.sprites.TexturedQuads;
 import com.github.ykiselev.opengl.textures.Texture2d;
 import com.github.ykiselev.wrap.Wrap;
 
@@ -44,6 +45,11 @@ public final class DefaultSpriteFont implements SpriteFont {
     @Override
     public int height() {
         return fontHeight;
+    }
+
+    @Override
+    public int lineSpace() {
+        return fontHeight + glyphYBorder;
     }
 
     @Override
@@ -83,8 +89,10 @@ public final class DefaultSpriteFont implements SpriteFont {
     @Override
     public int width(CharSequence text) {
         int w = 0, maxWidth = 0;
-        for (int i = 0; i < text.length(); i++) {
-            final char value = text.charAt(i);
+        for (int i = 0; i < text.length(); ) {
+            final int value = Character.codePointAt(text, i);
+            i += Character.charCount(value);
+
             if (value == '\r') {
                 continue;
             }
@@ -95,12 +103,17 @@ public final class DefaultSpriteFont implements SpriteFont {
                 w = 0;
                 continue;
             }
-            w += glyphOrDefault(value).width();
+            w += glyphOrDefault((char) value).width();
         }
         if (w > maxWidth) {
             maxWidth = w;
         }
         return maxWidth;
+    }
+
+    @Override
+    public int width(int codePoint) {
+        return glyphOrDefault((char) codePoint).width();
     }
 
     /**
@@ -112,7 +125,7 @@ public final class DefaultSpriteFont implements SpriteFont {
      */
     @Override
     public int height(CharSequence text, int width) {
-        final int dy = fontHeight + glyphYBorder;
+        final int dy = lineSpace();
         int lines = 0;
         int w = 0;
         for (int i = 0; i < text.length(); i++) {
@@ -147,5 +160,13 @@ public final class DefaultSpriteFont implements SpriteFont {
     @Override
     public void close() {
         texture.close();
+    }
+
+    @Override
+    public void addQuad(TexturedQuads quads, int codePoint, float x, float y, int color) {
+        final Glyph glyph = glyphOrDefault((char) codePoint);
+        final float x1 = x + glyph.width();
+        final float y1 = y + height();
+        quads.addQuad(x, y, glyph.s0(), glyph.t1(), x1, y1, glyph.s1(), glyph.t0(), color);
     }
 }

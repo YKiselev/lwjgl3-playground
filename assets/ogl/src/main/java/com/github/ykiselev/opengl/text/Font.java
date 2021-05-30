@@ -16,6 +16,8 @@
 
 package com.github.ykiselev.opengl.text;
 
+import com.github.ykiselev.opengl.sprites.TexturedQuads;
+
 /**
  * @author Yuriy Kiselev (uze@yandex.ru)
  * @since 07.04.2019
@@ -26,7 +28,11 @@ public interface Font extends AutoCloseable {
 
     int height();
 
+    int lineSpace();
+
     int width(CharSequence text);
+
+    int width(int codePoint);
 
     /**
      * Calculates actual height of {@code text}.
@@ -36,4 +42,19 @@ public interface Font extends AutoCloseable {
      * @return the actual text height.
      */
     int height(CharSequence text, int width);
+
+    /**
+     * Adds textured quad for specified code point to {@code quads}.
+     *
+     * @param quads     the target textured quads
+     * @param codePoint the code point to add quad for
+     * @param x         the base x-coordinate
+     * @param y         the base y-coordinate
+     * @param color     the color to use
+     */
+    void addQuad(TexturedQuads quads, int codePoint, float x, float y, int color);
+
+    default float getKernAdvance(int codePoint1, int codePoint2) {
+        return 0f;
+    }
 }

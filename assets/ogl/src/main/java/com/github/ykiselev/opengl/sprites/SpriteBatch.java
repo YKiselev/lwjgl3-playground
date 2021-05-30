@@ -64,16 +64,6 @@ public interface SpriteBatch extends AutoCloseable {
     int draw(int x, int y, int maxWidth, CharSequence text, TextAttributes attributes);
 
     /**
-     * Draws text at specified location with specified sprite font, maximum width and color.
-     * </p>
-     *
-     * @param builder the text builder to use
-     * @param x       the left coordinate of the origin of the text bounding rectangle
-     * @param y       the top coordinate of the origin of the text bounding rectangle
-     */
-    void draw(TextBuilder builder, int x, int y);
-
-    /**
      * Draws sprite represented as texture at specified location with specified width, height and color.
      * </p>
      *

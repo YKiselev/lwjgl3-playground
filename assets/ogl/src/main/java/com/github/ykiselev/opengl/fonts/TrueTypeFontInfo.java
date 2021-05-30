@@ -92,10 +92,6 @@ public final class TrueTypeFontInfo implements AutoCloseable {
         return stbtt_GetCodepointKernAdvance(info, codePoint1, codePoint2) * metrics.scale();
     }
 
-    public void getCodePointHMetrics(int codePoint, @Nullable IntBuffer advanceWidth, @Nullable IntBuffer leftSideBearing) {
-        stbtt_GetCodepointHMetrics(info, codePoint, advanceWidth, leftSideBearing);
-    }
-
     @Deprecated
     public IntDimensions calculateBitmapDimensions(int[] codePoints) {
         final int[] widths = new int[codePoints.length];
@@ -155,39 +151,6 @@ public final class TrueTypeFontInfo implements AutoCloseable {
             }
         }
         return bottom;
-    }
-
-    public float measureWidth(String text, int from, int to, boolean useKerning) {
-        int width = 0, maxWidth = 0;
-
-        try (MemoryStack stack = stackPush()) {
-            final IntBuffer advanceWidth = stack.mallocInt(1);
-
-            int i = from;
-            while (i < to) {
-                final int cp = text.codePointAt(i);
-                i += Character.charCount(cp);
-                if (cp == '\n') {
-                    if (width > maxWidth) {
-                        maxWidth = width;
-                    }
-                    width = 0;
-                    continue;
-                }
-
-                getCodePointHMetrics(cp, advanceWidth, null);
-                width += advanceWidth.get(0);
-
-                if (useKerning && i < to) {
-                    final int cp2 = text.codePointAt(i);
-                    width += getKernAdvance(cp, cp2);
-                }
-            }
-        }
-        if (width > maxWidth) {
-            maxWidth = width;
-        }
-        return maxWidth * metrics.scale();
     }
 
     public static TrueTypeFontInfo load(Wrap<ByteBuffer> fontData, float fontHeight) {

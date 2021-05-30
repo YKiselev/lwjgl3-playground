@@ -84,7 +84,7 @@ public final class GameAssets implements Assets, AutoCloseable {
     public static GameAssets create(Resources resources, MonitorInfo monitorInfo) {
         final ReadableConfig readableConfig = new ReadableConfig();
         final ReadableTexture2d readableTexture2d = new ReadableTexture2d();
-        final Map<String, ReadableAsset> byKey = Map.of(
+        final Map<String, ReadableAsset<?,?>> byKey = Map.of(
                 OglRecipes.CONFIG.key(), readableConfig,
                 OglRecipes.PROGRAM.key(), new ReadableProgramObject(),
                 OglRecipes.SPRITE_FONT.key(), new ReadableSpriteFont(),
@@ -94,7 +94,7 @@ public final class GameAssets implements Assets, AutoCloseable {
                 OglRecipes.TRUE_TYPE_FONT_INFO.key(), new ReadableTrueTypeFontInfo(monitorInfo.yScale),
                 OglRecipes.FONT_ATLAS.key(), new ReadableFontAtlas(512, 512)
         );
-        final Map<String, ReadableAsset> byExtension = Map.of(
+        final Map<String, ReadableAsset<?,?>> byExtension = Map.of(
                 "vs", new ReadableShaderObject(GL20.GL_VERTEX_SHADER),
                 "fs", new ReadableShaderObject(GL20.GL_FRAGMENT_SHADER),
                 "png", readableTexture2d,

@@ -16,7 +16,6 @@
 
 package com.github.ykiselev.playground.services.console;
 
-import com.github.ykiselev.spi.api.Named;
 import com.github.ykiselev.common.circular.ArrayCircularBuffer;
 import com.github.ykiselev.common.circular.CircularBuffer;
 import com.github.ykiselev.common.iterators.EndlessIterator;
@@ -25,6 +24,8 @@ import com.github.ykiselev.opengl.sprites.Colors;
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
 import com.github.ykiselev.opengl.sprites.TextAttributes;
 import com.github.ykiselev.opengl.sprites.TextDrawingFlags;
+import com.github.ykiselev.opengl.text.Font;
+import com.github.ykiselev.spi.api.Named;
 import com.github.ykiselev.spi.services.commands.CommandException;
 import com.github.ykiselev.spi.services.commands.Commands;
 import com.github.ykiselev.spi.services.commands.Commands.ExecutionContext;
@@ -171,13 +172,14 @@ public final class DefaultCommandLine implements CommandLine {
 
     @Override
     public void draw(DrawingContext ctx, int x0, int y0, int width, int height) {
-        final int y = y0 + ctx.font().height();
+        final Font font = ctx.font();
+        final int y = y0 + font.lineSpace() + 3;
         final SpriteBatch batch = ctx.batch();
         final TextAttributes attributes = ctx.textAttributes();
         final boolean restoreUseCcs = attributes.remove(TextDrawingFlags.USE_COLOR_CONTROL_SEQUENCES);
         batch.draw(x0, y, width, buf, attributes);
-        final int cursorWidth = ctx.font().width("_");
-        final float brightness = (float) Math.sin(6 * GLFW.glfwGetTime());
+        final int cursorWidth = font.width("_");
+        final float brightness = (float) Math.sin(8 * GLFW.glfwGetTime());
         final int prevColor = attributes.color();
         attributes.color(Colors.fade(prevColor, brightness));
         final int x = x0 + cursorWidth * cursorPos;
@@ -225,7 +227,7 @@ public final class DefaultCommandLine implements CommandLine {
                     for (int i = 0; i < 8 && it.hasNext(); i++) {
                         final Named v = it.next();
                         if (v instanceof ConfigValue) {
-                            logger.info(MARKER, "  {}=^0b\"{}\"", v.name(), v.toString());
+                            logger.info(MARKER, "  {}=^0b\"{}\"", v.name(), v);
                         } else {
                             logger.info(MARKER, "  {}", v.name());
                         }

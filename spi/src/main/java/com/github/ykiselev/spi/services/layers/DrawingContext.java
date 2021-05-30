@@ -18,14 +18,20 @@ package com.github.ykiselev.spi.services.layers;
 
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
 import com.github.ykiselev.opengl.sprites.TextAttributes;
-import com.github.ykiselev.opengl.text.SpriteFont;
+import com.github.ykiselev.opengl.text.Font;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
 public interface DrawingContext {
 
-    SpriteFont font();
+    default Font font() {
+        final TextAttributes attributes = textAttributes();
+        if (attributes.spriteFont() != null) {
+            return attributes.spriteFont();
+        }
+        return attributes.trueTypeFont();
+    }
 
     SpriteBatch batch();
 

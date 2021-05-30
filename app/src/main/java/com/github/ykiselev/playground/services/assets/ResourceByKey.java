@@ -28,18 +28,17 @@ import java.util.Map;
  */
 public final class ResourceByKey<Key> implements ReadableAssets {
 
-    private final Map<Key, ReadableAsset> map;
+    private final Map<Key, ReadableAsset<?, ?>> map;
 
-    public ResourceByKey(Map<Key, ReadableAsset> map) {
+    public ResourceByKey(Map<Key, ReadableAsset<?, ?>> map) {
         this.map = map;
     }
 
-    @Override
     @SuppressWarnings("unchecked")
     public <K, T, C> ReadableAsset<T, C> resolve(String resource, Recipe<K, T, C> recipe) throws ResourceException {
         if (recipe == null) {
             return null;
         }
-        return map.get(recipe.key());
+        return (ReadableAsset<T, C>) map.get((Key) recipe.key());
     }
 }

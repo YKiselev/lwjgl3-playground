@@ -80,15 +80,10 @@ public final class Menu implements UiLayer, AutoCloseable, Removable {
                 )
         );
         final TextAttributes attributes = new TextAttributes();
-        attributes.font(font.value());
+        attributes.spriteFont(font.value());
         final DrawingContext context = new DrawingContext() {
 
             private final StringBuilder sb = new StringBuilder();
-
-            @Override
-            public SpriteFont font() {
-                return font.value();
-            }
 
             @Override
             public SpriteBatch batch() {

@@ -35,7 +35,7 @@ public final class CodePoints {
 
     public static abstract class Range {
 
-        private int offset;
+        private final int offset;
 
         public int offset() {
             return offset;
@@ -219,6 +219,14 @@ public final class CodePoints {
             }
         }
         return -1;
+    }
+
+    public int indexOf(int codePoint, int defaultIndex) {
+        final int result = indexOf(codePoint);
+        if (result > -1) {
+            return result;
+        }
+        return defaultIndex;
     }
 
     private static int[] refine(IntStream codePoints) {
