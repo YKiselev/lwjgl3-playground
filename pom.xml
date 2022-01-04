@@ -29,7 +29,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <lwjgl.version>3.2.0</lwjgl.version>
-        <log4j2.version>2.13.2</log4j2.version>
+        <log4j2.version>2.17.1</log4j2.version>
         <slf4j-api.version>1.7.25</slf4j-api.version>
         <lwjgl.natives>natives-${os.detected.name}</lwjgl.natives>
         <junit-jupiter.version>5.3.1</junit-jupiter.version>
