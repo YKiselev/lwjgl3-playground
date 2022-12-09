@@ -42,7 +42,7 @@ public final class Cubes implements AutoCloseable {
 
     public Cubes(Assets assets) {
         program = assets.load("progs/generic.conf", OglRecipes.PROGRAM);
-        try (Wrap<ObjModel> model = assets.load("models/2cubes.obj", OglRecipes.OBJ_MODEL)) {
+        try (Wrap<ObjModel> model = assets.load("models/cube.obj", OglRecipes.OBJ_MODEL)) {
             geometry = new GenericIndexedGeometry(
                     VertexDefinitions.POSITION_TEXTURE_NORMAL,
                     model.value().toIndexedTriangles()

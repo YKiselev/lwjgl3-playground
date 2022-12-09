@@ -125,7 +125,7 @@ public final class AppConsole implements UiLayer, AutoCloseable {
                         .build()
         );
         spriteBatch = services.sprites.newBatch();
-        cuddles = services.assets.load("images/htf-cuddles.jpg", OglRecipes.SPRITE);
+        cuddles = services.assets.load("images/console.jpg", OglRecipes.SPRITE);
         atlas = services.assets.load("font-atlases/base.conf", OglRecipes.FONT_ATLAS);
         final TrueTypeFont ttf = atlas.value().get("console");
         //font = services.assets.load("fonts/Liberation Mono.sf", OglRecipes.SPRITE_FONT);

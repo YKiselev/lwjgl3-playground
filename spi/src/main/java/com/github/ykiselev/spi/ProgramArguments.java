@@ -99,7 +99,7 @@ public final class ProgramArguments {
     }
 
     public int swapInterval() {
-        return Integer.valueOf(
+        return Integer.parseInt(
                 value("swap.interval")
                         .orElse("1")
         );
@@ -109,7 +109,7 @@ public final class ProgramArguments {
      * @return the index of monitor to use
      */
     public int monitor() {
-        return Integer.valueOf(
+        return Integer.parseInt(
                 value("monitor")
                         .orElse("0")
         );

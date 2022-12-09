@@ -68,8 +68,6 @@ public final class BaseGame implements Game {
 
     private final Wrap<? extends Texture2d> cuddles;
 
-    private final Wrap<SpriteFont> liberationMono;
-
     private final TrueTypeFont ttf;
 
     private final Wrap<FontAtlas> atlas;
@@ -130,8 +128,7 @@ public final class BaseGame implements Game {
         this.host = requireNonNull(host);
         final Assets assets = host.services.assets;
         spriteBatch = host.services.sprites.newBatch();
-        cuddles = assets.load("images/htf-cuddles.jpg", OglRecipes.SPRITE);
-        liberationMono = assets.load("fonts/Liberation Mono.sf", OglRecipes.SPRITE_FONT);
+        cuddles = assets.load("images/console.jpg", OglRecipes.SPRITE);
         atlas = assets.load("font-atlases/base.conf", OglRecipes.FONT_ATLAS);
         ttf = atlas.value().get("console");
         cubes = new Cubes(assets);
@@ -139,7 +136,7 @@ public final class BaseGame implements Game {
         vp = MemoryUtil.memAllocFloat(16);
         frameBuffer = new FrameBuffer();
 
-        textAttributes.spriteFont(liberationMono.value());
+        textAttributes.trueTypeFont(ttf);
         textAttributes.alignment(TextAlignment.LEFT);
     }
 
@@ -237,7 +234,6 @@ public final class BaseGame implements Game {
     @Override
     public void close() throws Exception {
         spriteBatch.close();
-        liberationMono.close();
         pyramids.close();
         cubes.close();
         cuddles.close();
@@ -323,7 +319,7 @@ public final class BaseGame implements Game {
         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
         GL11.glDisable(GL11.GL_DEPTH_TEST);
 
-        textAttributes.spriteFont(liberationMono.value());
+        textAttributes.trueTypeFont(ttf);
         textAttributes.alignment(TextAlignment.LEFT);
         textAttributes.color(Colors.WHITE);
 
