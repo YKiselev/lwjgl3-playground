@@ -16,13 +16,12 @@
 
 package com.github.ykiselev.playground.layers.menu;
 
-import com.github.ykiselev.spi.api.Removable;
 import com.github.ykiselev.assets.Assets;
+import com.github.ykiselev.common.closeables.CompositeAutoCloseable;
 import com.github.ykiselev.opengl.OglRecipes;
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
 import com.github.ykiselev.opengl.sprites.TextAttributes;
 import com.github.ykiselev.opengl.text.SpriteFont;
-import com.github.ykiselev.spi.services.Services;
 import com.github.ykiselev.playground.ui.elements.CheckBox;
 import com.github.ykiselev.playground.ui.elements.Link;
 import com.github.ykiselev.playground.ui.elements.Slider;
@@ -32,6 +31,8 @@ import com.github.ykiselev.playground.ui.models.checkbox.ConfigurationBoundCheck
 import com.github.ykiselev.playground.ui.models.checkbox.SimpleCheckBoxModel;
 import com.github.ykiselev.playground.ui.models.slider.ConfigurationBoundSliderModel;
 import com.github.ykiselev.playground.ui.models.slider.SliderDefinition;
+import com.github.ykiselev.spi.api.Removable;
+import com.github.ykiselev.spi.services.Services;
 import com.github.ykiselev.spi.services.configuration.PersistedConfiguration;
 import com.github.ykiselev.spi.services.layers.DrawingContext;
 import com.github.ykiselev.spi.services.layers.UiLayer;
@@ -57,6 +58,8 @@ public final class Menu implements UiLayer, AutoCloseable, Removable {
 
     private final Wrap<SpriteFont> font;
 
+    private final CompositeAutoCloseable closeable;
+
     @Override
     public boolean canBeRemoved() {
         return !pushed;
@@ -69,8 +72,15 @@ public final class Menu implements UiLayer, AutoCloseable, Removable {
 
     public Menu(Services services) {
         final Assets assets = services.assets;
-        spriteBatch = services.sprites.newBatch();
-        font = assets.load("fonts/Liberation Mono 22.sf", OglRecipes.SPRITE_FONT);
+        try (CompositeAutoCloseable.Builder closableBuilder = new CompositeAutoCloseable.Builder()) {
+            spriteBatch = services.sprites.newBatch();
+            closableBuilder.add(spriteBatch);
+
+            font = assets.load("fonts/Liberation Mono 22.sf", OglRecipes.SPRITE_FONT);
+            closableBuilder.add(font);
+
+            closeable = closableBuilder.build();
+        }
         final PersistedConfiguration configuration = services.persistedConfiguration;
         final Slider effectsSlider = new Slider(
                 new ConfigurationBoundSliderModel(
@@ -172,8 +182,7 @@ public final class Menu implements UiLayer, AutoCloseable, Removable {
 
     @Override
     public void close() throws Exception {
-        spriteBatch.close();
-        font.close();
+        closeable.close();
     }
 
     @Override
