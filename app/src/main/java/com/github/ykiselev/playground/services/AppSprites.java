@@ -22,21 +22,16 @@ import com.github.ykiselev.opengl.sprites.ColorTable;
 import com.github.ykiselev.opengl.sprites.DefaultSpriteBatch;
 import com.github.ykiselev.opengl.sprites.SimpleColorTable;
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
-import com.github.ykiselev.spi.services.layers.Sprites;
-
-import static java.util.Objects.requireNonNull;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class AppSprites implements Sprites, AutoCloseable {
-
-    private final Assets assets;
+public final class AppSprites {
 
     /**
      * Xterm color table
      */
-    private final ColorTable colorTable = new SimpleColorTable(
+    private static final ColorTable colorTable = new SimpleColorTable(
             new int[]{
                     0x000000ff, 0x800000ff, 0x008000ff, 0x808000ff, 0x000080ff, 0x800080ff, 0x008080ff, 0xc0c0c0ff,
                     0x808080ff, 0xff0000ff, 0x00ff00ff, 0xffff00ff, 0x0000ffff, 0xff00ffff, 0x00ffffff, 0xffffffff,
@@ -83,20 +78,11 @@ public final class AppSprites implements Sprites, AutoCloseable {
             }
     );
 
-    public AppSprites(Assets assets) {
-        this.assets = requireNonNull(assets);
-    }
-
-    @Override
-    public SpriteBatch newBatch() {
+    public static SpriteBatch createBatch(Assets assets) {
         return new DefaultSpriteBatch(
                 assets.load("progs/sprite-batch.conf", OglRecipes.PROGRAM),
                 assets.load("images/white.png", OglRecipes.SPRITE),
                 colorTable
         );
-    }
-
-    @Override
-    public void close() {
     }
 }

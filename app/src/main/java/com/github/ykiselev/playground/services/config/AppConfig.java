@@ -78,10 +78,9 @@ public final class AppConfig implements PersistedConfiguration, AutoCloseable {
     @Override
     public Stream<ConfigValue> values() {
         return config.value()
-                .entrySet()
+                .values()
                 .stream()
-                .filter(e -> varFilter.test(e.getValue()))
-                .map(e -> (ConfigValue) e.getValue());
+                .filter(varFilter);
     }
 
     @Override

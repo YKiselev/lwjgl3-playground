@@ -17,9 +17,9 @@
 package com.github.ykiselev.base.game.spi;
 
 import com.github.ykiselev.base.game.BaseGame;
-import com.github.ykiselev.spi.GameHost;
-import com.github.ykiselev.spi.components.Game;
 import com.github.ykiselev.spi.GameFactory;
+import com.github.ykiselev.spi.GameFactoryArgs;
+import com.github.ykiselev.spi.components.Game;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
@@ -32,7 +32,7 @@ public final class BaseGameFactory implements GameFactory {
     }
 
     @Override
-    public Game create(GameHost host) {
-        return new BaseGame(host);
+    public Game create(GameFactoryArgs args) {
+        return new BaseGame(args);
     }
 }

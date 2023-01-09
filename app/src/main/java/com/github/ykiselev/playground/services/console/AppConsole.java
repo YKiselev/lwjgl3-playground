@@ -16,21 +16,20 @@
 
 package com.github.ykiselev.playground.services.console;
 
+import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.common.closeables.Closeables;
-import com.github.ykiselev.common.closeables.CompositeAutoCloseable;
 import com.github.ykiselev.opengl.OglRecipes;
 import com.github.ykiselev.opengl.fonts.FontAtlas;
 import com.github.ykiselev.opengl.fonts.TrueTypeFont;
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
-import com.github.ykiselev.opengl.sprites.TextAttributes;
 import com.github.ykiselev.opengl.sprites.TextDrawingFlags;
-import com.github.ykiselev.opengl.text.Font;
 import com.github.ykiselev.opengl.textures.Texture2d;
-import com.github.ykiselev.spi.services.Services;
+import com.github.ykiselev.spi.services.commands.Commands;
+import com.github.ykiselev.spi.services.configuration.PersistedConfiguration;
 import com.github.ykiselev.spi.services.layers.DrawingContext;
 import com.github.ykiselev.spi.services.layers.UiLayer;
+import com.github.ykiselev.spi.services.layers.UiLayers;
 import com.github.ykiselev.spi.window.WindowEvents;
-import com.github.ykiselev.wrap.Wrap;
 import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,15 +47,9 @@ public final class AppConsole implements UiLayer, AutoCloseable {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final Services services;
+    private final Commands commands;
 
-    private final SpriteBatch spriteBatch;
-
-    private final Wrap<? extends Texture2d> cuddles;
-
-    private final Wrap<FontAtlas> atlas;
-
-
+    private final Texture2d background;
 
     private final WindowEvents events = new WindowEvents() {
         @Override
@@ -88,7 +81,9 @@ public final class AppConsole implements UiLayer, AutoCloseable {
 
     private final CommandLine commandLine;
 
-    private final DrawingContext drawingContext;
+    private final UiLayers uiLayers;
+
+    private final TrueTypeFont ttf;
 
     private double consoleHeight;
 
@@ -109,48 +104,30 @@ public final class AppConsole implements UiLayer, AutoCloseable {
         return events;
     }
 
-    public AppConsole(Services services, ConsoleBuffer buffer, CommandLine commandLine) {
-        this.services = requireNonNull(services);
+    public AppConsole(Commands commands, PersistedConfiguration configuration, ConsoleBuffer buffer, CommandLine commandLine,
+                      Assets assets, UiLayers uiLayers) {
+        this.commands = requireNonNull(commands);
         this.buffer = requireNonNull(buffer);
         this.commandLine = requireNonNull(commandLine);
-        this.ac = new CompositeAutoCloseable(
-                services.persistedConfiguration.wire()
-                        .withDouble("console.showTime", () -> showTime, v -> showTime = v, true)
-                        .withHexInt("console.textColor", () -> textColor, v -> textColor = v, true)
-                        .withHexInt("console.backgroundColor", () -> backgroundColor, v -> backgroundColor = v, true)
-                        .build(),
-                services.commands.add()
-                        .with("toggle-console", this::onToggleConsole)
-                        .with("echo", this::onEcho)
-                        .build()
-        );
-        spriteBatch = services.sprites.newBatch();
-        cuddles = services.assets.load("images/console.jpg", OglRecipes.SPRITE);
-        atlas = services.assets.load("font-atlases/base.conf", OglRecipes.FONT_ATLAS);
-        final TrueTypeFont ttf = atlas.value().get("console");
-        //font = services.assets.load("fonts/Liberation Mono.sf", OglRecipes.SPRITE_FONT);
-        final TextAttributes attributes = new TextAttributes();
-        attributes.trueTypeFont(ttf);
-        attributes.add(TextDrawingFlags.USE_COLOR_CONTROL_SEQUENCES);
-        drawingContext = new DrawingContext() {
+        this.uiLayers = requireNonNull(uiLayers);
+        try (var guard = Closeables.newGuard()) {
+            guard.add(configuration.wire()
+                    .withDouble("console.showTime", () -> showTime, v -> showTime = v, true)
+                    .withHexInt("console.textColor", () -> textColor, v -> textColor = v, true)
+                    .withHexInt("console.backgroundColor", () -> backgroundColor, v -> backgroundColor = v, true)
+                    .build());
 
-            private final StringBuilder sb = new StringBuilder();
+            guard.add(commands.add()
+                    .with("toggle-console", this::onToggleConsole)
+                    .with("echo", this::onEcho)
+                    .build());
 
-            @Override
-            public SpriteBatch batch() {
-                return spriteBatch;
-            }
+            background = guard.add(assets.load("images/console.jpg", OglRecipes.SPRITE));
+            FontAtlas atlas = guard.add(assets.load("font-atlases/base.conf", OglRecipes.FONT_ATLAS));
+            this.ttf = atlas.get("console");
 
-            @Override
-            public StringBuilder stringBuilder() {
-                return sb;
-            }
-
-            @Override
-            public TextAttributes textAttributes() {
-                return attributes;
-            }
-        };
+            ac = guard.detach();
+        }
     }
 
     private void onEcho(List<String> args) {
@@ -167,76 +144,77 @@ public final class AppConsole implements UiLayer, AutoCloseable {
     private boolean onKey(int key, int scanCode, int action, int mods) {
         if (action != GLFW.GLFW_RELEASE) {
             switch (key) {
-                case GLFW.GLFW_KEY_ESCAPE:
+                case GLFW.GLFW_KEY_ESCAPE -> {
                     showing = false;
                     consoleHeight = 0;
                     inputAllowed = false;
-                    services.commands.execute("show-menu");
+                    commands.execute("show-menu");
                     return true;
-
-                case GLFW.GLFW_KEY_GRAVE_ACCENT:
+                }
+                case GLFW.GLFW_KEY_GRAVE_ACCENT -> {
                     onToggleConsole();
                     return true;
-
-                case GLFW.GLFW_KEY_LEFT:
+                }
+                case GLFW.GLFW_KEY_LEFT -> {
                     commandLine.left();
                     return true;
-
-                case GLFW.GLFW_KEY_RIGHT:
+                }
+                case GLFW.GLFW_KEY_RIGHT -> {
                     commandLine.right();
                     return true;
-
-                case GLFW.GLFW_KEY_UP:
+                }
+                case GLFW.GLFW_KEY_UP -> {
                     commandLine.searchHistoryBackward();
                     return true;
-
-                case GLFW.GLFW_KEY_DOWN:
+                }
+                case GLFW.GLFW_KEY_DOWN -> {
                     commandLine.searchHistory();
                     return true;
-
-                case GLFW.GLFW_KEY_HOME:
+                }
+                case GLFW.GLFW_KEY_HOME -> {
                     commandLine.begin();
                     return true;
-
-                case GLFW.GLFW_KEY_END:
+                }
+                case GLFW.GLFW_KEY_END -> {
                     commandLine.end();
                     return true;
-
-                case GLFW.GLFW_KEY_ENTER:
+                }
+                case GLFW.GLFW_KEY_ENTER -> {
                     commandLine.execute();
                     return true;
-
-                case GLFW.GLFW_KEY_TAB:
+                }
+                case GLFW.GLFW_KEY_TAB -> {
                     commandLine.complete();
                     return true;
-
-                case GLFW.GLFW_KEY_BACKSPACE:
+                }
+                case GLFW.GLFW_KEY_BACKSPACE -> {
                     commandLine.removeLeft();
                     return true;
-
-                case GLFW.GLFW_KEY_DELETE:
+                }
+                case GLFW.GLFW_KEY_DELETE -> {
                     commandLine.remove();
                     return true;
-
-                case GLFW.GLFW_KEY_PAGE_UP:
+                }
+                case GLFW.GLFW_KEY_PAGE_UP -> {
                     buffer.pageUp();
                     return true;
-
-                case GLFW.GLFW_KEY_PAGE_DOWN:
+                }
+                case GLFW.GLFW_KEY_PAGE_DOWN -> {
                     buffer.pageDown();
                     return true;
+                }
             }
         }
         return showing;
     }
 
     @Override
-    public void draw(int width, int height) {
+    public void draw(int width, int height, DrawingContext context) {
         calculateHeight(height);
         if (consoleHeight <= 0) {
             return;
         }
-        drawConsole(0, height - (int) consoleHeight, width, height);
+        drawConsole(0, height - (int) consoleHeight, width, height, context);
     }
 
     private void calculateHeight(int viewHeight) {
@@ -248,15 +226,20 @@ public final class AppConsole implements UiLayer, AutoCloseable {
         this.consoleHeight = max(0, Math.min(viewHeight, this.consoleHeight + deltaHeight));
     }
 
-    private void drawConsole(int x0, int y0, int width, int height) {
+    private void drawConsole(int x0, int y0, int width, int height, DrawingContext context) {
         if (!inputAllowed && showing) {
             inputAllowed = true;
         }
+        var attributes = context.textAttributes();
+        attributes.trueTypeFont(ttf);
+        attributes.add(TextDrawingFlags.USE_COLOR_CONTROL_SEQUENCES);
+
+        final SpriteBatch spriteBatch = context.batch();
         spriteBatch.begin(x0, y0, width, (int) consoleHeight, true);
-        spriteBatch.draw(cuddles.value(), x0, y0, width, height, backgroundColor);
-        drawingContext.textAttributes().color(textColor);
-        buffer.draw(drawingContext, x0, y0, width, height);
-        commandLine.draw(drawingContext, x0, y0, width, height);
+        spriteBatch.draw(background, x0, y0, width, height, backgroundColor);
+        attributes.color(textColor);
+        buffer.draw(context, x0, y0, width, height);
+        commandLine.draw(context, x0, y0, width, height);
         spriteBatch.end();
     }
 
@@ -267,7 +250,7 @@ public final class AppConsole implements UiLayer, AutoCloseable {
 
     @Override
     public void close() {
-        services.uiLayers.remove(this);
-        Closeables.closeAll(atlas, cuddles, spriteBatch, ac);
+        uiLayers.remove(this);
+        Closeables.close(ac);
     }
 }

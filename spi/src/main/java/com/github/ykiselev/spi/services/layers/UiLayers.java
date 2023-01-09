@@ -63,6 +63,7 @@ public interface UiLayers {
 
     /**
      * This method should draw current stack of layers.
+     * @param context the context to use
      */
-    void draw();
+    void draw(DrawingContext context);
 }

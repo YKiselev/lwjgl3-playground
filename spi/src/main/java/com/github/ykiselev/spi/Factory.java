@@ -21,7 +21,7 @@ package com.github.ykiselev.spi;
  *
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public interface Factory<T> {
+public interface Factory<T,A> {
 
-    T create(GameHost host);
+    T create(A arg);
 }

@@ -16,11 +16,17 @@
 
 package com.github.ykiselev.playground.services;
 
+import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.common.closeables.Closeables;
+import com.github.ykiselev.opengl.sprites.SpriteBatch;
 import com.github.ykiselev.playground.layers.menu.Menu;
-import com.github.ykiselev.spi.services.Services;
+import com.github.ykiselev.spi.services.commands.Commands;
+import com.github.ykiselev.spi.services.configuration.PersistedConfiguration;
+import com.github.ykiselev.spi.services.layers.UiLayers;
+import com.github.ykiselev.spi.services.schedule.Schedule;
 
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 import static java.util.Objects.requireNonNull;
 
@@ -29,46 +35,45 @@ import static java.util.Objects.requireNonNull;
  */
 public final class AppMenu implements AutoCloseable {
 
-    private final Services services;
-
     private final AutoCloseable ac;
 
-    private volatile Menu menu;
+    private final Supplier<Menu> menuSupplier;
 
-    private final Object lock = new Object();
+    private final Schedule schedule;
 
-    public AppMenu(Services services) {
-        this.services = requireNonNull(services);
-        this.ac = services.commands.add("show-menu", this::showMenu);
+    private final UiLayers uiLayers;
+
+    private Menu menu;
+
+    public AppMenu(Assets assets, SpriteBatch spriteBatch, PersistedConfiguration configuration, Commands commands, UiLayers uiLayers, Schedule schedule) {
+        this.schedule = requireNonNull(schedule);
+        this.uiLayers = requireNonNull(uiLayers);
+        this.ac = commands.add("show-menu", this::showMenu);
+        this.menuSupplier = () -> new Menu(assets, spriteBatch,
+                configuration, commands, uiLayers);
     }
 
     private boolean recycle() {
-        synchronized (lock) {
-            final Menu m = menu;
-            if (m != null && m.canBeRemoved()) {
-                Closeables.close(m);
-                menu = null;
-                return false;
-            }
+        final Menu m = menu;
+        if (m != null && m.canBeRemoved()) {
+            Closeables.close(m);
+            menu = null;
+            return false;
         }
         return true;
     }
 
     @Override
     public void close() {
-        synchronized (lock) {
-            Closeables.closeAll(menu, ac);
-            menu = null;
-        }
+        Closeables.closeAll(menu, ac);
+        menu = null;
     }
 
     private void showMenu() {
-        synchronized (lock) {
-            if (menu == null) {
-                menu = new Menu(services);
-                services.schedule.schedule(10, TimeUnit.SECONDS, this::recycle);
-            }
-            services.uiLayers.add(menu);
+        if (menu == null) {
+            menu = menuSupplier.get();
+            schedule.schedule(10, TimeUnit.SECONDS, this::recycle);
         }
+        uiLayers.add(menu);
     }
 }

@@ -16,6 +16,7 @@
 
 package com.github.ykiselev.playground.layers;
 
+import com.github.ykiselev.spi.services.layers.DrawingContext;
 import com.github.ykiselev.spi.services.layers.UiLayer;
 import com.github.ykiselev.spi.services.layers.UiLayers;
 import com.github.ykiselev.spi.window.WindowEvents;
@@ -24,11 +25,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
@@ -42,6 +39,8 @@ public class AppUiLayersTest {
     private UiLayer layer2 = mock(UiLayer.class, "popup2");
 
     private UiLayer layer3 = mock(UiLayer.class, "layer3");
+
+    private DrawingContext dc = mock(DrawingContext.class);
 
     @BeforeEach
     public void setUp() {
@@ -93,13 +92,13 @@ public class AppUiLayersTest {
         layers.add(layer1);
         layers.add(layer2);
         layers.add(layer3);
-        layers.draw();
+        layers.draw(dc);
 
         InOrder inOrder = inOrder(layer1, layer2, layer3);
 
-        inOrder.verify(layer3, times(1)).draw(0, 0);
-        inOrder.verify(layer1, times(1)).draw(0, 0);
-        inOrder.verify(layer2, times(1)).draw(0, 0);
+        inOrder.verify(layer3, times(1)).draw(0, 0, dc);
+        inOrder.verify(layer1, times(1)).draw(0, 0, dc);
+        inOrder.verify(layer2, times(1)).draw(0, 0, dc);
     }
 
     @Test

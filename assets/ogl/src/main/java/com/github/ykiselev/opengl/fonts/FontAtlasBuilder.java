@@ -240,7 +240,7 @@ public final class FontAtlasBuilder implements AutoCloseable {
      */
     public Map<String, TrueTypeFont> drainFonts() {
         closeContext(fonts::putAll);
-        final Map<String, TrueTypeFont> result = new HashMap<>(fonts);
+        final Map<String, TrueTypeFont> result = Map.copyOf(fonts);
         fonts.clear();
         return result;
     }

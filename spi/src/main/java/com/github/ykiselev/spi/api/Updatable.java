@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package com.github.ykiselev.playground.init;
+package com.github.ykiselev.spi.api;
 
 /**
- * @author Yuriy Kiselev (uze@yandex.ru)
- * @since 05.05.2019
+ * @author Yuriy Kiselev (uze@yandex.ru).
  */
-interface Delegate {
+public interface Updatable {
 
-    void run(Context services) throws Exception;
+    void update();
 }

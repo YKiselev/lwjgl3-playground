@@ -16,6 +16,7 @@
 
 package com.github.ykiselev.playground.services.sound;
 
+import com.github.ykiselev.common.closeables.Closeables;
 import com.github.ykiselev.spi.services.SoundEffects;
 import com.github.ykiselev.spi.services.configuration.PersistedConfiguration;
 import org.apache.commons.lang3.StringUtils;
@@ -70,8 +71,7 @@ public final class AppSoundEffects implements SoundEffects, AutoCloseable {
     }
 
     @Override
-    public void close() throws Exception {
-        device.close();
-        subscriptions.close();
+    public void close() {
+        Closeables.closeAll(device, subscriptions);
     }
 }

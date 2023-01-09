@@ -20,7 +20,7 @@ import com.github.ykiselev.opengl.textures.Texture2d;
 
 /**
  * Interface with convenient methods for 2d operations like drawing sprites, text, filling rects.
- * Note that coordinate system starts at lower left corner. Also note that text methods y-origin denotes top corner of
+ * Note that coordinate system starts at lower left corner. Also note that text method's y-origin denotes top corner of
  * the bounding box while sprite drawing methods y-origin is bottom corner.
  *<pre>
  *     (0,0)----------
@@ -102,4 +102,7 @@ public interface SpriteBatch extends AutoCloseable {
     void fill(int x, int y, int width, int height, int color);
 
     void end();
+
+    @Override
+    void close();
 }

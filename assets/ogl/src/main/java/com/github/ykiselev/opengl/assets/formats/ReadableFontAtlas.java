@@ -91,7 +91,6 @@ public final class ReadableFontAtlas implements ReadableAsset<FontAtlas, Void> {
 
                 return Wraps.of(
                         new DefaultFontAtlas(
-                                // todo - make map immutable
                                 atlas.drainFonts()
                         )
                 );

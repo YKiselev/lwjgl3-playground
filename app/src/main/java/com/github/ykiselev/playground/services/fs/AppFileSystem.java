@@ -61,7 +61,7 @@ public final class AppFileSystem implements FileSystem, AutoCloseable {
         } catch (URISyntaxException e) {
             throw new ResourceException("Unable to convert to URI: " + resource, e);
         }
-        logger.debug("Opening {}...", path);
+        logger.debug("Opening file channel {}...", path);
         ensureParentFoldersExists(path);
         try {
             return FileChannel.open(

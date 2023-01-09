@@ -16,24 +16,107 @@
 
 package com.github.ykiselev.common.closeables;
 
+import com.github.ykiselev.wrap.Wrap;
+
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
 public final class Closeables {
 
-    public static void closeAll(Object... objs) throws RuntimeException {
-        for (Object obj : objs) {
-            close(obj);
+    public static void closeAll(AutoCloseable... closeables) {
+        RuntimeException ex = null;
+        for (AutoCloseable closeable : closeables) {
+            if (closeable == null) {
+                continue;
+            }
+            var re = closeSilently(closeable);
+            if (re != null) {
+                if (ex != null) {
+                    ex.addSuppressed(re);
+                } else {
+                    ex = re;
+                }
+            }
+        }
+        if (ex != null) {
+            throw new RuntimeException("Failed to close all delegates!", ex);
         }
     }
 
-    public static void close(Object obj) throws RuntimeException {
+    public static void closeIfNeeded(Object obj) throws RuntimeException {
         if (obj instanceof AutoCloseable) {
-            try {
-                ((AutoCloseable) obj).close();
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
+            close((AutoCloseable) obj);
         }
+    }
+
+    public static void close(AutoCloseable obj) throws RuntimeException {
+        try {
+            obj.close();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static RuntimeException closeSilently(AutoCloseable obj) throws RuntimeException {
+        try {
+            obj.close();
+            return null;
+        } catch (Exception e) {
+            return new RuntimeException(e);
+        }
+    }
+
+    /**
+     *
+     */
+    public interface Guard extends AutoCloseable {
+
+        void add(AutoCloseable closeable);
+
+        <T> T add(Wrap<? extends T> wrap);
+
+        AutoCloseable detach();
+
+        @Override
+        void close();
+    }
+
+    /**
+     *
+     * @return new guard instance
+     */
+    public static Guard newGuard() {
+        return new Guard() {
+
+            private final List<AutoCloseable> closeables = new ArrayList<>();
+
+            @Override
+            public void add(AutoCloseable closeable) {
+                closeables.add(closeable);
+            }
+
+            @Override
+            public <T> T add(Wrap<? extends T> wrap) {
+                closeables.add(wrap);
+                return wrap.value();
+            }
+
+            @Override
+            public AutoCloseable detach() {
+                final AutoCloseable[] ca = closeables.toArray(new AutoCloseable[0]);
+                closeables.clear();
+                return new CompositeAutoCloseable(ca);
+            }
+
+            @Override
+            public void close() {
+                if (!closeables.isEmpty()) {
+                    Closeables.closeAll(closeables.toArray(new AutoCloseable[0]));
+                }
+            }
+        };
     }
 }

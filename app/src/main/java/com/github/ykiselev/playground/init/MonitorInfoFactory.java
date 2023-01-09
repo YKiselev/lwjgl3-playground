@@ -27,13 +27,13 @@ import java.nio.FloatBuffer;
  * @author Yuriy Kiselev (uze@yandex.ru)
  * @since 05.05.2019
  */
-final class MonitorInfoFactory {
+public final class MonitorInfoFactory {
 
-    static MonitorInfo fromIndex(int monitorIndex) {
+    public static MonitorInfo fromIndex(int monitorIndex) {
         return fromHandle(getMonitor(monitorIndex));
     }
 
-    static MonitorInfo fromHandle(long monitor) {
+    public static MonitorInfo fromHandle(long monitor) {
         try (MemoryStack stack = MemoryStack.stackPush()) {
             final FloatBuffer xs = stack.mallocFloat(1);
             final FloatBuffer ys = stack.mallocFloat(1);

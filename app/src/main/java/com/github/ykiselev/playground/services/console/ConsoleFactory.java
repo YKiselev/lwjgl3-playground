@@ -16,10 +16,14 @@
 
 package com.github.ykiselev.playground.services.console;
 
+import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.common.circular.CircularBuffer;
+import com.github.ykiselev.opengl.sprites.SpriteBatch;
 import com.github.ykiselev.playground.services.console.appender.AppConsoleLog4j2Appender;
 import com.github.ykiselev.spi.api.Named;
-import com.github.ykiselev.spi.services.Services;
+import com.github.ykiselev.spi.services.commands.Commands;
+import com.github.ykiselev.spi.services.configuration.PersistedConfiguration;
+import com.github.ykiselev.spi.services.layers.UiLayers;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.config.Configuration;
@@ -35,20 +39,24 @@ import java.util.stream.Stream;
  */
 public final class ConsoleFactory {
 
-    public static AppConsole create(Services services) {
+    public static AppConsole create(PersistedConfiguration configuration, Commands commands, UiLayers uiLayers,
+                                    SpriteBatch spriteBatch, Assets assets) {
         final Function<String, Collection<Named>> search = fragment ->
                 Stream.concat(
-                        services.persistedConfiguration.values(),
-                        services.commands.commands()
+                        configuration.values(),
+                        commands.commands()
                 ).filter(v -> v.name().startsWith(fragment))
                         .sorted(Comparator.comparing(Named::name))
                         .collect(Collectors.toList());
         final AppConsole console = new AppConsole(
-                services,
+                commands,
+                configuration,
                 new ConsoleBuffer(getBuffer()),
-                new DefaultCommandLine(services.persistedConfiguration, services.commands, 20, search)
+                new DefaultCommandLine(configuration, commands, 20, search),
+                assets,
+                uiLayers
         );
-        services.uiLayers.add(console);
+        uiLayers.add(console);
         return console;
     }
 

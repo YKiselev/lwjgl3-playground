@@ -94,8 +94,14 @@ public final class ManagedAssets implements Assets, AutoCloseable {
 
     @Override
     public void close() {
-        Closeables.close(delegate);
-        cache.values().forEach(Closeables::close);
+        Closeables.closeIfNeeded(delegate);
+        cache.forEach((k, v) -> {
+            try {
+                Closeables.closeIfNeeded(v);
+            } catch (Exception e) {
+                logger.error("Failed to release asset: {}", k, e);
+            }
+        });
         cache.clear();
     }
 

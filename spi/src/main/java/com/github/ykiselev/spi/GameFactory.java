@@ -21,7 +21,7 @@ import com.github.ykiselev.spi.components.Game;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public interface GameFactory extends Factory<Game> {
+public interface GameFactory extends Factory<Game, GameFactoryArgs> {
 
     String name();
 }

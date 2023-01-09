@@ -23,7 +23,7 @@ public interface ReadableAssets {
 
     /**
      * Resolves instance of {@link ReadableAsset} from supplied URI and/or recipe. Some implementations (like {@link SimpleAssets}) require only one
-     * of {code resource}, {@code clazz} to be {@code non-null}.
+     * of {@code resource}, {@code clazz} to be {@code non-null}.
      *
      * @param <T>      the type of resource
      * @param <C>      the type of recipe's context object

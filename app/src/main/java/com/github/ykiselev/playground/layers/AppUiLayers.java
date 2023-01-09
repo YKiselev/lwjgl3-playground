@@ -17,6 +17,7 @@
 package com.github.ykiselev.playground.layers;
 
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
+import com.github.ykiselev.spi.services.layers.DrawingContext;
 import com.github.ykiselev.spi.services.layers.UiLayer;
 import com.github.ykiselev.spi.services.layers.UiLayers;
 import com.github.ykiselev.spi.window.WindowEvents;
@@ -119,9 +120,9 @@ public final class AppUiLayers implements UiLayers, AutoCloseable {
 
     @Override
     @SuppressWarnings("ForLoopReplaceableByForEach")
-    public void draw() {
+    public void draw(DrawingContext context) {
         for (int i = 0; i < layers.size(); i++) {
-            layers.get(i).draw(width, height);
+            layers.get(i).draw(width, height, context);
         }
     }
 

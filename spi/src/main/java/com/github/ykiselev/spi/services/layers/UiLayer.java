@@ -25,7 +25,7 @@ import com.github.ykiselev.spi.window.WindowEvents;
 public interface UiLayer {
 
     enum Kind {
-        GAME, CONSOLE, POPUP;
+        GAME, CONSOLE, POPUP
     }
 
     WindowEvents events();
@@ -36,7 +36,7 @@ public interface UiLayer {
     default void onPush() {
     }
 
-    void draw(int width, int height);
+    void draw(int width, int height, DrawingContext context);
 
     /**
      * Called by {@link UiLayers} implementation when this layer is removed from current layers stack.

@@ -17,11 +17,10 @@
 package com.github.ykiselev.playground.layers.menu;
 
 import com.github.ykiselev.assets.Assets;
-import com.github.ykiselev.common.closeables.CompositeAutoCloseable;
+import com.github.ykiselev.common.closeables.Closeables;
 import com.github.ykiselev.opengl.OglRecipes;
+import com.github.ykiselev.opengl.fonts.TrueTypeFont;
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
-import com.github.ykiselev.opengl.sprites.TextAttributes;
-import com.github.ykiselev.opengl.text.SpriteFont;
 import com.github.ykiselev.playground.ui.elements.CheckBox;
 import com.github.ykiselev.playground.ui.elements.Link;
 import com.github.ykiselev.playground.ui.elements.Slider;
@@ -32,13 +31,13 @@ import com.github.ykiselev.playground.ui.models.checkbox.SimpleCheckBoxModel;
 import com.github.ykiselev.playground.ui.models.slider.ConfigurationBoundSliderModel;
 import com.github.ykiselev.playground.ui.models.slider.SliderDefinition;
 import com.github.ykiselev.spi.api.Removable;
-import com.github.ykiselev.spi.services.Services;
+import com.github.ykiselev.spi.services.commands.Commands;
 import com.github.ykiselev.spi.services.configuration.PersistedConfiguration;
 import com.github.ykiselev.spi.services.layers.DrawingContext;
 import com.github.ykiselev.spi.services.layers.UiLayer;
+import com.github.ykiselev.spi.services.layers.UiLayers;
 import com.github.ykiselev.spi.window.DelegatingWindowEvents;
 import com.github.ykiselev.spi.window.WindowEvents;
-import com.github.ykiselev.wrap.Wrap;
 
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
 import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
@@ -54,11 +53,9 @@ public final class Menu implements UiLayer, AutoCloseable, Removable {
 
     private final WindowEvents windowEvents;
 
-    private final SpriteBatch spriteBatch;
+    private final TrueTypeFont font;
 
-    private final Wrap<SpriteFont> font;
-
-    private final CompositeAutoCloseable closeable;
+    private final AutoCloseable closeable;
 
     @Override
     public boolean canBeRemoved() {
@@ -70,18 +67,16 @@ public final class Menu implements UiLayer, AutoCloseable, Removable {
         return Kind.POPUP;
     }
 
-    public Menu(Services services) {
-        final Assets assets = services.assets;
-        try (CompositeAutoCloseable.Builder closableBuilder = new CompositeAutoCloseable.Builder()) {
-            spriteBatch = services.sprites.newBatch();
-            closableBuilder.add(spriteBatch);
+    public Menu(Assets assets, SpriteBatch spriteBatch, PersistedConfiguration configuration,
+                Commands commands, UiLayers uiLayers) {
+        try (var guard = Closeables.newGuard()) {
+            var atlas = assets.load("font-atlases/base.conf", OglRecipes.FONT_ATLAS);
+            guard.add(atlas);
 
-            font = assets.load("fonts/Liberation Mono 22.sf", OglRecipes.SPRITE_FONT);
-            closableBuilder.add(font);
+            font = atlas.value().get("menu");
 
-            closeable = closableBuilder.build();
+            closeable = guard.detach();
         }
-        final PersistedConfiguration configuration = services.persistedConfiguration;
         final Slider effectsSlider = new Slider(
                 new ConfigurationBoundSliderModel(
                         new SliderDefinition(0, 10, 1),
@@ -89,33 +84,11 @@ public final class Menu implements UiLayer, AutoCloseable, Removable {
                         "sound.effects.level"
                 )
         );
-        final TextAttributes attributes = new TextAttributes();
-        attributes.spriteFont(font.value());
-        final DrawingContext context = new DrawingContext() {
-
-            private final StringBuilder sb = new StringBuilder();
-
-            @Override
-            public SpriteBatch batch() {
-                return spriteBatch;
-            }
-
-            @Override
-            public StringBuilder stringBuilder() {
-                return sb;
-            }
-
-            @Override
-            public TextAttributes textAttributes() {
-                return attributes;
-            }
-        };
         this.listMenu = new ListMenu(
-                context,
                 new MenuItem(
                         new Link(
                                 "New",
-                                () -> services.commands.execute("new-game")
+                                () -> commands.execute("new-game")
                         )
                 ),
                 new MenuItem(
@@ -146,7 +119,7 @@ public final class Menu implements UiLayer, AutoCloseable, Removable {
                 new MenuItem(
                         new Link(
                                 "Exit",
-                                () -> services.commands.execute("quit")
+                                () -> commands.execute("quit")
                         )
                 )
         );
@@ -157,7 +130,7 @@ public final class Menu implements UiLayer, AutoCloseable, Removable {
                     return true;
                 }
                 if (action == GLFW_PRESS && key == GLFW_KEY_ESCAPE) {
-                    services.uiLayers.pop(Menu.this);
+                    uiLayers.pop(Menu.this);
                     return true;
                 }
                 return true;
@@ -186,7 +159,8 @@ public final class Menu implements UiLayer, AutoCloseable, Removable {
     }
 
     @Override
-    public void draw(int width, int height) {
-        listMenu.draw(width, height);
+    public void draw(int width, int height, DrawingContext context) {
+        context.textAttributes().trueTypeFont(font);
+        listMenu.draw(width, height, context);
     }
 }

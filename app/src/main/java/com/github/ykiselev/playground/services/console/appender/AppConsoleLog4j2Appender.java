@@ -21,12 +21,9 @@ import com.github.ykiselev.common.circular.CircularBuffer;
 import com.github.ykiselev.common.circular.SynchronizedCircularBuffer;
 import com.github.ykiselev.playground.services.console.CommandLine;
 import org.apache.logging.log4j.Marker;
-import org.apache.logging.log4j.core.Appender;
-import org.apache.logging.log4j.core.Core;
-import org.apache.logging.log4j.core.Filter;
-import org.apache.logging.log4j.core.Layout;
-import org.apache.logging.log4j.core.LogEvent;
+import org.apache.logging.log4j.core.*;
 import org.apache.logging.log4j.core.appender.AbstractAppender;
+import org.apache.logging.log4j.core.config.Property;
 import org.apache.logging.log4j.core.config.plugins.Plugin;
 import org.apache.logging.log4j.core.config.plugins.PluginBuilderAttribute;
 import org.apache.logging.log4j.core.config.plugins.PluginBuilderFactory;
@@ -46,7 +43,7 @@ public final class AppConsoleLog4j2Appender extends AbstractAppender {
     }
 
     private AppConsoleLog4j2Appender(String name, Filter filter, Layout<? extends Serializable> layout, int bufferSize) {
-        super(name, filter, layout);
+        super(name, filter, layout, true, Property.EMPTY_ARRAY);
         this.buffer = new SynchronizedCircularBuffer<>(
                 new ArrayCircularBuffer<>(String.class, bufferSize)
         );

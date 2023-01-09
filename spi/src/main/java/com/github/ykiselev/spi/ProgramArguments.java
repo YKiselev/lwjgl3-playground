@@ -89,8 +89,7 @@ public final class ProgramArguments {
                         .stream()
                         .flatMap(v -> Arrays.stream(v.split(",")))
                         .map(Paths::get)
-        ).filter(Files::exists)
-                .filter(Files::isDirectory)
+        ).filter(Files::isDirectory)
                 .collect(Collectors.toList());
     }
 

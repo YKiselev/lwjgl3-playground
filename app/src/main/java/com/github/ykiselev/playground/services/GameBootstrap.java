@@ -19,8 +19,7 @@ package com.github.ykiselev.playground.services;
 import com.github.ykiselev.common.closeables.Closeables;
 import com.github.ykiselev.common.closeables.CompositeAutoCloseable;
 import com.github.ykiselev.spi.GameFactory;
-import com.github.ykiselev.spi.GameHost;
-import com.github.ykiselev.spi.api.Updateable;
+import com.github.ykiselev.spi.api.Updatable;
 import com.github.ykiselev.spi.components.Game;
 
 import java.util.ServiceLoader;
@@ -30,21 +29,19 @@ import static java.util.Objects.requireNonNull;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class AppGame implements Updateable, AutoCloseable {
+public final class GameBootstrap implements Updatable, AutoCloseable {
 
-    private final GameHost host;
+    private final AppContext context;
 
     private volatile Game game;
 
-    private final Object lock = new Object();
+    private final AutoCloseable closeable;
 
-    private final AutoCloseable subscriptions;
-
-    public AppGame(GameHost host) {
-        this.host = requireNonNull(host);
-        this.subscriptions = new CompositeAutoCloseable(
-                host.services.commands.add("new-game", this::newGame),
-                host.services.persistedConfiguration.wire()
+    public GameBootstrap(AppContext context) {
+        this.context = requireNonNull(context);
+        this.closeable = new CompositeAutoCloseable(
+                context.commands().add("new-game", this::newGame),
+                context.configuration().wire()
                         .withBoolean("game.isPresent", () -> game != null, false)
                         .build()
         );
@@ -61,28 +58,24 @@ public final class AppGame implements Updateable, AutoCloseable {
     @Override
     public void close() {
         closeGame();
-        Closeables.close(subscriptions);
+        Closeables.close(closeable);
     }
 
     private void newGame() {
-        synchronized (lock) {
-            closeGame();
-            game = ServiceLoader.load(GameFactory.class)
-                    .findFirst()
-                    .map(f -> f.create(host))
-                    .orElseThrow(() -> new IllegalStateException("Game factory service not found!"));
-            host.services.uiLayers.add(game);
-            host.services.uiLayers.removePopups();
-        }
+        closeGame();
+        game = ServiceLoader.load(GameFactory.class)
+                .findFirst()
+                .map(f -> f.create(context.toGameFactoryArgs()))
+                .orElseThrow(() -> new IllegalStateException("Game factory service not found!"));
+        context.uiLayers().add(game);
+        context.uiLayers().removePopups();
     }
 
     private void closeGame() {
-        synchronized (lock) {
-            if (game != null) {
-                host.services.uiLayers.remove(game);
-                Closeables.close(game);
-                game = null;
-            }
+        if (game != null) {
+            context.uiLayers().remove(game);
+            Closeables.close(game);
+            game = null;
         }
     }
 }

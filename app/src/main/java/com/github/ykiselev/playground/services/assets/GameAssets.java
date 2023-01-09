@@ -68,7 +68,7 @@ public final class GameAssets implements Assets, AutoCloseable {
 
     @Override
     public void close() {
-        Closeables.close(delegate);
+        Closeables.closeIfNeeded(delegate);
     }
 
     @Override

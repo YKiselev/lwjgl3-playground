@@ -20,8 +20,6 @@ import com.github.ykiselev.opengl.sprites.Colors;
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
 import com.github.ykiselev.opengl.sprites.TextAlignment;
 import com.github.ykiselev.opengl.sprites.TextAttributes;
-import com.github.ykiselev.opengl.text.Glyph;
-import com.github.ykiselev.opengl.text.SpriteFont;
 import com.github.ykiselev.playground.ui.UiElement;
 import com.github.ykiselev.spi.services.layers.DrawingContext;
 import com.github.ykiselev.spi.services.layers.UiLayer;
@@ -30,15 +28,14 @@ import com.github.ykiselev.spi.window.WindowEvents;
 import java.util.Arrays;
 import java.util.List;
 
-import static java.util.Objects.requireNonNull;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_DOWN;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_UP;
-import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
+import static org.lwjgl.glfw.GLFW.*;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
 public final class ListMenu implements UiLayer {
+
+    public static final String SELECTOR = "\u25BA";
 
     public static final class MenuItem {
 
@@ -58,8 +55,6 @@ public final class ListMenu implements UiLayer {
 
     private final List<MenuItem> items;
 
-    private final DrawingContext context;
-
     private final WindowEvents events = new WindowEvents() {
         @Override
         public boolean keyEvent(int key, int scanCode, int action, int mods) {
@@ -68,13 +63,14 @@ public final class ListMenu implements UiLayer {
             }
             if (action == GLFW_PRESS) {
                 switch (key) {
-                    case GLFW_KEY_UP:
+                    case GLFW_KEY_UP -> {
                         selectPrevious();
                         return true;
-
-                    case GLFW_KEY_DOWN:
+                    }
+                    case GLFW_KEY_DOWN -> {
                         selectNext();
                         return true;
+                    }
                 }
             }
             return false;
@@ -118,8 +114,7 @@ public final class ListMenu implements UiLayer {
 
     private int selected = 0;
 
-    public ListMenu(DrawingContext context, MenuItem... items) {
-        this.context = requireNonNull(context);
+    public ListMenu(MenuItem... items) {
         this.items = Arrays.asList(items);
     }
 
@@ -152,39 +147,35 @@ public final class ListMenu implements UiLayer {
     }
 
     @Override
-    public void draw(int width, int height) {
+    public void draw(int width, int height, DrawingContext context) {
         final SpriteBatch batch = context.batch();
         batch.begin(0, 0, width, height, true);
 
         context.batch().fill(0, 0, width, height, 0x000030df);
 
-        final SpriteFont font = context.textAttributes().spriteFont();
-        final int cursorWidth;
-        final Glyph glyph = font.glyph((char) 0x23f5);
-        if (glyph != null) {
-            cursorWidth = glyph.width();
-        } else {
-            cursorWidth = 0;
-        }
-
-        final int x = 150 + cursorWidth;
+        final TextAttributes attributes = context.textAttributes();
+        final int half = width / 2;
+        final int titleWidth = half - 64;
+        final var font = attributes.trueTypeFont();
+        final int cursorWidth = font.width(SELECTOR);
+        final int x = titleWidth + cursorWidth;
         final int maxWidth = width - x;
         int y = height / 2 + items.size() * font.height() / 2 - font.height();
         int i = 0;
-        final TextAttributes attributes = context.textAttributes();
+
         final TextAlignment prevTextAlignment = attributes.alignment();
         for (MenuItem item : items) {
             int dx = 0, th = 0;
             if (item.title != null) {
                 attributes.alignment(TextAlignment.RIGHT);
-                th = batch.draw(x - (cursorWidth + 150), y, 150, item.title, context.textAttributes());
+                th = batch.draw(x - (cursorWidth + titleWidth), y, titleWidth, item.title, attributes);
                 attributes.alignment(prevTextAlignment);
             }
             if (i == selected) {
                 final int prevColor = attributes.color();
                 final float brightness = (System.currentTimeMillis() % 255) / 255f;
                 attributes.color(Colors.fade(prevColor, brightness));
-                batch.draw(x - cursorWidth, y, maxWidth, "\u23F5", attributes);
+                batch.draw(x - cursorWidth, y, maxWidth, SELECTOR, attributes);
                 attributes.color(prevColor);
             }
             final int eh = item.element.draw(x + dx, y, maxWidth, context);
