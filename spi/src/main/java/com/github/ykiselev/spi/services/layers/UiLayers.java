@@ -46,11 +46,10 @@ public interface UiLayers {
     void removePopups();
 
     /**
-     * Adds layer to the top of current stack and sorts the stack.
+     * Adds layer to the top of current stack and sorts the stack. Does nothing if layer is already on stack.
      *
      * @param layer the layer to add.
-     * @throws IllegalArgumentException if layer is already on stack.
-     * @throws NullPointerException     if layer is {@code null}.
+     * @throws NullPointerException if layer is {@code null}.
      */
     void add(UiLayer layer);
 
@@ -63,6 +62,7 @@ public interface UiLayers {
 
     /**
      * This method should draw current stack of layers.
+     *
      * @param context the context to use
      */
     void draw(DrawingContext context);

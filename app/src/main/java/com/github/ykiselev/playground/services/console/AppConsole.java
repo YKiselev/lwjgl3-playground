@@ -139,6 +139,9 @@ public final class AppConsole implements UiLayer, AutoCloseable {
         prevTime = glfwGetTime();
         // Always disable input to filter out characters from toggle key (i.e. '~'). Would be enabled on next draw call (if showing).
         inputAllowed = false;
+        if (showing) {
+            uiLayers.add(this);
+        }
     }
 
     private boolean onKey(int key, int scanCode, int action, int mods) {
@@ -148,6 +151,7 @@ public final class AppConsole implements UiLayer, AutoCloseable {
                     showing = false;
                     consoleHeight = 0;
                     inputAllowed = false;
+                    uiLayers.pop(this);
                     commands.execute("show-menu");
                     return true;
                 }
@@ -212,6 +216,7 @@ public final class AppConsole implements UiLayer, AutoCloseable {
     public void draw(int width, int height, DrawingContext context) {
         calculateHeight(height);
         if (consoleHeight <= 0) {
+            uiLayers.remove(this);
             return;
         }
         drawConsole(0, height - (int) consoleHeight, width, height, context);
@@ -223,7 +228,7 @@ public final class AppConsole implements UiLayer, AutoCloseable {
         // especially when toggle button is pressed again while previous toggle cycle is not yet complete
         prevTime = t;
         final double deltaHeight = (showing ? 1 : -1) * viewHeight * deltaTime / showTime;
-        this.consoleHeight = max(0, Math.min(viewHeight, this.consoleHeight + deltaHeight));
+        consoleHeight = max(0, Math.min(viewHeight, consoleHeight + deltaHeight));
     }
 
     private void drawConsole(int x0, int y0, int width, int height, DrawingContext context) {
@@ -245,7 +250,7 @@ public final class AppConsole implements UiLayer, AutoCloseable {
 
     @Override
     public Kind kind() {
-        return Kind.CONSOLE;
+        return Kind.POPUP;
     }
 
     @Override

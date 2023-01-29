@@ -51,18 +51,33 @@ public final class StbImageApp {
     }
 
     private void run() throws Exception {
-        final long t0 = System.currentTimeMillis();
-        loadByChunksAndPrintInfo(new File("d:\\Myriad Web Pro.png").toURI());
+        /**
+         * Loading image: file:/C:/Users/Юрий/Downloads/sky.jpg
+         * Dimensions: 6000x4000, components: 3, 72000000 byte(s)
+         * Time (msec): 851
+         * Checking image: file:/C:/Users/Юрий/Downloads/sky.jpg
+         * Dimensions: 6000x4000, components: 3
+         * Time (msec): 12
+         */
+        final URI fileUri = new File("C:\\Users\\Юрий\\Downloads\\sky.jpg").toURI();
+        long t0 = System.currentTimeMillis();
+        loadByChunksAndPrintInfo(fileUri);
+        long t1 = System.currentTimeMillis();
+        System.out.println("Time (msec): " + (t1 - t0));
+
         //loadAndPrintInfo(new File("d:\\Myriad Web Pro.png").toURI());
-//        printInfo(res("/images/8bpp.png"));
+        printInfo(fileUri);
+        t0 = System.currentTimeMillis();
+        System.out.println("Time (msec): " + (t0 - t1));
+
 //        printInfo(res("/images/8bpp2.png"));
 //        printInfo(res("/images/8bpp3.png"));
 //        printInfo(res("/images/24bpp.png"));
 //        printInfo(res("/images/32bpp1.png"));
 //        printInfo(res("/images/32bpp2.png"));
         //printInfo(new File("d:\\Myriad Web Pro.png").toURI());
-        final long t1 = System.currentTimeMillis();
-        System.out.println("Time (msec): " + (t1 - t0));
+        //t1 = System.currentTimeMillis();
+        //System.out.println("Time (msec): " + (t1 - t0));
     }
 
     private URI res(String name) throws URISyntaxException {

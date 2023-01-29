@@ -31,11 +31,13 @@ import com.github.ykiselev.opengl.sprites.TextAlignment;
 import com.github.ykiselev.opengl.sprites.TextAttributes;
 import com.github.ykiselev.opengl.textures.CurrentTexture2dAsBytes;
 import com.github.ykiselev.opengl.textures.Texture2d;
+import com.github.ykiselev.opengl.textures.TextureAtlas2d;
 import com.github.ykiselev.spi.GameFactoryArgs;
 import com.github.ykiselev.spi.components.Game;
 import com.github.ykiselev.spi.services.FileSystem;
 import com.github.ykiselev.spi.services.commands.Commands;
 import com.github.ykiselev.spi.services.layers.DrawingContext;
+import com.github.ykiselev.spi.window.Window;
 import com.github.ykiselev.spi.window.WindowEvents;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11;
@@ -51,6 +53,7 @@ import java.nio.channels.WritableByteChannel;
 
 import static java.util.Objects.requireNonNull;
 import static org.lwjgl.glfw.GLFW.glfwGetTime;
+import static org.lwjgl.glfw.GLFW.glfwSetCursorPos;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
@@ -63,9 +66,9 @@ public final class BaseGame implements Game {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final SpriteBatch spriteBatch;
-
     private final Commands commands;
+
+    private final Window window;
 
     private final FrameInfo frameInfo;
 
@@ -75,8 +78,6 @@ public final class BaseGame implements Game {
 
     private final TrueTypeFont ttf;
 
-    private final TextAttributes textAttributes = new TextAttributes();
-
     private final FloatBuffer vp;
 
     private float radius = 8;
@@ -85,15 +86,17 @@ public final class BaseGame implements Game {
 
     private float cameraZ = -0.5f;
 
-    private boolean lmbPressed, rmbPressed;
+    private boolean lmbPressed, rmbPressed, active;
 
-    private double cx, cy, cx0, cy0;
+    private double cx, cy, cx0, cy0, frameWidth, frameHeight;
 
     private final FrameBuffer frameBuffer;
 
     private final Cubes cubes;
 
     private final Pyramids pyramids;
+
+    private final TextureAtlas2d textureAtlas2d;
 
     private final AutoCloseable closeable;
 
@@ -125,15 +128,21 @@ public final class BaseGame implements Game {
         public boolean scrollEvent(double dx, double dy) {
             return onScroll(dx, dy);
         }
+
+        @Override
+        public void frameBufferResized(int width, int height) {
+            frameWidth = width;
+            frameHeight = height;
+        }
     };
 
     private FrameBufferMode frameBufferMode = FrameBufferMode.COLOR;
 
     public BaseGame(GameFactoryArgs host) {
-        this.spriteBatch = requireNonNull(host.spriteBatch());
         this.commands = requireNonNull(host.commands());
         this.fileSystem = requireNonNull(host.fileSystem());
         this.frameInfo = requireNonNull(host.frameInfo());
+        this.window = requireNonNull(host.window());
 
         final Assets assets = host.assets();
 
@@ -157,11 +166,21 @@ public final class BaseGame implements Game {
             frameBuffer = new FrameBuffer();
             guard.add(frameBuffer);
 
+            textureAtlas2d = new TextureAtlas2d(2048, 2048);
+            guard.add(textureAtlas2d);
+
             closeable = guard.detach();
         }
+    }
 
-        textAttributes.trueTypeFont(ttf);
-        textAttributes.alignment(TextAlignment.LEFT);
+    @Override
+    public void onActivation(boolean active) {
+        this.active = active;
+        if (active) {
+            window.hideCursor();
+        } else {
+            window.showCursor();
+        }
     }
 
     @Override
@@ -250,6 +269,11 @@ public final class BaseGame implements Game {
     @Override
     public void update() {
         // todo
+        double cx = frameWidth * 0.5;
+        double cy = frameHeight * 0.5;
+//        if (topmost) {
+//            window.setCursorPos(cx, cy);
+//        }
     }
 
     @Override
@@ -335,9 +359,12 @@ public final class BaseGame implements Game {
         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
         GL11.glDisable(GL11.GL_DEPTH_TEST);
 
+        final TextAttributes textAttributes = context.textAttributes();
         textAttributes.trueTypeFont(ttf);
         textAttributes.alignment(TextAlignment.LEFT);
         textAttributes.color(Colors.WHITE);
+
+        final SpriteBatch spriteBatch = context.batch();
 
         spriteBatch.begin(0, 0, width, height, true);
         switch (frameBufferMode) {

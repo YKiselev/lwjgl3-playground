@@ -29,15 +29,7 @@ import java.nio.IntBuffer;
 
 import static java.util.Objects.requireNonNull;
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
-import static org.lwjgl.glfw.GLFW.glfwDestroyWindow;
-import static org.lwjgl.glfw.GLFW.glfwGetFramebufferSize;
-import static org.lwjgl.glfw.GLFW.glfwGetWindowContentScale;
-import static org.lwjgl.glfw.GLFW.glfwHideWindow;
-import static org.lwjgl.glfw.GLFW.glfwMakeContextCurrent;
-import static org.lwjgl.glfw.GLFW.glfwPollEvents;
-import static org.lwjgl.glfw.GLFW.glfwShowWindow;
-import static org.lwjgl.glfw.GLFW.glfwSwapBuffers;
-import static org.lwjgl.glfw.GLFW.glfwWindowShouldClose;
+import static org.lwjgl.glfw.GLFW.*;
 
 /**
  * Window class.
@@ -182,5 +174,21 @@ public final class AppWindow implements AutoCloseable, Window {
     @Override
     public void getContentScale(FloatBuffer xScale, FloatBuffer yScale) {
         glfwGetWindowContentScale(window, xScale, yScale);
+    }
+
+    @Override
+    public void setCursorPos(double xpos, double ypos) {
+        glfwSetCursorPos(window, xpos, ypos);
+
+    }
+
+    @Override
+    public void showCursor() {
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    }
+
+    @Override
+    public void hideCursor() {
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
     }
 }

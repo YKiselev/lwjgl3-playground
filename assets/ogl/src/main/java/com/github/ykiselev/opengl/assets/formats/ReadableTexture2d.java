@@ -31,21 +31,7 @@ import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.nio.channels.ReadableByteChannel;
 
-import static org.lwjgl.opengl.GL11.GL_LINEAR;
-import static org.lwjgl.opengl.GL11.GL_RED;
-import static org.lwjgl.opengl.GL11.GL_REPEAT;
-import static org.lwjgl.opengl.GL11.GL_RGB;
-import static org.lwjgl.opengl.GL11.GL_RGBA;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_MAG_FILTER;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_MIN_FILTER;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_WRAP_S;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_WRAP_T;
-import static org.lwjgl.opengl.GL11.GL_UNPACK_ALIGNMENT;
-import static org.lwjgl.opengl.GL11.GL_UNSIGNED_BYTE;
-import static org.lwjgl.opengl.GL11.glPixelStorei;
-import static org.lwjgl.opengl.GL11.glTexImage2D;
-import static org.lwjgl.opengl.GL11.glTexParameteri;
+import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL12.GL_TEXTURE_BASE_LEVEL;
 import static org.lwjgl.opengl.GL12.GL_TEXTURE_MAX_LEVEL;
 import static org.lwjgl.opengl.GL30.glGenerateMipmap;
@@ -112,24 +98,26 @@ public final class ReadableTexture2d implements ReadableAsset<Texture2d, Readabl
         texture.bind();
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        final int format;
+        final int format, internalFormat;
         switch (components) {
-            case 1:
+            case 1 -> {
                 format = GL_RED;
-                break;
-            case 3:
+                internalFormat = GL_RED;
+            }
+            case 3 -> {
                 format = GL_RGB;
-                break;
-            case 4:
+                internalFormat = GL_RGBA8;
+            }
+            case 4 -> {
                 format = GL_RGBA;
-                break;
-            default:
-                throw new ResourceException("Unsupported number of components: " + components);
+                internalFormat = GL_RGBA8;
+            }
+            default -> throw new ResourceException("Unsupported number of components: " + components);
         }
         glPixelStorei(GL_UNPACK_ALIGNMENT, alignment(width * components));
-        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, image);
+        glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, GL_UNSIGNED_BYTE, image);
         if (mipMapped) {
             glGenerateMipmap(GL_TEXTURE_2D);
         } else {
@@ -141,7 +129,7 @@ public final class ReadableTexture2d implements ReadableAsset<Texture2d, Readabl
     }
 
     /**
-     * Choose best possible alignment
+     * Choose alignment
      */
     private int alignment(int widthInBytes) {
         int result = 8;

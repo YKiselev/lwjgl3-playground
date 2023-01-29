@@ -25,4 +25,10 @@ import java.nio.FloatBuffer;
 public interface Window {
 
     void getContentScale(FloatBuffer xScale, FloatBuffer yScale);
+
+    void setCursorPos(double xpos, double ypos);
+
+    void showCursor();
+
+    void hideCursor();
 }

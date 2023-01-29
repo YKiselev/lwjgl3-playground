@@ -126,6 +126,12 @@ public final class AppUiLayers implements UiLayers, AutoCloseable {
         }
     }
 
+    private void fireOnActivation() {
+        for (int i = 0; i < layers.size(); i++) {
+            layers.get(i).onActivation(i == layers.size() - 1);
+        }
+    }
+
     @Override
     public void pop(UiLayer layer) {
         if (layer == null) {
@@ -136,6 +142,7 @@ public final class AppUiLayers implements UiLayers, AutoCloseable {
             throw new IllegalArgumentException("Not a top layer: " + layer);
         }
         layers.remove(last).onPop();
+        fireOnActivation();
     }
 
     @Override
@@ -146,6 +153,7 @@ public final class AppUiLayers implements UiLayers, AutoCloseable {
             }
             layers.remove(i).onPop();
         }
+        fireOnActivation();
     }
 
     @Override
@@ -154,12 +162,13 @@ public final class AppUiLayers implements UiLayers, AutoCloseable {
             throw new NullPointerException("Layer can not be null!");
         }
         if (layers.contains(layer)) {
-            throw new IllegalArgumentException("Already on stack:" + layer);
+            return;
         }
         layers.add(layer);
         // Note: sort is expected to be stable!
         layers.sort(LAYER_COMPARATOR);
         layer.onPush();
+        fireOnActivation();
     }
 
     @Override
@@ -167,6 +176,7 @@ public final class AppUiLayers implements UiLayers, AutoCloseable {
         if (layers.remove(layer)) {
             layer.onPop();
         }
+        fireOnActivation();
     }
 
     @Override

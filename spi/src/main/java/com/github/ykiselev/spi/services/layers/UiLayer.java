@@ -25,7 +25,7 @@ import com.github.ykiselev.spi.window.WindowEvents;
 public interface UiLayer {
 
     enum Kind {
-        GAME, CONSOLE, POPUP
+        GAME, POPUP
     }
 
     WindowEvents events();
@@ -42,6 +42,9 @@ public interface UiLayer {
      * Called by {@link UiLayers} implementation when this layer is removed from current layers stack.
      */
     default void onPop() {
+    }
+
+    default void onActivation(boolean active){
     }
 
     Kind kind();
