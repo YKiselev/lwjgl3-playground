@@ -56,27 +56,31 @@ public final class Pyramids implements AutoCloseable {
         final double sec = glfwGetTime();
         try (MemoryStack ms = MemoryStack.stackPush()) {
             final FloatBuffer rm = ms.mallocFloat(16);
-            Matrix.rotation(0, 0, Math.toRadians(25 * sec % 360), rm);
-
             final FloatBuffer mvp = ms.mallocFloat(16);
 
             // 1
+            Matrix.rotation(0, 0, Math.toRadians(25 * sec % 360), rm);
             Matrix.multiply(vp, rm, mvp);
             mvpUniform.matrix4(false, mvp);
             geometry.draw();
 
             // 2
-            Matrix.translate(vp, 2, 0, 0, mvp);
-            Matrix.scale(mvp, 3, 3, 3, mvp);
-            Matrix.multiply(mvp, rm, mvp);
+            Matrix.identity(rm);
+            Matrix.translate(rm, 5, 0, 0, rm);
+            Matrix.rotation(0, Math.toRadians(15 * sec % 360), 0, mvp);
+            //Matrix.scale(rm, 3, 3, 3, rm);
+            Matrix.multiply(rm, mvp, rm);
+            Matrix.multiply(vp, rm, mvp);
             mvpUniform.matrix4(false, mvp);
             geometry.draw();
 
             // 3
-            Matrix.translate(vp, -2, 0, 0, mvp);
-            Matrix.multiply(mvp, rm, mvp);
+            Matrix.identity(rm);
+            Matrix.translate(rm, -2, 0, 0, rm);
+            Matrix.rotation(Math.toRadians(15 * sec % 360), 0, 0, rm);
+            Matrix.multiply(vp, rm, mvp);
             mvpUniform.matrix4(false, mvp);
-            geometry.draw();
+            //geometry.draw();
         }
         program.value().unbind();
         geometry.end();
