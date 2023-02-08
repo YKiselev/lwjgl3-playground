@@ -175,8 +175,8 @@ public final class GameClient implements Updatable, AutoCloseable, WindowEvents 
                     }
                     frameBufferMode = values[i];
                 }
-                case GLFW.GLFW_KEY_W -> camera.move(-0.5f);
-                case GLFW_KEY_S -> camera.move(0.5f);
+                case GLFW.GLFW_KEY_W -> camera.move(0.5f);
+                case GLFW_KEY_S -> camera.move(-0.5f);
                 case GLFW_KEY_A -> camera.strafe(-0.5f);
                 case GLFW_KEY_D -> camera.strafe(0.5f);
             }

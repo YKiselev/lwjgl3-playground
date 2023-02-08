@@ -72,6 +72,12 @@ public final class Vector3f {
         this.z = z;
     }
 
+    public void set(Vector3f src) {
+        this.x = src.x;
+        this.y = src.y;
+        this.z = src.z;
+    }
+
     @Override
     public String toString() {
         return "Vector3f{" +

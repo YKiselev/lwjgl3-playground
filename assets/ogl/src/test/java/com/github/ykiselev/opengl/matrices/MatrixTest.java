@@ -16,6 +16,7 @@
 
 package com.github.ykiselev.opengl.matrices;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -26,7 +27,6 @@ import java.nio.FloatBuffer;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -40,7 +40,7 @@ public class MatrixTest {
         int i = 0;
         for (float v : expected) {
             final float v1 = actual.get(i);
-            assertEquals(v, v1, 0.0001f, "Difference at #" + i);
+            Assertions.assertEquals(v, v1, 0.0001f, "Difference at #" + i);
             i++;
         }
     }
@@ -259,8 +259,17 @@ public class MatrixTest {
         return Stream.of(
                 Arguments.of(90d, 0d, 0d, new Vector3f(0, 1, 0), new Vector3f(0, 0, 1)),
                 Arguments.of(0d, 90d, 0d, new Vector3f(1, 0, 0), new Vector3f(0, 0, -1)),
-                Arguments.of(0d, 0d, 90d, new Vector3f(1, 0, 0), new Vector3f(0, 1, 0))
+                Arguments.of(0d, 0d, 90d, new Vector3f(1, 0, 0), new Vector3f(0, 1, 0)),
+                Arguments.of(45d, 0d, 0d, new Vector3f(0, 1, 0), new Vector3f(0, 0.707f, 0.707f)),
+                Arguments.of(0d, 45d, 0d, new Vector3f(1, 0, 0), new Vector3f(0.707f, 0, -0.707f)),
+                Arguments.of(0d, 0d, 45d, new Vector3f(1, 0, 0), new Vector3f(0.707f, 0.707f, 0))
         );
+    }
+
+    private static void assertEquals(Vector3f expected, Vector3f actual) {
+        Assertions.assertEquals(expected.x, actual.x, 0.001f, expected + " != " + actual);
+        Assertions.assertEquals(expected.y, actual.y, 0.001f, expected + " != " + actual);
+        Assertions.assertEquals(expected.z, actual.z, 0.001f, expected + " != " + actual);
     }
 
     @ParameterizedTest
@@ -273,9 +282,10 @@ public class MatrixTest {
                 m
         );
         Matrix.multiply(m, v);
-        assertTrue(
-                expected.equals(v, 0.0001f)
-        );
+        assertEquals(expected, v);
+//        assertTrue(
+//                expected.equals(v, 0.0001f)
+//        );
     }
 
     @Test
@@ -286,12 +296,12 @@ public class MatrixTest {
                 .put(6).put(8).put(12).put(15)
                 .put(7).put(13).put(14).put(16)
                 .flip();
-        assertEquals(-594.0, Matrix.determinant(m), 0.0001d);
+        Assertions.assertEquals(-594.0, Matrix.determinant(m), 0.0001d);
     }
 
     @Test
     public void determinantShouldBeOneForIdentity() {
-        assertEquals(1.0, Matrix.determinant(m), 0.0001d);
+        Assertions.assertEquals(1.0, Matrix.determinant(m), 0.0001d);
     }
 
     @Test
@@ -313,9 +323,9 @@ public class MatrixTest {
     }
 
     private void assertVectorEquals(float x, float y, float z, Vector3f v) {
-        assertEquals(x, v.x, 0.001f);
-        assertEquals(y, v.y, 0.001f);
-        assertEquals(z, v.z, 0.001f);
+        Assertions.assertEquals(x, v.x, 0.001f);
+        Assertions.assertEquals(y, v.y, 0.001f);
+        Assertions.assertEquals(z, v.z, 0.001f);
     }
 
     @Test
