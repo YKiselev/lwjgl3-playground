@@ -13,4 +13,8 @@ public final class GameServer implements Updatable, AutoCloseable {
     public void close() {
 
     }
+
+    public void activate(boolean active) {
+
+    }
 }

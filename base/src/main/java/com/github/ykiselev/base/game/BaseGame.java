@@ -66,6 +66,8 @@ public final class BaseGame implements Game {
         } else {
             window.showCursor();
         }
+        server.activate(active);
+        client.activate(active);
     }
 
     @Override

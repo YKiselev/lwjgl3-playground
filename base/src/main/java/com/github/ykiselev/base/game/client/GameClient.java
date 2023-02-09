@@ -208,6 +208,9 @@ public final class GameClient implements Updatable, AutoCloseable, WindowEvents 
 
     @Override
     public void cursorEvent(double x, double y) {
+        if (!active) {
+            return;
+        }
         // Skip first move for uninitialized mx, my to avoid sudden camera rotation
         if (mx == 0 && my == 0) {
             mx = x;
@@ -225,6 +228,9 @@ public final class GameClient implements Updatable, AutoCloseable, WindowEvents 
 
     @Override
     public boolean mouseButtonEvent(int button, int action, int mods) {
+        if (!active) {
+            return false;
+        }
         switch (button) {
             case GLFW.GLFW_MOUSE_BUTTON_LEFT -> lmbPressed = (action == GLFW.GLFW_PRESS);
             case GLFW.GLFW_MOUSE_BUTTON_RIGHT -> {
@@ -304,5 +310,10 @@ public final class GameClient implements Updatable, AutoCloseable, WindowEvents 
         //spriteBatch.draw(liberationMono.value().texture(), 420, 20, 400, 400, Colors.WHITE);
         /////
         spriteBatch.end();
+    }
+
+    public void activate(boolean active) {
+        mx = my = 0;
+        this.active = active;
     }
 }
