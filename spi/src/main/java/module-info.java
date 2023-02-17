@@ -10,6 +10,7 @@ module ykiselev.playground.spi {
     requires ykiselev.playground.assets.ogl;
 
     exports com.github.ykiselev.spi.api;
+    exports com.github.ykiselev.spi.camera;
     exports com.github.ykiselev.spi.components;
     exports com.github.ykiselev.spi.services;
     exports com.github.ykiselev.spi.services.commands;
@@ -20,4 +21,5 @@ module ykiselev.playground.spi {
     exports com.github.ykiselev.spi.services.schedule;
     exports com.github.ykiselev.spi;
     exports com.github.ykiselev.spi.window;
+    exports com.github.ykiselev.spi.world;
 }

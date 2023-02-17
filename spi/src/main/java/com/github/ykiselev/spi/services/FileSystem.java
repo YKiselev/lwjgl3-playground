@@ -18,7 +18,9 @@ package com.github.ykiselev.spi.services;
 
 import com.github.ykiselev.assets.Resources;
 
-import java.nio.channels.WritableByteChannel;
+import java.nio.channels.FileChannel;
+import java.nio.file.OpenOption;
+import java.nio.file.StandardOpenOption;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
@@ -26,10 +28,18 @@ import java.nio.channels.WritableByteChannel;
 public interface FileSystem extends Resources {
 
     /**
-     * @param name   the file name that will be resolved relative to first writable folder.
-     * @param append {@code true} to append to file or {@code false} to truncate file if it exists.
+     * @param name    the file name that will be resolved relative to first writable folder.
+     * @param options {@code true} to append to file or {@code false} to truncate file if it exists.
      * @return writable channel
      */
-    WritableByteChannel openForWriting(String name, boolean append);
+    FileChannel open(String name, OpenOption... options);
+
+    default FileChannel append(String name) {
+        return open(name, StandardOpenOption.CREATE, StandardOpenOption.APPEND, StandardOpenOption.WRITE);
+    }
+
+    default FileChannel truncate(String name) {
+        return open(name, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
+    }
 
 }

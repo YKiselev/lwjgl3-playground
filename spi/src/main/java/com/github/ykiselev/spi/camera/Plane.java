@@ -1,54 +1,29 @@
 package com.github.ykiselev.spi.camera;
 
+import com.github.ykiselev.opengl.matrices.Vector3f;
+
 public final class Plane {
 
     public enum Classification {
         INSIDE, OUTSIDE, ON_PLANE
     }
 
-    private double a, b, c, d;
+    private final Vector3f normal = new Vector3f();
 
-    public double a() {
-        return a;
+    private float d;
+
+    public void set(float a, float b, float c, float d) {
+        normal.set(a, b, c);
+        double ool = normal.normalize();
+        this.d = (float) (d * ool);
     }
 
-    public void a(double a) {
-        this.a = a;
+    public Classification classify(Vector3f p) {
+        return classify(p, 0f);
     }
 
-    public double b() {
-        return b;
-    }
-
-    public void b(double b) {
-        this.b = b;
-    }
-
-    public double c() {
-        return c;
-    }
-
-    public void c(double c) {
-        this.c = c;
-    }
-
-    public double d() {
-        return d;
-    }
-
-    public void d(double d) {
-        this.d = d;
-    }
-
-    public void set(double a, double b, double c, double d) {
-        this.a = a;
-        this.b = b;
-        this.c = c;
-        this.d = d;
-    }
-
-    public Classification classify(float x, float y, float z) {
-        final double r = x * a + y * b + z * c + d;
+    public Classification classify(Vector3f p, float radius) {
+        double r = normal.dotProduct(p) + d + radius;
         if (r < 0) {
             return Classification.OUTSIDE;
         } else if (r == 0) {
@@ -60,9 +35,7 @@ public final class Plane {
     @Override
     public String toString() {
         return "Plane{" +
-                "a=" + a +
-                ", b=" + b +
-                ", c=" + c +
+                "normal=" + normal +
                 ", d=" + d +
                 '}';
     }

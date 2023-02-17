@@ -2,25 +2,37 @@ package com.github.ykiselev.spi.world;
 
 import org.junit.jupiter.api.Test;
 
-import java.util.concurrent.atomic.AtomicLong;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 class WorldTest {
 
     @Test
     void shouldPutAndGet() {
-        World world = new World(10);
+        final int globalRangeShift = 7;
+        final int leafSideShift = 4;
+
+        World world = new World(globalRangeShift, leafSideShift);
+
+        final int maxIndex = (1 << globalRangeShift) - 1;
 
         world.put(0, 0, 0, 1);
-        world.put(901, 333, 105, 2);
-        world.put(902, 334, 106, 3);
-        world.put(1023, 511, 255, 4);
+        world.put(maxIndex - 10, maxIndex / 3, maxIndex / 5, 2);
+        world.put(maxIndex - 9, maxIndex / 3, 1 + maxIndex / 5, 3);
+        world.put(maxIndex, maxIndex / 2, maxIndex / 3, 4);
 
         assertEquals(1, world.get(0, 0, 0));
-        assertEquals(2, world.get(901, 333, 105));
-        assertEquals(3, world.get(902, 334, 106));
-        assertEquals(4, world.get(1023, 511, 255));
+        assertEquals(2, world.get(maxIndex - 10, maxIndex / 3, maxIndex / 5));
+        assertEquals(3, world.get(maxIndex - 9, maxIndex / 3, 1 + maxIndex / 5));
+        assertEquals(4, world.get(maxIndex, maxIndex / 2, maxIndex / 3));
+
+        assertNotNull(world.leafForIndices(0, 0, 0, false));
+        assertNotNull(world.leafForIndices(maxIndex - 10, maxIndex / 3, maxIndex / 5, false));
+        assertNotNull(world.leafForIndices(maxIndex - 9, maxIndex / 3, 1 + maxIndex / 5, false));
+        assertNotNull(world.leafForIndices(maxIndex, maxIndex / 2, maxIndex / 3, false));
+
+        assertNull(world.leafForIndices(0, 0, maxIndex, false));
+        assertNotNull(world.leafForIndices(0, 0, maxIndex, true));
+
 /*
         // 13 seconds, Nodes: 513, leaves: 262144
         for (int k = 0; k < 1024; k++) {

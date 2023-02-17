@@ -89,16 +89,19 @@ public final class Vector3f {
 
     /**
      * Normalizes vector.
+     *
+     * @return the normalizing coefficient (1/length) used
      */
-    public void normalize() {
+    public double normalize() {
         final double length = length();
-        double ool = 1.0;
         if (length != 0) {
-            ool = 1.0 / length;
+            double ool = 1.0 / length;
+            x *= ool;
+            y *= ool;
+            z *= ool;
+            return ool;
         }
-        x *= ool;
-        y *= ool;
-        z *= ool;
+        return 1;
     }
 
     /**
@@ -120,7 +123,7 @@ public final class Vector3f {
     }
 
     /**
-     * Calculates Dot product between this vectors.
+     * Calculates Dot product between this and supplied vector.
      *
      * @param b the second vector
      */

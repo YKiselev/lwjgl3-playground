@@ -13,9 +13,9 @@ public final class Camera {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private double yaw, pitch = 45;
+    private double yaw, pitch;
 
-    private float x, y, z, dx, dy, rx, ry;
+    private float x, y, z, dx, dy, rx, ry, zNear = 1f, zFar = 100f, fow = 90f;
 
     private final Vector3f direction = new Vector3f(), up = new Vector3f(), right = new Vector3f();
 
@@ -29,14 +29,12 @@ public final class Camera {
         buildVectors();
         x += dx * delta;
         y += dy * delta;
-        logger.info("{}", this);
     }
 
     public void strafe(float delta) {
         buildVectors();
         x += rx * delta;
         y += ry * delta;
-        logger.info("{}", this);
     }
 
     private static double limitAngle(double value) {
@@ -52,8 +50,6 @@ public final class Camera {
     public void rotate(double dx, double dy) {
         yaw = limitAngle(yaw - dy);
         pitch = limitAngle(pitch + dx);
-        buildVectors();
-        logger.info("{}", this);
     }
 
     private void buildVectors() {
@@ -70,9 +66,6 @@ public final class Camera {
             Matrix.multiply(mat, up);
             right.set(1, 0, 0);
             Matrix.multiply(mat, right);
-            //right.crossProduct(direction, up);
-            //up.set(0, 0, 1);
-            //direction.crossProduct(up, right);
 
             Vector3f v = vectors.allocate();
             v.set(direction.x, direction.y, 0);
@@ -95,13 +88,7 @@ public final class Camera {
     }
 
     public void apply(float ratio, FloatBuffer m) {
-        Matrix.perspective(
-                (float) Math.toRadians(90),
-                ratio,
-                0.1f,
-                150,
-                m
-        );
+        Matrix.perspective((float) Math.toRadians(fow), ratio, zNear, zFar, m);
 
         try (MemoryStack ms = MemoryStack.stackPush()) {
             final FloatBuffer mat = ms.mallocFloat(16);

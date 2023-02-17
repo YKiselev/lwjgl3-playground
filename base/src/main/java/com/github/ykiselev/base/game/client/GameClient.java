@@ -187,7 +187,7 @@ public final class GameClient implements Updatable, AutoCloseable, WindowEvents 
     private void dumpToFile(Texture2d texture, String name) throws IOException {
         texture.bind();
         try {
-            try (WritableByteChannel channel = fileSystem.openForWriting(name, false)) {
+            try (WritableByteChannel channel = fileSystem.truncate(name)) {
                 new CurrentTexture2dAsBytes().write(bb -> {
                     try {
                         channel.write(bb);

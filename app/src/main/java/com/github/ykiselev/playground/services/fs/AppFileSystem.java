@@ -28,11 +28,10 @@ import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
-import java.nio.channels.WritableByteChannel;
 import java.nio.file.Files;
+import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Optional;
@@ -54,7 +53,7 @@ public final class AppFileSystem implements FileSystem, AutoCloseable {
         this.folders = Arrays.asList(folders.clone());
     }
 
-    private FileChannel open(URL resource, boolean append) {
+    private FileChannel open(URL resource, OpenOption... options) {
         final Path path;
         try {
             path = Paths.get(resource.toURI()).toAbsolutePath();
@@ -64,12 +63,7 @@ public final class AppFileSystem implements FileSystem, AutoCloseable {
         logger.debug("Opening file channel {}...", path);
         ensureParentFoldersExists(path);
         try {
-            return FileChannel.open(
-                    path,
-                    StandardOpenOption.CREATE,
-                    StandardOpenOption.WRITE,
-                    append ? StandardOpenOption.APPEND : StandardOpenOption.TRUNCATE_EXISTING
-            );
+            return FileChannel.open(path, options);
         } catch (IOException e) {
             throw new UncheckedIOException("Unable to open " + path, e);
         }
@@ -87,7 +81,7 @@ public final class AppFileSystem implements FileSystem, AutoCloseable {
     }
 
     @Override
-    public WritableByteChannel openForWriting(String name, boolean append) {
+    public FileChannel open(String name, OpenOption... options) {
         if (name == null) {
             return null;
         }
@@ -96,7 +90,7 @@ public final class AppFileSystem implements FileSystem, AutoCloseable {
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("No writable folders!"));
         return folder.resolve(name, false)
-                .map(url -> open(url, append))
+                .map(url -> open(url, options))
                 .orElseThrow(() -> new IllegalStateException("Unknown error!"));
     }
 

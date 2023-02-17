@@ -7,18 +7,20 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class ObjectPoolFrameTest {
 
+    private ObjectPool<int[]> pool;
+
     @BeforeEach
     void setUp() {
-        ObjectPoolFrame.clear();
+        pool = new ObjectPool<>(() -> new int[1]);
     }
 
     @Test
     void shouldFillPoolAndRetainValues() {
-        try (var frame = ObjectPoolFrame.push(int[].class, () -> new int[1])) {
+        try (var frame = pool.push()) {
             frame.allocate()[0] = 1;
             frame.allocate()[0] = 2;
 
-            try (var nestedFrame = ObjectPoolFrame.push(int[].class, () -> new int[1])) {
+            try (var nestedFrame = pool.push()) {
                 nestedFrame.allocate()[0] = 3;
                 nestedFrame.allocate()[0] = 4;
                 assertEquals(2, nestedFrame.size());
@@ -31,13 +33,13 @@ class ObjectPoolFrameTest {
             assertEquals(4, frame.index());
         }
 
-        try (var frame = ObjectPoolFrame.push(int[].class, () -> new int[1])) {
+        try (var frame = pool.push()) {
             assertEquals(1, frame.allocate()[0]);
             assertEquals(2, frame.allocate()[0]);
             assertEquals(4, frame.size());
             assertEquals(2, frame.index());
 
-            try (var nestedFrame = ObjectPoolFrame.push(int[].class, () -> new int[1])) {
+            try (var nestedFrame = pool.push()) {
                 assertEquals(3, nestedFrame.allocate()[0]);
                 assertEquals(4, nestedFrame.allocate()[0]);
             }

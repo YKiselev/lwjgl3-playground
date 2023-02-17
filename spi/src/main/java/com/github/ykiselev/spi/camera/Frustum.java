@@ -1,5 +1,7 @@
 package com.github.ykiselev.spi.camera;
 
+import com.github.ykiselev.opengl.matrices.Vector3f;
+
 import java.nio.FloatBuffer;
 
 public final class Frustum {
@@ -33,32 +35,27 @@ public final class Frustum {
         far.set(m.get(3) - m.get(2), m.get(7) - m.get(6), m.get(11) - m.get(10), m.get(15) - m.get(14));
     }
 
-    public boolean isInside(float x, float y, float z) {
-        var result = near.classify(x, y, z);
-        if (result == Plane.Classification.OUTSIDE) {
+    public boolean isInside(Vector3f p) {
+        return intersects(p, 0f);
+    }
+
+    public boolean intersects(Vector3f p, float radius) {
+        if (near.classify(p, radius) == Plane.Classification.OUTSIDE) {
             return false;
         }
-        result = far.classify(x, y, z);
-        if (result == Plane.Classification.OUTSIDE) {
+        if (far.classify(p, radius) == Plane.Classification.OUTSIDE) {
             return false;
         }
-        result = left.classify(x, y, z);
-        if (result == Plane.Classification.OUTSIDE) {
+        if (left.classify(p, radius) == Plane.Classification.OUTSIDE) {
             return false;
         }
-        result = top.classify(x, y, z);
-        if (result == Plane.Classification.OUTSIDE) {
+        if (top.classify(p, radius) == Plane.Classification.OUTSIDE) {
             return false;
         }
-        result = right.classify(x, y, z);
-        if (result == Plane.Classification.OUTSIDE) {
+        if (right.classify(p, radius) == Plane.Classification.OUTSIDE) {
             return false;
         }
-        result = bottom.classify(x, y, z);
-        if (result == Plane.Classification.OUTSIDE) {
-            return false;
-        }
-        return true;
+        return bottom.classify(p, radius) != Plane.Classification.OUTSIDE;
     }
 
     @Override

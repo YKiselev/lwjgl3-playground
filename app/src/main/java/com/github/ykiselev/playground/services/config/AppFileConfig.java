@@ -66,7 +66,7 @@ final class AppFileConfig implements FileConfig {
     @Override
     public void persist(String name, Map<String, Object> config) {
         logger.info("Saving config to {}...", name);
-        try (WritableByteChannel channel = fileSystem.openForWriting("app.conf", false)) {
+        try (WritableByteChannel channel = fileSystem.truncate("app.conf")) {
             try (Writer writer = Channels.newWriter(channel, StandardCharsets.UTF_8)) {
                 writer.write(
                         ConfigFactory.parseMap(config)

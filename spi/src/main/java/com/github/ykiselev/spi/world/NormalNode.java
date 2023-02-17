@@ -13,6 +13,13 @@ public final class NormalNode extends AbstractNode {
 
     private final Node[] children;
 
+    /**
+     * @param iorg       i origin index
+     * @param jorg       j origin index
+     * @param korg       k origin index
+     * @param sideShift  number of child nodes in one dimension is 1 << sideShift
+     * @param rangeShift index range for this node is 1 << rangeShift
+     */
     public NormalNode(int iorg, int jorg, int korg, int sideShift, int rangeShift) {
         super(iorg, jorg, korg);
         this.sideShift = sideShift;
@@ -41,17 +48,30 @@ public final class NormalNode extends AbstractNode {
     }
 
     @Override
-    public void put(int i, int j, int k, int value, NodeFactory factory) {
+    public Leaf leafForIndices(int i, int j, int k, NodeFactory factory) {
+        final Node child = getChild(i, j, k, factory);
+        return child != null
+                ? child.leafForIndices(i, j, k, factory)
+                : null;
+    }
+
+    private Node getChild(int i, int j, int k, NodeFactory factory) {
         final int index = index(i, j, k);
         final Node child;
-        if (children[index] == null) {
+        if (children[index] == null && factory != null) {
             final int mask = -(1 << childRangeShift);
             child = factory.create(i & mask, j & mask, k & mask, sideShift, childRangeShift);
             children[index] = child;
         } else {
             child = children[index];
         }
-        child.put(i, j, k, value, factory);
+        return child;
+    }
+
+    @Override
+    public void put(int i, int j, int k, int value, NodeFactory factory) {
+        getChild(i, j, k, factory)
+                .put(i, j, k, value, factory);
     }
 
     @Override

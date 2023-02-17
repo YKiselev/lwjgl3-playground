@@ -1,5 +1,7 @@
 package com.github.ykiselev.spi.world;
 
+import java.nio.channels.ReadableByteChannel;
+
 public final class Leaf extends AbstractNode {
 
     private final int shift;
@@ -29,6 +31,11 @@ public final class Leaf extends AbstractNode {
     }
 
     @Override
+    public Leaf leafForIndices(int i, int j, int k, NodeFactory factory) {
+        return this;
+    }
+
+    @Override
     public void put(int i, int j, int k, int value, NodeFactory factory) {
         blocks[index(i, j, k)] = (byte) value;
     }
@@ -46,5 +53,9 @@ public final class Leaf extends AbstractNode {
                 ", korg=" + korg +
                 ", shift=" + shift +
                 '}';
+    }
+
+    public void read(ReadableByteChannel channel) {
+
     }
 }
