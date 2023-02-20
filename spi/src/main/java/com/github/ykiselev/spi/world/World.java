@@ -1,9 +1,11 @@
 package com.github.ykiselev.spi.world;
 
+import java.util.Objects;
+
 /**
  *
  */
-public class World {
+public final class World {
 
     private final Node root;
 
@@ -21,25 +23,17 @@ public class World {
         return leafIndexRange;
     }
 
-    public World(int globalRangeShift, int leafSideShift) {
-        if (globalRangeShift <= leafSideShift) {
+    public World(NodeFactory factory, int globalRangeShift) {
+        if (globalRangeShift <= Leaf.SIDE_SHIFT) {
             throw new IllegalArgumentException("Global range shift should be greater than leaf side shift!");
         }
-        int nodeSideShift = globalRangeShift - leafSideShift;
-        while (nodeSideShift >= leafSideShift) {
-            nodeSideShift >>= 1;
-        }
-        if (nodeSideShift < 1) {
-            throw new IllegalArgumentException("Invalid shifts supplied! Bad node side shift: " + nodeSideShift);
-        }
+        int nodeSideShift = 1;
+//        while (nodeSideShift + 1 < Leaf.SIDE_SHIFT) {
+//            nodeSideShift++;
+//        }
         this.indexRange = 1 << globalRangeShift;
-        this.leafIndexRange = 1 << leafSideShift;
-        this.factory = (iorg, jorg, korg, sideShift, rangeShift) -> {
-            if (rangeShift <= leafSideShift) {
-                return new Leaf(iorg, jorg, korg, rangeShift);
-            }
-            return new NormalNode(iorg, jorg, korg, sideShift, rangeShift);
-        };
+        this.leafIndexRange = 1 << Leaf.SIDE_SHIFT;
+        this.factory = Objects.requireNonNull(factory);
         this.root = factory.create(0, 0, 0, nodeSideShift, globalRangeShift);
     }
 

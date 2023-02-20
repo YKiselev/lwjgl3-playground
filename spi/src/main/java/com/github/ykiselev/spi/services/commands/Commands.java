@@ -91,7 +91,7 @@ public interface Commands {
     AutoCloseable add(Command handler) throws CommandException.CommandAlreadyRegisteredException;
 
     /**
-     * Convenient method for commands without arguments.
+     * Convenient method for commands with many arguments.
      *
      * @param command the command to bind handler to.
      * @param handler the handler.
@@ -139,7 +139,7 @@ public interface Commands {
      * Convenient method for commands with single argument.
      *
      * @param command the command to bind handler to.
-     * @param handler the handler receiving only command name.
+     * @param handler the handler receiving command name and one argument.
      * @return the handle to unbind handler.
      */
     default AutoCloseable add(String command, H2 handler) {
@@ -150,7 +150,7 @@ public interface Commands {
      * Convenient method for commands with two arguments.
      *
      * @param command the command to bind handler to.
-     * @param handler the handler receiving only command name.
+     * @param handler the handler receiving command name and two arguments.
      * @return the handle to unbind handler.
      */
     default AutoCloseable add(String command, H3 handler) {
@@ -161,7 +161,7 @@ public interface Commands {
      * Convenient method for commands with three arguments.
      *
      * @param command the command to bind handler to.
-     * @param handler the handler receiving only command name.
+     * @param handler the handler receiving command name and three arguments.
      * @return the handle to unbind handler.
      */
     default AutoCloseable add(String command, H4 handler) {
@@ -172,7 +172,7 @@ public interface Commands {
      * Convenient method for commands with four arguments.
      *
      * @param command the command to bind handler to.
-     * @param handler the handler receiving only command name.
+     * @param handler the handler receiving command name and four arguments.
      * @return the handle to unbind handler.
      */
     default AutoCloseable add(String command, H5 handler) {
@@ -183,7 +183,7 @@ public interface Commands {
      * Convenient method for commands with five arguments.
      *
      * @param command the command to bind handler to.
-     * @param handler the handler receiving only command name.
+     * @param handler the handler receiving command name and five arguments.
      * @return the handle to unbind handler.
      */
     default AutoCloseable add(String command, H6 handler) {

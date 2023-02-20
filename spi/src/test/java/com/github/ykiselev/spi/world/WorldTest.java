@@ -9,9 +9,8 @@ class WorldTest {
     @Test
     void shouldPutAndGet() {
         final int globalRangeShift = 7;
-        final int leafSideShift = 4;
 
-        World world = new World(globalRangeShift, leafSideShift);
+        World world = new World(new DefaultNodeFactory(), globalRangeShift);
 
         final int maxIndex = (1 << globalRangeShift) - 1;
 

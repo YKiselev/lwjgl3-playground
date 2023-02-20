@@ -5,6 +5,7 @@ module ykiselev.playground.spi {
     requires org.lwjgl;
     requires org.lwjgl.glfw;
     requires config;
+    requires slf4j.api;
     requires transitive ykiselev.assets.api;
     requires ykiselev.playground.common;
     requires ykiselev.playground.assets.ogl;
@@ -22,4 +23,7 @@ module ykiselev.playground.spi {
     exports com.github.ykiselev.spi;
     exports com.github.ykiselev.spi.window;
     exports com.github.ykiselev.spi.world;
+    exports com.github.ykiselev.spi.world.file;
+    exports com.github.ykiselev.spi.world.generation;
+    exports com.github.ykiselev.spi.world.predicates;
 }

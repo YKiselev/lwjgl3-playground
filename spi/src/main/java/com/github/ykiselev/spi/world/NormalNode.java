@@ -1,17 +1,21 @@
 package com.github.ykiselev.spi.world;
 
+import java.util.Arrays;
+
 public final class NormalNode extends AbstractNode {
+
+    private static final Node[] EMPTY_ARRAY = new Node[0];
 
     /**
      * Number of child nodes in one dimension is 1 << sideShift
      */
-    private final int sideShift;
+    private int sideShift;
     /**
      * Child node index range is 1 << childShift
      */
-    private final int childRangeShift;
+    private int childRangeShift;
 
-    private final Node[] children;
+    private Node[] children = EMPTY_ARRAY;
 
     /**
      * @param iorg       i origin index
@@ -20,11 +24,19 @@ public final class NormalNode extends AbstractNode {
      * @param sideShift  number of child nodes in one dimension is 1 << sideShift
      * @param rangeShift index range for this node is 1 << rangeShift
      */
-    public NormalNode(int iorg, int jorg, int korg, int sideShift, int rangeShift) {
-        super(iorg, jorg, korg);
+    public NormalNode init(int iorg, int jorg, int korg, int sideShift, int rangeShift) {
+        this.iorg = iorg;
+        this.jorg = jorg;
+        this.korg = korg;
         this.sideShift = sideShift;
         this.childRangeShift = Integer.numberOfTrailingZeros(1 << (rangeShift - sideShift));
-        this.children = new Node[1 << (3 * sideShift)];
+        final int length = 1 << (3 * sideShift);
+        if (length != children.length) {
+            this.children = new Node[length];
+        } else {
+            Arrays.fill(children, null);
+        }
+        return this;
     }
 
     @Override

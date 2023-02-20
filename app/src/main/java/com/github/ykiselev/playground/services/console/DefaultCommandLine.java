@@ -64,7 +64,7 @@ public final class DefaultCommandLine implements CommandLine {
     private final ExecutionContext context = new ExecutionContext() {
         @Override
         public void onException(RuntimeException ex) {
-            logger.error(MARKER, ex.toString());
+            logger.error(MARKER, ex.toString(), ex);
         }
 
         @Override

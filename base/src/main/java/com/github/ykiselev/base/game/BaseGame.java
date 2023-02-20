@@ -21,9 +21,13 @@ import com.github.ykiselev.base.game.server.GameServer;
 import com.github.ykiselev.common.closeables.Closeables;
 import com.github.ykiselev.spi.GameFactoryArgs;
 import com.github.ykiselev.spi.components.Game;
+import com.github.ykiselev.spi.services.FileSystem;
 import com.github.ykiselev.spi.services.layers.DrawingContext;
 import com.github.ykiselev.spi.window.Window;
 import com.github.ykiselev.spi.window.WindowEvents;
+import com.github.ykiselev.spi.world.World;
+import com.github.ykiselev.spi.world.file.WorldFile;
+import com.github.ykiselev.spi.world.generation.WorldGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,10 +48,23 @@ public final class BaseGame implements Game {
 
     private final WindowEvents events;
 
+    private final FileSystem fileSystem;
+
+    private final WorldFile worldFile = new WorldFile();
+
+    private World world;
+
     public BaseGame(GameFactoryArgs args) {
         this.window = args.window();
+        this.fileSystem = args.fileSystem();
 
         try (var guard = Closeables.newGuard()) {
+            guard.add(args.commands()
+                    .add()
+                    .with("load-world", this::world)
+                    .with("gen-world", this::genWorld)
+                    .build());
+
             this.server = new GameServer();
             guard.add(server);
 
@@ -90,5 +107,15 @@ public final class BaseGame implements Game {
     @Override
     public void draw(int width, int height, DrawingContext context) {
         client.draw(width, height, context);
+    }
+
+    private void genWorld(String command, String name) {
+        WorldGenerator generator = new WorldGenerator();
+        world = generator.generate(1024);
+        worldFile.save(fileSystem, world, name);
+    }
+
+    private void world(String command, String name) {
+        world = worldFile.load(fileSystem, name);
     }
 }

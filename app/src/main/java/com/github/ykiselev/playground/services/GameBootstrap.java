@@ -17,7 +17,6 @@
 package com.github.ykiselev.playground.services;
 
 import com.github.ykiselev.common.closeables.Closeables;
-import com.github.ykiselev.common.closeables.CompositeAutoCloseable;
 import com.github.ykiselev.spi.GameFactory;
 import com.github.ykiselev.spi.api.Updatable;
 import com.github.ykiselev.spi.components.Game;
@@ -39,12 +38,17 @@ public final class GameBootstrap implements Updatable, AutoCloseable {
 
     public GameBootstrap(AppContext context) {
         this.context = requireNonNull(context);
-        this.closeable = new CompositeAutoCloseable(
-                context.commands().add("new-game", this::newGame),
-                context.configuration().wire()
-                        .withBoolean("game.isPresent", () -> game != null, false)
-                        .build()
-        );
+        try (var guard = Closeables.newGuard()) {
+            guard.add(context.commands().add()
+                    .with("new-game", this::newGame)
+                    .build());
+
+            guard.add(context.configuration().wire()
+                    .withBoolean("game.isPresent", () -> game != null, false)
+                    .build());
+
+            this.closeable = guard.detach();
+        }
     }
 
     @Override

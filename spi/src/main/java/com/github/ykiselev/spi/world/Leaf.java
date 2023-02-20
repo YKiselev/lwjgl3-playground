@@ -1,28 +1,31 @@
 package com.github.ykiselev.spi.world;
 
-import java.nio.channels.ReadableByteChannel;
+import java.util.Arrays;
+import java.util.function.Consumer;
 
 public final class Leaf extends AbstractNode {
 
-    private final int shift;
+    public static final int SIDE_SHIFT = 4;
 
-    private final byte[] blocks;
+    private final byte[] blocks = new byte[1 << (3 * SIDE_SHIFT)];
 
-    public Leaf(int iorg, int jorg, int korg, int shift) {
-        super(iorg, jorg, korg);
-        this.shift = shift;
-        this.blocks = new byte[1 << (3 * shift)];
+    public Leaf init(int iorg, int jorg, int korg) {
+        this.iorg = iorg;
+        this.jorg = jorg;
+        this.korg = korg;
+        Arrays.fill(blocks, (byte) 0);
+        return this;
     }
 
     @Override
     public int range() {
-        return 1 << shift;
+        return 1 << SIDE_SHIFT;
     }
 
     private int index(int i, int j, int k) {
         return (i - iorg) +
-                ((j - jorg) << shift) +
-                ((k - korg) << (2 * shift));
+                ((j - jorg) << SIDE_SHIFT) +
+                ((k - korg) << (2 * SIDE_SHIFT));
     }
 
     @Override
@@ -51,11 +54,10 @@ public final class Leaf extends AbstractNode {
                 "iorg=" + iorg +
                 ", jorg=" + jorg +
                 ", korg=" + korg +
-                ", shift=" + shift +
                 '}';
     }
 
-    public void read(ReadableByteChannel channel) {
-
+    public void visit(Consumer<byte[]> consumer) {
+        consumer.accept(blocks);
     }
 }
