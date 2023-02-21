@@ -284,6 +284,7 @@ public final class DefaultCommandLine implements CommandLine {
     private void set(String commandLine) {
         buf.setLength(0);
         buf.append(commandLine);
+        buf.append(' ');
         cursorPos = buf.length();
     }
 
