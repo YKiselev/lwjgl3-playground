@@ -22,6 +22,8 @@ public final class WorldFile {
     private static final byte[] FILE_SIGNATURE = new byte[]{'w', 'r', 'l', 'd'};
 
     static final byte[] LEAF_SIGNATURE = new byte[]{'l', 'e', 'a', 'f'};
+    public static final int FILE_HEADER_SIZE = 4 + 4 + 4 + 4;
+    public static final int LEAF_CHUNK_SIZE = 4 + 4 + 4 + 4 + (1 << (3 * Leaf.SIDE_SHIFT));
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -83,14 +85,14 @@ public final class WorldFile {
         for (byte b : expected) {
             byte actual = buf.get();
             if (b != actual) {
-                throw new RuntimeException("Signature mismatch! Need " + (char)b + " but got " + (char)actual);
+                throw new RuntimeException("Signature mismatch! Need " + (char) b + " but got " + (char) actual);
             }
         }
     }
 
     public World load(FileSystem fileSystem, String name, NodeFactory factory) {
         try (FileChannel file = fileSystem.open(path(name), StandardOpenOption.READ)) {
-            buffer.clear().limit(4 + 4 + 4 + 4);
+            buffer.clear().limit(FILE_HEADER_SIZE);
             read(file, buffer);
             buffer.flip();
             checkSignature(buffer, FILE_SIGNATURE);
@@ -104,7 +106,20 @@ public final class WorldFile {
                 throw new RuntimeException("Incompatible leaf index range: " + leafIndexRange);
             }
             final World world = new World(factory, indexRange);
-            logger.info("World \"{}\" has been loaded.", name);
+            buffer.clear().limit(LEAF_CHUNK_SIZE);
+            int leafs = 0;
+            while (file.read(buffer) == buffer.limit()) {
+                buffer.flip();
+                checkSignature(buffer, LEAF_SIGNATURE);
+                final int iorg = buffer.getInt();
+                final int jorg = buffer.getInt();
+                final int korg = buffer.getInt();
+                final Leaf leaf = world.leafForIndices(iorg, jorg, korg, true);
+                leaf.visit(buffer::get);
+                leafs++;
+                buffer.clear().limit(LEAF_CHUNK_SIZE);
+            }
+            logger.info("World \"{}\" has been loaded ({} leafs).", name, leafs);
             return world;
         } catch (IOException e) {
             throw new UncheckedIOException(e);
