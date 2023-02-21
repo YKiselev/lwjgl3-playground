@@ -25,6 +25,8 @@ import com.github.ykiselev.spi.services.FileSystem;
 import com.github.ykiselev.spi.services.layers.DrawingContext;
 import com.github.ykiselev.spi.window.Window;
 import com.github.ykiselev.spi.window.WindowEvents;
+import com.github.ykiselev.spi.world.DefaultNodeFactory;
+import com.github.ykiselev.spi.world.NodeFactory;
 import com.github.ykiselev.spi.world.World;
 import com.github.ykiselev.spi.world.file.WorldFile;
 import com.github.ykiselev.spi.world.generation.WorldGenerator;
@@ -53,6 +55,8 @@ public final class BaseGame implements Game {
     private final WorldFile worldFile = new WorldFile();
 
     private World world;
+
+    private final NodeFactory nodeFactory = new DefaultNodeFactory();
 
     public BaseGame(GameFactoryArgs args) {
         this.window = args.window();
@@ -111,11 +115,11 @@ public final class BaseGame implements Game {
 
     private void genWorld(String command, String name) {
         WorldGenerator generator = new WorldGenerator();
-        world = generator.generate(1024);
+        world = generator.generate(nodeFactory, 1024);
         worldFile.save(fileSystem, world, name);
     }
 
     private void world(String command, String name) {
-        world = worldFile.load(fileSystem, name);
+        world = worldFile.load(fileSystem, name, nodeFactory);
     }
 }

@@ -79,14 +79,21 @@ public final class WorldFile {
         }
     }
 
+    public static void checkSignature(ByteBuffer buf, byte[] expected) {
+        for (byte b : expected) {
+            byte actual = buf.get();
+            if (b != actual) {
+                throw new RuntimeException("Signature mismatch! Need " + (char)b + " but got " + (char)actual);
+            }
+        }
+    }
+
     public World load(FileSystem fileSystem, String name, NodeFactory factory) {
         try (FileChannel file = fileSystem.open(path(name), StandardOpenOption.READ)) {
             buffer.clear().limit(4 + 4 + 4 + 4);
             read(file, buffer);
             buffer.flip();
-            if (buffer.get() == 'f' && buffer.get() == 'i' && buffer.get() == 'l' && buffer.get() == 'e') {
-                throw new RuntimeException("File signature not found!");
-            }
+            checkSignature(buffer, FILE_SIGNATURE);
             final int version = buffer.getInt();
             if (version <= 0 || version > FILE_VERSION) {
                 throw new RuntimeException("Unsupported version: " + version);
@@ -97,7 +104,7 @@ public final class WorldFile {
                 throw new RuntimeException("Incompatible leaf index range: " + leafIndexRange);
             }
             final World world = new World(factory, indexRange);
-
+            logger.info("World \"{}\" has been loaded.", name);
             return world;
         } catch (IOException e) {
             throw new UncheckedIOException(e);

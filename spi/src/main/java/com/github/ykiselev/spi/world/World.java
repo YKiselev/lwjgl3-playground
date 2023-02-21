@@ -28,13 +28,10 @@ public final class World {
             throw new IllegalArgumentException("Global range shift should be greater than leaf side shift!");
         }
         int nodeSideShift = 1;
-//        while (nodeSideShift + 1 < Leaf.SIDE_SHIFT) {
-//            nodeSideShift++;
-//        }
         this.indexRange = 1 << globalRangeShift;
         this.leafIndexRange = 1 << Leaf.SIDE_SHIFT;
         this.factory = Objects.requireNonNull(factory);
-        this.root = factory.create(0, 0, 0, nodeSideShift, globalRangeShift);
+        this.root = factory.create(0, 0, 0, globalRangeShift);
     }
 
     public int get(int i, int j, int k) {

@@ -4,50 +4,39 @@ import java.util.Arrays;
 
 public final class NormalNode extends AbstractNode {
 
-    private static final Node[] EMPTY_ARRAY = new Node[0];
+    private static final int SIDE_SHIFT = 1;
 
-    /**
-     * Number of child nodes in one dimension is 1 << sideShift
-     */
-    private int sideShift;
     /**
      * Child node index range is 1 << childShift
      */
     private int childRangeShift;
 
-    private Node[] children = EMPTY_ARRAY;
+    private final Node[] children = new Node[1 << (3 * SIDE_SHIFT)];
 
     /**
      * @param iorg       i origin index
      * @param jorg       j origin index
      * @param korg       k origin index
-     * @param sideShift  number of child nodes in one dimension is 1 << sideShift
      * @param rangeShift index range for this node is 1 << rangeShift
      */
-    public NormalNode init(int iorg, int jorg, int korg, int sideShift, int rangeShift) {
+    public NormalNode init(int iorg, int jorg, int korg, int rangeShift) {
         this.iorg = iorg;
         this.jorg = jorg;
         this.korg = korg;
-        this.sideShift = sideShift;
-        this.childRangeShift = Integer.numberOfTrailingZeros(1 << (rangeShift - sideShift));
-        final int length = 1 << (3 * sideShift);
-        if (length != children.length) {
-            this.children = new Node[length];
-        } else {
-            Arrays.fill(children, null);
-        }
+        this.childRangeShift = Integer.numberOfTrailingZeros(1 << (rangeShift - SIDE_SHIFT));
+        Arrays.fill(children, null);
         return this;
     }
 
     @Override
     public int range() {
-        return (1 << childRangeShift) * (1 << sideShift);
+        return (1 << childRangeShift) * (1 << SIDE_SHIFT);
     }
 
     private int index(int i, int j, int k) {
         return ((i - iorg) >> childRangeShift) +
-                (((j - jorg) >> childRangeShift) << sideShift) +
-                (((k - korg) >> childRangeShift) << (2 * sideShift));
+                (((j - jorg) >> childRangeShift) << SIDE_SHIFT) +
+                (((k - korg) >> childRangeShift) << (2 * SIDE_SHIFT));
     }
 
     @Override
@@ -72,7 +61,7 @@ public final class NormalNode extends AbstractNode {
         final Node child;
         if (children[index] == null && factory != null) {
             final int mask = -(1 << childRangeShift);
-            child = factory.create(i & mask, j & mask, k & mask, sideShift, childRangeShift);
+            child = factory.create(i & mask, j & mask, k & mask, childRangeShift);
             children[index] = child;
         } else {
             child = children[index];
@@ -107,7 +96,6 @@ public final class NormalNode extends AbstractNode {
                 "iorg=" + iorg +
                 ", jorg=" + jorg +
                 ", korg=" + korg +
-                ", sideShift=" + sideShift +
                 ", childRangeShift=" + childRangeShift +
                 '}';
     }
