@@ -22,9 +22,11 @@ import com.github.ykiselev.opengl.assets.formats.ReadableTexture2d;
 import com.github.ykiselev.opengl.assets.formats.obj.ObjModel;
 import com.github.ykiselev.opengl.fonts.FontAtlas;
 import com.github.ykiselev.opengl.fonts.TrueTypeFontInfo;
+import com.github.ykiselev.opengl.materials.Materials;
 import com.github.ykiselev.opengl.shaders.ProgramObject;
 import com.github.ykiselev.opengl.shaders.ShaderObject;
 import com.github.ykiselev.opengl.text.SpriteFont;
+import com.github.ykiselev.opengl.textures.ImageData;
 import com.github.ykiselev.opengl.textures.Texture2d;
 import com.typesafe.config.Config;
 
@@ -51,4 +53,8 @@ public final class OglRecipes {
     public static final Recipe<String, TrueTypeFontInfo, Void> TRUE_TYPE_FONT_INFO = DefaultRecipe.of(TrueTypeFontInfo.class);
 
     public static final Recipe<String, ObjModel, Void> OBJ_MODEL = DefaultRecipe.of(ObjModel.class);
+
+    public static final Recipe<String, Materials, Void> MATERIALS = DefaultRecipe.of(Materials.class);
+
+    public static final Recipe<String, ImageData, Void> IMAGE_DATA = DefaultRecipe.of(ImageData.class);
 }

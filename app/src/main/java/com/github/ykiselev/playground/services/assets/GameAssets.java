@@ -16,24 +16,11 @@
 
 package com.github.ykiselev.playground.services.assets;
 
-import com.github.ykiselev.assets.Assets;
-import com.github.ykiselev.assets.CompositeReadableAssets;
-import com.github.ykiselev.assets.ReadableAsset;
-import com.github.ykiselev.assets.Recipe;
-import com.github.ykiselev.assets.ResourceException;
-import com.github.ykiselev.assets.Resources;
-import com.github.ykiselev.assets.SimpleAssets;
+import com.github.ykiselev.assets.*;
 import com.github.ykiselev.common.closeables.Closeables;
 import com.github.ykiselev.openal.assets.ReadableVorbisAudio;
 import com.github.ykiselev.opengl.OglRecipes;
-import com.github.ykiselev.opengl.assets.formats.ReadableConfig;
-import com.github.ykiselev.opengl.assets.formats.ReadableFontAtlas;
-import com.github.ykiselev.opengl.assets.formats.ReadableObjModel;
-import com.github.ykiselev.opengl.assets.formats.ReadableProgramObject;
-import com.github.ykiselev.opengl.assets.formats.ReadableShaderObject;
-import com.github.ykiselev.opengl.assets.formats.ReadableSpriteFont;
-import com.github.ykiselev.opengl.assets.formats.ReadableTexture2d;
-import com.github.ykiselev.opengl.assets.formats.ReadableTrueTypeFontInfo;
+import com.github.ykiselev.opengl.assets.formats.*;
 import com.github.ykiselev.spi.MonitorInfo;
 import com.github.ykiselev.wrap.Wrap;
 import org.lwjgl.opengl.GL20;
@@ -84,7 +71,7 @@ public final class GameAssets implements Assets, AutoCloseable {
     public static GameAssets create(Resources resources, MonitorInfo monitorInfo) {
         final ReadableConfig readableConfig = new ReadableConfig();
         final ReadableTexture2d readableTexture2d = new ReadableTexture2d();
-        final Map<String, ReadableAsset<?,?>> byKey = Map.of(
+        final Map<String, ReadableAsset<?, ?>> byKey = Map.of(
                 OglRecipes.CONFIG.key(), readableConfig,
                 OglRecipes.PROGRAM.key(), new ReadableProgramObject(),
                 OglRecipes.SPRITE_FONT.key(), new ReadableSpriteFont(),
@@ -92,9 +79,11 @@ public final class GameAssets implements Assets, AutoCloseable {
                 OglRecipes.MIP_MAP_TEXTURE.key(), readableTexture2d,
                 OglRecipes.OBJ_MODEL.key(), new ReadableObjModel(),
                 OglRecipes.TRUE_TYPE_FONT_INFO.key(), new ReadableTrueTypeFontInfo(monitorInfo.yScale),
-                OglRecipes.FONT_ATLAS.key(), new ReadableFontAtlas(512, 512)
+                OglRecipes.FONT_ATLAS.key(), new ReadableFontAtlas(512, 512),
+                OglRecipes.MATERIALS.key(), new ReadableMaterials(),
+                OglRecipes.IMAGE_DATA.key(), new ReadableImageData()
         );
-        final Map<String, ReadableAsset<?,?>> byExtension = Map.of(
+        final Map<String, ReadableAsset<?, ?>> byExtension = Map.of(
                 "vs", new ReadableShaderObject(GL20.GL_VERTEX_SHADER),
                 "fs", new ReadableShaderObject(GL20.GL_FRAGMENT_SHADER),
                 "png", readableTexture2d,

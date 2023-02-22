@@ -19,6 +19,7 @@ module ykiselev.playground.assets.ogl {
     exports com.github.ykiselev.opengl.assets.formats;
     exports com.github.ykiselev.opengl.assets.formats.obj;
     exports com.github.ykiselev.opengl.buffers;
+    exports com.github.ykiselev.opengl.materials;
     exports com.github.ykiselev.opengl.matrices;
     exports com.github.ykiselev.opengl.models;
     exports com.github.ykiselev.opengl.pools;

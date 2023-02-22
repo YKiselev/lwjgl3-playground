@@ -22,24 +22,25 @@ import org.lwjgl.system.MemoryUtil;
 import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
 
-import static java.util.Objects.requireNonNull;
-
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
 public final class ByteChannelAsByteBuffer implements ReadableBytes {
 
-    private final ReadableByteChannel channel;
+    public static final int INITIAL_SIZE = 8 * 1024;
 
     private final int initialBufferSize;
 
-    public ByteChannelAsByteBuffer(ReadableByteChannel channel, int initialBufferSize) {
-        this.channel = requireNonNull(channel);
+    public ByteChannelAsByteBuffer() {
+        this(INITIAL_SIZE);
+    }
+
+    public ByteChannelAsByteBuffer(int initialBufferSize) {
         this.initialBufferSize = initialBufferSize;
     }
 
     @Override
-    public Wrap<ByteBuffer> read() {
+    public Wrap<ByteBuffer> read(ReadableByteChannel channel) {
         ByteBuffer buffer = MemoryUtil.memAlloc(initialBufferSize);
         try {
             for (; ; ) {

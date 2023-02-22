@@ -19,6 +19,7 @@ package com.github.ykiselev.common.io;
 import com.github.ykiselev.wrap.Wrap;
 
 import java.nio.ByteBuffer;
+import java.nio.channels.ReadableByteChannel;
 
 /**
  *
@@ -26,5 +27,5 @@ import java.nio.ByteBuffer;
  */
 public interface ReadableBytes {
 
-    Wrap<ByteBuffer> read();
+    Wrap<ByteBuffer> read(ReadableByteChannel channel);
 }

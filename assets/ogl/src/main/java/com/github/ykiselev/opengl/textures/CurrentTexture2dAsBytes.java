@@ -45,7 +45,7 @@ import static org.lwjgl.stb.STBImageWrite.stbi_write_png_to_func;
  */
 public final class CurrentTexture2dAsBytes {
 
-    public void write(Consumer<ByteBuffer> consumer) {
+    public static void write(Consumer<ByteBuffer> consumer) {
         final int width = glGetTexLevelParameteri(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH);
         final int height = glGetTexLevelParameteri(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT);
         final int depthType = glGetTexLevelParameteri(GL_TEXTURE_2D, 0, GL_TEXTURE_DEPTH_TYPE);

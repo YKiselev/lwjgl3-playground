@@ -20,9 +20,9 @@ import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.assets.ReadableAsset;
 import com.github.ykiselev.assets.Recipe;
 import com.github.ykiselev.assets.ResourceException;
-import com.github.ykiselev.common.io.ByteChannelAsByteBuffer;
 import com.github.ykiselev.opengl.OglRecipes;
 import com.github.ykiselev.opengl.fonts.TrueTypeFontInfo;
+import com.github.ykiselev.common.pools.ByteChannelAsByteBufferPool;
 import com.github.ykiselev.playground.assets.common.AssetUtils;
 import com.github.ykiselev.wrap.Wrap;
 import com.github.ykiselev.wrap.Wraps;
@@ -50,8 +50,7 @@ public final class ReadableTrueTypeFontInfo implements ReadableAsset<TrueTypeFon
             final Config fontConfig = config.value()
                     .withFallback(fallback.value());
             final Wrap<ByteBuffer> ttf = assets.open(fontConfig.getString("asset"))
-                    .map(ch -> new ByteChannelAsByteBuffer(ch, 512 * 1024))
-                    .map(ByteChannelAsByteBuffer::read)
+                    .map(ByteChannelAsByteBufferPool::read)
                     .orElseThrow(() -> new ResourceException("Unable to load font: \"" + fontConfig.getString("asset") + "\""));
 
             return Wraps.of(TrueTypeFontInfo.load(ttf, (float) (fontConfig.getDouble("size") * scale)));

@@ -38,9 +38,7 @@ public class ByteChannelAsByteBufferTest {
 
     private final ReadableByteChannel channel = mock(ReadableByteChannel.class);
 
-    private final ReadableBytes bc = new ByteChannelAsByteBuffer(
-            channel, 256
-    );
+    private final ReadableBytes bc = new ByteChannelAsByteBuffer(256);
 
     @Test
     public void shouldRead() throws IOException {
@@ -57,7 +55,7 @@ public class ByteChannelAsByteBufferTest {
                     }
                     return result;
                 });
-        try (Wrap<ByteBuffer> wrap = bc.read()) {
+        try (Wrap<ByteBuffer> wrap = bc.read(channel)) {
             assertEquals(CHANNEL_LENGTH, wrap.value().limit());
         }
     }

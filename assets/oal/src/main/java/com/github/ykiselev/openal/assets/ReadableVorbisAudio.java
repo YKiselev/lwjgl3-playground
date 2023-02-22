@@ -23,6 +23,7 @@ import com.github.ykiselev.assets.ResourceException;
 import com.github.ykiselev.common.io.ByteChannelAsByteBuffer;
 import com.github.ykiselev.common.io.ReadableBytes;
 import com.github.ykiselev.common.memory.MemAllocShort;
+import com.github.ykiselev.common.pools.ByteChannelAsByteBufferPool;
 import com.github.ykiselev.openal.AudioSamples;
 import com.github.ykiselev.openal.assets.vorbis.VorbisAudio;
 import com.github.ykiselev.wrap.Wrap;
@@ -37,11 +38,7 @@ import java.nio.channels.ReadableByteChannel;
 
 import static org.lwjgl.openal.AL10.AL_FORMAT_MONO16;
 import static org.lwjgl.openal.AL10.AL_FORMAT_STEREO16;
-import static org.lwjgl.stb.STBVorbis.stb_vorbis_close;
-import static org.lwjgl.stb.STBVorbis.stb_vorbis_get_info;
-import static org.lwjgl.stb.STBVorbis.stb_vorbis_get_samples_short_interleaved;
-import static org.lwjgl.stb.STBVorbis.stb_vorbis_open_memory;
-import static org.lwjgl.stb.STBVorbis.stb_vorbis_stream_length_in_samples;
+import static org.lwjgl.stb.STBVorbis.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
 /**
@@ -62,10 +59,7 @@ public final class ReadableVorbisAudio implements ReadableAsset<AudioSamples, Vo
     @Override
     public Wrap<AudioSamples> read(ReadableByteChannel channel, Recipe<?, AudioSamples, Void> recipe, Assets assets) throws ResourceException {
         try (STBVorbisInfo info = STBVorbisInfo.malloc()) {
-            final ReadableBytes asBuffer = new ByteChannelAsByteBuffer(
-                    channel, bufferSize
-            );
-            try (Wrap<ByteBuffer> vorbis = asBuffer.read()) {
+            try (Wrap<ByteBuffer> vorbis = ByteChannelAsByteBufferPool.read(channel)) {
                 try (MemoryStack ms = MemoryStack.stackPush()) {
                     final IntBuffer error = ms.ints(0);
                     final long decoder = stb_vorbis_open_memory(vorbis.value(), error, null);

@@ -25,6 +25,7 @@ module ykiselev.playground.common {
     exports com.github.ykiselev.common.memory;
     exports com.github.ykiselev.common.memory.scrap;
     exports com.github.ykiselev.common.memory.pool;
+    exports com.github.ykiselev.common.pools;
     exports com.github.ykiselev.common.test;
     exports com.github.ykiselev.common.tree;
     exports com.github.ykiselev.common.trigger;

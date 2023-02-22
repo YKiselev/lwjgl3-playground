@@ -16,7 +16,7 @@
 
 package com.github.ykiselev.opengl.sandbox;
 
-import com.github.ykiselev.common.io.ByteChannelAsByteBuffer;
+import com.github.ykiselev.common.pools.ByteChannelAsByteBufferPool;
 import com.github.ykiselev.wrap.Wrap;
 import org.lwjgl.stb.STBIEOFCallback;
 import org.lwjgl.stb.STBIIOCallbacks;
@@ -35,11 +35,7 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Paths;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.lwjgl.stb.STBImage.stbi_failure_reason;
-import static org.lwjgl.stb.STBImage.stbi_image_free;
-import static org.lwjgl.stb.STBImage.stbi_info_from_memory;
-import static org.lwjgl.stb.STBImage.stbi_load_from_callbacks;
-import static org.lwjgl.stb.STBImage.stbi_load_from_memory;
+import static org.lwjgl.stb.STBImage.*;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
@@ -132,11 +128,9 @@ public final class StbImageApp {
     }
 
     private Wrap<ByteBuffer> loadImage(URI resource) throws Exception {
-        try (ReadableByteChannel channel = FileChannel.open(Paths.get(resource))) {
-            return new ByteChannelAsByteBuffer(
-                    channel,
-                    8 * 1024
-            ).read();
+        try (ReadableByteChannel channel = FileChannel.open(Paths.get(resource));
+             var pool = ByteChannelAsByteBufferPool.push()) {
+            return pool.allocate().read(channel);
         }
     }
 

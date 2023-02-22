@@ -188,7 +188,7 @@ public final class GameClient implements Updatable, AutoCloseable, WindowEvents 
         texture.bind();
         try {
             try (WritableByteChannel channel = fileSystem.truncate(name)) {
-                new CurrentTexture2dAsBytes().write(bb -> {
+                CurrentTexture2dAsBytes.write(bb -> {
                     try {
                         channel.write(bb);
                     } catch (IOException e) {

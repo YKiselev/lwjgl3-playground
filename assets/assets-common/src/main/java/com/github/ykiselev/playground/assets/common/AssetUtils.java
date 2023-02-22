@@ -19,7 +19,6 @@ package com.github.ykiselev.playground.assets.common;
 import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.assets.Recipe;
 import com.github.ykiselev.wrap.Wrap;
-import com.typesafe.config.Config;
 
 import java.nio.channels.ReadableByteChannel;
 
@@ -29,7 +28,7 @@ import java.nio.channels.ReadableByteChannel;
  */
 public final class AssetUtils {
 
-    public static <K, C> Wrap<Config> read(ReadableByteChannel channel, Recipe<K, Config, C> recipe, Assets assets) {
+    public static <K, A, C> Wrap<A> read(ReadableByteChannel channel, Recipe<K, A, C> recipe, Assets assets) {
         return assets.resolve(recipe)
                 .read(channel, recipe, assets);
     }
