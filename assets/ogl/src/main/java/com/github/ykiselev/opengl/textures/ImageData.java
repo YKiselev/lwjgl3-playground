@@ -68,6 +68,15 @@ public final class ImageData implements AutoCloseable {
         stbi_image_free(image);
     }
 
+    @Override
+    public String toString() {
+        return "ImageData{" +
+                "width=" + width +
+                ", height=" + height +
+                ", components=" + components +
+                '}';
+    }
+
     public int alignment() {
         return calcAlignment(width * components);
     }

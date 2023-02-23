@@ -17,12 +17,9 @@
 package com.github.ykiselev.playground.services;
 
 import com.github.ykiselev.common.closeables.Closeables;
-import com.github.ykiselev.opengl.OglRecipes;
-import com.github.ykiselev.opengl.materials.Materials;
 import com.github.ykiselev.spi.GameFactory;
 import com.github.ykiselev.spi.api.Updatable;
 import com.github.ykiselev.spi.components.Game;
-import com.github.ykiselev.wrap.Wrap;
 
 import java.util.ServiceLoader;
 
@@ -49,10 +46,6 @@ public final class GameBootstrap implements Updatable, AutoCloseable {
             guard.add(context.configuration().wire()
                     .withBoolean("game.isPresent", () -> game != null, false)
                     .build());
-
-            // debug
-            Materials mat = guard.add(context.assets().load("materials/materials.conf", OglRecipes.MATERIALS));
-            guard.add(mat);
 
             this.closeable = guard.detach();
         }

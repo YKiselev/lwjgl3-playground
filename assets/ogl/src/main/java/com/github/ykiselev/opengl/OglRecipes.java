@@ -22,7 +22,7 @@ import com.github.ykiselev.opengl.assets.formats.ReadableTexture2d;
 import com.github.ykiselev.opengl.assets.formats.obj.ObjModel;
 import com.github.ykiselev.opengl.fonts.FontAtlas;
 import com.github.ykiselev.opengl.fonts.TrueTypeFontInfo;
-import com.github.ykiselev.opengl.materials.Materials;
+import com.github.ykiselev.opengl.materials.MaterialAtlas;
 import com.github.ykiselev.opengl.shaders.ProgramObject;
 import com.github.ykiselev.opengl.shaders.ShaderObject;
 import com.github.ykiselev.opengl.text.SpriteFont;
@@ -54,7 +54,7 @@ public final class OglRecipes {
 
     public static final Recipe<String, ObjModel, Void> OBJ_MODEL = DefaultRecipe.of(ObjModel.class);
 
-    public static final Recipe<String, Materials, Void> MATERIALS = DefaultRecipe.of(Materials.class);
+    public static final Recipe<String, MaterialAtlas, Void> MATERIAL_ATLAS = DefaultRecipe.of(MaterialAtlas.class);
 
     public static final Recipe<String, ImageData, Void> IMAGE_DATA = DefaultRecipe.of(ImageData.class);
 }

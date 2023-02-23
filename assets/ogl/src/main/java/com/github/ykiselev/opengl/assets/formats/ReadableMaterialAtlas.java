@@ -7,7 +7,6 @@ import com.github.ykiselev.assets.ResourceException;
 import com.github.ykiselev.opengl.OglRecipes;
 import com.github.ykiselev.opengl.materials.Material;
 import com.github.ykiselev.opengl.materials.MaterialAtlas;
-import com.github.ykiselev.opengl.materials.Materials;
 import com.github.ykiselev.opengl.textures.DefaultTexture2d;
 import com.github.ykiselev.opengl.textures.ImageData;
 import com.github.ykiselev.opengl.textures.Texture2d;
@@ -23,41 +22,41 @@ import java.util.List;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL30.glGenerateMipmap;
 
-public final class ReadableMaterials implements ReadableAsset<Materials, Void> {
+public final class ReadableMaterialAtlas implements ReadableAsset<MaterialAtlas, Void> {
 
     private static final int IMAGE_WIDTH = 16 * 3;
 
     private static final int IMAGE_HEIGHT = 16;
 
+    private static final int TEX_WIDTH = 512;
+
+    private static final int TEX_HEIGHT = 512;
+
     @Override
-    public Wrap<Materials> read(ReadableByteChannel channel, Recipe<?, Materials, Void> recipe, Assets assets) throws ResourceException {
-        final List<MaterialAtlas> atlases = new ArrayList<>();
+    public Wrap<MaterialAtlas> read(ReadableByteChannel channel, Recipe<?, MaterialAtlas, Void> recipe, Assets assets) throws ResourceException {
         try (Wrap<Config> mc = assets.load("materials/default/material.conf", OglRecipes.CONFIG);
              Wrap<Config> cfg = AssetUtils.read(channel, OglRecipes.CONFIG, assets)) {
-            var builder = new MaterialAtlasBuilder(1024, 1024);
+            var builder = new MaterialAtlasBuilder(TEX_WIDTH, TEX_HEIGHT);
             cfg.value().getConfigList("blocks")
                     .stream()
                     .map(e -> e.withFallback(mc.value()))
                     .forEach(e -> {
-                        try (Wrap<ImageData> wrp = assets.load(e.getString("asset"), OglRecipes.IMAGE_DATA)) {
-                            if (!builder.add(wrp.value(), e.getBoolean("opaque"))) {
-                                atlases.add(builder.build());
-                            }
+                        try (Wrap<ImageData> wrp = AssetUtils.read(e.getString("asset"), OglRecipes.IMAGE_DATA, assets)) {
+                            builder.add(wrp.value(), e.getBoolean("opaque"));
                         }
                     });
 
-            if (!builder.isEmpty()) {
-                atlases.add(builder.build());
-            }
+            return Wraps.of(builder.build());
         }
-        return Wraps.of(new Materials(atlases));
     }
 
     static final class MaterialAtlasBuilder {
 
         private Texture2d tex;
 
-        private int width, height, x, y, index;
+        private final int width, height;
+
+        private int x, y;
 
         private final float sscale, tscale;
 
@@ -93,11 +92,11 @@ public final class ReadableMaterials implements ReadableAsset<Materials, Void> {
                 tex = newTexture();
             }
             if (x + imageData.width() > width) {
+                if (y + imageData.height() > height) {
+                    return false;
+                }
                 y += IMAGE_HEIGHT;
                 x = 0;
-            }
-            if (y + imageData.height() > height) {
-                return false;
             }
             glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, imageData.width(), imageData.height(),
                     imageData.bestFormat(), GL_UNSIGNED_BYTE, imageData.image());
@@ -112,10 +111,9 @@ public final class ReadableMaterials implements ReadableAsset<Materials, Void> {
             }
             glGenerateMipmap(GL_TEXTURE_2D);
             tex.unbind();
-            var atlas = new MaterialAtlas(tex, index, materials, sscale, tscale);
+            var atlas = new MaterialAtlas(tex, materials, sscale, tscale);
             tex = null;
             x = y = 0;
-            index += materials.size();
             materials.clear();
             return atlas;
         }

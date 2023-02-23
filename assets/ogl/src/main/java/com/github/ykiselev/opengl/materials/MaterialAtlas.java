@@ -13,8 +13,6 @@ public final class MaterialAtlas implements AutoCloseable {
 
     private final float sScale, tScale;
 
-    private final int baseIndex;
-
     public Texture2d texture() {
         return texture;
     }
@@ -27,24 +25,28 @@ public final class MaterialAtlas implements AutoCloseable {
         return tScale;
     }
 
-    public MaterialAtlas(Texture2d texture, int baseIndex, List<Material> materials, float sScale, float tScale) {
+    public MaterialAtlas(Texture2d texture, List<Material> materials, float sScale, float tScale) {
         this.texture = texture;
-        this.baseIndex = baseIndex;
         this.materials = List.copyOf(materials);
         this.sScale = sScale;
         this.tScale = tScale;
     }
 
     public Material get(int index) {
-        final int i = index - baseIndex;
-        if (i < 0 || i > materials.size()) {
-            return null;
-        }
-        return materials.get(i);
+        return materials.get(index);
     }
 
     @Override
     public void close() {
         Closeables.close(texture);
+    }
+
+    @Override
+    public String toString() {
+        return "MaterialAtlas{" +
+                "texture=" + texture +
+                ", sScale=" + sScale +
+                ", tScale=" + tScale +
+                '}';
     }
 }

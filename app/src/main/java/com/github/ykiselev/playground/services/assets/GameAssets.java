@@ -80,7 +80,7 @@ public final class GameAssets implements Assets, AutoCloseable {
                 OglRecipes.OBJ_MODEL.key(), new ReadableObjModel(),
                 OglRecipes.TRUE_TYPE_FONT_INFO.key(), new ReadableTrueTypeFontInfo(monitorInfo.yScale),
                 OglRecipes.FONT_ATLAS.key(), new ReadableFontAtlas(512, 512),
-                OglRecipes.MATERIALS.key(), new ReadableMaterials(),
+                OglRecipes.MATERIAL_ATLAS.key(), new ReadableMaterialAtlas(),
                 OglRecipes.IMAGE_DATA.key(), new ReadableImageData()
         );
         final Map<String, ReadableAsset<?, ?>> byExtension = Map.of(

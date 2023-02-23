@@ -7,7 +7,7 @@ import java.nio.ByteBuffer;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL11.GL_LINEAR;
 import static org.lwjgl.opengl.GL30.glGenerateMipmap;
-
+@Deprecated
 public final class TextureAtlas2d implements AutoCloseable {
 
     public static final class Item {

@@ -32,4 +32,11 @@ public final class AssetUtils {
         return assets.resolve(recipe)
                 .read(channel, recipe, assets);
     }
+
+    public static <K, A, C> Wrap<A> read(String resource, Recipe<K, A, C> recipe, Assets assets) {
+        return assets.open(resource)
+                .map(ch -> assets.resolve(resource, recipe).read(ch, recipe, assets))
+                .orElseThrow();
+    }
+
 }

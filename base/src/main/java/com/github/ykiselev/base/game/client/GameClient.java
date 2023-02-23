@@ -8,6 +8,7 @@ import com.github.ykiselev.common.fps.FrameInfo;
 import com.github.ykiselev.opengl.OglRecipes;
 import com.github.ykiselev.opengl.buffers.FrameBuffer;
 import com.github.ykiselev.opengl.fonts.TrueTypeFont;
+import com.github.ykiselev.opengl.materials.MaterialAtlas;
 import com.github.ykiselev.opengl.matrices.Matrix;
 import com.github.ykiselev.opengl.sprites.Colors;
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
@@ -15,7 +16,6 @@ import com.github.ykiselev.opengl.sprites.TextAlignment;
 import com.github.ykiselev.opengl.sprites.TextAttributes;
 import com.github.ykiselev.opengl.textures.CurrentTexture2dAsBytes;
 import com.github.ykiselev.opengl.textures.Texture2d;
-import com.github.ykiselev.opengl.textures.TextureAtlas2d;
 import com.github.ykiselev.spi.GameFactoryArgs;
 import com.github.ykiselev.spi.api.Updatable;
 import com.github.ykiselev.spi.services.FileSystem;
@@ -70,11 +70,11 @@ public final class GameClient implements Updatable, AutoCloseable, WindowEvents 
 
     private final Pyramids pyramids;
 
-    private final TextureAtlas2d textureAtlas2d;
-
     private final AutoCloseable closeable;
 
     private final Camera camera = new Camera();
+
+    private final MaterialAtlas materialAtlas;
 
     private FrameBufferMode frameBufferMode = FrameBufferMode.COLOR;
 
@@ -106,8 +106,7 @@ public final class GameClient implements Updatable, AutoCloseable, WindowEvents 
             frameBuffer = new FrameBuffer();
             guard.add(frameBuffer);
 
-            textureAtlas2d = new TextureAtlas2d(2048, 2048);
-            guard.add(textureAtlas2d);
+            materialAtlas = guard.add(assets.load("materials/materials.conf", OglRecipes.MATERIAL_ATLAS));
 
             closeable = guard.detach();
         }
