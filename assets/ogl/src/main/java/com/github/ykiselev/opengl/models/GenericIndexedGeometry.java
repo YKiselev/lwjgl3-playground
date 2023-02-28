@@ -22,6 +22,8 @@ import com.github.ykiselev.opengl.vbo.VertexArrayObject;
 import com.github.ykiselev.opengl.vbo.VertexBufferObject;
 import com.github.ykiselev.opengl.vertices.VertexDefinition;
 
+import java.nio.ByteBuffer;
+
 import static org.lwjgl.opengl.GL11.GL_UNSIGNED_INT;
 import static org.lwjgl.opengl.GL11.glDrawElements;
 import static org.lwjgl.opengl.GL15.GL_STATIC_DRAW;
@@ -41,21 +43,26 @@ public final class GenericIndexedGeometry implements AutoCloseable {
 
     private final int count;
 
-    public GenericIndexedGeometry(VertexDefinition vertexDefinition, IndexedGeometrySource geometrySource) {
-        this.mode = geometrySource.mode();
-        this.count = geometrySource.indices().remaining() / Integer.BYTES;
+    public GenericIndexedGeometry(VertexDefinition definition, IndexedGeometrySource source) {
+        this(source.mode(), definition, source.vertices(),
+                source.indices(), source.indices().remaining() / source.indexSizeInBytes());
+    }
+
+    public GenericIndexedGeometry(int mode, VertexDefinition definition, ByteBuffer vertices, ByteBuffer indices, int indexCount) {
+        this.mode = mode;
+        this.count = indexCount;
 
         vao = new VertexArrayObject();
         vao.bind();
 
         vbo = new VertexBufferObject();
         vbo.bind();
-        vertexDefinition.apply(vbo);
-        vbo.bufferData(geometrySource.vertices(), GL_STATIC_DRAW);
+        definition.apply();
+        vbo.bufferData(vertices, GL_STATIC_DRAW);
 
         ebo = new IndexBufferObject();
         ebo.bind();
-        ebo.bufferData(geometrySource.indices(), GL_STATIC_DRAW);
+        ebo.bufferData(indices, GL_STATIC_DRAW);
 
         vao.unbind();
         vbo.unbind();
@@ -71,7 +78,6 @@ public final class GenericIndexedGeometry implements AutoCloseable {
 
     public void begin() {
         vao.bind();
-        vbo.bind();
     }
 
     public void draw() {
@@ -80,7 +86,5 @@ public final class GenericIndexedGeometry implements AutoCloseable {
 
     public void end() {
         vao.unbind();
-        vbo.unbind();
-        ebo.unbind();
     }
 }

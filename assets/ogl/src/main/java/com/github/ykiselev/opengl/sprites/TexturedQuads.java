@@ -136,7 +136,7 @@ public final class TexturedQuads implements AutoCloseable {
 
         vbo = new VertexBufferObject();
         vbo.bind();
-        VertexDefinitions.POSITION2_TEXTURE2.apply(vbo);
+        VertexDefinitions.POSITION2_TEXTURE2.apply();
 
         ebo = new IndexBufferObject();
         ebo.bind();

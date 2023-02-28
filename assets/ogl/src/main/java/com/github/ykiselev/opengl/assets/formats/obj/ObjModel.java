@@ -98,6 +98,7 @@ public final class ObjModel {
 
         @Override
         public void close() {
+            wrappedVertices.close();
             wrappedIndices.close();
         }
     }

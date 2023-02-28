@@ -12,7 +12,7 @@ class NormalNodeTest {
 
     private final NodeFactory factory = mock(NodeFactory.class);
 
-    private final NormalNode block = new NormalNode().init(0, 0, 0, 1, 4);
+    private final NormalNode block = new NormalNode().init(0, 0, 0, 4);
 
     @BeforeEach
     void setUp() {

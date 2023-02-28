@@ -27,15 +27,7 @@ import static org.lwjgl.opengl.GL11.GL_TEXTURE_MIN_FILTER;
 import static org.lwjgl.opengl.GL11.GL_UNSIGNED_BYTE;
 import static org.lwjgl.opengl.GL11.glTexImage2D;
 import static org.lwjgl.opengl.GL11.glTexParameteri;
-import static org.lwjgl.opengl.GL30.GL_COLOR_ATTACHMENT0;
-import static org.lwjgl.opengl.GL30.GL_DEPTH24_STENCIL8;
-import static org.lwjgl.opengl.GL30.GL_DEPTH_STENCIL;
-import static org.lwjgl.opengl.GL30.GL_DEPTH_STENCIL_ATTACHMENT;
-import static org.lwjgl.opengl.GL30.GL_FRAMEBUFFER;
-import static org.lwjgl.opengl.GL30.GL_FRAMEBUFFER_COMPLETE;
-import static org.lwjgl.opengl.GL30.GL_UNSIGNED_INT_24_8;
-import static org.lwjgl.opengl.GL30.glCheckFramebufferStatus;
-import static org.lwjgl.opengl.GL30.glFramebufferTexture2D;
+import static org.lwjgl.opengl.GL30.*;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
@@ -48,6 +40,8 @@ public final class FrameBuffer implements AutoCloseable {
 
     private final Texture2d depth;
 
+    private final Texture2d normal;
+
     private int w, h;
 
     public Texture2d color() {
@@ -58,10 +52,15 @@ public final class FrameBuffer implements AutoCloseable {
         return depth;
     }
 
+    public Texture2d normal() {
+        return normal;
+    }
+
     public FrameBuffer() {
         fbo = new FrameBufferObject();
         color = new DefaultTexture2d();
         depth = new DefaultTexture2d();
+        normal = new DefaultTexture2d();
     }
 
     /**
@@ -91,6 +90,13 @@ public final class FrameBuffer implements AutoCloseable {
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
             depth.unbind();
 
+            normal.bind();
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, normal.id(), 0);
+            normal.unbind();
+
             w = width;
             h = height;
 
@@ -115,5 +121,6 @@ public final class FrameBuffer implements AutoCloseable {
         fbo.close();
         color.close();
         depth.close();
+        normal.close();
     }
 }

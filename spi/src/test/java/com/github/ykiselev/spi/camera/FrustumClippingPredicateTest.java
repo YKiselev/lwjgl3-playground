@@ -24,9 +24,9 @@ class FrustumClippingPredicateTest {
         predicate.frustum(frustum);
         predicate.blockSize(1f);
 
-        assertTrue(predicate.test(new NormalNode().init(0, 0, -1, 1, 2)));
-        assertFalse(predicate.test(new NormalNode().init(0, 0, 1, 1, 2)));
-        assertTrue(predicate.test(new NormalNode().init(0, 0, -15, 1, 2)));
-        assertFalse(predicate.test(new NormalNode().init(0, 0, -16, 1, 2)));
+        assertTrue(predicate.test(new NormalNode().init(0, 0, -1, 2)));
+        assertFalse(predicate.test(new NormalNode().init(0, 0, 1, 2)));
+        assertTrue(predicate.test(new NormalNode().init(0, 0, -15, 2)));
+        assertFalse(predicate.test(new NormalNode().init(0, 0, -16, 2)));
     }
 }

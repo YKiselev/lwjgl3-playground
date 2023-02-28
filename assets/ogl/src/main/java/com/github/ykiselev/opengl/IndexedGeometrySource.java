@@ -31,4 +31,8 @@ public interface IndexedGeometrySource extends AutoCloseable {
 
     @Override
     void close();
+
+    default int indexSizeInBytes() {
+        return Integer.BYTES;
+    }
 }

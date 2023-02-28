@@ -41,7 +41,7 @@ import static org.lwjgl.glfw.GLFW.*;
 public final class GameClient implements Updatable, AutoCloseable, WindowEvents {
 
     enum FrameBufferMode {
-        COLOR, DEPTH
+        COLOR, DEPTH, NORMAL
     }
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -62,7 +62,7 @@ public final class GameClient implements Updatable, AutoCloseable, WindowEvents 
 
     private boolean lmbPressed, rmbPressed, active;
 
-    private double mx, my, dx, dy, frameWidth, frameHeight;
+    private double mx, my, dx, dy;
 
     private final FrameBuffer frameBuffer;
 
@@ -155,24 +155,17 @@ public final class GameClient implements Updatable, AutoCloseable, WindowEvents 
                     try {
                         dumpToFile(frameBuffer.color(), "color.png");
                         dumpToFile(frameBuffer.depth(), "depth.png");
+                        dumpToFile(frameBuffer.normal(), "normal.png");
                     } catch (IOException e) {
                         logger.error("Unable to save image!", e);
                     }
                 }
                 case GLFW.GLFW_KEY_F1 -> {
-                    int i = 0;
-                    final FrameBufferMode[] values = FrameBufferMode.values();
-                    for (; i < values.length; i++) {
-                        if (values[i] == frameBufferMode) {
-                            break;
-                        }
-                    }
-                    if (i < values.length - 1) {
-                        i++;
-                    } else {
-                        i = 0;
-                    }
-                    frameBufferMode = values[i];
+                    frameBufferMode = switch (frameBufferMode) {
+                        case COLOR -> FrameBufferMode.DEPTH;
+                        case DEPTH -> FrameBufferMode.NORMAL;
+                        case NORMAL -> FrameBufferMode.COLOR;
+                    };
                 }
                 case GLFW.GLFW_KEY_W -> camera.move(0.5f);
                 case GLFW_KEY_S -> camera.move(-0.5f);
@@ -242,8 +235,7 @@ public final class GameClient implements Updatable, AutoCloseable, WindowEvents 
 
     @Override
     public void frameBufferResized(int width, int height) {
-        frameWidth = width;
-        frameHeight = height;
+        // no-op
     }
 
     @Override
@@ -291,6 +283,7 @@ public final class GameClient implements Updatable, AutoCloseable, WindowEvents 
         switch (frameBufferMode) {
             case COLOR -> spriteBatch.draw(frameBuffer.color(), 0, 0, width, height, 0, 0, 1, 1, 0xffffffff);
             case DEPTH -> spriteBatch.draw(frameBuffer.depth(), 0, 0, width, height, 0, 0, 1, 1, 0xffffffff);
+            case NORMAL -> spriteBatch.draw(frameBuffer.normal(), 0, 0, width, height, 0, 0, 1, 1, 0xffffffff);
         }
         spriteBatch.draw(0, height, width,
                 String.format("time (ms): min: %.1f, max: %.1f, avg: %.1f, fps: %.2f, frame buffer mode: %s",
@@ -301,13 +294,9 @@ public final class GameClient implements Updatable, AutoCloseable, WindowEvents 
         textAttributes.color(Colors.rgb(255, 255, 0));
         textAttributes.spriteFont(null);
         textAttributes.trueTypeFont(ttf);
-        //spriteBatch.fill(10, 10, 100, 100, Colors.rgb(0, 255, 128));
-        //spriteBatch.fill(10, height-40, 500, 100, Colors.rgb(0, 128, 255));
+
         spriteBatch.draw(10, height - 30, width, "This is the test! 0123456789.\nSecond line of text ~?!:#@$%^&*()_+", textAttributes);
 
-        //spriteBatch.draw(ttf.texture(), 20, 20, 400, 400, Colors.WHITE);
-        //spriteBatch.draw(liberationMono.value().texture(), 420, 20, 400, 400, Colors.WHITE);
-        /////
         spriteBatch.end();
     }
 
