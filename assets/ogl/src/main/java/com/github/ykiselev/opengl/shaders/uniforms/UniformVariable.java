@@ -19,9 +19,7 @@ package com.github.ykiselev.opengl.shaders.uniforms;
 import java.nio.FloatBuffer;
 
 import static java.util.Objects.requireNonNull;
-import static org.lwjgl.opengl.GL20.glUniform1i;
-import static org.lwjgl.opengl.GL20.glUniform4fv;
-import static org.lwjgl.opengl.GL20.glUniformMatrix4fv;
+import static org.lwjgl.opengl.GL20.*;
 
 /**
  * Created by Y.Kiselev on 08.05.2016.
@@ -52,10 +50,28 @@ public final class UniformVariable {
     /**
      * Specifies the value of a single vec4 uniform variable or a vec4 uniform variable array.
      *
-     * @param buffer the buffer with vect4 components.
+     * @param buffer the buffer with vec4 components.
      */
     public void vector4(FloatBuffer buffer) {
         glUniform4fv(location, buffer);
+    }
+
+    /**
+     * Specifies the value of a single vec3 uniform variable or a vec3 uniform variable array.
+     *
+     * @param buffer the buffer with vec3 components.
+     */
+    public void vector3(FloatBuffer buffer) {
+        glUniform3fv(location, buffer);
+    }
+
+    /**
+     * Specifies the value of a single vec2 uniform variable or a vec2 uniform variable array.
+     *
+     * @param buffer the buffer with vec2 components.
+     */
+    public void vector2(FloatBuffer buffer) {
+        glUniform2fv(location, buffer);
     }
 
     public void value(int value) {

@@ -74,7 +74,7 @@ public final class Closeables {
      */
     public interface Guard extends AutoCloseable {
 
-        void add(AutoCloseable closeable);
+        <T extends AutoCloseable> T add(T closeable);
 
         <T> T add(Wrap<? extends T> wrap);
 
@@ -85,7 +85,6 @@ public final class Closeables {
     }
 
     /**
-     *
      * @return new guard instance
      */
     public static Guard newGuard() {
@@ -94,8 +93,9 @@ public final class Closeables {
             private final List<AutoCloseable> closeables = new ArrayList<>();
 
             @Override
-            public void add(AutoCloseable closeable) {
+            public <T extends AutoCloseable> T add(T closeable) {
                 closeables.add(closeable);
+                return closeable;
             }
 
             @Override

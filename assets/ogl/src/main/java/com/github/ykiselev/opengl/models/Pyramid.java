@@ -16,9 +16,9 @@
 
 package com.github.ykiselev.opengl.models;
 
+import com.github.ykiselev.common.closeables.Closeables;
 import com.github.ykiselev.common.memory.MemAlloc;
 import com.github.ykiselev.opengl.IndexedGeometrySource;
-import com.github.ykiselev.wrap.Wrap;
 import org.lwjgl.opengl.GL11;
 
 import java.nio.ByteBuffer;
@@ -32,13 +32,19 @@ import java.nio.ByteBuffer;
  */
 public final class Pyramid implements IndexedGeometrySource, AutoCloseable {
 
-    private Wrap<ByteBuffer> vertices = new MemAlloc(4 * Float.BYTES * (3 + 3));
+    private final ByteBuffer vertices;
 
-    private Wrap<ByteBuffer> indices = new MemAlloc(12 * Integer.BYTES);
+    private final ByteBuffer indices;
+
+    private final AutoCloseable ac;
 
     public Pyramid() {
-        vertices.value()
-                .clear()
+        try (var guard = Closeables.newGuard()) {
+            vertices = guard.add(new MemAlloc(4 * Float.BYTES * (3 + 3)));
+            indices = guard.add(new MemAlloc(12 * Integer.BYTES));
+            ac = guard.detach();
+        }
+        vertices.clear()
                 // x, y, z, r, g, b (red)
                 .putFloat(0.5f).putFloat(-0.5f).putFloat(0).putFloat(1f).putFloat(0).putFloat(0)
                 // green
@@ -48,8 +54,7 @@ public final class Pyramid implements IndexedGeometrySource, AutoCloseable {
                 // white
                 .putFloat(0).putFloat(0).putFloat(1).putFloat(1).putFloat(1).putFloat(1)
                 .flip();
-        indices.value()
-                .clear()
+        indices.clear()
                 .putInt(0).putInt(1).putInt(3)
                 .putInt(1).putInt(2).putInt(3)
                 .putInt(2).putInt(0).putInt(3)
@@ -59,12 +64,12 @@ public final class Pyramid implements IndexedGeometrySource, AutoCloseable {
 
     @Override
     public ByteBuffer vertices() {
-        return vertices.value();
+        return vertices;
     }
 
     @Override
     public ByteBuffer indices() {
-        return indices.value();
+        return indices;
     }
 
     @Override
@@ -74,7 +79,6 @@ public final class Pyramid implements IndexedGeometrySource, AutoCloseable {
 
     @Override
     public void close() {
-        vertices.close();
-        indices.close();
+        Closeables.close(ac);
     }
 }

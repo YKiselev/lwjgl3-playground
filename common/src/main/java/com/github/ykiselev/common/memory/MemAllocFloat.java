@@ -26,6 +26,10 @@ import java.nio.FloatBuffer;
  */
 public final class MemAllocFloat extends Wrap<FloatBuffer> {
 
+    /**
+     *
+     * @param size number of floats
+     */
     public MemAllocFloat(int size) {
         super(MemoryUtil.memAllocFloat(size));
     }

@@ -16,6 +16,8 @@
 
 package com.github.ykiselev.opengl.vertices;
 
+import org.lwjgl.opengl.GL33;
+
 import static org.lwjgl.opengl.GL11.GL_FLOAT;
 import static org.lwjgl.opengl.GL20.glEnableVertexAttribArray;
 import static org.lwjgl.opengl.GL20.glVertexAttribPointer;
@@ -29,8 +31,8 @@ public enum VertexDefinitions implements VertexDefinition {
         @Override
         public void apply() {
             final int stride = (3 + 3) * Float.BYTES;
-            attribute(0, 3, GL_FLOAT, false, stride, 0);
-            attribute(1, 3, GL_FLOAT, false, stride, (Float.BYTES * 3));
+            attribute(0, 3, GL_FLOAT, stride, 0);
+            attribute(1, 3, GL_FLOAT, stride, (Float.BYTES * 3));
 
         }
     },
@@ -38,22 +40,30 @@ public enum VertexDefinitions implements VertexDefinition {
         @Override
         public void apply() {
             final int stride = (2 + 2) * Float.BYTES;
-            attribute(0, 2, GL_FLOAT, false, stride, 0);
-            attribute(1, 2, GL_FLOAT, false, stride, (Float.BYTES * 2));
+            attribute(0, 2, GL_FLOAT, stride, 0);
+            attribute(1, 2, GL_FLOAT, stride, (Float.BYTES * 2));
         }
     },
     POSITION_TEXTURE_NORMAL {
         @Override
         public void apply() {
             final int stride = (3 + 2 + 3) * Float.BYTES;
-            attribute(0, 3, GL_FLOAT, false, stride, 0);
-            attribute(1, 2, GL_FLOAT, false, stride, (Float.BYTES * 3));
-            attribute(2, 3, GL_FLOAT, false, stride, (Float.BYTES * (3 + 2)));
+            attribute(0, 3, GL_FLOAT, stride, 0);
+            attribute(1, 2, GL_FLOAT, stride, (Float.BYTES * 3));
+            attribute(2, 3, GL_FLOAT, stride, (Float.BYTES * (3 + 2)));
         }
     };
 
     public static void attribute(int index, int size, int type, boolean normalized, int stride, long bbo) {
         glVertexAttribPointer(index, size, type, normalized, stride, bbo);
         glEnableVertexAttribArray(index);
+    }
+
+    public static void attribute(int index, int size, int type, int stride, long bbo) {
+        attribute(index, size, type, false, stride, bbo);
+    }
+
+    public static void divisor(int index, int divisor) {
+        GL33.glVertexAttribDivisor(index, divisor);
     }
 }
