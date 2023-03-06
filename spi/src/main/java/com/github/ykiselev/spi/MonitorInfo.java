@@ -17,25 +17,12 @@
 package com.github.ykiselev.spi;
 
 /**
+ * @param monitor LWGL monitor handle
+ * @param xScale  monitor content x scale
+ * @param yScale  monitor content y scale
  * @author Yuriy Kiselev (uze@yandex.ru)
  * @since 04.05.2019
  */
-public final class MonitorInfo {
+public final record MonitorInfo(long monitor, float xScale, float yScale) {
 
-    public final long monitor;
-
-    public final float xScale;
-
-    public final float yScale;
-
-    /**
-     * @param monitor LWGL monitor handle
-     * @param xScale  monitor content x scale
-     * @param yScale  monitor content y scale
-     */
-    public MonitorInfo(long monitor, float xScale, float yScale) {
-        this.monitor = monitor;
-        this.xScale = xScale;
-        this.yScale = yScale;
-    }
 }

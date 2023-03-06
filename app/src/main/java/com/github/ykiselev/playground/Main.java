@@ -115,8 +115,8 @@ public final class Main {
                 .fullScreen(arguments.fullScreen())
                 .version(3, 3)
                 .coreProfile()
-                //.debug(true)
-                .monitor(monitorInfo.monitor)
+                .debug(arguments.debug())
+                .monitor(monitorInfo.monitor())
                 .dimensions(800, 600)
                 .events(uiLayers.events())
                 .build("LWJGL Playground");

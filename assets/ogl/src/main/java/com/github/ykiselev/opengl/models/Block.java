@@ -32,8 +32,7 @@ import org.lwjgl.system.MemoryStack;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
-import static org.lwjgl.opengl.GL11.GL_TRIANGLES;
-import static org.lwjgl.opengl.GL11.GL_UNSIGNED_INT;
+import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL15.GL_DYNAMIC_DRAW;
 import static org.lwjgl.opengl.GL15.GL_STATIC_DRAW;
 
@@ -103,7 +102,7 @@ public final class Block implements AutoCloseable {
 
     private final VertexBufferObject dynamicVbo;
 
-    private final UniformVariable mvp, texScale;
+    private final UniformVariable mvp, texScale, tex;
 
     private final FloatBuffer buffer;
 
@@ -120,7 +119,6 @@ public final class Block implements AutoCloseable {
             var ebo = guard.add(new IndexBufferObject());
 
             VaoConfigurer.of(vao)
-                    .with(ebo)
                     .with(staticVbo)
                     .floats(3) // position
                     .floats(2) // tex coords
@@ -130,16 +128,17 @@ public final class Block implements AutoCloseable {
                     .floats(3, 1) // block pos
                     .floats(2, 1) // tex offset
                     .endVbo()
+                    .with(ebo)
                     .end();
 
             try (var ms = MemoryStack.stackPush()) {
-                FloatBuffer buf = ms.callocFloat(VERTICES.length);
+                FloatBuffer buf = ms.mallocFloat(VERTICES.length);
                 buf.clear().put(VERTICES).flip();
                 staticVbo.bind();
                 staticVbo.bufferData(buf, GL_STATIC_DRAW);
                 staticVbo.unbind();
 
-                IntBuffer ibuf = ms.callocInt(INDICES.length);
+                IntBuffer ibuf = ms.mallocInt(INDICES.length);
                 ibuf.clear().put(INDICES).flip();
                 ebo.bind();
                 ebo.bufferData(ibuf, GL_STATIC_DRAW);
@@ -149,6 +148,7 @@ public final class Block implements AutoCloseable {
             buffer = guard.add(new MemAllocFloat(5 * instanceLimit));
             mvp = program.lookup("mvp");
             texScale = program.lookup("texScale");
+            tex = program.lookup("tex");
 
             ac = guard.detach();
         }
@@ -157,28 +157,30 @@ public final class Block implements AutoCloseable {
     public void begin(FloatBuffer m, float sScale, float tScale) {
         program.bind();
         vao.bind();
-        dynamicVbo.bind();
+        tex.value(0);
 
         mvp.matrix4(false, m);
         try (var ms = MemoryStack.stackPush()) {
             FloatBuffer buf = ms.mallocFloat(2);
             buf.clear().put(sScale).put(tScale).flip();
-            texScale.vector2(m);
+            texScale.vector2(buf);
         }
     }
 
     public void end() {
         flush();
 
-        dynamicVbo.unbind();
         vao.unbind();
         program.unbind();
     }
 
     private void flush() {
         if (instances > 0) {
+            dynamicVbo.bind();
             dynamicVbo.bufferData(buffer.flip(), GL_DYNAMIC_DRAW);
+            dynamicVbo.unbind();
             GL31.glDrawElementsInstanced(GL_TRIANGLES, INDICES.length, GL_UNSIGNED_INT, 0, instances);
+            //glDrawElements(GL_TRIANGLES, INDICES.length, GL_UNSIGNED_INT, 0);
             instances = 0;
             buffer.clear();
         }

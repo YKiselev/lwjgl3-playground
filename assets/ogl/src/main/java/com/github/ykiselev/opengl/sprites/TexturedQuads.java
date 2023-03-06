@@ -174,23 +174,12 @@ public final class TexturedQuads implements AutoCloseable {
     }
 
     private void fillIndexData(ByteBuffer b) {
-        final IntConsumer c;
-        switch (indexValueType) {
-            case GL_UNSIGNED_BYTE:
-                c = v -> b.put((byte) v);
-                break;
-
-            case GL_UNSIGNED_SHORT:
-                c = v -> b.putShort((short) v);
-                break;
-
-            case GL_UNSIGNED_INT:
-                c = b::putInt;
-                break;
-
-            default:
-                throw new IllegalArgumentException("Bad index value type: " + indexValueType);
-        }
+        final IntConsumer c = switch (indexValueType) {
+            case GL_UNSIGNED_BYTE -> v -> b.put((byte) v);
+            case GL_UNSIGNED_SHORT -> v -> b.putShort((short) v);
+            case GL_UNSIGNED_INT -> b::putInt;
+            default -> throw new IllegalArgumentException("Bad index value type: " + indexValueType);
+        };
         int offset = 0;
         for (int i = 0; i < maxQuads; i++) {
             c.accept(offset);

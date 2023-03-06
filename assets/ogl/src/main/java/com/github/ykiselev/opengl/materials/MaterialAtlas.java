@@ -32,8 +32,12 @@ public final class MaterialAtlas implements AutoCloseable {
         this.tScale = tScale;
     }
 
+    /**
+     * @param index 1-based index of material
+     * @return material or {@code null}
+     */
     public Material get(int index) {
-        return materials.get(index);
+        return materials.get(index - 1);
     }
 
     @Override

@@ -65,8 +65,8 @@ public final class ReadableMaterialAtlas implements ReadableAsset<MaterialAtlas,
         MaterialAtlasBuilder(int width, int height) {
             this.width = width;
             this.height = height;
-            this.sscale = 1f / width;
-            this.tscale = 1f / height;
+            this.sscale = IMAGE_WIDTH / (float) width;
+            this.tscale = IMAGE_HEIGHT / (float) height;
         }
 
         boolean isEmpty() {
@@ -88,9 +88,6 @@ public final class ReadableMaterialAtlas implements ReadableAsset<MaterialAtlas,
             if (imageData.width() != IMAGE_WIDTH || imageData.height() != IMAGE_HEIGHT) {
                 throw new IllegalArgumentException("Wrong image size: " + imageData.width() + "x" + imageData.height());
             }
-            if (tex == null) {
-                tex = newTexture();
-            }
             if (x + imageData.width() > width) {
                 if (y + imageData.height() > height) {
                     return false;
@@ -98,9 +95,12 @@ public final class ReadableMaterialAtlas implements ReadableAsset<MaterialAtlas,
                 y += IMAGE_HEIGHT;
                 x = 0;
             }
+            if (tex == null) {
+                tex = newTexture();
+            }
             glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, imageData.width(), imageData.height(),
                     imageData.bestFormat(), GL_UNSIGNED_BYTE, imageData.image());
-            materials.add(new Material(opaque, x * sscale, y * tscale));
+            materials.add(new Material(opaque, x / (float) width, y / (float) height));
             x += imageData.width();
             return true;
         }

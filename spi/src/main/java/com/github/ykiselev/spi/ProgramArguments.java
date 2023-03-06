@@ -97,6 +97,10 @@ public final class ProgramArguments {
         return hasSwitch("-fullscreen");
     }
 
+    public boolean debug() {
+        return hasSwitch("-debug");
+    }
+
     public int swapInterval() {
         return Integer.parseInt(
                 value("swap.interval")

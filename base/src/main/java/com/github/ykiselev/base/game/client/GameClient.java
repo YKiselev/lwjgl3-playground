@@ -8,8 +8,10 @@ import com.github.ykiselev.common.fps.FrameInfo;
 import com.github.ykiselev.opengl.OglRecipes;
 import com.github.ykiselev.opengl.buffers.FrameBuffer;
 import com.github.ykiselev.opengl.fonts.TrueTypeFont;
+import com.github.ykiselev.opengl.materials.Material;
 import com.github.ykiselev.opengl.materials.MaterialAtlas;
 import com.github.ykiselev.opengl.matrices.Matrix;
+import com.github.ykiselev.opengl.models.Block;
 import com.github.ykiselev.opengl.sprites.Colors;
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
 import com.github.ykiselev.opengl.sprites.TextAlignment;
@@ -37,6 +39,8 @@ import java.nio.channels.WritableByteChannel;
 
 import static java.util.Objects.requireNonNull;
 import static org.lwjgl.glfw.GLFW.*;
+import static org.lwjgl.opengl.GL13.GL_TEXTURE0;
+import static org.lwjgl.opengl.GL13.glActiveTexture;
 
 public final class GameClient implements Updatable, AutoCloseable, WindowEvents {
 
@@ -76,6 +80,8 @@ public final class GameClient implements Updatable, AutoCloseable, WindowEvents 
 
     private final MaterialAtlas materialAtlas;
 
+    private final Block block;
+
     private FrameBufferMode frameBufferMode = FrameBufferMode.COLOR;
 
     public GameClient(GameFactoryArgs host) {
@@ -96,11 +102,10 @@ public final class GameClient implements Updatable, AutoCloseable, WindowEvents 
 
             ttf = atlas.value().get("console");
 
-            cubes = new Cubes(assets);
-            guard.add(cubes);
+            block = guard.add(new Block(assets, 10_000));
 
-            pyramids = new Pyramids(assets);
-            guard.add(pyramids);
+            cubes = guard.add(new Cubes(assets));
+            pyramids = guard.add(new Pyramids(assets));
 
             vp = MemoryUtil.memAllocFloat(16);
             frameBuffer = new FrameBuffer();
@@ -265,6 +270,17 @@ public final class GameClient implements Updatable, AutoCloseable, WindowEvents 
         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
 
         pyramids.draw(vp);
+
+        glActiveTexture(GL_TEXTURE0);
+        materialAtlas.texture().bind();
+        block.begin(vp, materialAtlas.sScale(), materialAtlas.tScale());
+        Material material = materialAtlas.get(1);
+        if (material != null) {
+            block.draw(0, 0, 0, material.ds(), material.dt());
+        }
+        block.end();
+        materialAtlas.texture().unbind();
+
         //drawModel(vp);
         frameBuffer.unbind();
 

@@ -80,6 +80,7 @@ public final class VaoConfigurer {
 
         VboConfigurer(VertexBufferObject vbo) {
             this.vbo = Objects.requireNonNull(vbo);
+            vbo.bind();
         }
 
         public VboConfigurer floats(int components) {
