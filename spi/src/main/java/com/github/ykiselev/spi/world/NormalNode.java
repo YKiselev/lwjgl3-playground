@@ -30,7 +30,7 @@ public final class NormalNode extends AbstractNode {
 
     @Override
     public int range() {
-        return 1 << childRangeShift;
+        return 1 << (childRangeShift + SIDE_SHIFT);
     }
 
     private int index(int i, int j, int k) {
@@ -85,7 +85,9 @@ public final class NormalNode extends AbstractNode {
 
         for (Node child : children) {
             if (child != null) {
+                predicate.beforeChild();
                 child.visit(predicate, visitor);
+                predicate.afterChild();
             }
         }
     }

@@ -12,6 +12,7 @@ import com.github.ykiselev.spi.world.Leaf;
 import com.github.ykiselev.spi.world.Visitor;
 import com.github.ykiselev.spi.world.World;
 import com.github.ykiselev.spi.world.predicates.CountingPredicate;
+import com.github.ykiselev.spi.world.predicates.DebugPredicate;
 
 import java.nio.FloatBuffer;
 
@@ -53,7 +54,6 @@ public final class WorldRenderer implements AutoCloseable {
 //            Matrix.inverse(vp, mat);
 //        }
         frustum.setFromMatrix(vp);
-
 
         //glActiveTexture(GL_TEXTURE0);
         materialAtlas.texture().bind();

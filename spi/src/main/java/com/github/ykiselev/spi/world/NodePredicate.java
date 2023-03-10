@@ -12,4 +12,12 @@ public interface NodePredicate {
     default boolean test(Leaf leaf) {
         return true;
     }
+
+    default void beforeChild() {
+
+    }
+
+    default void afterChild() {
+
+    }
 }
