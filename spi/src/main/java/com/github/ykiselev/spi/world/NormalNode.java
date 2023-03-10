@@ -30,7 +30,7 @@ public final class NormalNode extends AbstractNode {
 
     @Override
     public int range() {
-        return (1 << childRangeShift) * (1 << SIDE_SHIFT);
+        return 1 << childRangeShift;
     }
 
     private int index(int i, int j, int k) {

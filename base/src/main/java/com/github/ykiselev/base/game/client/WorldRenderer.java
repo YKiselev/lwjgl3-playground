@@ -63,7 +63,7 @@ public final class WorldRenderer implements AutoCloseable {
         frustumClippingPredicate.blockSize(blockSize);
         countingPredicate.reset();
 
-        world.visit(frustumClippingPredicate, new Visitor() {
+        world.visit(countingPredicate, new Visitor() {
 
             @Override
             public void visit(Leaf leaf) {

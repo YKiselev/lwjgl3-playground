@@ -105,7 +105,7 @@ public final class WorldFile {
             if (leafIndexRange != 1 << Leaf.SIDE_SHIFT) {
                 throw new RuntimeException("Incompatible leaf index range: " + leafIndexRange);
             }
-            final World world = new World(factory, indexRange);
+            final World world = new World(factory, Integer.numberOfLeadingZeros(indexRange));
             buffer.clear().limit(LEAF_CHUNK_SIZE);
             int leafs = 0;
             while (file.read(buffer) == buffer.limit()) {

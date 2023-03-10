@@ -8,6 +8,10 @@ public interface Node {
 
     int korg();
 
+    /**
+     *
+     * @return node's index range for single dimension
+     */
     int range();
 
     int get(int i, int j, int k);
