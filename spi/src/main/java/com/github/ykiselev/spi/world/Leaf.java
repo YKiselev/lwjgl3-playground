@@ -45,7 +45,9 @@ public final class Leaf extends AbstractNode {
 
     @Override
     public void visit(NodePredicate predicate, Visitor visitor) {
-        visitor.visit(this);
+        if (predicate.test(this)) {
+            visitor.visit(this);
+        }
     }
 
     @Override

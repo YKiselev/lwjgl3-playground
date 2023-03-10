@@ -16,7 +16,7 @@ public final class Frustum {
     /**
      * Extracts this frustum's planes from supplied projection matrix using Gribb/Hartmann method.
      * Pi is row vector of matrix.
-     * Planes = P4(+|-)Pi where i=1,2,3
+     * Planes are P4(+|-)Pi where i=1,2,3
      *
      * @param m the matrix
      */
