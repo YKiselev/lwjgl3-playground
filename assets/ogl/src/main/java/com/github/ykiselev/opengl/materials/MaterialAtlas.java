@@ -37,6 +37,9 @@ public final class MaterialAtlas implements AutoCloseable {
      * @return material or {@code null}
      */
     public Material get(int index) {
+        if (index < 1) {
+            return null;
+        }
         return materials.get(index - 1);
     }
 

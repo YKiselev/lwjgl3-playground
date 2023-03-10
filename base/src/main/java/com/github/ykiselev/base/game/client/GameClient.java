@@ -1,17 +1,13 @@
 package com.github.ykiselev.base.game.client;
 
 import com.github.ykiselev.assets.Assets;
-import com.github.ykiselev.base.game.Cubes;
 import com.github.ykiselev.base.game.Pyramids;
 import com.github.ykiselev.common.closeables.Closeables;
 import com.github.ykiselev.common.fps.FrameInfo;
 import com.github.ykiselev.opengl.OglRecipes;
 import com.github.ykiselev.opengl.buffers.FrameBuffer;
 import com.github.ykiselev.opengl.fonts.TrueTypeFont;
-import com.github.ykiselev.opengl.materials.Material;
-import com.github.ykiselev.opengl.materials.MaterialAtlas;
 import com.github.ykiselev.opengl.matrices.Matrix;
-import com.github.ykiselev.opengl.models.Block;
 import com.github.ykiselev.opengl.sprites.Colors;
 import com.github.ykiselev.opengl.sprites.SpriteBatch;
 import com.github.ykiselev.opengl.sprites.TextAlignment;
@@ -25,9 +21,9 @@ import com.github.ykiselev.spi.services.commands.Commands;
 import com.github.ykiselev.spi.services.layers.DrawingContext;
 import com.github.ykiselev.spi.window.Window;
 import com.github.ykiselev.spi.window.WindowEvents;
+import com.github.ykiselev.spi.world.World;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,8 +35,6 @@ import java.nio.channels.WritableByteChannel;
 
 import static java.util.Objects.requireNonNull;
 import static org.lwjgl.glfw.GLFW.*;
-import static org.lwjgl.opengl.GL13.GL_TEXTURE0;
-import static org.lwjgl.opengl.GL13.glActiveTexture;
 
 public final class GameClient implements Updatable, AutoCloseable, WindowEvents {
 
@@ -70,17 +64,13 @@ public final class GameClient implements Updatable, AutoCloseable, WindowEvents 
 
     private final FrameBuffer frameBuffer;
 
-    private final Cubes cubes;
-
     private final Pyramids pyramids;
+
+    private final WorldRenderer renderer;
 
     private final AutoCloseable closeable;
 
     private final Camera camera = new Camera();
-
-    private final MaterialAtlas materialAtlas;
-
-    private final Block block;
 
     private FrameBufferMode frameBufferMode = FrameBufferMode.COLOR;
 
@@ -102,20 +92,15 @@ public final class GameClient implements Updatable, AutoCloseable, WindowEvents 
 
             ttf = atlas.value().get("console");
 
-            block = guard.add(new Block(assets, 10_000));
-
-            cubes = guard.add(new Cubes(assets));
             pyramids = guard.add(new Pyramids(assets));
 
-            vp = MemoryUtil.memAllocFloat(16);
-            frameBuffer = new FrameBuffer();
-            guard.add(frameBuffer);
+            renderer = guard.add(new WorldRenderer(assets));
 
-            materialAtlas = guard.add(assets.load("materials/materials.conf", OglRecipes.MATERIAL_ATLAS));
+            vp = MemoryUtil.memAllocFloat(16);
+            frameBuffer = guard.add(new FrameBuffer());
 
             closeable = guard.detach();
         }
-
         camera.set(0, -10, 0);
     }
 
@@ -127,22 +112,6 @@ public final class GameClient implements Updatable, AutoCloseable, WindowEvents 
     public void close() throws Exception {
         MemoryUtil.memFree(vp);
         closeable.close();
-    }
-
-
-    private void drawModel(FloatBuffer vp) {
-        final double sec = glfwGetTime();
-        cuddles.bind();
-        try (MemoryStack ms = MemoryStack.stackPush()) {
-            final FloatBuffer rm = ms.mallocFloat(16);
-            Matrix.rotation(0, 0, Math.toRadians(25 * sec % 360), rm);
-
-            final FloatBuffer mvp = ms.mallocFloat(16);
-            Matrix.multiply(vp, rm, mvp);
-
-            cubes.draw(mvp);
-        }
-        cuddles.unbind();
     }
 
     private void setupProjectionViewMatrix(int width, int height) {
@@ -165,17 +134,17 @@ public final class GameClient implements Updatable, AutoCloseable, WindowEvents 
                         logger.error("Unable to save image!", e);
                     }
                 }
-                case GLFW.GLFW_KEY_F1 -> {
-                    frameBufferMode = switch (frameBufferMode) {
-                        case COLOR -> FrameBufferMode.DEPTH;
-                        case DEPTH -> FrameBufferMode.NORMAL;
-                        case NORMAL -> FrameBufferMode.COLOR;
-                    };
-                }
+                case GLFW.GLFW_KEY_F1 -> frameBufferMode = switch (frameBufferMode) {
+                    case COLOR -> FrameBufferMode.DEPTH;
+                    case DEPTH -> FrameBufferMode.NORMAL;
+                    case NORMAL -> FrameBufferMode.COLOR;
+                };
                 case GLFW.GLFW_KEY_W -> camera.move(0.5f);
                 case GLFW_KEY_S -> camera.move(-0.5f);
                 case GLFW_KEY_A -> camera.strafe(-0.5f);
                 case GLFW_KEY_D -> camera.strafe(0.5f);
+                case GLFW_KEY_SPACE -> camera.moveUp(0.5f);
+                case GLFW_KEY_C -> camera.moveUp(-0.5f);
             }
         }
         return true;
@@ -248,7 +217,8 @@ public final class GameClient implements Updatable, AutoCloseable, WindowEvents 
         return true;
     }
 
-    public void draw(int width, int height, DrawingContext context) {
+
+    public void draw(int width, int height, DrawingContext context, World world) {
         frameBuffer.size(width, height);
 
         GL11.glViewport(0, 0, width, height);
@@ -268,18 +238,11 @@ public final class GameClient implements Updatable, AutoCloseable, WindowEvents 
         GL11.glClearDepth(100.0f);
         GL11.glClearColor(0, 0, 0.5f, 1);
         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
+        //GL20.glDrawBuffers(new int[]{GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1});
 
         pyramids.draw(vp);
 
-        glActiveTexture(GL_TEXTURE0);
-        materialAtlas.texture().bind();
-        block.begin(vp, materialAtlas.sScale(), materialAtlas.tScale());
-        Material material = materialAtlas.get(1);
-        if (material != null) {
-            block.draw(0, 0, 0, material.ds(), material.dt());
-        }
-        block.end();
-        materialAtlas.texture().unbind();
+        renderer.draw(world, vp);
 
         //drawModel(vp);
         frameBuffer.unbind();
@@ -301,17 +264,20 @@ public final class GameClient implements Updatable, AutoCloseable, WindowEvents 
             case DEPTH -> spriteBatch.draw(frameBuffer.depth(), 0, 0, width, height, 0, 0, 1, 1, 0xffffffff);
             case NORMAL -> spriteBatch.draw(frameBuffer.normal(), 0, 0, width, height, 0, 0, 1, 1, 0xffffffff);
         }
+
         spriteBatch.draw(0, height, width,
-                String.format("time (ms): min: %.1f, max: %.1f, avg: %.1f, fps: %.2f, frame buffer mode: %s",
-                        frameInfo.min(), frameInfo.max(), frameInfo.avg(), frameInfo.fps(), frameBufferMode),
+                String.format("time (ms): min: %.1f, max: %.1f, avg: %.1f, fps: %.2f, frame buffer mode: %s, %s",
+                        frameInfo.min(), frameInfo.max(), frameInfo.avg(), frameInfo.fps(), frameBufferMode,
+                        renderer.formatStats()),
                 textAttributes
         );
+
         // debug
         textAttributes.color(Colors.rgb(255, 255, 0));
         textAttributes.spriteFont(null);
         textAttributes.trueTypeFont(ttf);
 
-        spriteBatch.draw(10, height - 30, width, "This is the test! 0123456789.\nSecond line of text ~?!:#@$%^&*()_+", textAttributes);
+        //spriteBatch.draw(10, height - 30, width, "This is the test! 0123456789.\nSecond line of text ~?!:#@$%^&*()_+", textAttributes);
 
         spriteBatch.end();
     }

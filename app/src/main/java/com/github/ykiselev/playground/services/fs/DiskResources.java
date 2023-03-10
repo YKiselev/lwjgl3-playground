@@ -58,7 +58,7 @@ public final class DiskResources implements ResourceFolder {
         final Predicate<Path> resFilter;
         if (shouldExist) {
             preFilter = p -> true;
-            resFilter = p -> Files.exists(p);
+            resFilter = Files::exists;
         } else {
             preFilter = Files::isWritable;
             resFilter = v -> true;

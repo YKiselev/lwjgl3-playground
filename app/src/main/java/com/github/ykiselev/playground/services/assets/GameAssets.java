@@ -78,7 +78,7 @@ public final class GameAssets implements Assets, AutoCloseable {
                 OglRecipes.SPRITE.key(), readableTexture2d,
                 OglRecipes.MIP_MAP_TEXTURE.key(), readableTexture2d,
                 OglRecipes.OBJ_MODEL.key(), new ReadableObjModel(),
-                OglRecipes.TRUE_TYPE_FONT_INFO.key(), new ReadableTrueTypeFontInfo(monitorInfo.yScale),
+                OglRecipes.TRUE_TYPE_FONT_INFO.key(), new ReadableTrueTypeFontInfo(monitorInfo.yScale()),
                 OglRecipes.FONT_ATLAS.key(), new ReadableFontAtlas(512, 512),
                 OglRecipes.MATERIAL_ATLAS.key(), new ReadableMaterialAtlas(),
                 OglRecipes.IMAGE_DATA.key(), new ReadableImageData()

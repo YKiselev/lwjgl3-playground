@@ -4,18 +4,14 @@ import com.github.ykiselev.opengl.matrices.Matrix;
 import com.github.ykiselev.opengl.matrices.Vector3f;
 import com.github.ykiselev.opengl.pools.Vector3fPool;
 import org.lwjgl.system.MemoryStack;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.nio.FloatBuffer;
 
 public final class Camera {
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
-
     private double yaw, pitch;
 
-    private float x, y, z, dx, dy, rx, ry, zNear = 1f, zFar = 100f, fow = 90f;
+    private float x, y, z, dx, dy, rx, ry, zNear = 0.1f, zFar = 100f, fow = 90f;
 
     private final Vector3f direction = new Vector3f(), up = new Vector3f(), right = new Vector3f();
 
@@ -35,6 +31,10 @@ public final class Camera {
         buildVectors();
         x += rx * delta;
         y += ry * delta;
+    }
+
+    public void moveUp(float delta) {
+        z += delta;
     }
 
     private static double limitAngle(double value) {

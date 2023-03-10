@@ -32,7 +32,8 @@ import org.lwjgl.system.MemoryStack;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
-import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL11.GL_TRIANGLES;
+import static org.lwjgl.opengl.GL11.GL_UNSIGNED_INT;
 import static org.lwjgl.opengl.GL15.GL_DYNAMIC_DRAW;
 import static org.lwjgl.opengl.GL15.GL_STATIC_DRAW;
 
@@ -43,36 +44,37 @@ import static org.lwjgl.opengl.GL15.GL_STATIC_DRAW;
 public final class Block implements AutoCloseable {
 
     private static final float[] VERTICES = new float[]{
+            // x,y,z,s,t,nx,ny,nz
             // xz
             0, 0, 0, 0, 0, 0, -1, 0,
-            1, 0, 0, 1, 0, 0, -1, 0,
-            1, 0, 1, 1, 1, 0, -1, 0,
+            1, 0, 0, 0.3333f, 0, 0, -1, 0,
+            1, 0, 1, 0.3333f, 1, 0, -1, 0,
             0, 0, 1, 0, 1, 0, -1, 0,
             // yz
-            0, 0, 0, 0, 0, -1, 0, 0,
-            0, 0, 1, 1, 1, -1, 0, 0,
+            0, 0, 0, 0.3333f, 0, -1, 0, 0,
+            0, 0, 1, 0.3333f, 1, -1, 0, 0,
             0, 1, 1, 0, 1, -1, 0, 0,
             0, 1, 0, 0, 0, -1, 0, 0,
             // xz+1
-            0, 1, 0, 1, 0, 0, 1, 0,
-            0, 1, 1, 1, 1, 0, 1, 0,
+            0, 1, 0, 0.3333f, 0, 0, 1, 0,
+            0, 1, 1, 0.3333f, 1, 0, 1, 0,
             1, 1, 1, 0, 1, 0, 1, 0,
             1, 1, 0, 0, 0, 0, 1, 0,
             // yz+1
             1, 0, 0, 0, 0, 1, 0, 0,
-            1, 1, 0, 1, 0, 1, 0, 0,
-            1, 1, 1, 1, 1, 1, 0, 0,
+            1, 1, 0, 0.3333f, 0, 1, 0, 0,
+            1, 1, 1, 0.3333f, 1, 1, 0, 0,
             1, 0, 1, 0, 1, 1, 0, 0,
             // xy
-            0, 0, 0, 0, 0, 0, 0, -1,
-            0, 1, 0, 1, 0, 0, 0, -1,
-            1, 1, 0, 1, 1, 0, 0, -1,
-            1, 0, 0, 0, 1, 0, 0, -1,
+            0, 0, 0, 0.3333f, 0, 0, 0, -1,
+            0, 1, 0, 0.6666f, 0, 0, 0, -1,
+            1, 1, 0, 0.6666f, 1, 0, 0, -1,
+            1, 0, 0, 0.3333f, 1, 0, 0, -1,
             // xy+1
-            0, 0, 1, 0, 1, 0, 0, 1,
-            1, 0, 1, 0, 0, 0, 0, 1,
-            1, 1, 1, 1, 0, 0, 0, 1,
-            0, 1, 1, 1, 1, 0, 0, 1
+            0, 0, 1, 0.3333f, 1, 0, 0, 1,
+            1, 0, 1, 0.3333f, 0, 0, 0, 1,
+            1, 1, 1, 0.6666f, 0, 0, 0, 1,
+            0, 1, 1, 0.6666f, 1, 0, 0, 1
     };
 
     private static final int[] INDICES = new int[]{
@@ -95,6 +97,7 @@ public final class Block implements AutoCloseable {
             20, 21, 22,
             22, 23, 20
     };
+    public static final int FLOATS_PER_INSTANCE = 5;
 
     private final ProgramObject program;
 
@@ -108,7 +111,13 @@ public final class Block implements AutoCloseable {
 
     private int instances;
 
+    private long totalInstances;
+
     private final AutoCloseable ac;
+
+    public long totalInstances() {
+        return totalInstances;
+    }
 
     public Block(Assets assets, int instanceLimit) {
         try (var guard = Closeables.newGuard()) {
@@ -145,7 +154,7 @@ public final class Block implements AutoCloseable {
                 ebo.unbind();
             }
 
-            buffer = guard.add(new MemAllocFloat(5 * instanceLimit));
+            buffer = guard.add(new MemAllocFloat(FLOATS_PER_INSTANCE * instanceLimit));
             mvp = program.lookup("mvp");
             texScale = program.lookup("texScale");
             tex = program.lookup("tex");
@@ -155,6 +164,7 @@ public final class Block implements AutoCloseable {
     }
 
     public void begin(FloatBuffer m, float sScale, float tScale) {
+        totalInstances = 0;
         program.bind();
         vao.bind();
         tex.value(0);
@@ -180,14 +190,14 @@ public final class Block implements AutoCloseable {
             dynamicVbo.bufferData(buffer.flip(), GL_DYNAMIC_DRAW);
             dynamicVbo.unbind();
             GL31.glDrawElementsInstanced(GL_TRIANGLES, INDICES.length, GL_UNSIGNED_INT, 0, instances);
-            //glDrawElements(GL_TRIANGLES, INDICES.length, GL_UNSIGNED_INT, 0);
+            totalInstances += instances;
             instances = 0;
             buffer.clear();
         }
     }
 
     public void draw(float x, float y, float z, float sOff, float tOff) {
-        if (buffer.remaining() < 5) {
+        if (buffer.remaining() < FLOATS_PER_INSTANCE) {
             flush();
         }
         buffer.put(x).put(y).put(z).put(sOff).put(tOff);

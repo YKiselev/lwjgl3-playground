@@ -5,16 +5,18 @@ import com.github.ykiselev.spi.world.Node;
 import com.github.ykiselev.spi.world.NodePredicate;
 import com.github.ykiselev.spi.world.NormalNode;
 
+import java.util.Objects;
+
 public final class FrustumClippingPredicate implements NodePredicate {
 
     private final BoundingSphere sphere = new BoundingSphere();
 
-    private Frustum frustum;
+    private final Frustum frustum;
 
     private float blockSize;
 
-    public void frustum(Frustum frustum) {
-        this.frustum = frustum;
+    public FrustumClippingPredicate(Frustum frustum) {
+        this.frustum = Objects.requireNonNull(frustum);
     }
 
     public void blockSize(float blockSize) {

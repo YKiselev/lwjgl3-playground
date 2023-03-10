@@ -30,15 +30,11 @@ import com.github.ykiselev.spi.world.NodeFactory;
 import com.github.ykiselev.spi.world.World;
 import com.github.ykiselev.spi.world.file.WorldFile;
 import com.github.ykiselev.spi.world.generation.WorldGenerator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
 public final class BaseGame implements Game {
-
-    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final AutoCloseable closeable;
 
@@ -110,7 +106,7 @@ public final class BaseGame implements Game {
 
     @Override
     public void draw(int width, int height, DrawingContext context) {
-        client.draw(width, height, context);
+        client.draw(width, height, context, world);
     }
 
     private void genWorld(String command, String name) {

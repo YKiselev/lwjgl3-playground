@@ -13,7 +13,7 @@ class FrustumClippingPredicateTest {
 
     private final Frustum frustum = new Frustum();
 
-    private final FrustumClippingPredicate predicate = new FrustumClippingPredicate();
+    private final FrustumClippingPredicate predicate = new FrustumClippingPredicate(frustum);
 
     @Test
     void shouldClip() {
@@ -21,7 +21,6 @@ class FrustumClippingPredicateTest {
         Matrix.orthographic(-1f, 1f, 1f, -1f, 1f, 10, m);
         frustum.setFromMatrix(m);
 
-        predicate.frustum(frustum);
         predicate.blockSize(1f);
 
         assertTrue(predicate.test(new NormalNode().init(0, 0, -1, 2)));
