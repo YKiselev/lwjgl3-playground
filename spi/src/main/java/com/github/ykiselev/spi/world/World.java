@@ -11,25 +11,24 @@ public final class World {
 
     private final NodeFactory factory;
 
-    private final int indexRange;
+    private final byte rangeShift;
 
-    private final int leafIndexRange;
+    private final byte leafRangeShift;
 
-    public int indexRange() {
-        return indexRange;
+    public byte rangeShift() {
+        return rangeShift;
     }
 
-    public int leafIndexRange() {
-        return leafIndexRange;
+    public byte leafRangeShift() {
+        return leafRangeShift;
     }
 
-    public World(NodeFactory factory, int globalRangeShift) {
+    public World(NodeFactory factory, byte globalRangeShift) {
         if (globalRangeShift <= Leaf.SIDE_SHIFT) {
             throw new IllegalArgumentException("Global range shift should be greater than leaf side shift!");
         }
-        int nodeSideShift = 1;
-        this.indexRange = 1 << globalRangeShift;
-        this.leafIndexRange = 1 << Leaf.SIDE_SHIFT;
+        this.rangeShift = globalRangeShift;
+        this.leafRangeShift = Leaf.SIDE_SHIFT;
         this.factory = Objects.requireNonNull(factory);
         this.root = factory.create(0, 0, 0, globalRangeShift);
     }

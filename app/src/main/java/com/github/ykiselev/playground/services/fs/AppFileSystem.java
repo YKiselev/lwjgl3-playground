@@ -28,38 +28,38 @@ import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
-import java.nio.file.Files;
-import java.nio.file.OpenOption;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.Collection;
+import java.nio.file.*;
+import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class AppFileSystem implements FileSystem, AutoCloseable {
+public final class AppFileSystem implements FileSystem {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final Collection<ResourceFolder> folders;
+    private final List<ResourceFolder> folders;
 
     /**
      * @param folders the read-only resource folders sorted by priority.
      */
     public AppFileSystem(ResourceFolder... folders) {
-        this.folders = Arrays.asList(folders.clone());
+        this.folders = List.of(folders);
+    }
+
+    private static Path toPath(URL url) {
+        try {
+            return Paths.get(url.toURI()).toAbsolutePath();
+        } catch (URISyntaxException e) {
+            throw new ResourceException("Unable to convert to path: " + url, e);
+        }
     }
 
     private FileChannel open(URL resource, OpenOption... options) {
-        final Path path;
-        try {
-            path = Paths.get(resource.toURI()).toAbsolutePath();
-        } catch (URISyntaxException e) {
-            throw new ResourceException("Unable to convert to URI: " + resource, e);
-        }
+        final Path path = toPath(resource);
         logger.debug("Opening file channel {}...", path);
         ensureParentFoldersExists(path);
         try {
@@ -80,18 +80,45 @@ public final class AppFileSystem implements FileSystem, AutoCloseable {
         }
     }
 
+    private static boolean hasOption(OpenOption[] options, OpenOption option) {
+        for (OpenOption opt : options) {
+            if (option.equals(opt)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private Optional<ResourceFolder> resolveResourceFolder(boolean writable) {
+        final Predicate<ResourceFolder> predicate = writable
+                ? ResourceFolder::isWritable
+                : v -> true;
+        return folders.stream()
+                .filter(predicate)
+                .findFirst();
+    }
+
     @Override
     public FileChannel open(String name, OpenOption... options) {
         if (name == null) {
             return null;
         }
-        final ResourceFolder folder = folders.stream()
-                .filter(ResourceFolder::isWritable)
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("No writable folders!"));
-        return folder.resolve(name, false)
+        final boolean hasWrite = hasOption(options, StandardOpenOption.WRITE);
+        return resolveResourceFolder(hasWrite)
+                .flatMap(f -> f.resolve(name, !hasWrite))
                 .map(url -> open(url, options))
-                .orElseThrow(() -> new IllegalStateException("Unknown error!"));
+                .orElseThrow(() -> new IllegalStateException("Unable to open file channel!"));
+    }
+
+    @Override
+    public FileSystem mapArchive(String archiveName, boolean create, boolean readOnly) {
+        if (archiveName == null) {
+            return null;
+        }
+        return resolveResourceFolder(!readOnly)
+                .flatMap(f -> f.resolve(archiveName, readOnly))
+                .map(url -> ArchiveFileSystem.create(toPath(url), create))
+                .orElseThrow(() -> new IllegalStateException("Unable to map archive!"));
     }
 
     @Override

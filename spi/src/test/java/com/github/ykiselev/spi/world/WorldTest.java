@@ -8,7 +8,7 @@ class WorldTest {
 
     @Test
     void shouldPutAndGet() {
-        final int globalRangeShift = 7;
+        final byte globalRangeShift = 7;
 
         World world = new World(new DefaultNodeFactory(), globalRangeShift);
 

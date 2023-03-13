@@ -17,12 +17,12 @@ import java.nio.file.StandardOpenOption;
 
 public final class WorldFile {
 
-    private static final int FILE_VERSION = 1;
+    private static final short FILE_VERSION = 1;
 
     private static final byte[] FILE_SIGNATURE = new byte[]{'w', 'r', 'l', 'd'};
 
     static final byte[] LEAF_SIGNATURE = new byte[]{'l', 'e', 'a', 'f'};
-    public static final int FILE_HEADER_SIZE = 4 + 4 + 4 + 4;
+    public static final int FILE_HEADER_SIZE = 4 + 2 + 1 + 1;
     public static final int LEAF_CHUNK_SIZE = 4 + 4 + 4 + 4 + (1 << (3 * Leaf.SIDE_SHIFT));
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -63,21 +63,23 @@ public final class WorldFile {
     }
 
     public void save(FileSystem fileSystem, World world, String name) {
-        try (FileChannel file = fileSystem.truncate(path(name))) {
-            buffer.clear();
-            buffer.put(FILE_SIGNATURE)
-                    .putInt(FILE_VERSION)
-                    .putInt(world.indexRange())
-                    .putInt(world.leafIndexRange())
-                    .flip();
-            write(file, buffer);
+        try (FileSystem zipFs = fileSystem.mapArchive(path(name), true, false)) {
+            try (FileChannel file = zipFs.truncate("world")) {
+                buffer.clear();
+                buffer.put(FILE_SIGNATURE)
+                        .putShort(FILE_VERSION)
+                        .put(world.rangeShift())
+                        .put(world.leafRangeShift())
+                        .flip();
+                write(file, buffer);
 
-            visitor.init(buf -> write(file, buf), buffer);
-            world.visit(NodePredicate.DEFAULT, visitor);
+                visitor.init(buf -> write(file, buf), buffer);
+                world.visit(NodePredicate.DEFAULT, visitor);
 
-            logger.info("World \"{}\" has been saved.", name);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
+                logger.info("World \"{}\" has been saved.", name);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
         }
     }
 
@@ -91,39 +93,40 @@ public final class WorldFile {
     }
 
     public World load(FileSystem fileSystem, String name, NodeFactory factory) {
-        try (FileChannel file = fileSystem.open(path(name), StandardOpenOption.READ)) {
-            buffer.clear().limit(FILE_HEADER_SIZE);
-            read(file, buffer);
-            buffer.flip();
-            checkSignature(buffer, FILE_SIGNATURE);
-            final int version = buffer.getInt();
-            if (version <= 0 || version > FILE_VERSION) {
-                throw new RuntimeException("Unsupported version: " + version);
-            }
-            final int indexRange = buffer.getInt();
-            final int leafIndexRange = buffer.getInt();
-            if (leafIndexRange != 1 << Leaf.SIDE_SHIFT) {
-                throw new RuntimeException("Incompatible leaf index range: " + leafIndexRange);
-            }
-            final World world = new World(factory, Integer.numberOfLeadingZeros(indexRange));
-            buffer.clear().limit(LEAF_CHUNK_SIZE);
-            int leafs = 0;
-            while (file.read(buffer) == buffer.limit()) {
+        try (FileSystem zipFs = fileSystem.mapArchive(path(name), false, true)) {
+            try (FileChannel file = zipFs.open("world", StandardOpenOption.READ)) {
+                buffer.clear().limit(FILE_HEADER_SIZE);
+                read(file, buffer);
                 buffer.flip();
-                checkSignature(buffer, LEAF_SIGNATURE);
-                final int iorg = buffer.getInt();
-                final int jorg = buffer.getInt();
-                final int korg = buffer.getInt();
-                final Leaf leaf = world.leafForIndices(iorg, jorg, korg, true);
-                leaf.visit(buffer::get);
-                leafs++;
+                checkSignature(buffer, FILE_SIGNATURE);
+                final short version = buffer.getShort();
+                if (version <= 0 || version > FILE_VERSION) {
+                    throw new RuntimeException("Unsupported version: " + version);
+                }
+                final byte rangeShift = buffer.get();
+                final byte leafRangeShift = buffer.get();
+                if (leafRangeShift != Leaf.SIDE_SHIFT) {
+                    throw new RuntimeException("Incompatible leaf range shift: " + leafRangeShift);
+                }
+                final World world = new World(factory, rangeShift);
                 buffer.clear().limit(LEAF_CHUNK_SIZE);
+                int leafs = 0;
+                while (file.read(buffer) == buffer.limit()) {
+                    buffer.flip();
+                    checkSignature(buffer, LEAF_SIGNATURE);
+                    final int iorg = buffer.getInt();
+                    final int jorg = buffer.getInt();
+                    final int korg = buffer.getInt();
+                    final Leaf leaf = world.leafForIndices(iorg, jorg, korg, true);
+                    leaf.visit(buffer::get);
+                    leafs++;
+                    buffer.clear().limit(LEAF_CHUNK_SIZE);
+                }
+                logger.info("World \"{}\" has been loaded ({} leafs).", name, leafs);
+                return world;
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
             }
-            logger.info("World \"{}\" has been loaded ({} leafs).", name, leafs);
-            return world;
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
         }
     }
-
 }

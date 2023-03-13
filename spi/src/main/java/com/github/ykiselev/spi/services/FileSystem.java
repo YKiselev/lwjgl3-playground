@@ -25,7 +25,7 @@ import java.nio.file.StandardOpenOption;
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public interface FileSystem extends Resources {
+public interface FileSystem extends Resources, AutoCloseable {
 
     /**
      * @param name    the file name that will be resolved relative to first writable folder.
@@ -33,6 +33,14 @@ public interface FileSystem extends Resources {
      * @return writable channel
      */
     FileChannel open(String name, OpenOption... options);
+
+    /**
+     * @param archiveName relative path  to archive
+     * @param create      flag indicating if archive shall be created
+     * @param readOnly    flag indicating that archive will only be read
+     * @return archive mapped as file system
+     */
+    FileSystem mapArchive(String archiveName, boolean create, boolean readOnly);
 
     default FileChannel append(String name) {
         return open(name, StandardOpenOption.CREATE, StandardOpenOption.APPEND, StandardOpenOption.WRITE);
@@ -42,4 +50,6 @@ public interface FileSystem extends Resources {
         return open(name, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
     }
 
+    @Override
+    void close();
 }
