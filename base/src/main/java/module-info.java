@@ -13,6 +13,7 @@ module ykiselev.playground.base {
     requires ykiselev.playground.common;
     requires ykiselev.playground.spi;
     requires ykiselev.playground.assets.ogl;
+    requires kotlin.stdlib;
 
     provides GameFactory with BaseGameFactory;
 }

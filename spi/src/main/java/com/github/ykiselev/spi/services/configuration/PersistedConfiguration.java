@@ -34,7 +34,7 @@ public interface PersistedConfiguration {
     /**
      * Wires specified config values to this configuration.
      *
-     * @param values the config values to vire to this config.
+     * @param values the config values to wire to this config.
      * @return the handle to the wired variable.
      */
     AutoCloseable wire(Collection<ConfigValue> values) throws ConfigurationException.VariableAlreadyExistsException;

@@ -11,9 +11,10 @@ module ykiselev.playground.app {
     requires slf4j.api;
     requires org.apache.logging.log4j;
     requires org.apache.logging.log4j.core;
-    requires config;
+    requires typesafe.config;
     requires org.apache.logging.log4j.iostreams;
     requires commons.lang3;
+    requires kotlin.stdlib;
 
     requires static org.jetbrains.annotations;
 

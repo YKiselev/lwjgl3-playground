@@ -46,7 +46,7 @@ public class ParallelRunnerTest {
         assertTimeoutPreemptively(Duration.ofMillis(5_000L), () ->
                 assertThrows(IllegalStateException.class, () ->
                         ParallelRunner.fromRunnable(1000, s)
-                                .call()
+                                .run()
                 )
         );
     }

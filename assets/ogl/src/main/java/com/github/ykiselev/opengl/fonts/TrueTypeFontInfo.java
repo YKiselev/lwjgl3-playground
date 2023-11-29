@@ -19,7 +19,6 @@ package com.github.ykiselev.opengl.fonts;
 import com.github.ykiselev.common.IntDimensions;
 import com.github.ykiselev.common.math.PowerOfTwo;
 import com.github.ykiselev.wrap.Wrap;
-import org.jetbrains.annotations.Nullable;
 import org.lwjgl.stb.STBTTFontinfo;
 import org.lwjgl.system.MemoryStack;
 

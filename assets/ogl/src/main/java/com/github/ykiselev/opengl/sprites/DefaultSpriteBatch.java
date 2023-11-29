@@ -134,7 +134,7 @@ public final class DefaultSpriteBatch implements SpriteBatch {
             i += Character.charCount(value);
             if (useColorControlSequences && value == '^' && (previous != '\\')) {
                 if (i + 2 < text.length()) {
-                    color = colorTable.color(
+                    color = colorTable.get(
                             colorIndex(text.charAt(++i), text.charAt(++i))
                     );
                 }

@@ -6,6 +6,7 @@ module ykiselev.playground.ui {
     requires org.lwjgl.glfw;
     requires ykiselev.playground.spi;
     requires ykiselev.playground.assets.ogl;
+    requires kotlin.stdlib;
 
     exports com.github.ykiselev.playground.ui;
     exports com.github.ykiselev.playground.ui.elements;

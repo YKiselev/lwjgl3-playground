@@ -5,17 +5,17 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class ObjectPoolFrameTest {
+public class ObjectPoolFrameTest {
 
     private ObjectPool<int[]> pool;
 
     @BeforeEach
-    void setUp() {
+    public void setUp() {
         pool = new ObjectPool<>(() -> new int[1]);
     }
 
     @Test
-    void shouldFillPoolAndRetainValues() {
+    public void shouldFillPoolAndRetainValues() {
         try (var frame = pool.push()) {
             frame.allocate()[0] = 1;
             frame.allocate()[0] = 2;

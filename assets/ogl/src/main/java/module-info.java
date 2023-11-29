@@ -8,12 +8,13 @@ module ykiselev.playground.assets.ogl {
     requires commons.lang3;
     requires slf4j.api;
     requires sprite.font.lib;
-    requires config;
+    requires typesafe.config;
     requires transitive ykiselev.wrap;
     requires transitive ykiselev.assets.api;
     requires transitive ykiselev.playground.assets.common;
     requires ykiselev.playground.common;
     requires static org.jetbrains.annotations;
+    requires kotlin.stdlib;
 
     exports com.github.ykiselev.opengl;
     exports com.github.ykiselev.opengl.assets.formats;

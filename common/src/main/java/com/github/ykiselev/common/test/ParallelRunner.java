@@ -35,7 +35,7 @@ import java.util.stream.IntStream;
 /**
  * Utility class to run N code blocks in parallel. Each code block may be {@link Callable} or {@link Runnable} created by
  * provided suppliers. Any unhandled exception thrown from code block will be added to the list of suppressed exceptions
- * of {@link IllegalStateException} thrown at the end of {@link ParallelRunner#call()}.
+ * of type {@link IllegalStateException} thrown at the end of {@link ParallelRunner#call()}.
  *
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
@@ -97,7 +97,7 @@ public final class ParallelRunner<V> implements Callable<Collection<Collection<V
 
     private void waitForThreads(Thread[] threads, List<Throwable> throwables) {
         for (; ; ) {
-            // If some threads has failed with exceptions we need to interrupt all other threads otherwise they will stuck on barrier!
+            // If some threads have failed with exceptions we need to interrupt all other threads otherwise they will stick on barrier!
             if (!throwables.isEmpty()) {
                 Arrays.stream(threads)
                         .forEach(Thread::interrupt);
@@ -142,21 +142,18 @@ public final class ParallelRunner<V> implements Callable<Collection<Collection<V
         };
     }
 
-    public static Callable<Void> fromRunnable(int iterations, Supplier<ThrowingRunnable> supplier) {
+    public static Runnable fromRunnable(int iterations, Supplier<ThrowingRunnable> supplier) {
         return fromRunnable(iterations, Runtime.getRuntime().availableProcessors(), supplier);
     }
 
     @SuppressWarnings("unchecked")
-    public static Callable<Void> fromRunnable(int iterations, int parallelism, Supplier<ThrowingRunnable> supplier) {
-        return () -> {
-            new ParallelRunner<>(
-                    iterations,
-                    IntStream.range(0, parallelism)
-                            .mapToObj(v -> callable(supplier))
-                            .toArray(Supplier[]::new)
-            ).call();
-            return null;
-        };
+    public static Runnable fromRunnable(int iterations, int parallelism, Supplier<ThrowingRunnable> supplier) {
+        return () -> new ParallelRunner<>(
+                iterations,
+                IntStream.range(0, parallelism)
+                        .mapToObj(v -> callable(supplier))
+                        .toArray(Supplier[]::new)
+        ).call();
     }
 
     public static <V> Callable<Collection<Collection<V>>> fromCallable(int iterations, Supplier<Callable<V>> supplier) {
@@ -165,7 +162,7 @@ public final class ParallelRunner<V> implements Callable<Collection<Collection<V
 
     @SuppressWarnings("unchecked")
     public static <V> Callable<Collection<Collection<V>>> fromCallable(int iterations, int parallelism, Supplier<Callable<V>> supplier) {
-        return new ParallelRunner(
+        return new ParallelRunner<>(
                 iterations,
                 IntStream.range(0, parallelism)
                         .mapToObj(v -> supplier)

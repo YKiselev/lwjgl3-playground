@@ -40,7 +40,7 @@ public class SynchronizedCircularBufferTest {
         Supplier<ThrowingRunnable> s = () ->
                 () -> ints.write(counter.incrementAndGet());
         ParallelRunner.fromRunnable(1000, s)
-                .call();
+                .run();
         assertEquals(100, ints.count());
         Integer[] dest = new Integer[ints.count()];
         ints.copyTo(dest);

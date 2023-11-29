@@ -16,8 +16,8 @@
 
 package com.github.ykiselev.spi.services.configuration;
 
-import com.github.ykiselev.spi.services.configuration.values.Values;
 import com.github.ykiselev.spi.services.configuration.values.ConfigValue;
+import com.github.ykiselev.spi.services.configuration.values.Values;
 
 /**
  * Mutable configuration.
@@ -33,7 +33,7 @@ public interface Config {
      * @param clazz the type variable expected to be of
      * @param <V>   type parameter
      * @return the found config variable
-     * @throws ClassCastException        if variable type does not match
+     * @throws ClassCastException                               if variable type does not match
      * @throws ConfigurationException.VariableNotFoundException if there is no variable at specified path
      */
     <V extends ConfigValue> V getValue(String path, Class<V> clazz) throws ClassCastException, ConfigurationException.VariableNotFoundException;
@@ -51,7 +51,7 @@ public interface Config {
      *
      * @param path the variable path
      * @return variable value
-     * @throws ClassCastException        if variable type does not match
+     * @throws ClassCastException                               if variable type does not match
      * @throws ConfigurationException.VariableNotFoundException if there is no variable at specified path
      */
     default String getString(String path) throws ClassCastException, ConfigurationException.VariableNotFoundException {
@@ -63,7 +63,7 @@ public interface Config {
      *
      * @param path the variable path
      * @return variable value
-     * @throws ClassCastException        if variable type does not match
+     * @throws ClassCastException                               if variable type does not match
      * @throws ConfigurationException.VariableNotFoundException if there is no variable at specified path
      */
     default boolean getBoolean(String path) throws ClassCastException, ConfigurationException.VariableNotFoundException {
@@ -75,9 +75,9 @@ public interface Config {
      *
      * @param path the variable path
      * @return variable value
-     * @throws ClassCastException        if variable type does not match
+     * @throws ClassCastException                               if variable type does not match
      * @throws ConfigurationException.VariableNotFoundException if there is no variable at specified path
-     * @throws ArithmeticException       if value overflows an int
+     * @throws ArithmeticException                              if value overflows an int
      */
     default int getInt(String path) throws ClassCastException, ConfigurationException.VariableNotFoundException, ArithmeticException {
         return Math.toIntExact(getLong(path));
@@ -88,7 +88,7 @@ public interface Config {
      *
      * @param path the variable path
      * @return variable value
-     * @throws ClassCastException        if variable type does not match
+     * @throws ClassCastException                               if variable type does not match
      * @throws ConfigurationException.VariableNotFoundException if there is no variable at specified path
      */
     default long getLong(String path) throws ClassCastException, ConfigurationException.VariableNotFoundException {
@@ -100,9 +100,9 @@ public interface Config {
      *
      * @param path the variable path
      * @return variable value
-     * @throws ClassCastException        if variable type does not match
+     * @throws ClassCastException                               if variable type does not match
      * @throws ConfigurationException.VariableNotFoundException if there is no variable at specified path
-     * @throws ArithmeticException       if value overflows a float
+     * @throws ArithmeticException                              if value overflows a float
      */
     default float getFloat(String path) throws ClassCastException, ConfigurationException.VariableNotFoundException, ArithmeticException {
         final double raw = getDouble(path);
@@ -117,7 +117,7 @@ public interface Config {
      *
      * @param path the variable path
      * @return variable value
-     * @throws ClassCastException        if variable type does not match
+     * @throws ClassCastException                               if variable type does not match
      * @throws ConfigurationException.VariableNotFoundException if there is no variable at specified path
      */
     default double getDouble(String path) throws ClassCastException, ConfigurationException.VariableNotFoundException {
@@ -129,7 +129,7 @@ public interface Config {
      *
      * @param path  the variable path
      * @param value the value to set
-     * @throws ClassCastException        if variable type does not match
+     * @throws ClassCastException                               if variable type does not match
      * @throws ConfigurationException.VariableNotFoundException if there is no variable at specified path
      */
     default void set(String path, String value) throws ClassCastException, ConfigurationException.VariableNotFoundException {
@@ -141,7 +141,7 @@ public interface Config {
      *
      * @param path  the variable path
      * @param value the value to set
-     * @throws ClassCastException        if variable type does not match
+     * @throws ClassCastException                               if variable type does not match
      * @throws ConfigurationException.VariableNotFoundException if there is no variable at specified path
      */
     default void set(String path, boolean value) throws ClassCastException, ConfigurationException.VariableNotFoundException {
@@ -153,7 +153,7 @@ public interface Config {
      *
      * @param path  the variable path
      * @param value the value to set
-     * @throws ClassCastException        if variable type does not match
+     * @throws ClassCastException                               if variable type does not match
      * @throws ConfigurationException.VariableNotFoundException if there is no variable at specified path
      */
     default void set(String path, int value) throws ClassCastException, ConfigurationException.VariableNotFoundException {
@@ -165,7 +165,7 @@ public interface Config {
      *
      * @param path  the variable path
      * @param value the value to set
-     * @throws ClassCastException        if variable type does not match
+     * @throws ClassCastException                               if variable type does not match
      * @throws ConfigurationException.VariableNotFoundException if there is no variable at specified path
      */
     default void set(String path, long value) throws ClassCastException, ConfigurationException.VariableNotFoundException {
@@ -177,7 +177,7 @@ public interface Config {
      *
      * @param path  the variable path
      * @param value the value to set
-     * @throws ClassCastException        if variable type does not match
+     * @throws ClassCastException                               if variable type does not match
      * @throws ConfigurationException.VariableNotFoundException if there is no variable at specified path
      */
     default void set(String path, double value) throws ClassCastException, ConfigurationException.VariableNotFoundException {

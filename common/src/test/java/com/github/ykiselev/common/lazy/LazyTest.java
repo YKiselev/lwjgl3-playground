@@ -103,7 +103,7 @@ public class LazyTest {
                 errors.incrementAndGet();
             }
         };
-        ParallelRunner.fromRunnable(500, f).call();
+        ParallelRunner.fromRunnable(500, f).run();
         assertEquals(0, errors.get());
     }
 

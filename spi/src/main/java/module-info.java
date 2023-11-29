@@ -4,11 +4,12 @@
 module ykiselev.playground.spi {
     requires org.lwjgl;
     requires org.lwjgl.glfw;
-    requires config;
+    requires typesafe.config;
     requires slf4j.api;
     requires transitive ykiselev.assets.api;
     requires ykiselev.playground.common;
     requires ykiselev.playground.assets.ogl;
+    requires kotlin.stdlib;
 
     exports com.github.ykiselev.spi.api;
     exports com.github.ykiselev.spi.camera;
