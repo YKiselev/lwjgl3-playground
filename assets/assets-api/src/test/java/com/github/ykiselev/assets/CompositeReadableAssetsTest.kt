@@ -13,38 +13,53 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.github.ykiselev.assets
 
-package com.github.ykiselev.assets;
-
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import com.github.ykiselev.assets.DefaultRecipe.Companion.of
+import com.github.ykiselev.wrap.Wrap
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
+import org.mockito.Mockito.`when`
+import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
+import java.nio.channels.ReadableByteChannel
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public class CompositeReadableAssetsTest {
+class CompositeReadableAssetsTest {
 
     @Test
-    public void shouldResolve() {
-        final ReadableAsset<String, Void> rr = (stream, rcp, assets) -> null;
-        final ReadableAssets delegate1 = mock(ReadableAssets.class);
-        final ReadableAssets delegate2 = mock(ReadableAssets.class);
-        when(delegate1.resolve(eq("a"), any(Recipe.class)))
-                .thenReturn(null);
-        when(delegate2.resolve(eq("a"), any(Recipe.class)))
-                .thenReturn(rr);
-        final ReadableAssets readableAssets = new CompositeReadableAssets(
-                delegate1,
-                delegate2
-        );
-        Assertions.assertEquals(
-                rr,
-                readableAssets.resolve("a", DefaultRecipe.of(String.class))
-        );
+    fun shouldResolve() {
+        val rr: ReadableAsset<String, Void> = object:ReadableAsset<String,Void> {
+            override fun read(
+                channel: ReadableByteChannel,
+                recipe: Recipe<*, String, Void>?,
+                assets: Assets
+            ): Wrap<String>? = null
+        }
+        val delegate1 = mock<ReadableAssets>()
+        val delegate2 = mock<ReadableAssets>()
+        `when`(
+            delegate1.resolve(
+                eq("a"), any<Recipe<Any, String, Void>>()
+            )
+        ).thenReturn(null)
+        `when`(
+            delegate2.resolve(
+                eq("a"), any<Recipe<Any, String, Void>>()
+            )
+        ).thenReturn(rr)
+        val readableAssets: ReadableAssets = CompositeReadableAssets(
+            delegate1,
+            delegate2
+        )
+        assertEquals(
+            rr,
+            readableAssets.resolve(
+                "a", of(String::class.java)
+            )
+        )
     }
 }
