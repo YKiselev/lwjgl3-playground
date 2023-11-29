@@ -13,53 +13,46 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.github.ykiselev.assets
 
-package com.github.ykiselev.assets;
-
-import static java.util.Objects.requireNonNull;
+import java.util.*
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru)
  * @since 14.04.2019
  */
-public class DefaultRecipe<K, A, C> implements Recipe<K, A, C> {
-
-    private final K key;
-
-    private final Class<A> type;
-
-    private final C context;
-
-    @Override
-    public Class<A> type() {
-        return type;
+class DefaultRecipe<K, A, C>(key: K, type: Class<A>, private val context: C) : Recipe<K, A, C> {
+    private val key: K
+    private val type: Class<A>
+    override fun type(): Class<A>? {
+        return type
     }
 
-    @Override
-    public K key() {
-        return key;
+    override fun key(): K {
+        return key
     }
 
-    @Override
-    public C context() {
-        return context;
+    override fun context(): C {
+        return context
     }
 
-    public DefaultRecipe(K key, Class<A> type, C context) {
-        this.key = requireNonNull(key);
-        this.type = requireNonNull(type);
-        this.context = context;
+    init {
+        this.key = Objects.requireNonNull(key)
+        this.type = Objects.requireNonNull(type)
     }
 
-    public static <A, K> Recipe<K, A, Void> of(K key, Class<A> type) {
-        return new DefaultRecipe<>(key, type, null);
-    }
+    companion object {
+        fun <A, K> of(key: K, type: Class<A>): Recipe<K, A, Void?> {
+            return DefaultRecipe(key, type, null)
+        }
 
-    public static <A> Recipe<String, A, Void> of(Class<A> type) {
-        return new DefaultRecipe<>(type.getName(), type, null);
-    }
+        @JvmStatic
+        fun <A> of(type: Class<A>): Recipe<String, A, Void?> {
+            return DefaultRecipe(type.getName(), type, null)
+        }
 
-    public static <A, C> Recipe<String, A, C> of(Class<A> type, C context) {
-        return new DefaultRecipe<>(type.getName(), type, null);
+        fun <A, C> of(type: Class<A>, context: C): Recipe<String, A, C?> {
+            return DefaultRecipe(type.getName(), type, null)
+        }
     }
 }

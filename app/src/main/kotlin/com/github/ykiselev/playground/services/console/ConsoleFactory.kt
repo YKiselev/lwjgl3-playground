@@ -42,7 +42,7 @@ object ConsoleFactory {
         return console
     }
 
-    private val buffer: CircularBuffer<String?>
+    private val buffer: CircularBuffer<String>
         get() {
             val context = LogManager.getContext(false) as LoggerContext
             val appender = context.configuration.getAppender<AppConsoleLog4j2Appender>("AppConsole")

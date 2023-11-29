@@ -13,29 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.github.ykiselev.assets
 
-package com.github.ykiselev.assets;
-
-import com.github.ykiselev.wrap.Wrap;
-
-import java.nio.channels.ReadableByteChannel;
+import com.github.ykiselev.wrap.Wrap
+import java.nio.channels.ReadableByteChannel
 
 /**
- * Implementation of this interface should be able to read (de-serialize) object instance of supported class from supplied {@link ReadableByteChannel}.
- * <p>
+ * Implementation of this interface should be able to read (de-serialize) object instance of supported class from supplied [ReadableByteChannel].
+ *
+ *
  * Created by Y.Kiselev on 15.05.2016.
  */
-public interface ReadableAsset<T, C> {
-
+interface ReadableAsset<T, C> {
     /**
      * Reads resource from channel.
      *
      * @param channel the binary stream to read resource from.
-     * @param recipe  the recipe to use to cook the asset or {@code null} if not needed
-     * @param assets  the instance of asset manager. At first glance {@link Resources} would suffice but {@link Assets}
-     *                may be required in the case when compound asset consisting of different assets is read.
+     * @param recipe  the recipe to use to cook the asset or `null` if not needed
+     * @param assets  the instance of asset manager. At first glance [Resources] would suffice but [Assets]
+     * may be required in the case when compound asset consisting of different assets is read.
      * @return wrapped de-serialized resource.
      * @throws ResourceException if something goes wrong during de-serialization of resource.
      */
-    Wrap<T> read(ReadableByteChannel channel, Recipe<?, T, C> recipe, Assets assets) throws ResourceException;
+    fun read(channel: ReadableByteChannel, recipe: Recipe<*, T, C>?, assets: Assets): Wrap<T>?
 }

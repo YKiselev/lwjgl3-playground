@@ -34,7 +34,6 @@ import java.nio.channels.ReadableByteChannel
  */
 class ReadableTrueTypeFontInfo(private val scale: Float) : ReadableAsset<TrueTypeFontInfo, Void> {
 
-    @Throws(ResourceException::class)
     override fun read(
         channel: ReadableByteChannel,
         recipe: Recipe<*, TrueTypeFontInfo, Void>?,

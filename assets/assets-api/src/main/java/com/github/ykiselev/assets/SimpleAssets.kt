@@ -31,7 +31,7 @@ class SimpleAssets(val resources: Resources, private val readableAssets: Readabl
 
     override fun <K, T, C> tryLoad(resource: String, recipe: Recipe<K, T, C>?, assets: Assets): Wrap<T>? =
         resources.open(resource)
-            ?.let { channel: ReadableByteChannel? ->
+            ?.let { channel: ReadableByteChannel ->
                 readableAssets.resolve(resource, recipe)
                     ?.read(channel, recipe, assets)
             }?.let {

@@ -10,7 +10,7 @@ import kotlin.math.max
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-class ConsoleBuffer(private val buffer: CircularBuffer<String?>) {
+class ConsoleBuffer(private val buffer: CircularBuffer<String>) {
 
     internal enum class ScrollAction {
         NONE,

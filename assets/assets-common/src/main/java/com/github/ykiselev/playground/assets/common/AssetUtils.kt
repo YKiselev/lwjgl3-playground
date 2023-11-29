@@ -28,7 +28,7 @@ import java.nio.channels.ReadableByteChannel
 object AssetUtils {
 
     @JvmStatic
-    fun <K, A, C> read(channel: ReadableByteChannel?, recipe: Recipe<K, A, C>, assets: Assets): Wrap<A> =
+    fun <K, A, C> read(channel: ReadableByteChannel, recipe: Recipe<K, A, C>, assets: Assets): Wrap<A> =
         assets.resolve(recipe)
             ?.read(channel, recipe, assets) ?: throw ResourceException("Unable to asset for $recipe")
 
