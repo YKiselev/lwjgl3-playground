@@ -27,41 +27,37 @@ interface Assets : ReadableAssets, Resources {
     /**
      * Loads asset using one of registered [ReadableAsset]'s
      *
-     * @param <T>      the type of resource
+     * @param [T]      the type of resource
      * @param resource the resource name
      * @param recipe   the recipe to use for cooking of resource or `null` if not required
      * @return the requested resource
      * @throws ResourceException if resource not found or something goes wrong during the resource loading process.
-    </T> */
-    @Throws(ResourceException::class)
-    fun <K, T, C> load(resource: String, recipe: Recipe<K, T, C>?): Wrap<T> {
-        return tryLoad(resource, recipe) ?: throw ResourceException("Unable to load $resource")
-    }
+     */
+    fun <K, T, C> load(resource: String, recipe: Recipe<K, T, C>?): Wrap<T> =
+        tryLoad(resource, recipe) ?: throw ResourceException("Unable to load $resource")
+
 
     /**
      * Loads asset using one of registered [ReadableAsset]'s
      *
-     * @param <T>      the type of resource
+     * @param [T]      the type of resource
      * @param resource the resource name
      * @param recipe   the recipe to use for cooking of resource or `null` if not required
      * @return the requested resource or `null`
      * @throws ResourceException if something goes wrong during the resource loading process.
-    </T> */
-    @Throws(ResourceException::class)
-    fun <K, T, C> tryLoad(resource: String, recipe: Recipe<K, T, C>?): Wrap<T>? {
-        return tryLoad(resource, recipe, this)
-    }
+     */
+    fun <K, T, C> tryLoad(resource: String, recipe: Recipe<K, T, C>?): Wrap<T>? =
+        tryLoad(resource, recipe, this)
 
     /**
      * Loads asset using one of registered [ReadableAsset]'s
      *
-     * @param <T>      the type of resource
+     * @param [T]      the type of resource
      * @param resource the resource name
      * @param recipe   the recipe to use for cooking of resource or `null` if not required
      * @param assets   the asset manager to pass to [ReadableAsset.read] to load sub-assets
      * @return the requested resource or `null`
      * @throws ResourceException if something goes wrong during the resource loading process.
-    </T> */
-    @Throws(ResourceException::class)
+     */
     fun <K, T, C> tryLoad(resource: String, recipe: Recipe<K, T, C>?, assets: Assets): Wrap<T>?
 }

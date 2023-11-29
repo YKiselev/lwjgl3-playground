@@ -23,7 +23,6 @@ class ManagedAssets(private val delegate: Assets) : Assets, AutoCloseable {
     private val cache: MutableMap<String, Asset> = ConcurrentHashMap()
     private val loadLock = Any()
 
-    @Throws(ResourceException::class)
     override fun <K, T, C> tryLoad(resource: String, recipe: Recipe<K, T, C>?, assets: Assets): Wrap<T>? {
         while (true) {
             val asset = cache[resource]
@@ -53,8 +52,7 @@ class ManagedAssets(private val delegate: Assets) : Assets, AutoCloseable {
         }
     }
 
-    @Throws(ResourceException::class)
-    override fun <K, T, C> resolve(resource: String, recipe: Recipe<K, T, C>): ReadableAsset<T, C> =
+    override fun <K, T, C> resolve(resource: String?, recipe: Recipe<K, T, C>?): ReadableAsset<T, C>? =
         delegate.resolve(resource, recipe)
 
     override fun close() {
@@ -72,11 +70,9 @@ class ManagedAssets(private val delegate: Assets) : Assets, AutoCloseable {
         check(errors.isEmpty()) { errors }
     }
 
-    @Throws(ResourceException::class)
     override fun open(resource: String): ReadableByteChannel? =
         delegate.open(resource)
 
-    @Throws(ResourceException::class)
     override fun openAll(resource: String): Sequence<ReadableByteChannel> =
         delegate.openAll(resource)
 
@@ -90,7 +86,7 @@ class ManagedAssets(private val delegate: Assets) : Assets, AutoCloseable {
     /**
      *
      */
-    private inner class RefAsset internal constructor(resource: String, value: Wrap<*>) : Asset, AutoCloseable {
+    private inner class RefAsset(resource: String, value: Wrap<*>) : Asset, AutoCloseable {
 
         private val ref: Ref<*> = Ref(value.value()) { v: Any? ->
             removeFromCache(resource, this)
@@ -98,9 +94,8 @@ class ManagedAssets(private val delegate: Assets) : Assets, AutoCloseable {
             value.close()
         }
 
-        override fun value(): Wrap<*> {
-            return ref.newRef()
-        }
+        override fun value(): Wrap<*> =
+            ref.newRef()
 
         override fun close() {
             ref.close()

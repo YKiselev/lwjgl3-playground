@@ -28,15 +28,15 @@ import java.nio.channels.ReadableByteChannel
 object AssetUtils {
 
     @JvmStatic
-    fun <K, A, C> read(channel: ReadableByteChannel?, recipe: Recipe<K, A, C>?, assets: Assets): Wrap<A> =
+    fun <K, A, C> read(channel: ReadableByteChannel?, recipe: Recipe<K, A, C>, assets: Assets): Wrap<A> =
         assets.resolve(recipe)
-            .read(channel, recipe, assets)
+            ?.read(channel, recipe, assets) ?: throw ResourceException("Unable to asset for $recipe")
 
     @JvmStatic
     fun <K, A, C> read(resource: String, recipe: Recipe<K, A, C>?, assets: Assets): Wrap<A> =
         assets.open(resource)
             ?.let {
-                assets.resolve(resource, recipe).read(it, recipe, assets)
+                assets.resolve(resource, recipe)?.read(it, recipe, assets)
             } ?: throw ResourceException("Unable to read $resource")
 
 }

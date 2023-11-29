@@ -89,7 +89,7 @@ object Closeables {
     /**
      *
      */
-    class Guard : AutoCloseable {
+    class Guard(private val reverse: Boolean = true) : AutoCloseable {
 
         private val closeables: MutableList<AutoCloseable> = mutableListOf()
 
@@ -125,7 +125,9 @@ object Closeables {
             }
 
         override fun close() =
-            closeAll(closeables)
+            closeAll(
+                if (reverse) closeables.reversed() else closeables
+            )
     }
 
     class Composite(private vararg val items: AutoCloseable) : AutoCloseable {

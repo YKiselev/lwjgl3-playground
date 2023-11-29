@@ -21,7 +21,6 @@ class ArchiveFileSystem(private val fs: FileSystem) : com.github.ykiselev.spi.se
         Closeables.close(fs)
     }
 
-    @Throws(ResourceException::class)
     override fun open(resource: String): ReadableByteChannel? =
         try {
             FileChannel.open(fs.getPath(resource), StandardOpenOption.READ)
@@ -31,7 +30,6 @@ class ArchiveFileSystem(private val fs: FileSystem) : com.github.ykiselev.spi.se
         }
 
 
-    @Throws(ResourceException::class)
     override fun openAll(resource: String): Sequence<ReadableByteChannel> =
         open(resource)?.let { sequenceOf(it) } ?: emptySequence()
 

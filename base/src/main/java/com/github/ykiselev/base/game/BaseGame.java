@@ -115,7 +115,7 @@ public final class BaseGame implements Game {
         worldFile.save(fileSystem, world, name);
     }
 
-    private void world(String command, String name) {
+    private void world(String name) {
         world = worldFile.load(fileSystem, name, nodeFactory);
     }
 }

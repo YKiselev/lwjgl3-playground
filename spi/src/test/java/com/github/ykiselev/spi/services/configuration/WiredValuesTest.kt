@@ -49,7 +49,6 @@ class WiredValuesTest {
         val r = captor.firstValue
         val v = r.iterator().next()
         assertEquals("a", v.name)
-        //assertThrows(ArithmeticException::class.java) { v.setString("999999999999999999") }
         v.setString("2694881535")
     }
 }

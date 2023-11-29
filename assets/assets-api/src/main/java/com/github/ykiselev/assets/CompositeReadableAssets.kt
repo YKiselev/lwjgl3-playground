@@ -13,37 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.github.ykiselev.assets
 
-package com.github.ykiselev.assets;
-
-import java.util.Objects;
+import java.util.*
 
 /**
- * Implementation of {@link ReadableAssets} which delegates resolution to configured delegates. Method resolve
- * iterates over delegates until first {@code non-null} {@link ReadableAsset} is returned.
+ * Implementation of [ReadableAssets] which delegates resolution to configured delegates. Method resolve
+ * iterates over delegates until first `non-null` [ReadableAsset] is returned.
  *
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class CompositeReadableAssets implements ReadableAssets {
+class CompositeReadableAssets(vararg delegates: ReadableAssets) : ReadableAssets {
 
-    private final ReadableAssets[] delegates;
+    private val delegates = delegates.clone()
 
-    public CompositeReadableAssets(ReadableAssets... delegates) {
-        Objects.requireNonNull(delegates);
-        if (delegates.length == 0) {
-            throw new IllegalArgumentException("At least one delegate should be supplied!");
-        }
-        this.delegates = delegates.clone();
+    init {
+        require(delegates.isNotEmpty()) { "At least one delegate should be supplied!" }
     }
 
-    @Override
-    public <K, T, C> ReadableAsset<T, C> resolve(String resource, Recipe<K, T, C> recipe) throws ResourceException {
-        for (ReadableAssets delegate : delegates) {
-            final ReadableAsset<T, C> result = delegate.resolve(resource, recipe);
+    override fun <K, T, C> resolve(resource: String?, recipe: Recipe<K, T, C>?): ReadableAsset<T, C>? {
+        for (delegate in delegates) {
+            val result = delegate.resolve(resource, recipe)
             if (result != null) {
-                return result;
+                return result
             }
         }
-        throw new ResourceException("Unable to resolve resource \"" + resource + "\" using recipe \"" + recipe + "\"");
+        throw ResourceException("Unable to resolve resource \"$resource\" using recipe \"$recipe\"")
     }
 }

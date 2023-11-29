@@ -8,10 +8,9 @@ import com.github.ykiselev.assets.ResourceException
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-class ResourceByExtension(private val map: Map<String?, ReadableAsset<*, *>>) : ReadableAssets {
+class ResourceByExtension(private val map: Map<String, ReadableAsset<*, *>>) : ReadableAssets {
 
-    @Throws(ResourceException::class)
-    override fun <K, T, C> resolve(resource: String?, recipe: Recipe<K, T, C>): ReadableAsset<T, C>? =
+    override fun <K, T, C> resolve(resource: String?, recipe: Recipe<K, T, C>?): ReadableAsset<T, C>? =
         map[extension(resource)] as? ReadableAsset<T, C>
 
     private fun extension(resource: String?): String? =

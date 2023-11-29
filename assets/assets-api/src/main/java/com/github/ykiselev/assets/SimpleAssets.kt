@@ -18,7 +18,6 @@ package com.github.ykiselev.assets
 import com.github.ykiselev.wrap.Wrap
 import org.slf4j.LoggerFactory
 import java.nio.channels.ReadableByteChannel
-import java.util.*
 
 /**
  * This implementation uses supplied instance of [ReadableAssets] to resolve [ReadableAsset].
@@ -30,26 +29,22 @@ class SimpleAssets(val resources: Resources, private val readableAssets: Readabl
 
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    @Throws(ResourceException::class)
     override fun <K, T, C> tryLoad(resource: String, recipe: Recipe<K, T, C>?, assets: Assets): Wrap<T>? =
         resources.open(resource)
             ?.let { channel: ReadableByteChannel? ->
                 readableAssets.resolve(resource, recipe)
-                    .read(channel, recipe, assets)
+                    ?.read(channel, recipe, assets)
             }?.let {
                 logger.debug("Loaded resource \"{}\" : \"{}\"", resource, it)
                 it
             }
 
-    @Throws(ResourceException::class)
-    override fun <K, T, C> resolve(resource: String, recipe: Recipe<K, T, C>): ReadableAsset<T, C> =
+    override fun <K, T, C> resolve(resource: String?, recipe: Recipe<K, T, C>?): ReadableAsset<T, C>? =
         readableAssets.resolve(resource, recipe)
 
-    @Throws(ResourceException::class)
     override fun open(resource: String): ReadableByteChannel? =
         resources.open(resource)
 
-    @Throws(ResourceException::class)
     override fun openAll(resource: String): Sequence<ReadableByteChannel> =
         resources.openAll(resource)
 }
