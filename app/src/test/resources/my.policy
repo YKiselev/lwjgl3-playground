@@ -1,9 +1,0 @@
-grant {//codeBase "file:/D:/Projects/Java/Tests/lwjgl3-playground/" {
-    permission java.security.AllPermission;
-};
-
-grant {
-    permission java.io.FilePermission "C:\\Program Files\\JetBrains\\IntelliJ IDEA Community Edition 2018.1.4\\bin\\*", "read";
-    permission java.lang.RuntimePermission "loadLibrary.C:\\Program Files\\JetBrains\\IntelliJ IDEA Community Edition 2018.1.4\\bin\\breakgen64.dll";
-    permission java.util.PropertyPermission "*", "read";
-};

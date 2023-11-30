@@ -13,61 +13,48 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.github.ykiselev.openal.assets.vorbis
 
-package com.github.ykiselev.openal.assets.vorbis;
-
-import com.github.ykiselev.openal.AudioSamples;
-import com.github.ykiselev.openal.Errors;
-import com.github.ykiselev.wrap.Wrap;
-
-import java.nio.ShortBuffer;
-
-import static java.util.Objects.requireNonNull;
-import static org.lwjgl.openal.AL10.alBufferData;
+import com.github.ykiselev.openal.AudioSamples
+import com.github.ykiselev.openal.Errors
+import com.github.ykiselev.wrap.Wrap
+import org.lwjgl.openal.AL10
+import java.nio.ShortBuffer
+import java.util.*
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class VorbisAudio implements AudioSamples {
+class VorbisAudio(
+    private val format: Int,
+    private val sampleRate: Int,
+    private val length: Int,
+    wrap: Wrap<ShortBuffer>
+) : AudioSamples {
+    private val wrap: Wrap<ShortBuffer>
 
-    private final int format;
-
-    private final int sampleRate;
-
-    private final int length;
-
-    private final Wrap<ShortBuffer> wrap;
-
-    public VorbisAudio(int format, int sampleRate, int length, Wrap<ShortBuffer> wrap) {
-        this.format = format;
-        this.sampleRate = sampleRate;
-        this.length = length;
-        this.wrap = requireNonNull(wrap);
+    init {
+        this.wrap = Objects.requireNonNull(wrap)
     }
 
-    @Override
-    public void close() {
-        wrap.close();
+    override fun close() {
+        wrap.close()
     }
 
-    @Override
-    public int format() {
-        return format;
+    override fun format(): Int {
+        return format
     }
 
-    @Override
-    public int sampleRate() {
-        return sampleRate;
+    override fun sampleRate(): Int {
+        return sampleRate
     }
 
-    @Override
-    public int length() {
-        return length;
+    override fun length(): Int {
+        return length
     }
 
-    @Override
-    public void buffer(int buffer) {
-        alBufferData(buffer, format, wrap.value(), sampleRate);
-        Errors.assertNoAlErrors();
+    override fun buffer(buffer: Int) {
+        AL10.alBufferData(buffer, format, wrap.value(), sampleRate)
+        Errors.assertNoAlErrors()
     }
 }

@@ -13,211 +13,148 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.github.ykiselev.oal
 
-package com.github.ykiselev.oal;
-
-import com.github.ykiselev.assets.Assets;
-import com.github.ykiselev.assets.DefaultRecipe;
-import com.github.ykiselev.assets.ReadableAsset;
-import com.github.ykiselev.openal.AudioSamples;
-import com.github.ykiselev.openal.assets.ReadableVorbisAudio;
-import com.github.ykiselev.wrap.Wrap;
-import org.junit.jupiter.api.Assertions;
-import org.lwjgl.openal.AL;
-import org.lwjgl.openal.ALC10;
-import org.lwjgl.openal.ALC11;
-import org.lwjgl.openal.ALCCapabilities;
-import org.lwjgl.openal.EXTThreadLocalContext;
-
-import java.nio.IntBuffer;
-import java.nio.channels.Channels;
-import java.util.List;
-
-import static com.github.ykiselev.openal.Errors.assertNoAlErrors;
-import static org.lwjgl.openal.AL10.AL_BUFFER;
-import static org.lwjgl.openal.AL10.AL_BUFFERS_PROCESSED;
-import static org.lwjgl.openal.AL10.AL_BUFFERS_QUEUED;
-import static org.lwjgl.openal.AL10.AL_FALSE;
-import static org.lwjgl.openal.AL10.AL_LOOPING;
-import static org.lwjgl.openal.AL10.AL_SOURCE_STATE;
-import static org.lwjgl.openal.AL10.AL_STOPPED;
-import static org.lwjgl.openal.AL10.alDeleteBuffers;
-import static org.lwjgl.openal.AL10.alDeleteSources;
-import static org.lwjgl.openal.AL10.alGenBuffers;
-import static org.lwjgl.openal.AL10.alGenSources;
-import static org.lwjgl.openal.AL10.alGetSourcei;
-import static org.lwjgl.openal.AL10.alSourcePlay;
-import static org.lwjgl.openal.AL10.alSourceQueueBuffers;
-import static org.lwjgl.openal.AL10.alSourceStop;
-import static org.lwjgl.openal.AL10.alSourceUnqueueBuffers;
-import static org.lwjgl.openal.AL10.alSourcei;
-import static org.lwjgl.openal.ALC.createCapabilities;
-import static org.lwjgl.openal.ALC10.ALC_FREQUENCY;
-import static org.lwjgl.openal.ALC10.ALC_REFRESH;
-import static org.lwjgl.openal.ALC10.ALC_SYNC;
-import static org.lwjgl.openal.ALC10.ALC_TRUE;
-import static org.lwjgl.openal.ALC10.alcCloseDevice;
-import static org.lwjgl.openal.ALC10.alcCreateContext;
-import static org.lwjgl.openal.ALC10.alcDestroyContext;
-import static org.lwjgl.openal.ALC10.alcGetInteger;
-import static org.lwjgl.openal.ALC10.alcGetString;
-import static org.lwjgl.openal.ALC10.alcMakeContextCurrent;
-import static org.lwjgl.openal.ALC10.alcOpenDevice;
-import static org.lwjgl.openal.ALC11.ALC_MONO_SOURCES;
-import static org.lwjgl.openal.ALC11.ALC_STEREO_SOURCES;
-import static org.lwjgl.openal.ALUtil.getStringList;
-import static org.lwjgl.system.MemoryUtil.NULL;
-import static org.mockito.Mockito.mock;
+import com.github.ykiselev.assets.Assets
+import com.github.ykiselev.assets.DefaultRecipe.Companion.of
+import com.github.ykiselev.openal.AudioSamples
+import com.github.ykiselev.openal.Errors
+import com.github.ykiselev.openal.assets.ReadableVorbisAudio
+import org.junit.jupiter.api.Assertions
+import org.lwjgl.openal.*
+import org.lwjgl.system.MemoryUtil
+import org.mockito.Mockito
+import java.nio.IntBuffer
+import java.nio.channels.Channels
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class OpenAlApp {
+class OpenAlApp {
 
-    private final ReadableAsset<AudioSamples, Void> readableResource = new ReadableVorbisAudio(32 * 1024);
+    private val readableResource = ReadableVorbisAudio()
+    private val assets = Mockito.mock(Assets::class.java)
 
-    private final Assets assets = mock(Assets.class);
-
-    public static void main(String[] args) throws Exception {
-        new OpenAlApp().run();
-    }
-
-    private void run() throws Exception {
-        final long device = alcOpenDevice((CharSequence) null);
-        if (device == NULL) {
-            throw new IllegalArgumentException("No device found!");
-        }
-
+    private fun run() {
+        val device = ALC10.alcOpenDevice(null as CharSequence?)
+        require(device != MemoryUtil.NULL) { "No device found!" }
         try {
-            final ALCCapabilities capabilities = createCapabilities(device);
-            if (!capabilities.OpenALC10) {
-                throw new IllegalArgumentException("OpenAL 1.0 is not supported!");
-            }
-            System.out.println("OpenALC11: " + capabilities.OpenALC11);
-            System.out.println("caps.ALC_EXT_EFX = " + capabilities.ALC_EXT_EFX);
-
-
+            val capabilities = ALC.createCapabilities(device)
+            require(capabilities.OpenALC10) { "OpenAL 1.0 is not supported!" }
+            println("OpenALC11: " + capabilities.OpenALC11)
+            println("caps.ALC_EXT_EFX = " + capabilities.ALC_EXT_EFX)
             if (capabilities.OpenALC11) {
-                List<String> devices = getStringList(NULL, ALC11.ALC_ALL_DEVICES_SPECIFIER);
+                val devices = ALUtil.getStringList(MemoryUtil.NULL, ALC11.ALC_ALL_DEVICES_SPECIFIER)
                 if (devices == null) {
-                    assertNoAlErrors();
+                    Errors.assertNoAlErrors()
                 } else {
-                    for (int i = 0; i < devices.size(); i++) {
-                        System.out.println(i + ": " + devices.get(i));
+                    for (i in devices.indices) {
+                        println(i.toString() + ": " + devices[i])
                     }
                 }
             }
-
-            String defaultDeviceSpecifier = alcGetString(NULL, ALC10.ALC_DEFAULT_DEVICE_SPECIFIER);
-            Assertions.assertTrue(defaultDeviceSpecifier != null);
-            System.out.println("Default device: " + defaultDeviceSpecifier);
-
-            final long context = alcCreateContext(device, (IntBuffer) null);
-            EXTThreadLocalContext.alcSetThreadContext(context);
-            AL.createCapabilities(capabilities);
-
-            System.out.println("ALC_FREQUENCY: " + alcGetInteger(device, ALC_FREQUENCY) + "Hz");
-            System.out.println("ALC_REFRESH: " + alcGetInteger(device, ALC_REFRESH) + "Hz");
-            System.out.println("ALC_SYNC: " + (alcGetInteger(device, ALC_SYNC) == ALC_TRUE));
-            System.out.println("ALC_MONO_SOURCES: " + alcGetInteger(device, ALC_MONO_SOURCES));
-            System.out.println("ALC_STEREO_SOURCES: " + alcGetInteger(device, ALC_STEREO_SOURCES));
-
+            val defaultDeviceSpecifier = ALC10.alcGetString(MemoryUtil.NULL, ALC10.ALC_DEFAULT_DEVICE_SPECIFIER)
+            Assertions.assertNotNull(defaultDeviceSpecifier)
+            println("Default device: $defaultDeviceSpecifier")
+            val context = ALC10.alcCreateContext(device, null as IntBuffer?)
+            EXTThreadLocalContext.alcSetThreadContext(context)
+            AL.createCapabilities(capabilities)
+            println("ALC_FREQUENCY: " + ALC10.alcGetInteger(device, ALC10.ALC_FREQUENCY) + "Hz")
+            println("ALC_REFRESH: " + ALC10.alcGetInteger(device, ALC10.ALC_REFRESH) + "Hz")
+            println("ALC_SYNC: " + (ALC10.alcGetInteger(device, ALC10.ALC_SYNC) == ALC10.ALC_TRUE))
+            println("ALC_MONO_SOURCES: " + ALC10.alcGetInteger(device, ALC11.ALC_MONO_SOURCES))
+            println("ALC_STEREO_SOURCES: " + ALC10.alcGetInteger(device, ALC11.ALC_STEREO_SOURCES))
             try {
-                testPlayback();
+                testPlayback()
             } finally {
-                alcMakeContextCurrent(NULL);
-                alcDestroyContext(context);
+                ALC10.alcMakeContextCurrent(MemoryUtil.NULL)
+                ALC10.alcDestroyContext(context)
             }
         } finally {
-            alcCloseDevice(device);
+            ALC10.alcCloseDevice(device)
         }
     }
 
-    private void testPlayback() throws Exception {
+    private fun testPlayback() {
         // generate buffers and sources
-        final int buffer = alGenBuffers();
-        assertNoAlErrors();
+        val buffer = AL10.alGenBuffers()
+        Errors.assertNoAlErrors()
+        val source = AL10.alGenSources()
+        Errors.assertNoAlErrors()
+        readableResource.read(
+            Channels.newChannel(javaClass.getResourceAsStream("/sample.ogg")),
+            of(AudioSamples::class.java),
+            assets
+        ).use { samples ->
+            samples.value().buffer(buffer)
 
-        final int source = alGenSources();
-        assertNoAlErrors();
-
-        try (Wrap<AudioSamples> samples = readableResource.read(
-                Channels.newChannel(getClass().getResourceAsStream("/sample.ogg")),
-                DefaultRecipe.of(AudioSamples.class),
-                assets
-        )) {
-            samples.value().buffer(buffer);
-
-            //lets loop the sound
-            alSourcei(source, AL_LOOPING, AL_FALSE);
-            assertNoAlErrors();
-
+            //let's loop the sound
+            AL10.alSourcei(source, AL10.AL_LOOPING, AL10.AL_FALSE)
+            Errors.assertNoAlErrors()
             if (false) {
                 //set up source input
-                alSourcei(source, AL_BUFFER, buffer);
-                assertNoAlErrors();
+                AL10.alSourcei(source, AL10.AL_BUFFER, buffer)
+                Errors.assertNoAlErrors()
 
                 //play source 0
-                alSourcePlay(source);
-                assertNoAlErrors();
+                AL10.alSourcePlay(source)
+                Errors.assertNoAlErrors()
 
-                // not sure this is correct method to wait for sound to stop
-                while (alGetSourcei(source, AL_SOURCE_STATE) != AL_STOPPED) {
-                    try {
-                        Thread.sleep(10);
-                    } catch (InterruptedException e) {
-                    }
+                // not sure if this is correct method to wait for sound to stop
+                while (AL10.alGetSourcei(source, AL10.AL_SOURCE_STATE) != AL10.AL_STOPPED) {
+                    Thread.sleep(10)
                 }
 
                 //stop source 0
-                alSourceStop(source);
-                assertNoAlErrors();
+                AL10.alSourceStop(source)
+                Errors.assertNoAlErrors()
             } else {
-                System.out.println("Queueing first buffer");
-                alSourceQueueBuffers(source, buffer);
-                assertNoAlErrors();
-                System.out.println("Playing...");
-                alSourcePlay(source);
-                assertNoAlErrors();
-                for (int i = 0; i < 5; i++) {
-                    int processed;
-                    while ((processed = alGetSourcei(source, AL_BUFFERS_PROCESSED)) < 1) {
-                        try {
-                            Thread.sleep(5);
-                        } catch (InterruptedException e) {
-                        }
+                println("Queueing first buffer")
+                AL10.alSourceQueueBuffers(source, buffer)
+                Errors.assertNoAlErrors()
+                println("Playing...")
+                AL10.alSourcePlay(source)
+                Errors.assertNoAlErrors()
+                for (i in 0..4) {
+                    var processed: Int
+                    while (AL10.alGetSourcei(source, AL10.AL_BUFFERS_PROCESSED).also { processed = it } < 1) {
+                        Thread.sleep(5)
                     }
-                    System.out.println("Processed " + processed);
-                    for (int k = 0; k < processed; k++) {
-                        final int b = alSourceUnqueueBuffers(source);
-                        samples.value().buffer(b);
+                    println("Processed $processed")
+                    for (k in 0 until processed) {
+                        val b = AL10.alSourceUnqueueBuffers(source)
+                        samples.value().buffer(b)
                         //bufferData(buffer, info, wrap.value());
-                        alSourceQueueBuffers(source, b);
-                        assertNoAlErrors();
-                        alSourcePlay(source);
-                        assertNoAlErrors();
+                        AL10.alSourceQueueBuffers(source, b)
+                        Errors.assertNoAlErrors()
+                        AL10.alSourcePlay(source)
+                        Errors.assertNoAlErrors()
                     }
                 }
-                System.out.println("Waiting for completion...");
-                while (alGetSourcei(source, AL_BUFFERS_QUEUED) > 0) {
-                    if (alGetSourcei(source, AL_BUFFERS_PROCESSED) > 0) {
-                        alSourceUnqueueBuffers(source);
-                        assertNoAlErrors();
+                println("Waiting for completion...")
+                while (AL10.alGetSourcei(source, AL10.AL_BUFFERS_QUEUED) > 0) {
+                    if (AL10.alGetSourcei(source, AL10.AL_BUFFERS_PROCESSED) > 0) {
+                        AL10.alSourceUnqueueBuffers(source)
+                        Errors.assertNoAlErrors()
                     }
-                    try {
-                        Thread.sleep(5);
-                    } catch (InterruptedException e) {
-                    }
+                    Thread.sleep(5)
                 }
-                System.out.println("All is done!");
+                println("All is done!")
             }
 
             //delete buffers and sources
-            alDeleteSources(source);
-            assertNoAlErrors();
+            AL10.alDeleteSources(source)
+            Errors.assertNoAlErrors()
+            AL10.alDeleteBuffers(buffer)
+            Errors.assertNoAlErrors()
+        }
+    }
 
-            alDeleteBuffers(buffer);
-            assertNoAlErrors();
+    companion object {
+
+        @JvmStatic
+        fun main(args: Array<String>) {
+            OpenAlApp().run()
         }
     }
 }

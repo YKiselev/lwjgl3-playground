@@ -13,37 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.github.ykiselev.openal.assets
 
-package com.github.ykiselev.openal.assets;
-
-import com.github.ykiselev.assets.Assets;
-import com.github.ykiselev.assets.DefaultRecipe;
-import com.github.ykiselev.assets.ReadableAsset;
-import com.github.ykiselev.openal.AudioSamples;
-import com.github.ykiselev.wrap.Wrap;
-import org.junit.jupiter.api.Test;
-
-import java.nio.channels.Channels;
-
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.Mockito.mock;
+import com.github.ykiselev.assets.Assets
+import com.github.ykiselev.assets.DefaultRecipe.Companion.of
+import com.github.ykiselev.assets.DefaultRecipe.Dummy
+import com.github.ykiselev.assets.ReadableAsset
+import com.github.ykiselev.openal.AudioSamples
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
+import org.mockito.Mockito
+import java.nio.channels.Channels
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public class ReadableVorbisAudioTest {
-
-    private final ReadableAsset<AudioSamples, Void> readableResource = new ReadableVorbisAudio(32 * 1024);
-
-    private final Assets assets = mock(Assets.class);
+class ReadableVorbisAudioTest {
+    private val readableResource: ReadableAsset<AudioSamples, Dummy> = ReadableVorbisAudio()
+    private val assets = Mockito.mock(Assets::class.java)
 
     @Test
-    public void shouldRead() {
-        final Wrap<AudioSamples> samples = readableResource.read(
-                Channels.newChannel(getClass().getResourceAsStream("/sample.ogg")),
-                DefaultRecipe.of(AudioSamples.class),
-                assets
-        );
-        assertNotNull(samples);
+    fun shouldRead() {
+        val samples = readableResource.read(
+            Channels.newChannel(javaClass.getResourceAsStream("/sample.ogg")),
+            of(AudioSamples::class.java),
+            assets
+        )
+        Assertions.assertNotNull(samples)
     }
 }

@@ -8,6 +8,7 @@ module ykiselev.playground.assets.oal {
     requires transitive ykiselev.wrap;
     requires transitive ykiselev.assets.api;
     requires ykiselev.playground.common;
+    requires kotlin.stdlib;
 
     exports com.github.ykiselev.openal;
     exports com.github.ykiselev.openal.assets;

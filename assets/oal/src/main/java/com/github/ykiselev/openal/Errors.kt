@@ -13,22 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.github.ykiselev.openal
 
-package com.github.ykiselev.openal;
-
-import static org.lwjgl.openal.AL10.AL_NO_ERROR;
-import static org.lwjgl.openal.AL10.alGetError;
-import static org.lwjgl.openal.AL10.alGetString;
+import org.lwjgl.openal.AL10
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class Errors {
-
-    public static void assertNoAlErrors() {
-        final int err = alGetError();
-        if (err != AL_NO_ERROR) {
-            throw new RuntimeException(alGetString(err));
+object Errors {
+    fun assertNoAlErrors() {
+        val err = AL10.alGetError()
+        if (err != AL10.AL_NO_ERROR) {
+            throw RuntimeException(AL10.alGetString(err))
         }
     }
 }

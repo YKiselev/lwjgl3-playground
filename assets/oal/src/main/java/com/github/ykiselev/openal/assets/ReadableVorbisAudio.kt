@@ -13,79 +13,65 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.github.ykiselev.openal.assets
 
-package com.github.ykiselev.openal.assets;
-
-import com.github.ykiselev.assets.Assets;
-import com.github.ykiselev.assets.ReadableAsset;
-import com.github.ykiselev.assets.Recipe;
-import com.github.ykiselev.assets.ResourceException;
-import com.github.ykiselev.common.memory.MemAllocShort;
-import com.github.ykiselev.common.pools.ByteChannelAsByteBufferPool;
-import com.github.ykiselev.openal.AudioSamples;
-import com.github.ykiselev.openal.assets.vorbis.VorbisAudio;
-import com.github.ykiselev.wrap.Wrap;
-import com.github.ykiselev.wrap.Wraps;
-import org.lwjgl.stb.STBVorbisInfo;
-import org.lwjgl.system.MemoryStack;
-
-import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
-import java.nio.ShortBuffer;
-import java.nio.channels.ReadableByteChannel;
-
-import static org.lwjgl.openal.AL10.AL_FORMAT_MONO16;
-import static org.lwjgl.openal.AL10.AL_FORMAT_STEREO16;
-import static org.lwjgl.stb.STBVorbis.*;
-import static org.lwjgl.system.MemoryUtil.NULL;
+import com.github.ykiselev.assets.Assets
+import com.github.ykiselev.assets.DefaultRecipe.Dummy
+import com.github.ykiselev.assets.ReadableAsset
+import com.github.ykiselev.assets.Recipe
+import com.github.ykiselev.assets.ResourceException
+import com.github.ykiselev.common.memory.MemAllocShort
+import com.github.ykiselev.common.pools.ByteChannelAsByteBufferPool
+import com.github.ykiselev.openal.AudioSamples
+import com.github.ykiselev.openal.assets.vorbis.VorbisAudio
+import com.github.ykiselev.wrap.Wrap
+import com.github.ykiselev.wrap.Wraps.of
+import org.lwjgl.openal.AL10
+import org.lwjgl.stb.STBVorbis
+import org.lwjgl.stb.STBVorbisInfo
+import org.lwjgl.system.MemoryStack
+import org.lwjgl.system.MemoryUtil
+import java.nio.channels.ReadableByteChannel
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class ReadableVorbisAudio implements ReadableAsset<AudioSamples, Void> {
+class ReadableVorbisAudio : ReadableAsset<AudioSamples, Dummy> {
 
-    private final int bufferSize;
-
-    public ReadableVorbisAudio(int bufferSize) {
-        this.bufferSize = bufferSize;
-    }
-
-    public ReadableVorbisAudio() {
-        this(256 * 1024);
-    }
-
-    @Override
-    public Wrap<AudioSamples> read(ReadableByteChannel channel, Recipe<?, AudioSamples, Void> recipe, Assets assets) throws ResourceException {
-        try (STBVorbisInfo info = STBVorbisInfo.malloc()) {
-            try (Wrap<ByteBuffer> vorbis = ByteChannelAsByteBufferPool.read(channel)) {
-                try (MemoryStack ms = MemoryStack.stackPush()) {
-                    final IntBuffer error = ms.ints(0);
-                    final long decoder = stb_vorbis_open_memory(vorbis.value(), error, null);
-                    if (decoder == NULL) {
-                        throw new ResourceException("Failed to open resource: Error code " + error.get(0));
+    override fun read(
+        channel: ReadableByteChannel,
+        recipe: Recipe<*, AudioSamples, Dummy>?,
+        assets: Assets
+    ): Wrap<AudioSamples> =
+        STBVorbisInfo.malloc().use { info ->
+            ByteChannelAsByteBufferPool.read(channel).use { vorbis ->
+                MemoryStack.stackPush().use { ms ->
+                    val error = ms.ints(0)
+                    val decoder = STBVorbis.stb_vorbis_open_memory(vorbis.value(), error, null)
+                    if (decoder == MemoryUtil.NULL) {
+                        throw ResourceException("Failed to open resource: Error code " + error[0])
                     }
-                    stb_vorbis_get_info(decoder, info);
-                    final int channels = info.channels();
+                    STBVorbis.stb_vorbis_get_info(decoder, info)
+                    val channels = info.channels()
                     if (channels < 1 || channels > 2) {
-                        throw new ResourceException("Failed to open resource: Unsupported number of channels - " + channels);
+                        throw ResourceException("Failed to open resource: Unsupported number of channels - $channels")
                     }
-                    final MemAllocShort wrap = new MemAllocShort(
-                            stb_vorbis_stream_length_in_samples(decoder)
-                    );
-                    final ShortBuffer pcm = wrap.value();
-                    final int samples = stb_vorbis_get_samples_short_interleaved(decoder, channels, pcm);
-                    pcm.limit(samples * channels);
-                    stb_vorbis_close(decoder);
-                    return Wraps.of(
-                            new VorbisAudio(
-                                    channels == 1 ? AL_FORMAT_MONO16 : AL_FORMAT_STEREO16,
-                                    info.sample_rate(),
-                                    samples,
-                                    wrap
-                            )
-                    );
+                    val wrap = MemAllocShort(
+                        STBVorbis.stb_vorbis_stream_length_in_samples(decoder)
+                    )
+                    val pcm = wrap.value()
+                    val samples = STBVorbis.stb_vorbis_get_samples_short_interleaved(decoder, channels, pcm)
+                    pcm.limit(samples * channels)
+                    STBVorbis.stb_vorbis_close(decoder)
+                    of(
+                        VorbisAudio(
+                            if (channels == 1) AL10.AL_FORMAT_MONO16 else AL10.AL_FORMAT_STEREO16,
+                            info.sample_rate(),
+                            samples,
+                            wrap
+                        )
+                    )
                 }
             }
         }
-    }
 }

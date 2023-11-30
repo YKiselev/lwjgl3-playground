@@ -92,7 +92,7 @@ public final class WorldRenderer implements AutoCloseable {
 
                         Material material = materialAtlas.get(data[idx]);
                         if (material != null) {
-                            block.draw(x, y, z, material.ds(), material.dt());
+                            block.draw(x, y, z, material.ds, material.dt);
                         }
                     }
                 });

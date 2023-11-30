@@ -35,17 +35,19 @@ class DefaultRecipe<K, A, C>(val key: K, val type: Class<A>, private val context
         return context
     }
 
+    class Dummy
+
     companion object {
 
-        private val dummy = Any()
+        private val dummy = Dummy()
 
         @JvmStatic
-        fun <A, K> of(key: K, type: Class<A>): Recipe<K, A, Any> {
+        fun <A, K> of(key: K, type: Class<A>): Recipe<K, A, Dummy> {
             return DefaultRecipe(key, type, dummy)
         }
 
         @JvmStatic
-        fun <A> of(type: Class<A>): Recipe<String, A, Any> {
+        fun <A> of(type: Class<A>): Recipe<String, A, Dummy> {
             return DefaultRecipe(type.getName(), type, dummy)
         }
 

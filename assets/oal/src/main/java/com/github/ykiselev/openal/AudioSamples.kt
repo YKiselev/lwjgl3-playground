@@ -13,35 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package com.github.ykiselev.openal;
-
-import org.lwjgl.openal.AL10;
+package com.github.ykiselev.openal
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public interface AudioSamples extends AutoCloseable {
-
+interface AudioSamples : AutoCloseable {
     /**
-     * @return the audio data format (like {@link AL10#AL_FORMAT_MONO8}, etc)
+     * @return the audio data format (like [AL10.AL_FORMAT_MONO8], etc)
      */
-    int format();
+    fun format(): Int
 
     /**
      * @return frequency in samples per second
      */
-    int sampleRate();
+    fun sampleRate(): Int
 
     /**
      * @return total number of samples (per channel)
      */
-    int length();
+    fun length(): Int
 
     /**
      * Buffers audio data in specified buffer
      *
      * @param buffer the OpenAL named buffer
      */
-    void buffer(int buffer);
+    fun buffer(buffer: Int)
 }

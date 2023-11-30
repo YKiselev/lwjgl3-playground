@@ -1,5 +1,3 @@
-package com.github.ykiselev.opengl.materials;
+package com.github.ykiselev.opengl.materials
 
-public record Material(boolean opaque, float ds, float dt) {
-
-}
+data class Material(val opaque: Boolean, val ds: Float, val dt: Float)
