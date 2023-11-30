@@ -46,7 +46,7 @@ class ReadableTrueTypeFontInfo(private val scale: Float) : ReadableAsset<TrueTyp
                 val ttf: Wrap<ByteBuffer> = assets.open(fontConfig.getString("asset"))
                     ?.let { ByteChannelAsByteBufferPool.read(it) }
                     ?: throw ResourceException("Unable to load font: \"" + fontConfig.getString("asset") + "\"")
-                return of(
+                of(
                     TrueTypeFontInfo.load(
                         ttf,
                         (fontConfig.getDouble("size") * scale).toFloat()

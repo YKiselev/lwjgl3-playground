@@ -35,5 +35,5 @@ interface ReadableAsset<T, C> {
      * @return wrapped de-serialized resource.
      * @throws ResourceException if something goes wrong during de-serialization of resource.
      */
-    fun read(channel: ReadableByteChannel, recipe: Recipe<*, T, C>?, assets: Assets): Wrap<T>?
+    fun read(channel: ReadableByteChannel, recipe: Recipe<*, T, C>?, assets: Assets): Wrap<T>
 }

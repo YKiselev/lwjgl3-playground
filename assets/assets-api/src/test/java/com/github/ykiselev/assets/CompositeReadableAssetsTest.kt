@@ -17,6 +17,7 @@ package com.github.ykiselev.assets
 
 import com.github.ykiselev.assets.DefaultRecipe.Companion.of
 import com.github.ykiselev.wrap.Wrap
+import com.github.ykiselev.wrap.Wraps
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`
@@ -32,12 +33,12 @@ class CompositeReadableAssetsTest {
 
     @Test
     fun shouldResolve() {
-        val rr: ReadableAsset<String, Void> = object:ReadableAsset<String,Void> {
+        val rr: ReadableAsset<String, Void> = object : ReadableAsset<String, Void> {
             override fun read(
                 channel: ReadableByteChannel,
                 recipe: Recipe<*, String, Void>?,
                 assets: Assets
-            ): Wrap<String>? = null
+            ): Wrap<String> = Wraps.noop("test")
         }
         val delegate1 = mock<ReadableAssets>()
         val delegate2 = mock<ReadableAssets>()

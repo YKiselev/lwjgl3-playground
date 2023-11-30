@@ -13,38 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.github.ykiselev.opengl.assets.formats
 
-package com.github.ykiselev.opengl.assets.formats;
-
-import com.github.ykiselev.assets.Assets;
-import com.github.ykiselev.assets.ReadableAsset;
-import com.github.ykiselev.assets.Recipe;
-import com.github.ykiselev.assets.ResourceException;
-import com.github.ykiselev.wrap.Wrap;
-import com.github.ykiselev.wrap.Wraps;
-import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.Reader;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
-import java.nio.charset.StandardCharsets;
+import com.github.ykiselev.assets.Assets
+import com.github.ykiselev.assets.ReadableAsset
+import com.github.ykiselev.assets.Recipe
+import com.github.ykiselev.wrap.Wrap
+import com.github.ykiselev.wrap.Wraps.noop
+import com.typesafe.config.Config
+import com.typesafe.config.ConfigFactory
+import java.io.BufferedReader
+import java.nio.channels.Channels
+import java.nio.channels.ReadableByteChannel
+import java.nio.charset.StandardCharsets
 
 /**
  * Created by Y.Kiselev on 14.06.2016.
  */
-public final class ReadableConfig implements ReadableAsset<Config, Void> {
+class ReadableConfig : ReadableAsset<Config, Void> {
 
-    @Override
-    public Wrap<Config> read(ReadableByteChannel channel, Recipe<?, Config, Void> recipe, Assets assets) throws ResourceException {
-        try (Reader reader = new BufferedReader(Channels.newReader(channel, StandardCharsets.UTF_8.newDecoder(), -1))) {
-            return Wraps.noop(
-                    ConfigFactory.parseReader(reader)
-            );
-        } catch (IOException e) {
-            throw new ResourceException(e);
+    override fun read(channel: ReadableByteChannel, recipe: Recipe<*, Config, Void>?, assets: Assets): Wrap<Config> =
+        BufferedReader(Channels.newReader(channel, StandardCharsets.UTF_8.newDecoder(), -1)).use { reader ->
+            return noop(
+                ConfigFactory.parseReader(reader)
+            )
         }
-    }
 }

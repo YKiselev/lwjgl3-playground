@@ -13,98 +13,85 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.github.ykiselev.opengl.assets.formats
 
-package com.github.ykiselev.opengl.assets.formats;
-
-import com.github.ykiselev.assets.Assets;
-import com.github.ykiselev.assets.ReadableAsset;
-import com.github.ykiselev.assets.Recipe;
-import com.github.ykiselev.assets.ResourceException;
-import com.github.ykiselev.opengl.OglRecipes;
-import com.github.ykiselev.opengl.shaders.DefaultProgramObject;
-import com.github.ykiselev.opengl.shaders.ProgramObject;
-import com.github.ykiselev.opengl.shaders.ShaderObject;
-import com.github.ykiselev.playground.assets.common.AssetUtils;
-import com.github.ykiselev.wrap.Wrap;
-import com.github.ykiselev.wrap.Wraps;
-import com.typesafe.config.Config;
-import com.typesafe.config.ConfigValue;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.nio.channels.ReadableByteChannel;
-import java.util.List;
-
-import static org.lwjgl.opengl.GL11.GL_TRUE;
-import static org.lwjgl.opengl.GL20.GL_LINK_STATUS;
-import static org.lwjgl.opengl.GL20.glAttachShader;
-import static org.lwjgl.opengl.GL20.glBindAttribLocation;
-import static org.lwjgl.opengl.GL20.glCreateProgram;
-import static org.lwjgl.opengl.GL20.glGetProgramInfoLog;
-import static org.lwjgl.opengl.GL20.glGetProgrami;
-import static org.lwjgl.opengl.GL20.glLinkProgram;
-import static org.lwjgl.opengl.GL20.glUniform1i;
+import com.github.ykiselev.assets.Assets
+import com.github.ykiselev.assets.ReadableAsset
+import com.github.ykiselev.assets.Recipe
+import com.github.ykiselev.assets.ResourceException
+import com.github.ykiselev.opengl.OglRecipes
+import com.github.ykiselev.opengl.shaders.DefaultProgramObject
+import com.github.ykiselev.opengl.shaders.ProgramObject
+import com.github.ykiselev.opengl.shaders.ShaderObject
+import com.github.ykiselev.playground.assets.common.AssetUtils.read
+import com.github.ykiselev.wrap.Wrap
+import com.github.ykiselev.wrap.Wraps.of
+import com.typesafe.config.Config
+import org.apache.commons.lang3.StringUtils
+import org.lwjgl.opengl.GL11
+import org.lwjgl.opengl.GL20
+import org.slf4j.LoggerFactory
+import java.nio.channels.ReadableByteChannel
 
 /**
  * Created by Y.Kiselev on 15.05.2016.
  */
-public final class ReadableProgramObject implements ReadableAsset<ProgramObject, Void> {
+class ReadableProgramObject : ReadableAsset<ProgramObject, Void> {
 
-    private static final int MAX_PROGRAM_LOG_LENGTH = 8 * 1024;
+    private val logger = LoggerFactory.getLogger(javaClass)
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
-
-    @Override
-    public Wrap<ProgramObject> read(ReadableByteChannel channel, Recipe<?, ProgramObject, Void> recipe, Assets assets) throws ResourceException {
-        try (Wrap<Config> fallback = assets.load("progs/default/program-object.conf", OglRecipes.CONFIG);
-             Wrap<Config> cfg = AssetUtils.read(channel, OglRecipes.CONFIG, assets)) {
-            final Config config = cfg.value()
-                    .withFallback(fallback.value());
-
-            final int id = glCreateProgram();
-            final Wrap<ShaderObject>[] shaders = readShaders(assets, config);
-            for (Wrap<ShaderObject> w : shaders) {
-                glAttachShader(id, w.value().id());
-            }
-            final List<String> locations = config.getStringList("vertex-attribute-locations");
-            int i = 0;
-            for (String location : locations) {
-                glBindAttribLocation(id, i, location);
-                i++;
-            }
-            glLinkProgram(id);
-            final String log = glGetProgramInfoLog(id, MAX_PROGRAM_LOG_LENGTH);
-            final int status = glGetProgrami(id, GL_LINK_STATUS);
-            if (status != GL_TRUE) {
-                throw new ResourceException(log);
-            } else if (StringUtils.isNotEmpty(log)) {
-                logger.warn("Program link log: {}", log);
-            }
-            final ProgramObject program = new DefaultProgramObject(id, shaders);
-            final List<String> samplers = config.getStringList("samplers");
-            if (!samplers.isEmpty()) {
-                program.bind();
-                int unit = 0;
-                for (String uniform : samplers) {
-                    glUniform1i(program.uniformLocation(uniform), unit);
-                    unit++;
+    override fun read(
+        channel: ReadableByteChannel,
+        recipe: Recipe<*, ProgramObject, Void>?,
+        assets: Assets
+    ): Wrap<ProgramObject> {
+        assets.load("progs/default/program-object.conf", OglRecipes.CONFIG).use { fallback ->
+            read(channel, OglRecipes.CONFIG, assets).use { cfg ->
+                val config = cfg.value()
+                    .withFallback(fallback.value())
+                val id = GL20.glCreateProgram()
+                val shaders = readShaders(assets, config)
+                for (w in shaders) {
+                    GL20.glAttachShader(id, w.value().id())
                 }
-                program.unbind();
+                val locations = config.getStringList("vertex-attribute-locations")
+                for ((i, location) in locations.withIndex()) {
+                    GL20.glBindAttribLocation(id, i, location)
+                }
+                GL20.glLinkProgram(id)
+                val log = GL20.glGetProgramInfoLog(id, MAX_PROGRAM_LOG_LENGTH)
+                val status = GL20.glGetProgrami(id, GL20.GL_LINK_STATUS)
+                if (status != GL11.GL_TRUE) {
+                    throw ResourceException(log)
+                } else if (StringUtils.isNotEmpty(log)) {
+                    logger.warn("Program link log: {}", log)
+                }
+                val program: ProgramObject = DefaultProgramObject(id, shaders.toTypedArray())
+                val samplers = config.getStringList("samplers")
+                if (samplers.isNotEmpty()) {
+                    program.bind()
+                    for ((unit, uniform) in samplers.withIndex()) {
+                        GL20.glUniform1i(program.uniformLocation(uniform), unit)
+                    }
+                    program.unbind()
+                }
+                return of(program)
             }
-            return Wraps.of(program);
         }
     }
 
-    @SuppressWarnings("unchecked")
-    private Wrap<ShaderObject>[] readShaders(Assets assets, Config config) {
-        return config.getConfig("shaders").root()
-                .values()
-                .stream()
-                .map(ConfigValue::unwrapped)
-                .map(String.class::cast)
-                .filter(v -> !v.isEmpty())
-                .map(uri -> assets.load(uri, null))
-                .toArray(Wrap[]::new);
+    private fun readShaders(assets: Assets, config: Config): List<Wrap<ShaderObject>> =
+        config.getConfig("shaders").root()
+            .values
+            .asSequence()
+            .map { it.unwrapped() }
+            .mapNotNull { String::class.java.cast(it) }
+            .filter { it.isNotEmpty() }
+            .map { uri: String ->
+                assets.load<Any, ShaderObject, Any>(uri, null)
+            }.toList()
+
+    companion object {
+        private const val MAX_PROGRAM_LOG_LENGTH = 8 * 1024
     }
 }

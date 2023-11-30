@@ -13,55 +13,56 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.github.ykiselev.opengl.assets.formats
 
-package com.github.ykiselev.opengl.assets.formats;
-
-import com.github.ykiselev.assets.Assets;
-import com.github.ykiselev.assets.ReadableAsset;
-import com.github.ykiselev.assets.Recipe;
-import com.github.ykiselev.assets.ResourceException;
-import com.github.ykiselev.opengl.assets.formats.obj.ObjModel;
-import com.github.ykiselev.opengl.assets.formats.obj.ObjModelBuilder;
-import com.github.ykiselev.wrap.Wrap;
-import com.github.ykiselev.wrap.Wraps;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
-import java.nio.charset.StandardCharsets;
+import com.github.ykiselev.assets.Assets
+import com.github.ykiselev.assets.ReadableAsset
+import com.github.ykiselev.assets.Recipe
+import com.github.ykiselev.assets.ResourceException
+import com.github.ykiselev.opengl.assets.formats.obj.ObjModel
+import com.github.ykiselev.opengl.assets.formats.obj.ObjModelBuilder
+import com.github.ykiselev.wrap.Wrap
+import com.github.ykiselev.wrap.Wraps.noop
+import java.io.BufferedReader
+import java.nio.channels.Channels
+import java.nio.channels.ReadableByteChannel
+import java.nio.charset.StandardCharsets
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class ReadableObjModel implements ReadableAsset<ObjModel, Void> {
+class ReadableObjModel : ReadableAsset<ObjModel, Void> {
 
-    @Override
-    public Wrap<ObjModel> read(ReadableByteChannel channel, Recipe<?, ObjModel, Void> recipe, Assets assets) throws ResourceException {
-        try (BufferedReader reader = reader(channel)) {
-            return Wraps.noop(
+    override fun read(
+        channel: ReadableByteChannel,
+        recipe: Recipe<*, ObjModel, Void>?,
+        assets: Assets
+    ): Wrap<ObjModel> =
+        try {
+            reader(channel).use { reader ->
+                noop(
                     parse(reader)
-            );
-        } catch (Exception e) {
-            throw new ResourceException(e);
-        }
-    }
-
-    private BufferedReader reader(ReadableByteChannel channel) {
-        return new BufferedReader(
-                Channels.newReader(
-                        channel,
-                        StandardCharsets.UTF_8.newDecoder(), -1
                 )
-        );
-    }
-
-    private ObjModel parse(BufferedReader reader) throws IOException {
-        final ObjModelBuilder builder = new ObjModelBuilder();
-        String line;
-        while ((line = reader.readLine()) != null) {
-            builder.parseLine(line);
+            }
+        } catch (e: Exception) {
+            throw ResourceException(e)
         }
-        return builder.build();
-    }
+
+    private fun reader(channel: ReadableByteChannel): BufferedReader =
+        BufferedReader(
+            Channels.newReader(
+                channel,
+                StandardCharsets.UTF_8.newDecoder(), -1
+            )
+        )
+
+    private fun parse(reader: BufferedReader): ObjModel =
+        with(ObjModelBuilder()) {
+            generateSequence {
+                reader.readLine()
+            }.forEach {
+                parseLine(it)
+            }
+            build()
+        }
 }

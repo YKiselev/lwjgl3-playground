@@ -140,4 +140,3 @@ class Main(private val arguments: ProgramArguments) {
         }
     }
 }
-

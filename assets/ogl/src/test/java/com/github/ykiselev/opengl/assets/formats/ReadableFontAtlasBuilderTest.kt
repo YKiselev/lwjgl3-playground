@@ -13,40 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.github.ykiselev.opengl.assets.formats
 
-package com.github.ykiselev.opengl.assets.formats;
-
-import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
-
-import java.util.Arrays;
-
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import com.typesafe.config.ConfigFactory
+import org.junit.jupiter.api.Assertions.assertArrayEquals
+import org.junit.jupiter.api.Disabled
+import org.junit.jupiter.api.Test
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru)
  * @since 10.04.2019
  */
-public class ReadableFontAtlasBuilderTest {
+class ReadableFontAtlasBuilderTest {
 
     @Test
-    public void shouldReadCodePoints() {
-        assertArrayEquals(new int[]{' ', 'a', 'b', 'c', 'd', 'e', 'f', 'Z', 43981, 66561},
-                ReadableFontAtlas.readCodePoints(Arrays.asList("\u0020", "a-f", "Z", "\uabcd", "\ud801\udc01")).toArray());
+    fun shouldReadCodePoints() {
+        assertArrayEquals(
+            intArrayOf(' '.code, 'a'.code, 'b'.code, 'c'.code, 'd'.code, 'e'.code, 'f'.code, 'Z'.code, 43981, 66561),
+            ReadableFontAtlas.readCodePoints(listOf("\u0020", "a-f", "Z", "\uabcd", "\ud801\udc01")).toArray()
+        )
     }
 
     @Test
     @Disabled
-    public void shouldLoad() {
-        Config cfg = ConfigFactory.load("font-atlas.conf");
-
-        System.out.println(cfg.getConfig("fonts").root().entrySet());
-
-        for (String s : cfg.getStringList("code-points")) {
-            System.out.println(s);
+    fun shouldLoad() {
+        val cfg = ConfigFactory.load("font-atlas.conf")
+        println(cfg.getConfig("fonts").root().entries)
+        for (s in cfg.getStringList("code-points")) {
+            println(s)
         }
     }
 }
-

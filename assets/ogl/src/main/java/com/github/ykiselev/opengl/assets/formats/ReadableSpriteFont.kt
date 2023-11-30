@@ -13,146 +13,130 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.github.ykiselev.opengl.assets.formats
 
-package com.github.ykiselev.opengl.assets.formats;
-
-import com.github.ykiselev.assets.Assets;
-import com.github.ykiselev.assets.ReadableAsset;
-import com.github.ykiselev.assets.Recipe;
-import com.github.ykiselev.assets.ResourceException;
-import com.github.ykiselev.gfx.font.GlyphRange;
-import com.github.ykiselev.opengl.OglRecipes;
-import com.github.ykiselev.opengl.text.DefaultSpriteFont;
-import com.github.ykiselev.opengl.text.Glyph;
-import com.github.ykiselev.opengl.text.GlyphRanges;
-import com.github.ykiselev.opengl.text.SpriteFont;
-import com.github.ykiselev.opengl.textures.Texture2d;
-import com.github.ykiselev.wrap.Wrap;
-import com.github.ykiselev.wrap.Wraps;
-import org.lwjgl.system.MemoryStack;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.nio.IntBuffer;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
-
-import static org.lwjgl.opengl.GL11.GL_NEAREST;
-import static org.lwjgl.opengl.GL11.GL_ONE;
-import static org.lwjgl.opengl.GL11.GL_RED;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_HEIGHT;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_INTERNAL_FORMAT;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_MAG_FILTER;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_MIN_FILTER;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_WIDTH;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_WRAP_S;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_WRAP_T;
-import static org.lwjgl.opengl.GL11.glGetTexLevelParameteri;
-import static org.lwjgl.opengl.GL11.glTexParameteri;
-import static org.lwjgl.opengl.GL11.glTexParameteriv;
-import static org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE;
-import static org.lwjgl.opengl.GL33.GL_TEXTURE_SWIZZLE_RGBA;
+import com.github.ykiselev.assets.Assets
+import com.github.ykiselev.assets.ReadableAsset
+import com.github.ykiselev.assets.Recipe
+import com.github.ykiselev.assets.ResourceException
+import com.github.ykiselev.gfx.font.SpriteFont
+import com.github.ykiselev.opengl.OglRecipes
+import com.github.ykiselev.opengl.text.DefaultSpriteFont
+import com.github.ykiselev.opengl.text.Glyph
+import com.github.ykiselev.opengl.text.GlyphRange
+import com.github.ykiselev.opengl.text.GlyphRanges
+import com.github.ykiselev.opengl.textures.Texture2d
+import com.github.ykiselev.wrap.Wrap
+import com.github.ykiselev.wrap.Wraps.of
+import org.lwjgl.opengl.GL11
+import org.lwjgl.opengl.GL12
+import org.lwjgl.opengl.GL33
+import org.lwjgl.system.MemoryStack
+import java.io.ByteArrayInputStream
+import java.io.IOException
+import java.io.ObjectInputStream
+import java.nio.channels.Channels
+import java.nio.channels.ReadableByteChannel
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class ReadableSpriteFont implements ReadableAsset<SpriteFont, Void> {
+class ReadableSpriteFont : ReadableAsset<com.github.ykiselev.opengl.text.SpriteFont, Void> {
 
-    @Override
-    public Wrap<SpriteFont> read(ReadableByteChannel channel, Recipe<?, SpriteFont, Void> recipe, Assets assets) throws ResourceException {
-        final com.github.ykiselev.gfx.font.SpriteFont spriteFont = readSpriteFont(channel);
-        final Wrap<? extends Texture2d> texture = readSpriteFontTexture(assets, spriteFont);
-        texture.value().bind();
-        final int width = glGetTexLevelParameteri(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH);
-        final int height = glGetTexLevelParameteri(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT);
-        setupTextureParameters();
-
-        final int characterWidth = spriteFont.characterWidth();
-        final char defaultCharacter = spriteFont.defaultCharacter();
+    override fun read(
+        channel: ReadableByteChannel,
+        recipe: Recipe<*, com.github.ykiselev.opengl.text.SpriteFont, Void>?,
+        assets: Assets
+    ): Wrap<com.github.ykiselev.opengl.text.SpriteFont> {
+        val spriteFont = readSpriteFont(channel)
+        val texture = readSpriteFontTexture(assets, spriteFont)
+        texture.value().bind()
+        val width = GL11.glGetTexLevelParameteri(GL11.GL_TEXTURE_2D, 0, GL11.GL_TEXTURE_WIDTH)
+        val height = GL11.glGetTexLevelParameteri(GL11.GL_TEXTURE_2D, 0, GL11.GL_TEXTURE_HEIGHT)
+        setupTextureParameters()
+        val characterWidth = spriteFont.characterWidth()
+        val defaultCharacter = spriteFont.defaultCharacter()
 
         // Prepare glyphs
-        final double cs = 1.0 / (double) width;
-        final double ct = 1.0 / (double) height;
-        final int fontHeight = spriteFont.fontHeight();
-        final com.github.ykiselev.opengl.text.GlyphRange[] ranges = new com.github.ykiselev.opengl.text.GlyphRange[spriteFont.glyphs().length];
-        Glyph defaultGlyph = null;
-        int r = 0;
-        for (GlyphRange range : spriteFont.glyphs()) {
-            final com.github.ykiselev.gfx.font.Glyph[] srcGlyphs = range.glyphs();
-            if (srcGlyphs.length == 0) {
-                continue;
+        val cs = 1.0 / width.toDouble()
+        val ct = 1.0 / height.toDouble()
+        val fontHeight = spriteFont.fontHeight()
+        val ranges = arrayOfNulls<GlyphRange>(spriteFont.glyphs().size)
+        var defaultGlyph: Glyph? = null
+        var r = 0
+        for (range in spriteFont.glyphs()) {
+            val srcGlyphs = range.glyphs()
+            if (srcGlyphs.isEmpty()) {
+                continue
             }
-            final Glyph[] glyphs = new Glyph[srcGlyphs.length];
-            int g = 0;
-            for (com.github.ykiselev.gfx.font.Glyph src : srcGlyphs) {
-                final int glyphWidth = characterWidth > 0 ? characterWidth : src.width();
-                float s0 = (float) (cs * src.x());
-                float t0 = (float) (ct * src.y());
-                float s1 = (float) (cs * (src.x() + glyphWidth));
-                float t1 = (float) (ct * (src.y() + fontHeight));
-                glyphs[g] = new Glyph(s0, t0, s1, t1, glyphWidth);
+            val glyphs = arrayOfNulls<Glyph>(srcGlyphs.size)
+            for ((g, src) in srcGlyphs.withIndex()) {
+                val glyphWidth = if (characterWidth > 0) characterWidth else src.width().toInt()
+                val s0 = (cs * src.x()).toFloat()
+                val t0 = (ct * src.y()).toFloat()
+                val s1 = (cs * (src.x() + glyphWidth)).toFloat()
+                val t1 = (ct * (src.y() + fontHeight)).toFloat()
+                glyphs[g] = Glyph(s0, t0, s1, t1, glyphWidth)
                 if (src.character() == defaultCharacter) {
-                    defaultGlyph = glyphs[g];
+                    defaultGlyph = glyphs[g]
                 }
-                g++;
             }
-            ranges[r] = new com.github.ykiselev.opengl.text.GlyphRange(
-                    srcGlyphs[0].character(),
-                    glyphs
-            );
-            r++;
+            ranges[r] = GlyphRange(
+                srcGlyphs[0].character(),
+                glyphs
+            )
+            r++
         }
-        return Wraps.of(
-                new DefaultSpriteFont(
-                        texture,
-                        fontHeight,
-                        spriteFont.glyphXBorder(),
-                        spriteFont.glyphYBorder(),
-                        new GlyphRanges(
-                                ranges,
-                                defaultGlyph
-                        )
+        return of(
+            DefaultSpriteFont(
+                texture,
+                fontHeight,
+                spriteFont.glyphXBorder(),
+                spriteFont.glyphYBorder(),
+                GlyphRanges(
+                    ranges,
+                    defaultGlyph
                 )
-        );
+            )
+        )
     }
 
-    private void setupTextureParameters() {
-        final int format = glGetTexLevelParameteri(GL_TEXTURE_2D, 0, GL_TEXTURE_INTERNAL_FORMAT);
-        if (format == GL_RED) {
-            try (MemoryStack ms = MemoryStack.stackPush()) {
-                final IntBuffer swizzleMask = ms.callocInt(4);
-                swizzleMask.put(GL_ONE)
-                        .put(GL_ONE)
-                        .put(GL_ONE)
-                        .put(GL_RED)
-                        .flip();
-                glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
+    private fun setupTextureParameters() {
+        val format = GL11.glGetTexLevelParameteri(GL11.GL_TEXTURE_2D, 0, GL11.GL_TEXTURE_INTERNAL_FORMAT)
+        if (format == GL11.GL_RED) {
+            MemoryStack.stackPush().use { ms ->
+                val swizzleMask = ms.callocInt(4)
+                swizzleMask.put(GL11.GL_ONE)
+                    .put(GL11.GL_ONE)
+                    .put(GL11.GL_ONE)
+                    .put(GL11.GL_RED)
+                    .flip()
+                GL11.glTexParameteriv(GL11.GL_TEXTURE_2D, GL33.GL_TEXTURE_SWIZZLE_RGBA, swizzleMask)
             }
         }
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL12.GL_CLAMP_TO_EDGE)
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL12.GL_CLAMP_TO_EDGE)
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST)
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST)
     }
 
-    private Wrap<? extends Texture2d> readSpriteFontTexture(Assets assets, com.github.ykiselev.gfx.font.SpriteFont spriteFont) {
-        try (ReadableByteChannel bc = Channels.newChannel(new ByteArrayInputStream(spriteFont.image()))) {
-            return assets.resolve(OglRecipes.SPRITE)
-                    .read(bc, OglRecipes.SPRITE, assets);
-        } catch (IOException e) {
-            throw new ResourceException(e);
+    private fun readSpriteFontTexture(assets: Assets, spriteFont: SpriteFont): Wrap<Texture2d> =
+        try {
+            Channels.newChannel(ByteArrayInputStream(spriteFont.image())).use { bc ->
+                assets.resolve(OglRecipes.SPRITE)!!.read(bc, OglRecipes.SPRITE, assets)
+            }
+        } catch (e: IOException) {
+            throw ResourceException(e)
         }
-    }
 
-    private com.github.ykiselev.gfx.font.SpriteFont readSpriteFont(ReadableByteChannel channel) {
-        final com.github.ykiselev.gfx.font.SpriteFont spriteFont;
-        try (ObjectInputStream ois = new ObjectInputStream(Channels.newInputStream(channel))) {
-            spriteFont = (com.github.ykiselev.gfx.font.SpriteFont) ois.readObject();
-        } catch (IOException | ClassNotFoundException e) {
-            throw new ResourceException(e);
+    private fun readSpriteFont(channel: ReadableByteChannel): SpriteFont =
+        try {
+            ObjectInputStream(Channels.newInputStream(channel)).use { ois ->
+                ois.readObject() as SpriteFont
+            }
+        } catch (e: IOException) {
+            throw ResourceException(e)
+        } catch (e: ClassNotFoundException) {
+            throw ResourceException(e)
         }
-        return spriteFont;
-    }
 }
