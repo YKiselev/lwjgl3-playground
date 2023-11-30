@@ -13,38 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package com.github.ykiselev.opengl.fonts;
-
-import java.util.Map;
-import java.util.Set;
-
-import static java.util.Objects.requireNonNull;
+package com.github.ykiselev.opengl.fonts
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru)
  * @since 14.04.2019
  */
-public final class DefaultFontAtlas implements FontAtlas {
+class DefaultFontAtlas(val fonts: Map<String, TrueTypeFont>) : FontAtlas {
 
-    private final Map<String, TrueTypeFont> fonts;
+    override fun get(key: String): TrueTypeFont? =
+        fonts[key]
 
-    public DefaultFontAtlas(Map<String, TrueTypeFont> fonts) {
-        this.fonts = requireNonNull(fonts);
-    }
+    override fun keys(): Set<String> =
+        fonts.keys
 
-    @Override
-    public TrueTypeFont get(String key) {
-        return fonts.get(key);
-    }
-
-    @Override
-    public Set<String> keys() {
-        return fonts.keySet();
-    }
-
-    @Override
-    public void close() {
-        fonts.forEach((k, v) -> v.close());
+    override fun close() {
+        fonts.forEach { (_, v) -> v.close() }
     }
 }

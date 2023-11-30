@@ -13,46 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package com.github.ykiselev.opengl.fonts;
-
-import static java.util.Objects.requireNonNull;
+package com.github.ykiselev.opengl.fonts
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru)
  * @since 07.04.2019
  */
-public final class Bitmap<B> {
+class Bitmap<B>(val width: Int, val height: Int, val pixels: B) {
 
-    private final int width;
-
-    private final int height;
-
-    private final B pixels;
-
-    public int width() {
-        return width;
-    }
-
-    public int height() {
-        return height;
-    }
-
-    public B pixels() {
-        return pixels;
-    }
-
-    public Bitmap(int width, int height, B pixels) {
-        this.width = width;
-        this.height = height;
-        this.pixels = requireNonNull(pixels);
-    }
-
-    @Override
-    public String toString() {
+    override fun toString(): String {
         return "Bitmap{" +
                 "width=" + width +
                 ", height=" + height +
-                '}';
+                '}'
     }
 }

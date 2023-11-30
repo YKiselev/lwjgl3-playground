@@ -13,17 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.github.ykiselev.opengl.fonts
 
-package com.github.ykiselev.opengl.fonts;
-
-import java.nio.IntBuffer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.IntStream;
-
-import static java.util.Objects.requireNonNull;
+import java.nio.IntBuffer
+import java.util.*
+import java.util.stream.IntStream
 
 /**
  * Represents a collection of Unicode code-point ranges.
@@ -31,168 +25,106 @@ import static java.util.Objects.requireNonNull;
  * @author Yuriy Kiselev (uze@yandex.ru)
  * @since 06.04.2019
  */
-public final class CodePoints {
+class CodePoints private constructor(private val ranges: Array<Range>) {
 
-    public static abstract class Range {
+    abstract class Range(val offset: Int) {
 
-        private final int offset;
-
-        public int offset() {
-            return offset;
-        }
-
-        public abstract int size();
-
-        public abstract int firstCodePoint();
-
-        public abstract int lastCodePoint();
-
-        public abstract boolean isSparse();
-
-        public abstract void copyTo(IntBuffer dest);
-
-        abstract int indexOf(int codePoint);
-
-        abstract IntStream codePoints();
-
-        protected Range(int offset) {
-            this.offset = offset;
-        }
+        abstract fun size(): Int
+        abstract fun firstCodePoint(): Int
+        abstract fun lastCodePoint(): Int
+        abstract val isSparse: Boolean
+        abstract fun copyTo(dest: IntBuffer)
+        abstract fun indexOf(codePoint: Int): Int
+        abstract fun codePoints(): IntStream
     }
 
     /**
-     * Consecutive range of Unicode code points starting from {@code firstCodePoint} and ending with {@code firstCodePoint + count}.
+     * Consecutive range of Unicode code points starting from `firstCodePoint` and ending with `firstCodePoint + count`.
      */
-    static final class DenseRange extends Range {
+    class DenseRange(offset: Int, private val firstCodePoint: Int, private val lastCodePoint: Int) : Range(offset) {
 
-        private final int firstCodePoint;
+        override fun firstCodePoint(): Int =
+            firstCodePoint
 
-        private final int lastCodePoint;
+        override fun lastCodePoint(): Int =
+            lastCodePoint
 
-        @Override
-        public int firstCodePoint() {
-            return firstCodePoint;
-        }
+        override fun size(): Int =
+            lastCodePoint - firstCodePoint + 1
 
-        @Override
-        public int lastCodePoint() {
-            return lastCodePoint;
-        }
+        override val isSparse: Boolean
+            get() = false
 
-        @Override
-        public int size() {
-            return lastCodePoint - firstCodePoint + 1;
-        }
-
-        @Override
-        public boolean isSparse() {
-            return false;
-        }
-
-        @Override
-        public void copyTo(IntBuffer dest) {
+        override fun copyTo(dest: IntBuffer) {
             // no-op
         }
 
-        @Override
-        IntStream codePoints() {
-            return IntStream.range(firstCodePoint, lastCodePoint + 1);
-        }
+        override fun codePoints(): IntStream =
+            IntStream.range(firstCodePoint, lastCodePoint + 1)
 
-        DenseRange(int offset, int firstCodePoint, int lastCodePoint) {
-            super(offset);
-            this.firstCodePoint = firstCodePoint;
-            this.lastCodePoint = lastCodePoint;
-        }
-
-        @Override
-        int indexOf(int codePoint) {
-            return offset() + codePoint - firstCodePoint;
-        }
+        override fun indexOf(codePoint: Int): Int =
+            offset + codePoint - firstCodePoint
     }
 
     /**
-     * Sparse range of Unicode code points starting from {@code firstCodePoint} and ending with {@code firstCodePoint + count}.
+     * Sparse range of Unicode code points starting from `firstCodePoint` and ending with `firstCodePoint + count`.
      */
-    static final class SparseRange extends Range {
+    internal class SparseRange(offset: Int, codePoints: IntArray) : Range(offset) {
 
-        private final int[] codePoints;
+        private val codePoints: IntArray
 
-        @Override
-        public int firstCodePoint() {
-            return codePoints[0];
+        override fun firstCodePoint(): Int =
+            codePoints[0]
+
+        override fun lastCodePoint(): Int =
+            codePoints[codePoints.size - 1]
+
+        override fun size(): Int =
+            codePoints.size
+
+        override val isSparse: Boolean
+            get() = true
+
+        override fun copyTo(dest: IntBuffer) {
+            dest.put(codePoints)
         }
 
-        @Override
-        public int lastCodePoint() {
-            return codePoints[codePoints.length - 1];
+        override fun codePoints(): IntStream =
+            Arrays.stream(codePoints)
+
+        init {
+            require(codePoints.isNotEmpty()) { "Range can't be empty!" }
+            this.codePoints = codePoints.clone()
         }
 
-        @Override
-        public int size() {
-            return codePoints.length;
-        }
-
-        @Override
-        public boolean isSparse() {
-            return true;
-        }
-
-        @Override
-        public void copyTo(IntBuffer dest) {
-            dest.put(codePoints);
-        }
-
-        @Override
-        IntStream codePoints() {
-            return Arrays.stream(codePoints);
-        }
-
-        SparseRange(int offset, int[] codePoints) {
-            super(offset);
-            if (codePoints.length == 0) {
-                throw new IllegalArgumentException("Range can't be empty!");
-            }
-            this.codePoints = codePoints.clone();
-        }
-
-        @Override
-        int indexOf(int codePoint) {
-            return offset() + Arrays.binarySearch(codePoints, codePoint);
-        }
+        override fun indexOf(codePoint: Int): Int =
+            offset + Arrays.binarySearch(codePoints, codePoint)
     }
 
-    /**
-     * Sorted array of ranges
-     */
-    private final Range[] ranges;
+    private var minCodePoint = 0
+    private var maxCodePoint = 0
+    private var numCodePoints = 0
 
-    private final int minCodePoint;
+    fun numCodePoints(): Int =
+        numCodePoints
 
-    private final int maxCodePoint;
+    fun numRanges(): Int =
+        ranges.size
 
-    private final int numCodePoints;
+    fun range(index: Int): Range =
+        ranges[index]
 
-    public int numCodePoints() {
-        return numCodePoints;
-    }
-
-    public int numRanges() {
-        return ranges.length;
-    }
-
-    public Range range(int index) {
-        return ranges[index];
-    }
-
-    private CodePoints(Range[] ranges) {
-        this.ranges = requireNonNull(ranges);
-        if (ranges.length > 0) {
-            this.minCodePoint = ranges[0].firstCodePoint();
-            this.maxCodePoint = ranges[ranges.length - 1].lastCodePoint();
-            this.numCodePoints = Arrays.stream(ranges).mapToInt(Range::size).sum();
+    init {
+        if (ranges.isNotEmpty()) {
+            minCodePoint = ranges[0].firstCodePoint()
+            maxCodePoint = ranges[ranges.size - 1].lastCodePoint()
+            numCodePoints = Arrays.stream(ranges).mapToInt {
+                it.size()
+            }.sum()
         } else {
-            this.minCodePoint = this.maxCodePoint = this.numCodePoints = 0;
+            numCodePoints = 0
+            maxCodePoint = 0
+            minCodePoint = 0
         }
     }
 
@@ -200,113 +132,119 @@ public final class CodePoints {
      * Returns index of supplied code point if found.
      *
      * @param codePoint the code point to get index for
-     * @return the index of code point or {@code -1} if not found
+     * @return the index of code point or `-1` if not found
      */
-    public int indexOf(int codePoint) {
+    fun indexOf(codePoint: Int): Int {
         if (codePoint < minCodePoint || codePoint > maxCodePoint) {
-            return -1;
+            return -1
         }
-        int left = 0, right = ranges.length - 1;
+        var left = 0
+        var right = ranges.size - 1
         while (left <= right) {
-            final int c = (right + left) / 2;
-            final Range range = ranges[c];
+            val c = (right + left) / 2
+            val range = ranges[c]
             if (codePoint < range.firstCodePoint()) {
-                right = c - 1;
+                right = c - 1
             } else if (codePoint > range.lastCodePoint()) {
-                left = c + 1;
+                left = c + 1
             } else {
-                return range.indexOf(codePoint);
+                return range.indexOf(codePoint)
             }
         }
-        return -1;
+        return -1
     }
 
-    public int indexOf(int codePoint, int defaultIndex) {
-        final int result = indexOf(codePoint);
-        if (result > -1) {
-            return result;
-        }
-        return defaultIndex;
+    fun indexOf(codePoint: Int, defaultIndex: Int): Int {
+        val result = indexOf(codePoint)
+        return if (result > -1) {
+            result
+        } else defaultIndex
     }
 
-    private static int[] refine(IntStream codePoints) {
-        final int[] refined = codePoints
+    companion object {
+
+        private fun refine(codePoints: IntStream): IntArray {
+            val refined = codePoints
                 .sorted()
                 .distinct()
-                .toArray();
-        if (refined.length == 0) {
-            throw new IllegalArgumentException("No code points!");
+                .toArray()
+            require(refined.isNotEmpty()) { "No code points!" }
+            return refined
         }
-        return refined;
-    }
 
-    static List<DenseRange> collectDenseRanges(int[] refined) {
-        if (refined.length == 0) {
-            return Collections.emptyList();
-        }
-        final List<DenseRange> ranges = new ArrayList<>();
-        int i = 1, prev = refined[0], cp = 0, offset = 0;
-        for (; i < refined.length; i++) {
-            cp = refined[i];
-            if (cp > prev + 1) {
-                ranges.add(new DenseRange(offset, refined[offset], prev));
-                offset = i;
+        @JvmStatic
+        fun collectDenseRanges(refined: IntArray): List<DenseRange> {
+            if (refined.isEmpty()) {
+                return emptyList()
             }
-            prev = cp;
-        }
-        if (i > offset) {
-            ranges.add(new DenseRange(offset, refined[offset], cp));
-        }
-        return ranges;
-    }
-
-    /**
-     * Tries to convert consecutive degenerate dense ranges into sparse ranges. Dense range is degenerate if it has size of 1 or 2.
-     * Input data may have degenerate dense ranges but two ranges should never intersect or touch each other.
-     * Also there should be no empty ranges.
-     *
-     * @param src preprocessed collection of dense ranges
-     * @return collection where degenerate dense ranges are merged into sparse ranges where applicable.
-     */
-    static List<Range> mergeDegenerates(List<DenseRange> src) {
-        if (src.isEmpty()) {
-            return Collections.emptyList();
-        }
-        Range r = src.get(0);
-        final List<Range> result = new ArrayList<>(src.size());
-        for (int i = 1; i < src.size(); i++) {
-            final DenseRange r2 = src.get(i);
-            final Range merged = merge(r, r2);
-            if (merged != null) {
-                r = merged;
-            } else {
-                result.add(r);
-                r = r2;
+            val ranges: MutableList<DenseRange> = mutableListOf()
+            var i = 1
+            var prev = refined[0]
+            var cp = 0
+            var offset = 0
+            while (i < refined.size) {
+                cp = refined[i]
+                if (cp > prev + 1) {
+                    ranges.add(DenseRange(offset, refined[offset], prev))
+                    offset = i
+                }
+                prev = cp
+                i++
             }
+            if (i > offset) {
+                ranges.add(DenseRange(offset, refined[offset], cp))
+            }
+            return ranges
         }
-        result.add(r);
-        return result;
-    }
 
-    private static boolean isBadMergeCandidate(Range r) {
-        return !r.isSparse() && r.size() > 2;
-    }
-
-    private static Range merge(Range a, DenseRange b) {
-        if (isBadMergeCandidate(a) || isBadMergeCandidate(b)) {
-            return null;
+        /**
+         * Tries to convert consecutive degenerate dense ranges into sparse ranges. Dense range is degenerate if it has size of 1 or 2.
+         * Input data may have degenerate dense ranges but two ranges should never intersect or touch each other.
+         * Also, there should be no empty ranges.
+         *
+         * @param src preprocessed collection of dense ranges
+         * @return collection where degenerate dense ranges are merged into sparse ranges where applicable.
+         */
+        fun mergeDegenerates(src: List<DenseRange>): List<Range> {
+            if (src.isEmpty()) {
+                return emptyList()
+            }
+            var r: Range = src[0]
+            val result: MutableList<Range> = ArrayList(src.size)
+            for (i in 1 until src.size) {
+                val r2 = src[i]
+                val merged = merge(r, r2)
+                r = if (merged != null) {
+                    merged
+                } else {
+                    result.add(r)
+                    r2
+                }
+            }
+            result.add(r)
+            return result
         }
-        final int[] merged = IntStream.concat(a.codePoints(), b.codePoints()).toArray();
-        return new SparseRange(a.offset(), merged);
-    }
 
-    public static CodePoints of(IntStream codePoints) {
-        return new CodePoints(
+        private fun isBadMergeCandidate(r: Range): Boolean {
+            return !r.isSparse && r.size() > 2
+        }
+
+        private fun merge(a: Range, b: DenseRange): Range? {
+            if (isBadMergeCandidate(a) || isBadMergeCandidate(b)) {
+                return null
+            }
+            val merged = IntStream.concat(a.codePoints(), b.codePoints()).toArray()
+            return SparseRange(a.offset, merged)
+        }
+
+        @JvmStatic
+        fun of(codePoints: IntStream): CodePoints =
+            CodePoints(
                 mergeDegenerates(
-                        collectDenseRanges(
-                                refine(codePoints)
-                        )
-                ).toArray(Range[]::new)
-        );
+                    collectDenseRanges(
+                        refine(codePoints)
+                    )
+                ).toTypedArray()
+            )
     }
 }

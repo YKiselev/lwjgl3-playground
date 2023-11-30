@@ -13,222 +13,160 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.github.ykiselev.opengl.fonts
 
-package com.github.ykiselev.opengl.fonts;
-
-import com.github.ykiselev.common.lifetime.Ref;
-import com.github.ykiselev.common.math.PowerOfTwo;
-import com.github.ykiselev.common.memory.MemAlloc;
-import com.github.ykiselev.opengl.textures.DefaultTexture2d;
-import com.github.ykiselev.opengl.textures.Texture2d;
-import com.github.ykiselev.wrap.Wrap;
-import org.lwjgl.stb.STBTTPackContext;
-import org.lwjgl.stb.STBTTPackRange;
-import org.lwjgl.stb.STBTTPackedchar;
-import org.lwjgl.system.MemoryStack;
-
-import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-
-import static java.util.Objects.requireNonNull;
-import static org.lwjgl.opengl.GL11.GL_LINEAR;
-import static org.lwjgl.opengl.GL11.GL_ONE;
-import static org.lwjgl.opengl.GL11.GL_RED;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_MAG_FILTER;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_MIN_FILTER;
-import static org.lwjgl.opengl.GL11.GL_UNSIGNED_BYTE;
-import static org.lwjgl.opengl.GL11.glBindTexture;
-import static org.lwjgl.opengl.GL11.glGenTextures;
-import static org.lwjgl.opengl.GL11.glTexImage2D;
-import static org.lwjgl.opengl.GL11.glTexParameteri;
-import static org.lwjgl.opengl.GL11.glTexParameteriv;
-import static org.lwjgl.opengl.GL12.GL_TEXTURE_BASE_LEVEL;
-import static org.lwjgl.opengl.GL12.GL_TEXTURE_MAX_LEVEL;
-import static org.lwjgl.opengl.GL30.GL_R8;
-import static org.lwjgl.opengl.GL33.GL_TEXTURE_SWIZZLE_RGBA;
-import static org.lwjgl.stb.STBTruetype.stbtt_PackBegin;
-import static org.lwjgl.stb.STBTruetype.stbtt_PackEnd;
-import static org.lwjgl.stb.STBTruetype.stbtt_PackFontRanges;
-import static org.lwjgl.stb.STBTruetype.stbtt_PackSetOversampling;
-import static org.lwjgl.system.MemoryUtil.NULL;
+import com.github.ykiselev.common.lifetime.Ref
+import com.github.ykiselev.common.math.PowerOfTwo
+import com.github.ykiselev.opengl.textures.DefaultTexture2d
+import com.github.ykiselev.opengl.textures.Texture2d
+import com.github.ykiselev.wrap.Wrap
+import org.lwjgl.opengl.GL11
+import org.lwjgl.opengl.GL11.glTexImage2D
+import org.lwjgl.opengl.GL12
+import org.lwjgl.opengl.GL30
+import org.lwjgl.opengl.GL33
+import org.lwjgl.stb.STBTTPackContext
+import org.lwjgl.stb.STBTTPackRange
+import org.lwjgl.stb.STBTTPackedchar
+import org.lwjgl.stb.STBTruetype
+import org.lwjgl.system.MemoryStack
+import org.lwjgl.system.MemoryUtil
+import java.nio.ByteBuffer
+import java.util.function.Consumer
+import java.util.function.Supplier
 
 /**
  * This class tries to pack as many fonts as possible into as little textures as possible.
- * Holds native resources so calling of {@link FontAtlasBuilder#close()} after the usage is required.
+ * Holds native resources so calling of [FontAtlasBuilder.close] after the usage is required.
  *
  * @author Yuriy Kiselev (uze@yandex.ru)
  * @since 07.04.2019
  */
-public final class FontAtlasBuilder implements AutoCloseable {
+class FontAtlasBuilder(private val bitmapFactory: Supplier<Bitmap<Wrap<ByteBuffer>>>) : AutoCloseable {
 
-    static final class PreFont {
+    internal data class PreFont(
+        val key: String,
+        val info: Wrap<TrueTypeFontInfo>,
+        val codePoints: CodePoints,
+        val charData: STBTTPackedchar.Buffer
+    )
 
-        private final String key;
+    internal class Context(val bitmap: Bitmap<Wrap<ByteBuffer>>, val pc: STBTTPackContext) : AutoCloseable {
 
-        private final Wrap<TrueTypeFontInfo> info;
+        private val fonts: MutableList<PreFont> = mutableListOf()
 
-        private final CodePoints codePoints;
-
-        private final STBTTPackedchar.Buffer charData;
-
-        PreFont(String key, Wrap<TrueTypeFontInfo> info, CodePoints codePoints, STBTTPackedchar.Buffer charData) {
-            this.key = requireNonNull(key);
-            this.info = requireNonNull(info);
-            this.codePoints = requireNonNull(codePoints);
-            this.charData = requireNonNull(charData);
-        }
-    }
-
-    static final class Context implements AutoCloseable {
-
-        private final Bitmap<Wrap<ByteBuffer>> bitmap;
-
-        private final STBTTPackContext pc;
-
-        private final List<PreFont> fonts = new ArrayList<>();
-
-        private Context(Bitmap<Wrap<ByteBuffer>> bitmap, STBTTPackContext pc) {
-            this.bitmap = requireNonNull(bitmap);
-            this.pc = requireNonNull(pc);
+        override fun close() {
+            bitmap.pixels.close()
+            pc.close()
         }
 
-        @Override
-        public void close() {
-            bitmap.pixels().close();
-            pc.close();
-        }
-
-        boolean add(String key, Wrap<TrueTypeFontInfo> info, CodePoints codePoints, int horizontalOverSample, int verticalOverSample) {
-            stbtt_PackSetOversampling(pc, horizontalOverSample, verticalOverSample);
-
-            final int numCodePoints = codePoints.numCodePoints();
+        fun add(
+            key: String,
+            info: Wrap<TrueTypeFontInfo>,
+            codePoints: CodePoints,
+            horizontalOverSample: Int,
+            verticalOverSample: Int
+        ): Boolean {
+            STBTruetype.stbtt_PackSetOversampling(pc, horizontalOverSample, verticalOverSample)
+            val numCodePoints = codePoints.numCodePoints()
             // todo - do we really need this?
-            final int pot = PowerOfTwo.next(numCodePoints);
-            try (STBTTPackRange.Buffer ranges = STBTTPackRange.malloc(codePoints.numRanges())) {
-                final STBTTPackedchar.Buffer charData = STBTTPackedchar.malloc(pot);
-                for (int i = 0, p = 0; i < codePoints.numRanges(); i++) {
-                    final CodePoints.Range range = codePoints.range(i);
-                    final STBTTPackRange pr = ranges.get(i);
-                    pr.font_size(info.value().metrics().fontSize());
-                    pr.first_unicode_codepoint_in_range(range.firstCodePoint());
-                    pr.num_chars(range.size());
-                    pr.chardata_for_range(new STBTTPackedchar.Buffer(charData.address(p), range.size()));
-                    pr.array_of_unicode_codepoints(null);
-                    p += range.size();
+            val pot = PowerOfTwo.next(numCodePoints)
+            STBTTPackRange.malloc(codePoints.numRanges()).use { ranges ->
+                val charData = STBTTPackedchar.malloc(pot)
+                var i = 0
+                var p = 0
+                while (i < codePoints.numRanges()) {
+                    val range = codePoints.range(i)
+                    val pr = ranges[i]
+                    pr.font_size(info.value().metrics().fontSize())
+                    pr.first_unicode_codepoint_in_range(range.firstCodePoint())
+                    pr.num_chars(range.size())
+                    pr.chardata_for_range(STBTTPackedchar.Buffer(charData.address(p), range.size()))
+                    pr.array_of_unicode_codepoints(null)
+                    p += range.size()
+                    i++
                 }
-
-                if (!stbtt_PackFontRanges(pc, info.value().fontData(), 0, ranges)) {
-                    charData.close();
-                    return false;
+                if (!STBTruetype.stbtt_PackFontRanges(pc, info.value().fontData(), 0, ranges)) {
+                    charData.close()
+                    return false
                 }
-
-                charData.clear();
-                fonts.add(new PreFont(key, info, codePoints, charData));
+                charData.clear()
+                fonts.add(PreFont(key, info, codePoints, charData))
             }
-
-            return true;
+            return true
         }
 
-        Map<String, TrueTypeFont> finish() {
-            stbtt_PackEnd(pc);
-
-            final int textureId = glGenTextures();
-            glBindTexture(GL_TEXTURE_2D, textureId);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, bitmap.width(), bitmap.height(), 0, GL_RED, GL_UNSIGNED_BYTE, bitmap.pixels().value());
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            try (MemoryStack ms = MemoryStack.stackPush()) {
-                final IntBuffer swizzleMask = ms.callocInt(4);
-                swizzleMask.put(GL_ONE)
-                        .put(GL_ONE)
-                        .put(GL_ONE)
-                        .put(GL_RED)
-                        .flip();
-                glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
+        fun finish(): Map<String, TrueTypeFont> {
+            STBTruetype.stbtt_PackEnd(pc)
+            val textureId = GL11.glGenTextures()
+            GL11.glBindTexture(GL11.GL_TEXTURE_2D, textureId)
+            GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL12.GL_TEXTURE_BASE_LEVEL, 0)
+            GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL12.GL_TEXTURE_MAX_LEVEL, 0)
+            glTexImage2D(
+                GL11.GL_TEXTURE_2D,
+                0,
+                GL30.GL_R8,
+                bitmap.width,
+                bitmap.height,
+                0,
+                GL11.GL_RED,
+                GL11.GL_UNSIGNED_BYTE,
+                bitmap.pixels.value()
+            )
+            GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR)
+            GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR)
+            MemoryStack.stackPush().use { ms ->
+                val swizzleMask = ms.callocInt(4)
+                swizzleMask.put(GL11.GL_ONE)
+                    .put(GL11.GL_ONE)
+                    .put(GL11.GL_ONE)
+                    .put(GL11.GL_RED)
+                    .flip()
+                GL11.glTexParameteriv(GL11.GL_TEXTURE_2D, GL33.GL_TEXTURE_SWIZZLE_RGBA, swizzleMask)
             }
-
-            final Ref<Texture2d> sharedTexture = Ref.of(new DefaultTexture2d(textureId));
-
-            return fonts.stream()
-                    .collect(Collectors.toMap(
-                            pf -> pf.key,
-                            pf -> new TrueTypeFont(pf.info, pf.charData, pf.codePoints,
-                                    sharedTexture.newRef(), bitmap.width(), bitmap.height())
-                    ));
+            val sharedTexture = Ref.of<Texture2d>(DefaultTexture2d(textureId))
+            return fonts.associateBy({ it.key }) {
+                TrueTypeFont(
+                    it.info, it.charData, it.codePoints,
+                    sharedTexture.newRef(), bitmap.width, bitmap.height
+                )
+            }
         }
     }
 
-    private final Supplier<Bitmap<Wrap<ByteBuffer>>> bitmapFactory;
-
-    private final Map<String, TrueTypeFont> fonts = new HashMap<>();
-
-    private Context context;
-
-    /**
-     * Primary ctor.
-     *
-     * @param bitmapFactory the bitmap factory which wil be called every time new bitmap is required to fill with font glyphs.
-     */
-    public FontAtlasBuilder(Supplier<Bitmap<Wrap<ByteBuffer>>> bitmapFactory) {
-        this.bitmapFactory = requireNonNull(bitmapFactory);
-    }
-
-    /**
-     * Create font atlas builder which uses bitmaps of supplied {@code width} and {@code height} with buffers created by {@link MemAlloc} class.
-     *
-     * @param width  the width to use when creating atlas bitmap
-     * @param height the height to use when creating atlas bitmap
-     */
-    public FontAtlasBuilder(int width, int height) {
-        this(() -> new Bitmap<>(width, height, new MemAlloc(width * height)));
-    }
+    private val fonts: MutableMap<String, TrueTypeFont> = mutableMapOf()
+    private var context: Context? = null
 
     /**
      * Adds new font to this atlas. For optimal results feed fonts in sequence from smallest to larges. This version simply delegates to
-     * {@link FontAtlasBuilder#addFont(String, Wrap, CodePoints, int, int)}
+     * [FontAtlasBuilder.addFont]
      * with both oversample values set to 1.
      *
      * @param key        the key of the font (each font in the atlas should have unique key)
      * @param info       the font to add to atlas
      * @param codePoints the code points to use when building font glyphs
-     */
-    public void addFont(String key, Wrap<TrueTypeFontInfo> info, CodePoints codePoints) {
-        addFont(key, info, codePoints, 1, 1);
-    }
-
-    /**
-     * Adds new font to this atlas. For optimal results feed fonts in sequence from smallest to larges.
-     *
-     * @param key                  the key of the font (each font in the atlas should have unique key)
-     * @param info                 the font to add to atlas
-     * @param codePoints           the code points to use when building font glyphs
      * @param horizontalOverSample the horizontal oversample value
      * @param verticalOverSample   the vertical oversample value
      */
-    public void addFont(String key, Wrap<TrueTypeFontInfo> info, CodePoints codePoints, int horizontalOverSample, int verticalOverSample) {
-        for (; ; ) {
+    @JvmOverloads
+    fun addFont(
+        key: String,
+        info: Wrap<TrueTypeFontInfo>,
+        codePoints: CodePoints,
+        horizontalOverSample: Int = 1,
+        verticalOverSample: Int = 1
+    ) {
+        while (true) {
             if (context == null) {
-                context = createContext(bitmapFactory.get());
+                context = createContext(bitmapFactory.get())
             }
-            if (context.add(key, info, codePoints, horizontalOverSample, verticalOverSample)) {
-                break;
+            if (context!!.add(key, info, codePoints, horizontalOverSample, verticalOverSample)) {
+                break
             }
-            closeContext(contextFonts -> {
-                if (contextFonts.isEmpty()) {
-                    throw new IllegalStateException("Unable to pack font " + info + ", perhaps supplied bitmap is too small to fit this font!");
-                }
-                fonts.putAll(contextFonts);
-            });
+            closeContext { contextFonts: Map<String, TrueTypeFont> ->
+                check(contextFonts.isNotEmpty()) { "Unable to pack font $info, perhaps supplied bitmap is too small to fit this font!" }
+                fonts.putAll(contextFonts)
+            }
         }
     }
 
@@ -238,31 +176,40 @@ public final class FontAtlasBuilder implements AutoCloseable {
      *
      * @return the fonts added to atlas so far.
      */
-    public Map<String, TrueTypeFont> drainFonts() {
-        closeContext(fonts::putAll);
-        final Map<String, TrueTypeFont> result = Map.copyOf(fonts);
-        fonts.clear();
-        return result;
-    }
-
-    private Context createContext(Bitmap<Wrap<ByteBuffer>> bitmap) {
-        final STBTTPackContext pc = STBTTPackContext.malloc();
-        if (!stbtt_PackBegin(pc, bitmap.pixels().value(), bitmap.width(), bitmap.height(), 0, 1, NULL)) {
-            throw new IllegalStateException("Unable to start packing: not enough memory!");
+    fun drainFonts(): Map<String, TrueTypeFont> {
+        closeContext {
+            fonts.putAll(it)
         }
-        return new Context(bitmap, pc);
+        return fonts.toMap().also {
+            fonts.clear()
+        }
     }
 
-    private void closeContext(Consumer<Map<String, TrueTypeFont>> consumer) {
-        consumer.accept(context.finish());
-        context.close();
-        context = null;
+    private fun createContext(bitmap: Bitmap<Wrap<ByteBuffer>>): Context {
+        val pc = STBTTPackContext.malloc()
+        check(
+            STBTruetype.stbtt_PackBegin(
+                pc,
+                bitmap.pixels.value(),
+                bitmap.width,
+                bitmap.height,
+                0,
+                1,
+                MemoryUtil.NULL
+            )
+        ) { "Unable to start packing: not enough memory!" }
+        return Context(bitmap, pc)
     }
 
-    @Override
-    public void close() {
+    private fun closeContext(consumer: Consumer<Map<String, TrueTypeFont>>) {
+        consumer.accept(context!!.finish())
+        context!!.close()
+        context = null
+    }
+
+    override fun close() {
         if (context != null) {
-            context.close();
+            context!!.close()
         }
     }
 }

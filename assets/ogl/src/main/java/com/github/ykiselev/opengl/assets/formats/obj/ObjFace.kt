@@ -13,32 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package com.github.ykiselev.opengl.assets.formats.obj;
+package com.github.ykiselev.opengl.assets.formats.obj
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-final class ObjFace {
+internal class ObjFace(val material: String, private val indices: IntArray) {
+    fun indexAt(index: Int): Int =
+        indices[index]
 
-    private final String material;
-
-    private final int[] indices;
-
-    public int indexAt(int index) {
-        return indices[index];
-    }
-
-    public int size() {
-        return indices.length;
-    }
-
-    public String material() {
-        return material;
-    }
-
-    ObjFace(String material, int[] indices) {
-        this.material = material;
-        this.indices = indices;
-    }
+    fun size(): Int =
+        indices.size
 }

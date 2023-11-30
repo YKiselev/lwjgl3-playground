@@ -13,15 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package com.github.ykiselev.opengl.assets.formats.obj;
+package com.github.ykiselev.opengl.assets.formats.obj
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public interface TexCoords {
+class ObjVertices : ObjFloatArray(3) {
 
-    float s(int index);
+    fun add(v: FloatArray) {
+        when (v.size) {
+            3 -> {
+                add(v[0], v[1], v[2])
+            }
 
-    float t(int index);
+            4 -> {
+                val w = v[3]
+                add(v[0] / w, v[1] / w, v[2] / w)
+            }
+
+            else -> throw IllegalArgumentException("Bad vertex: " + v.contentToString())
+        }
+    }
+
+    private fun add(x: Float, y: Float, z: Float) {
+        var idx = addFloats()
+        this[idx++] = x
+        this[idx++] = y
+        this[idx] = z
+    }
 }

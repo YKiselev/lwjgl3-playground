@@ -21,10 +21,9 @@ import java.util.*
  * @author Yuriy Kiselev (uze@yandex.ru)
  * @since 14.04.2019
  */
-class DefaultRecipe<K, A, C>(key: K, type: Class<A>, private val context: C) : Recipe<K, A, C> {
-    private val key: K
-    private val type: Class<A>
-    override fun type(): Class<A>? {
+class DefaultRecipe<K, A, C>(val key: K, val type: Class<A>, private val context: C) : Recipe<K, A, C> {
+
+    override fun type(): Class<A> {
         return type
     }
 
@@ -36,23 +35,23 @@ class DefaultRecipe<K, A, C>(key: K, type: Class<A>, private val context: C) : R
         return context
     }
 
-    init {
-        this.key = Objects.requireNonNull(key)
-        this.type = Objects.requireNonNull(type)
-    }
-
     companion object {
-        fun <A, K> of(key: K, type: Class<A>): Recipe<K, A, Void?> {
-            return DefaultRecipe(key, type, null)
+
+        private val dummy = Any()
+
+        @JvmStatic
+        fun <A, K> of(key: K, type: Class<A>): Recipe<K, A, Any> {
+            return DefaultRecipe(key, type, dummy)
         }
 
         @JvmStatic
-        fun <A> of(type: Class<A>): Recipe<String, A, Void?> {
-            return DefaultRecipe(type.getName(), type, null)
+        fun <A> of(type: Class<A>): Recipe<String, A, Any> {
+            return DefaultRecipe(type.getName(), type, dummy)
         }
 
-        fun <A, C> of(type: Class<A>, context: C): Recipe<String, A, C?> {
-            return DefaultRecipe(type.getName(), type, null)
+        @JvmStatic
+        fun <A, C> of(type: Class<A>, context: C): Recipe<String, A, C> {
+            return DefaultRecipe(type.getName(), type, context)
         }
     }
 }

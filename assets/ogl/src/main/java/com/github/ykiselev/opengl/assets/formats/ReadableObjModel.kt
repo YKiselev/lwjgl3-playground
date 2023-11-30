@@ -31,11 +31,11 @@ import java.nio.charset.StandardCharsets
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-class ReadableObjModel : ReadableAsset<ObjModel, Void> {
+class ReadableObjModel : ReadableAsset<ObjModel, Any> {
 
     override fun read(
         channel: ReadableByteChannel,
-        recipe: Recipe<*, ObjModel, Void>?,
+        recipe: Recipe<*, ObjModel, Any>?,
         assets: Assets
     ): Wrap<ObjModel> =
         try {

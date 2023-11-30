@@ -54,7 +54,7 @@ class ReadableFontAtlas(private val bitmapFactory: () -> Bitmap<Wrap<ByteBuffer>
         recipe: Recipe<*, FontAtlas, Void>?,
         assets: Assets
     ): Wrap<FontAtlas> =
-        read<String, Config, Void>(channel, OglRecipes.CONFIG, assets).use { cfg ->
+        read(channel, OglRecipes.CONFIG, assets).use { cfg ->
             val atlasConfig = cfg.value()
             val fonts = atlasConfig.getConfig("fonts").root()
                 .entries
@@ -63,7 +63,7 @@ class ReadableFontAtlas(private val bitmapFactory: () -> Bitmap<Wrap<ByteBuffer>
                     val value = value1.unwrapped() as String
                     if (value.isEmpty()) {
                         null
-                    } else key to assets.load<String, TrueTypeFontInfo, Void>(value, OglRecipes.TRUE_TYPE_FONT_INFO)
+                    } else key to assets.load(value, OglRecipes.TRUE_TYPE_FONT_INFO)
                     // Sort array from smallest font to larges to improve glyph texture fill rate
                 }.sortedWith(Comparator.comparingDouble { (_, value) ->
                     value.value().metrics().fontSize()

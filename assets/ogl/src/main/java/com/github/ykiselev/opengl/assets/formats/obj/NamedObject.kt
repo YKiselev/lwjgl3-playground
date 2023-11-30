@@ -13,38 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package com.github.ykiselev.opengl.assets.formats.obj;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
-import static java.util.Objects.requireNonNull;
+package com.github.ykiselev.opengl.assets.formats.obj
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class ObjName implements Iterable<ObjFace> {
+internal class NamedObject(val name: String) : Iterable<ObjFace> {
 
-    private final String name;
+    private val faces: MutableList<ObjFace> = mutableListOf()
 
-    private final List<ObjFace> faces = new ArrayList<>();
-
-    public String name() {
-        return name;
+    fun addFace(face: ObjFace) {
+        faces.add(face)
     }
 
-    public ObjName(String name) {
-        this.name = requireNonNull(name);
-    }
-
-    public void addFace(ObjFace face) {
-        faces.add(face);
-    }
-
-    @Override
-    public Iterator<ObjFace> iterator() {
-        return faces.iterator();
-    }
+    override fun iterator(): Iterator<ObjFace> =
+        faces.iterator()
 }

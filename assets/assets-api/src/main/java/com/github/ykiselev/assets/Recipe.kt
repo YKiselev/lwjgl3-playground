@@ -20,7 +20,7 @@ package com.github.ykiselev.assets
  * @since 14.04.2019
  */
 interface Recipe<K, A, C> {
-    fun type(): Class<A>?
+    fun type(): Class<A>
     fun key(): K
     fun context(): C
 }

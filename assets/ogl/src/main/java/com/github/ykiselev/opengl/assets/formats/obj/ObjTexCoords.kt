@@ -13,17 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package com.github.ykiselev.opengl.assets.formats.obj;
+package com.github.ykiselev.opengl.assets.formats.obj
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public interface Vertices {
+class ObjTexCoords : ObjFloatArray(2) {
 
-    float x(int index);
+    fun add(coords: FloatArray) {
+        when (coords.size) {
+            2 -> {
+                add(coords[0], coords[1])
+            }
 
-    float y(int index);
+            3 -> {
+                val w = coords[2]
+                add(coords[0] / w, coords[1] / w)
+            }
 
-    float z(int index);
+            else -> throw IllegalArgumentException("Bad texture coordinates: " + coords.contentToString())
+        }
+    }
+
+    private fun add(s: Float, t: Float) {
+        val idx = addFloats()
+        this[idx] = s
+        this[idx + 1] = t
+    }
 }

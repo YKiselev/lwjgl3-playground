@@ -36,25 +36,25 @@ import com.typesafe.config.Config;
  */
 public final class OglRecipes {
 
-    public static final Recipe<String, ShaderObject, Void> SHADER = DefaultRecipe.of(ShaderObject.class);
+    public static final Recipe<String, ShaderObject, ?> SHADER = DefaultRecipe.of(ShaderObject.class);
 
     public static final Recipe<String, Texture2d, ReadableTexture2d.Context> MIP_MAP_TEXTURE = new DefaultRecipe<>("mip-map-texture", Texture2d.class, new ReadableTexture2d.Context(true));
 
     public static final Recipe<String, Texture2d, ReadableTexture2d.Context> SPRITE = new DefaultRecipe<>("sprite", Texture2d.class, new ReadableTexture2d.Context(false));
 
-    public static final Recipe<String, SpriteFont, Void> SPRITE_FONT = DefaultRecipe.of(SpriteFont.class);
+    public static final Recipe<String, SpriteFont, ?> SPRITE_FONT = DefaultRecipe.of(SpriteFont.class);
 
-    public static final Recipe<String, Config, Void> CONFIG = DefaultRecipe.of(Config.class);
+    public static final Recipe<String, Config, ?> CONFIG = DefaultRecipe.of(Config.class);
 
-    public static final Recipe<String, ProgramObject, Void> PROGRAM = DefaultRecipe.of(ProgramObject.class);
+    public static final Recipe<String, ProgramObject, ?> PROGRAM = DefaultRecipe.of(ProgramObject.class);
 
-    public static final Recipe<String, FontAtlas, Void> FONT_ATLAS = DefaultRecipe.of(FontAtlas.class);
+    public static final Recipe<String, FontAtlas, ?> FONT_ATLAS = DefaultRecipe.of(FontAtlas.class);
 
-    public static final Recipe<String, TrueTypeFontInfo, Void> TRUE_TYPE_FONT_INFO = DefaultRecipe.of(TrueTypeFontInfo.class);
+    public static final Recipe<String, TrueTypeFontInfo, ?> TRUE_TYPE_FONT_INFO = DefaultRecipe.of(TrueTypeFontInfo.class);
 
-    public static final Recipe<String, ObjModel, Void> OBJ_MODEL = DefaultRecipe.of(ObjModel.class);
+    public static final Recipe<String, ObjModel, ?> OBJ_MODEL = DefaultRecipe.of(ObjModel.class);
 
-    public static final Recipe<String, MaterialAtlas, Void> MATERIAL_ATLAS = DefaultRecipe.of(MaterialAtlas.class);
+    public static final Recipe<String, MaterialAtlas, ?> MATERIAL_ATLAS = DefaultRecipe.of(MaterialAtlas.class);
 
-    public static final Recipe<String, ImageData, Void> IMAGE_DATA = DefaultRecipe.of(ImageData.class);
+    public static final Recipe<String, ImageData, ?> IMAGE_DATA = DefaultRecipe.of(ImageData.class);
 }

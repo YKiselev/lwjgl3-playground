@@ -13,18 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package com.github.ykiselev.opengl.fonts;
-
-import java.util.Set;
+package com.github.ykiselev.opengl.fonts
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru)
  * @since 14.04.2019
  */
-public interface FontAtlas extends AutoCloseable {
-
-    Set<String> keys();
-
-    TrueTypeFont get(String key);
+interface FontAtlas : AutoCloseable {
+    fun keys(): Set<String>
+    operator fun get(key: String): TrueTypeFont?
 }

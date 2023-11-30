@@ -13,55 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.github.ykiselev.opengl.buffers
 
-package com.github.ykiselev.opengl.buffers;
-
-import com.github.ykiselev.opengl.textures.DefaultTexture2d;
-import com.github.ykiselev.opengl.textures.Texture2d;
-
-import static org.lwjgl.opengl.GL11.GL_NEAREST;
-import static org.lwjgl.opengl.GL11.GL_RGBA;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_MAG_FILTER;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_MIN_FILTER;
-import static org.lwjgl.opengl.GL11.GL_UNSIGNED_BYTE;
-import static org.lwjgl.opengl.GL11.glTexImage2D;
-import static org.lwjgl.opengl.GL11.glTexParameteri;
-import static org.lwjgl.opengl.GL30.*;
+import com.github.ykiselev.opengl.textures.DefaultTexture2d
+import com.github.ykiselev.opengl.textures.Texture2d
+import org.lwjgl.opengl.GL11
+import org.lwjgl.opengl.GL30
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class FrameBuffer implements AutoCloseable {
+class FrameBuffer : AutoCloseable {
 
-    private final FrameBufferObject fbo;
-
-    private final Texture2d color;
-
-    private final Texture2d depth;
-
-    private final Texture2d normal;
-
-    private int w, h;
-
-    public Texture2d color() {
-        return color;
-    }
-
-    public Texture2d depth() {
-        return depth;
-    }
-
-    public Texture2d normal() {
-        return normal;
-    }
-
-    public FrameBuffer() {
-        fbo = new FrameBufferObject();
-        color = new DefaultTexture2d();
-        depth = new DefaultTexture2d();
-        normal = new DefaultTexture2d();
-    }
+    val color: Texture2d = DefaultTexture2d()
+    val depth: Texture2d = DefaultTexture2d()
+    val normal: Texture2d = DefaultTexture2d()
+    private val fbo: FrameBufferObject = FrameBufferObject()
+    private var w = 0
+    private var h = 0
 
     /**
      * Should be called on un-bound frame buffer only!
@@ -69,58 +38,98 @@ public final class FrameBuffer implements AutoCloseable {
      * @param width  new width of frame buffer
      * @param height new height of frame buffer
      */
-    public void size(int width, int height) {
+    fun size(width: Int, height: Int) {
         if (w != width || h != height) {
-            bind();
-
-            color.bind();
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, color.id(), 0);
-            color.unbind();
-
-            depth.bind();
+            bind()
+            color.bind()
+            GL11.glTexImage2D(
+                GL11.GL_TEXTURE_2D,
+                0,
+                GL11.GL_RGBA,
+                width,
+                height,
+                0,
+                GL11.GL_RGBA,
+                GL11.GL_UNSIGNED_BYTE,
+                0
+            )
+            GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST)
+            GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST)
+            GL30.glFramebufferTexture2D(
+                GL30.GL_FRAMEBUFFER,
+                GL30.GL_COLOR_ATTACHMENT0,
+                GL11.GL_TEXTURE_2D,
+                color.id(),
+                0
+            )
+            color.unbind()
+            depth.bind()
             //glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, width, height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, 0);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, width, height, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, 0);
+            GL11.glTexImage2D(
+                GL11.GL_TEXTURE_2D,
+                0,
+                GL30.GL_DEPTH24_STENCIL8,
+                width,
+                height,
+                0,
+                GL30.GL_DEPTH_STENCIL,
+                GL30.GL_UNSIGNED_INT_24_8,
+                0
+            )
             //glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
             //glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depth.id(), 0);
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, depth.id(), 0);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-            depth.unbind();
-
-            normal.bind();
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, normal.id(), 0);
-            normal.unbind();
-
-            w = width;
-            h = height;
-
-            final int check = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-            if (check != GL_FRAMEBUFFER_COMPLETE) {
-                throw new IllegalStateException("Frame buffer incomplete: " + check);
-            }
-            unbind();
+            GL30.glFramebufferTexture2D(
+                GL30.GL_FRAMEBUFFER,
+                GL30.GL_DEPTH_STENCIL_ATTACHMENT,
+                GL11.GL_TEXTURE_2D,
+                depth.id(),
+                0
+            )
+            GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST)
+            GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST)
+            depth.unbind()
+            normal.bind()
+            GL11.glTexImage2D(
+                GL11.GL_TEXTURE_2D,
+                0,
+                GL11.GL_RGBA,
+                width,
+                height,
+                0,
+                GL11.GL_RGBA,
+                GL11.GL_UNSIGNED_BYTE,
+                0
+            )
+            GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST)
+            GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST)
+            GL30.glFramebufferTexture2D(
+                GL30.GL_FRAMEBUFFER,
+                GL30.GL_COLOR_ATTACHMENT1,
+                GL11.GL_TEXTURE_2D,
+                normal.id(),
+                0
+            )
+            normal.unbind()
+            w = width
+            h = height
+            val check = GL30.glCheckFramebufferStatus(GL30.GL_FRAMEBUFFER)
+            check(check == GL30.GL_FRAMEBUFFER_COMPLETE) { "Frame buffer incomplete: $check" }
+            unbind()
         }
     }
 
-    public void bind() {
-        fbo.bind();
+    fun bind() {
+        fbo.bind()
     }
 
-    public void unbind() {
-        fbo.unbind();
+    fun unbind() {
+        fbo.unbind()
     }
 
-    @Override
-    public void close() {
-        fbo.close();
-        color.close();
-        depth.close();
-        normal.close();
+    override fun close() {
+        fbo.close()
+        color.close()
+        depth.close()
+        normal.close()
     }
 }

@@ -13,93 +13,68 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.github.ykiselev.opengl.assets.formats.obj
 
-package com.github.ykiselev.opengl.assets.formats.obj;
-
-import com.github.ykiselev.common.memory.MemAlloc;
-import com.github.ykiselev.opengl.IndexedGeometrySource;
-import org.lwjgl.opengl.GL11;
-
-import java.nio.ByteBuffer;
-import java.util.List;
-import java.util.stream.StreamSupport;
-
-import static java.util.Objects.requireNonNull;
+import com.github.ykiselev.common.memory.MemAlloc
+import com.github.ykiselev.opengl.IndexedGeometrySource
+import org.lwjgl.opengl.GL11
+import java.nio.ByteBuffer
+import java.util.stream.StreamSupport
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class ObjModel {
+class ObjModel internal constructor(private val vertices: FloatArray, private val objects: List<NamedObject>) {
 
-    private final float[] vertices;
-
-    private final List<ObjName> objects;
-
-    public ObjModel(float[] vertices, List<ObjName> objects) {
-        this.vertices = requireNonNull(vertices);
-        this.objects = requireNonNull(objects);
-    }
-
-    public IndexedGeometrySource toIndexedTriangles() {
-        final int totalTriangles = objects.stream()
-                .flatMap(n -> StreamSupport.stream(n.spliterator(), true))
-                .mapToInt(f -> f.size() - 2)
-                .sum();
-        final MemAlloc wrappedIndices = new MemAlloc(Integer.BYTES * 3 * totalTriangles);
-        final ByteBuffer buffer = wrappedIndices.value();
-        for (ObjName object : objects) {
-            for (ObjFace face : object) {
-                final int idx0 = face.indexAt(0);
-                for (int i = 1; i < face.size() - 1; i++) {
-                    buffer.putInt(idx0);
-                    buffer.putInt(face.indexAt(i));
-                    buffer.putInt(face.indexAt(i + 1));
+    fun toIndexedTriangles(): IndexedGeometrySource {
+        val totalTriangles = objects.stream()
+            .flatMap { n: NamedObject -> StreamSupport.stream(n.spliterator(), true) }
+            .mapToInt { f: ObjFace -> f.size() - 2 }
+            .sum()
+        val wrappedIndices = MemAlloc(Integer.BYTES * 3 * totalTriangles)
+        val buffer = wrappedIndices.value()
+        for (`object` in objects) {
+            for (face in `object`) {
+                val idx0 = face.indexAt(0)
+                for (i in 1 until face.size() - 1) {
+                    buffer.putInt(idx0)
+                    buffer.putInt(face.indexAt(i))
+                    buffer.putInt(face.indexAt(i + 1))
                 }
             }
         }
-        buffer.flip();
-        final MemAlloc wrappedVertices = new MemAlloc(Float.BYTES * vertices.length);
-        final ByteBuffer vbuff = wrappedVertices.value();
-        for (float v : vertices) {
-            vbuff.putFloat(v);
+        buffer.flip()
+        val wrappedVertices = MemAlloc(java.lang.Float.BYTES * vertices.size)
+        val vbuff = wrappedVertices.value()
+        for (v in vertices) {
+            vbuff.putFloat(v)
         }
-        vbuff.flip();
-        return new ObjModelIndexedGeometrySource(
-                wrappedVertices,
-                wrappedIndices
-        );
+        vbuff.flip()
+        return ObjModelIndexedGeometrySource(
+            wrappedVertices,
+            wrappedIndices
+        )
     }
 
-    private static class ObjModelIndexedGeometrySource implements IndexedGeometrySource {
-
-        private final MemAlloc wrappedVertices;
-
-        private final MemAlloc wrappedIndices;
-
-        ObjModelIndexedGeometrySource(MemAlloc wrappedVertices, MemAlloc wrappedIndices) {
-            this.wrappedVertices = wrappedVertices;
-            this.wrappedIndices = wrappedIndices;
+    private class ObjModelIndexedGeometrySource(
+        private val wrappedVertices: MemAlloc,
+        private val wrappedIndices: MemAlloc
+    ) : IndexedGeometrySource {
+        override fun vertices(): ByteBuffer {
+            return wrappedVertices.value()
         }
 
-        @Override
-        public ByteBuffer vertices() {
-            return wrappedVertices.value();
+        override fun indices(): ByteBuffer {
+            return wrappedIndices.value()
         }
 
-        @Override
-        public ByteBuffer indices() {
-            return wrappedIndices.value();
+        override fun mode(): Int {
+            return GL11.GL_TRIANGLES
         }
 
-        @Override
-        public int mode() {
-            return GL11.GL_TRIANGLES;
-        }
-
-        @Override
-        public void close() {
-            wrappedVertices.close();
-            wrappedIndices.close();
+        override fun close() {
+            wrappedVertices.close()
+            wrappedIndices.close()
         }
     }
 }
