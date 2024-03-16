@@ -67,7 +67,7 @@ class AppFileSystem(vararg folders: ResourceFolder) : FileSystem {
             ?.resolve(archiveName, readOnly)
             ?.let {
                 ArchiveFileSystem.create(toPath(it), create)
-            } ?: throw IllegalStateException("Unable to map archive!")
+            } ?: throw IllegalStateException("Unable to map archive: not found!")
 
 
     @Throws(ResourceException::class)

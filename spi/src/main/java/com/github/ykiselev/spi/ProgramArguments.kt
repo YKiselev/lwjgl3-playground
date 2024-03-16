@@ -69,12 +69,15 @@ class ProgramArguments(rawArgs: Array<String>) {
     fun assetPaths(): Collection<Path> =
         (sequenceOf(home) + (value("assets")
             ?.splitToSequence(",".toRegex())
-            ?.filter { it.isNotEmpty() }
-            ?.map {
+            ?.filter {
+                it.isNotEmpty()
+            }?.map {
                 Paths.get(it)
             } ?: emptySequence()))
             .filter {
                 Files.isDirectory(it)
+            }.map {
+                it.toAbsolutePath()
             }.toList()
 
 
@@ -103,7 +106,7 @@ class ProgramArguments(rawArgs: Array<String>) {
                 throw UncheckedIOException(e)
             }
         }
-        path
+        path.toAbsolutePath()
     }
 
     private val defaultHomePath: Path
@@ -114,5 +117,5 @@ class ProgramArguments(rawArgs: Array<String>) {
             System.getProperty("user.home"),
             System.getProperty("app.folder", "lwjgl3-playground"),
             System.getProperty("mod", "base")
-        )
+        ).toAbsolutePath()
 }

@@ -109,7 +109,7 @@ public final class BaseGame implements Game {
         client.draw(width, height, context, world);
     }
 
-    private void genWorld(String command, String name) {
+    private void genWorld(String name) {
         WorldGenerator generator = new WorldGenerator();
         world = generator.generate(nodeFactory, 1024);
         worldFile.save(fileSystem, world, name);
