@@ -69,7 +69,7 @@ class GameClient(host: GameFactoryArgs) : Updatable, AutoCloseable, WindowEvents
             cuddles = tex.value()
             val atlas = assets.load("font-atlases/base.conf", OglRecipes.FONT_ATLAS)
             guard.add(atlas)
-            ttf = atlas.value()["console"]
+            ttf = atlas.value()["console"]!!
             pyramids = guard.add(Pyramids(assets))
             renderer = guard.add(WorldRenderer(assets))
             vp = MemoryUtil.memAllocFloat(16)
@@ -99,9 +99,9 @@ class GameClient(host: GameFactoryArgs) : Updatable, AutoCloseable, WindowEvents
                 GLFW.GLFW_KEY_GRAVE_ACCENT -> commands.execute("toggle-console")
                 GLFW.GLFW_KEY_PRINT_SCREEN -> {
                     try {
-                        dumpToFile(frameBuffer.color(), "color.png")
-                        dumpToFile(frameBuffer.depth(), "depth.png")
-                        dumpToFile(frameBuffer.normal(), "normal.png")
+                        dumpToFile(frameBuffer.color, "color.png")
+                        dumpToFile(frameBuffer.depth, "depth.png")
+                        dumpToFile(frameBuffer.normal, "normal.png")
                     } catch (e: IOException) {
                         logger.error("Unable to save image!", e)
                     }
@@ -209,10 +209,10 @@ class GameClient(host: GameFactoryArgs) : Updatable, AutoCloseable, WindowEvents
         val spriteBatch = context.batch
         spriteBatch.begin(0, 0, width, height, true)
         when (frameBufferMode) {
-            FrameBufferMode.COLOR -> spriteBatch.draw(frameBuffer.color(), 0, 0, width, height, 0f, 0f, 1f, 1f, -0x1)
-            FrameBufferMode.DEPTH -> spriteBatch.draw(frameBuffer.depth(), 0, 0, width, height, 0f, 0f, 1f, 1f, -0x1)
+            FrameBufferMode.COLOR -> spriteBatch.draw(frameBuffer.color, 0, 0, width, height, 0f, 0f, 1f, 1f, -0x1)
+            FrameBufferMode.DEPTH -> spriteBatch.draw(frameBuffer.depth, 0, 0, width, height, 0f, 0f, 1f, 1f, -0x1)
             FrameBufferMode.NORMAL -> spriteBatch.draw(
-                frameBuffer.normal(),
+                frameBuffer.normal,
                 0,
                 0,
                 width,

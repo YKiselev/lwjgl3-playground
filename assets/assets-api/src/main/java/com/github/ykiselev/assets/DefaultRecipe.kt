@@ -15,8 +15,6 @@
  */
 package com.github.ykiselev.assets
 
-import java.util.*
-
 /**
  * @author Yuriy Kiselev (uze@yandex.ru)
  * @since 14.04.2019

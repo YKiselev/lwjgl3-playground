@@ -49,7 +49,7 @@ class Menu(
         Closeables.newGuard().use { guard ->
             val atlas = assets.load("font-atlases/base.conf", OglRecipes.FONT_ATLAS)
             guard.add(atlas)
-            font = atlas.value()["menu"]
+            font = atlas.value()["menu"]!!
             closeable = guard.detach()
         }
         val effectsSlider = Slider(

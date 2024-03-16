@@ -136,7 +136,7 @@ class ObjModelBuilder {
             indices[i] = indexOfFirstFloat / vertices.itemSize
         }
         return ObjFace(
-            material,
+            material.orEmpty(),
             indices
         )
     }

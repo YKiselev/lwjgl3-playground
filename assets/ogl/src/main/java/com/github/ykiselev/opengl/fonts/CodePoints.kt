@@ -205,6 +205,7 @@ class CodePoints private constructor(private val ranges: Array<Range>) {
          * @param src preprocessed collection of dense ranges
          * @return collection where degenerate dense ranges are merged into sparse ranges where applicable.
          */
+        @JvmStatic
         fun mergeDegenerates(src: List<DenseRange>): List<Range> {
             if (src.isEmpty()) {
                 return emptyList()

@@ -86,7 +86,7 @@ class AppConsole(
             )
             background = guard.add(assets.load("images/console.jpg", OglRecipes.SPRITE))
             val atlas = guard.add(assets.load("font-atlases/base.conf", OglRecipes.FONT_ATLAS))
-            ttf = atlas["console"]
+            ttf = atlas["console"]!!
             ac = guard.detach()
         }
     }

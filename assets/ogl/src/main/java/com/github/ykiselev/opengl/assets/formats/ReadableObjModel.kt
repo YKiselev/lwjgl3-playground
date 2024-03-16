@@ -15,10 +15,7 @@
  */
 package com.github.ykiselev.opengl.assets.formats
 
-import com.github.ykiselev.assets.Assets
-import com.github.ykiselev.assets.ReadableAsset
-import com.github.ykiselev.assets.Recipe
-import com.github.ykiselev.assets.ResourceException
+import com.github.ykiselev.assets.*
 import com.github.ykiselev.opengl.assets.formats.obj.ObjModel
 import com.github.ykiselev.opengl.assets.formats.obj.ObjModelBuilder
 import com.github.ykiselev.wrap.Wrap
@@ -31,11 +28,11 @@ import java.nio.charset.StandardCharsets
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-class ReadableObjModel : ReadableAsset<ObjModel, Any> {
+class ReadableObjModel : ReadableAsset<ObjModel, DefaultRecipe.Dummy> {
 
     override fun read(
         channel: ReadableByteChannel,
-        recipe: Recipe<*, ObjModel, Any>?,
+        recipe: Recipe<*, ObjModel, DefaultRecipe.Dummy>?,
         assets: Assets
     ): Wrap<ObjModel> =
         try {
