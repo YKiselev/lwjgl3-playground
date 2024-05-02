@@ -20,30 +20,74 @@ import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.tan
 
-/**
- * Column-oriented 4x4 matrix.
- * <pre>
- * A B C D
- * E F G H
- * I J K L
- * M N O P
- *
- * or as indices:
- *
- * 0 4  8 12
- * 1 5  9 13
- * 2 6 10 14
- * 3 7 11 15
-</pre> *
- * So A have index 0, E - 1, I - 2, M - 3, etc.
- *
- * @author Yuriy Kiselev (uze@yandex.ru).
- */
+interface MathAllocator {
 
-data class Matrix(
-    val allocator: Allocator,
-    val m: FloatBuffer = allocator.floats(16)
-) {
+    fun matrix(): Matrix = instance(Matrix::class.java)
+
+    fun vec3f(): Vector3f = instance(Vector3f::class.java)
+
+    fun vec4f(): Vector4f = instance(Vector4f::class.java)
+
+    fun <T> instance(clazz: Class<T>): T
+
+    fun identity(): Matrix {
+        val result = matrix()
+        identity(result.m)
+        return result
+    }
+
+    fun orthographic(left: Float, right: Float, top: Float, bottom: Float, near: Float, far: Float): Matrix {
+        val result = matrix()
+        orthographic(left, right, top, bottom, near, far, result.m)
+        return result
+    }
+
+    fun perspective(left: Float, right: Float, top: Float, bottom: Float, near: Float, far: Float): Matrix {
+        val result = matrix()
+        perspective(left, right, top, bottom, near, far, result.m)
+        return result
+    }
+
+    fun perspective(fow: Float, ratio: Float, near: Float, far: Float): Matrix {
+        val result = matrix()
+        perspective(fow, ratio, near, far, result.m)
+        return result
+    }
+
+    fun lookAt(target: Vector3f, eye: Vector3f, up: Vector3f): Matrix {
+        val result = matrix()
+        lookAt(target, eye, up, result.m)
+        return result
+    }
+
+    /**
+     * Creates viewing matrix derived from the `eye` point, a reference point `target` indicating the center of the scene and vector `up`
+     * Helpful tip: it's better to think of this as a coordinate system rotation.
+     *
+     * @param target the target point in the scene
+     * @param eye    the eye point
+     * @param up     the upward vector, must not be parallel to the direction vector `dir = target - eye`
+     * @param m      the buffer to store resulting matrix in.
+     */
+    fun lookAt(target: Vector3f, eye: Vector3f, up: Vector3f, m: FloatBuffer) {
+        val zaxis = (eye - target).normalized()
+        val xaxis = up.cross(zaxis).normalized()
+        val yaxis = zaxis.cross(xaxis)
+        m.clear()
+            .put(xaxis.x).put(xaxis.y).put(xaxis.z).put(0f)
+            .put(yaxis.x).put(yaxis.y).put(yaxis.z).put(0f)
+            .put(zaxis.x).put(zaxis.y).put(zaxis.z).put(0f)
+            .put(0f).put(0f).put(0f).put(1f)
+            .flip()
+        transpose(m, m)
+        translate(m, -eye.x, -eye.y, -eye.z, m)
+    }
+
+    fun rotation(ax: Double, ay: Double, az: Double): Matrix {
+        val result = matrix()
+        rotation(ax, ay, az, result.m)
+        return result
+    }
 
     /**
      * Adds this matrix to another.
@@ -51,32 +95,32 @@ data class Matrix(
      * @param b      the second matrix
      * @return the resulting matrix
      */
-    operator fun plus(b: Matrix): Matrix {
-        val result = allocator.matrix()
+    operator fun Matrix.plus(b: Matrix): Matrix {
+        val result = matrix()
         add(m, b.m, result.m)
         return result
     }
 
-    operator fun times(value: Float): Matrix {
-        val result = allocator.matrix()
+    operator fun Matrix.times(value: Float): Matrix {
+        val result = matrix()
         multiply(m, value, result.m)
         return result
     }
 
-    operator fun times(b: Matrix): Matrix {
-        val result = allocator.matrix()
+    operator fun Matrix.times(b: Matrix): Matrix {
+        val result = matrix()
         multiply(m, b.m, result.m)
         return result
     }
 
-    operator fun times(v: Vector3f): Vector3f {
-        val result = allocator.vec3f()
+    operator fun Matrix.times(v: Vector3f): Vector3f {
+        val result = vec3f()
         multiply(m, v, result)
         return result
     }
 
-    operator fun times(v: Vector4f): Vector4f {
-        val result = allocator.vec4f()
+    operator fun Matrix.times(v: Vector4f): Vector4f {
+        val result = vec4f()
         multiply(m, v, result)
         return result
     }
@@ -88,8 +132,8 @@ data class Matrix(
      * @param dy     y translation
      * @param dz     z translation
      */
-    fun translate(dx: Float, dy: Float, dz: Float): Matrix {
-        val result = allocator.matrix()
+    fun Matrix.translate(dx: Float, dy: Float, dz: Float): Matrix {
+        val result = matrix()
         translate(m, dx, dy, dz, result.m)
         return result
     }
@@ -101,66 +145,129 @@ data class Matrix(
      * @param sy     y  scaling factor
      * @param sz     z  scaling factor
      */
-    fun scale(sx: Float, sy: Float, sz: Float): Matrix {
-        val result = allocator.matrix()
+    fun Matrix.scale(sx: Float, sy: Float, sz: Float): Matrix {
+        val result = matrix()
         scale(m, sx, sy, sz, result.m)
         return result
     }
 
-    /**
-     * Transposes this matrix
-     */
-    fun transpose(): Matrix {
-        val result = allocator.matrix()
+    fun Matrix.transpose(): Matrix {
+        val result = matrix()
         transpose(m, result.m)
         return result
     }
 
-    fun determinant(): Double =
+    fun Matrix.determinant(): Double =
         determinant(m)
 
-    fun inverse(): Matrix {
-        val result = allocator.matrix()
+    fun Matrix.inverse(): Matrix {
+        val result = matrix()
         inverse(m, result.m)
         return result
     }
 
-    /**
-     * Show matrix by rows
-     */
-    fun toString(m: FloatBuffer): String {
-        return "{r0(" + m[0] + " " + m[4] + " " + m[8] + " " + m[12] + "), r1(" +
-                m[1] + " " + m[5] + " " + m[9] + " " + m[13] + "), r2(" +
-                m[2] + " " + m[6] + " " + m[10] + " " + m[14] + "), r3(" +
-                m[3] + " " + m[7] + " " + m[11] + " " + m[15] + ")}"
+    private enum class Ops {
+        ADDITION {
+            override fun apply(a: Float, b: Float): Float {
+                return a + b
+            }
+        },
+        SUBTRACTION {
+            override fun apply(a: Float, b: Float): Float {
+                return a - b
+            }
+        },
+        MULTIPLICATION {
+            override fun apply(a: Float, b: Float): Float {
+                return a * b
+            }
+        },
+        DIVISION {
+            override fun apply(a: Float, b: Float): Float {
+                return a / b
+            }
+        };
+
+        abstract fun apply(a: Float, b: Float): Float
     }
 
     /**
-     * Convert to float array
+     * Calculates cross-product vector c = (a × b) that is perpendicular to both a and b, with a direction given by the right-hand rule.
+     *
+     * @param b the second vector
      */
-    fun toArray(): FloatArray {
-        val result = FloatArray(16)
-        m.get(result).flip()
+    infix fun Vector3f.cross(b: Vector3f): Vector3f =
+        vec3f().set(
+            y * b.z - z * b.y,
+            z * b.x - x * b.z,
+            x * b.y - y * b.x
+        )
+
+    /**
+     * Scales the vector.
+     */
+    operator fun Vector3f.times(scale: Float): Vector3f =
+        vec3f().set(x * scale, y * scale, z * scale)
+
+    operator fun Vector3f.times(scale: Double): Vector3f =
+        vec3f().times(scale.toFloat())
+
+    /**
+     * Applies specified operation to supplied vectors.
+     *
+     * @param b the second vector
+     */
+    private fun Vector3f.apply(a: Vector3f, b: Vector3f, op: Ops): Vector3f {
+        x = op.apply(a.x, b.x)
+        y = op.apply(a.y, b.y)
+        z = op.apply(a.z, b.z)
+        return this
+    }
+
+    /**
+     * Adds one vector to another.
+     *
+     * @param b the second vector
+     */
+    operator fun Vector3f.plus(b: Vector3f) =
+        vec3f().apply(this, b, Ops.ADDITION)
+
+    /**
+     * Subtracts one vector from another.
+     *
+     * @param b the second vector
+     */
+    operator fun Vector3f.minus(b: Vector3f): Vector3f =
+        vec3f().apply(this, b, Ops.SUBTRACTION)
+
+
+    /**
+     * Multiplies one vector by another.
+     *
+     * @param b the second vector
+     */
+    operator fun Vector3f.times(b: Vector3f) =
+        vec3f().apply(this, b, Ops.MULTIPLICATION)
+
+    /**
+     * Divides one vector by another.
+     *
+     * @param b the second vector
+     */
+    operator fun Vector3f.div(b: Vector3f) =
+        vec3f().apply(this, b, Ops.DIVISION)
+
+    fun normalize(value: Vector3f): Vector3f {
+        val result = vec3f().set(value)
+        val length = value.length()
+        if (length != 0.0) {
+            return result * (1.0 / length)
+        }
         return result
     }
+
 }
 
-interface Allocator {
-
-    fun matrix(): Matrix
-
-    fun vec3f(): Vector3f
-
-    fun vec4f(): Vector4f
-
-    fun floats(num: Int): FloatBuffer
-}
-
-fun Allocator.identity(): Matrix {
-    val result = matrix()
-    identity(result.m)
-    return result
-}
 
 /**
  * Initializes provided buffer with identity matrix.
@@ -192,12 +299,6 @@ fun copy(a: FloatBuffer, result: FloatBuffer) {
     }
 }
 
-fun Allocator.orthographic(left: Float, right: Float, top: Float, bottom: Float, near: Float, far: Float): Matrix {
-    val result = matrix()
-    orthographic(left, right, top, bottom, near, far, result.m)
-    return result
-}
-
 /**
  * Calculates orthographic projection matrix.
  *
@@ -217,12 +318,6 @@ fun orthographic(left: Float, right: Float, top: Float, bottom: Float, near: Flo
         .put(-(right + left) / (right - left)).put(-(top + bottom) / (top - bottom))
         .put(-(far + near) / (far - near)).put(1f)
         .flip()
-}
-
-fun Allocator.perspective(left: Float, right: Float, top: Float, bottom: Float, near: Float, far: Float): Matrix {
-    val result = matrix()
-    perspective(left, right, top, bottom, near, far, result.m)
-    return result
 }
 
 /**
@@ -246,12 +341,6 @@ fun perspective(left: Float, right: Float, top: Float, bottom: Float, near: Floa
         .flip()
 }
 
-fun Allocator.perspective(fow: Float, ratio: Float, near: Float, far: Float): Matrix {
-    val result = matrix()
-    perspective(fow, ratio, near, far, result.m)
-    return result
-}
-
 /**
  * Calculates perspective projection matrix.
  *
@@ -267,39 +356,6 @@ fun perspective(fow: Float, ratio: Float, near: Float, far: Float, m: FloatBuffe
     perspective(-w, w, h, -h, near, far, m)
 }
 
-fun Allocator.lookAt(target: Vector3f, eye: Vector3f, up: Vector3f): Matrix {
-    val result = matrix()
-    lookAt(target, eye, up, result.m)
-    return result
-}
-
-/**
- * Creates viewing matrix derived from the `eye` point, a reference point `target` indicating the center of the scene and vector `up`
- * Helpful tip: it's better to think of this as a coordinate system rotation.
- *
- * @param target the target point in the scene
- * @param eye    the eye point
- * @param up     the upward vector, must not be parallel to the direction vector `dir = target - eye`
- * @param m      the buffer to store resulting matrix in.
- */
-fun lookAt(target: Vector3f, eye: Vector3f, up: Vector3f, m: FloatBuffer) {
-    val zaxis = Vector3f()
-    zaxis.subtract(eye, target)
-    zaxis.normalize()
-    val xaxis = Vector3f()
-    xaxis.crossProduct(up, zaxis)
-    xaxis.normalize()
-    val yaxis = Vector3f()
-    yaxis.crossProduct(zaxis, xaxis)
-    m.clear()
-        .put(xaxis.x).put(xaxis.y).put(xaxis.z).put(0f)
-        .put(yaxis.x).put(yaxis.y).put(yaxis.z).put(0f)
-        .put(zaxis.x).put(zaxis.y).put(zaxis.z).put(0f)
-        .put(0f).put(0f).put(0f).put(1f)
-        .flip()
-    transpose(m, m)
-    translate(m, -eye.x, -eye.y, -eye.z, m)
-}
 
 /**
  * Adds one matrix to another.
@@ -375,7 +431,7 @@ fun multiply(a: FloatBuffer, s: Float, result: FloatBuffer) {
 }
 
 /**
- * Calclates index of cell in column-major matrix array from a pair of row and column indices.
+ * Calculates index of cell in column-major matrix array from a pair of row and column indices.
  *
  * @param row the matrix row (0-3)
  * @param col the matrix column (0-3)
@@ -498,7 +554,7 @@ fun translate(a: FloatBuffer, dx: Float, dy: Float, dz: Float, result: FloatBuff
 }
 
 /**
- * Combines scaling `(sx,sy,sz)` with matrix `a` and stores resulting matric in `result`
+ * Combines scaling `(sx,sy,sz)` with matrix `a` and stores resulting matrix in `result`
  *
  * @param a      the original matrix
  * @param sx     x scaling factor
@@ -569,12 +625,6 @@ fun transpose(a: FloatBuffer, result: FloatBuffer) {
         .put(m2).put(m6).put(m10).put(m14)
         .put(m3).put(m7).put(m11).put(m15)
         .flip()
-}
-
-fun Allocator.rotation(ax: Double, ay: Double, az: Double): Matrix {
-    val result = matrix()
-    rotation(ax, ay, az, result.m)
-    return result
 }
 
 /**
@@ -766,4 +816,3 @@ fun toArray(m: FloatBuffer): FloatArray {
     m.get(result).flip()
     return result
 }
-

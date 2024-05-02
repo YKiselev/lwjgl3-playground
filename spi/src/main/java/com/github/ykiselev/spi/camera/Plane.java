@@ -23,7 +23,7 @@ public final class Plane {
     }
 
     public Classification classify(Vector3f p, float radius) {
-        double r = normal.dotProduct(p) + d + radius;
+        double r = normal.dot(p) + d + radius;
         if (r < 0) {
             return Classification.OUTSIDE;
         } else if (r == 0) {

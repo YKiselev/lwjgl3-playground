@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import java.nio.FloatBuffer;
 
+import static com.github.ykiselev.opengl.matrices.MathKt.orthographic;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -18,7 +19,7 @@ class FrustumClippingPredicateTest {
     @Test
     void shouldClip() {
         FloatBuffer m = FloatBuffer.allocate(16);
-        Matrix.orthographic(-1f, 1f, 1f, -1f, 1f, 10, m);
+        orthographic(-1f, 1f, 1f, -1f, 1f, 10, m);
         frustum.setFromMatrix(m);
 
         predicate.blockSize(1f);

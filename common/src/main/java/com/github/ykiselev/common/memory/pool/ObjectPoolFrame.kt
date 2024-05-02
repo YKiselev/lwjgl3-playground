@@ -1,40 +1,31 @@
-package com.github.ykiselev.common.memory.pool;
+package com.github.ykiselev.common.memory.pool
 
-import java.util.ArrayList;
-import java.util.List;
+import com.github.ykiselev.common.memory.Allocator
+import java.util.*
 
-import static java.util.Objects.requireNonNull;
+class ObjectPoolFrame<T> internal constructor(val owner: ObjectPool<T>) : AutoCloseable, Allocator<T> {
 
-public final class ObjectPoolFrame<T> implements AutoCloseable {
+    private val pool: MutableList<T> = ArrayList()
 
-    private final ObjectPool<T> owner;
+    private var index = 0
 
-    private final List<T> pool = new ArrayList<>();
-
-    private int index;
-
-    int size() {
-        return pool.size();
+    fun size(): Int {
+        return pool.size
     }
 
-    int index() {
-        return index;
+    fun index(): Int {
+        return index
     }
 
-    ObjectPoolFrame(ObjectPool<T> owner) {
-        this.owner = requireNonNull(owner);
-    }
-
-    public T allocate() {
-        if (index == pool.size()) {
-            pool.add(owner.newInstance());
+    override fun allocate(): T {
+        if (index == pool.size) {
+            pool.add(owner.newInstance())
         }
-        return pool.get(index++);
+        return pool[index++]
     }
 
-    @Override
-    public void close() {
-        index = 0;
-        owner.pop(this);
+    override fun close() {
+        index = 0
+        owner.pop(this)
     }
 }

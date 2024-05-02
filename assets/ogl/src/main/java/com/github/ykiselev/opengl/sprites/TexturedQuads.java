@@ -16,7 +16,6 @@
 
 package com.github.ykiselev.opengl.sprites;
 
-import com.github.ykiselev.opengl.matrices.Matrix;
 import com.github.ykiselev.opengl.shaders.ProgramObject;
 import com.github.ykiselev.opengl.shaders.uniforms.UniformInfo;
 import com.github.ykiselev.opengl.shaders.uniforms.UniformVariable;
@@ -33,6 +32,7 @@ import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.util.function.IntConsumer;
 
+import static com.github.ykiselev.opengl.matrices.MathKt.orthographic;
 import static java.util.Objects.requireNonNull;
 import static org.lwjgl.opengl.GL11.GL_BLEND;
 import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
@@ -328,7 +328,7 @@ public final class TexturedQuads implements AutoCloseable {
 
         texUniform.value(0);
 
-        Matrix.orthographic(x, x + width, y + height, y, -1, 1, matrix);
+        orthographic(x, x + width, y + height, y, -1, 1, matrix);
         mvpUniform.matrix4(false, matrix);
 
         drawCount = 0;
