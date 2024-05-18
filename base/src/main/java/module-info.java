@@ -8,7 +8,7 @@ module ykiselev.playground.base {
     requires org.lwjgl;
     requires org.lwjgl.glfw;
     requires org.lwjgl.opengl;
-    requires slf4j.api;
+    requires org.slf4j;
 
     requires ykiselev.playground.common;
     requires ykiselev.playground.spi;

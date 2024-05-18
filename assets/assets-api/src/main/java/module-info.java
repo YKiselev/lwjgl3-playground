@@ -2,7 +2,7 @@
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
 module ykiselev.assets.api {
-    requires slf4j.api;
+    requires org.slf4j;
     requires transitive ykiselev.wrap;
     requires kotlin.stdlib;
 

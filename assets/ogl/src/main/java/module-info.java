@@ -6,7 +6,7 @@ module ykiselev.playground.assets.ogl {
     requires org.lwjgl.opengl;
     requires org.lwjgl.stb;
     requires commons.lang3;
-    requires slf4j.api;
+    requires org.slf4j;
     requires sprite.font.lib;
     requires typesafe.config;
     requires transitive ykiselev.wrap;

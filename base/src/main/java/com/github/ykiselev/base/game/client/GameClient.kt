@@ -7,6 +7,7 @@ import com.github.ykiselev.opengl.OglRecipes
 import com.github.ykiselev.opengl.buffers.FrameBuffer
 import com.github.ykiselev.opengl.fonts.TrueTypeFont
 import com.github.ykiselev.opengl.matrices.Matrix
+import com.github.ykiselev.opengl.matrices.identity
 import com.github.ykiselev.opengl.sprites.Colors
 import com.github.ykiselev.opengl.sprites.TextAlignment
 import com.github.ykiselev.opengl.sprites.TextAttributes
@@ -88,7 +89,7 @@ class GameClient(host: GameFactoryArgs) : Updatable, AutoCloseable, WindowEvents
     }
 
     private fun setupProjectionViewMatrix(width: Int, height: Int) {
-        Matrix.identity(vp)
+        identity(vp)
         camera.apply(width.toFloat() / height, vp)
     }
 

@@ -24,9 +24,9 @@ import org.junit.jupiter.api.Test
  */
 class Vector3fTest {
     private fun assertVectorEquals(x: Float, y: Float, z: Float, v: Vector3f) {
-        Assertions.assertEquals(x, v.x, 0.001f)
-        Assertions.assertEquals(y, v.y, 0.001f)
-        Assertions.assertEquals(z, v.z, 0.001f)
+        Assertions.assertEquals(x, v.x, 0.001f, "x")
+        Assertions.assertEquals(y, v.y, 0.001f, "y")
+        Assertions.assertEquals(z, v.z, 0.001f, "z")
     }
 
     @Test
@@ -86,7 +86,7 @@ class Vector3fTest {
             assertVectorEquals(0f, 0f, -1f, v)
 
             v.set(1f, 0f, 0f)
-            v cross Vector3f(0f, 1f, 0f)
+            v = v cross Vector3f(0f, 1f, 0f)
             assertVectorEquals(0f, 0f, 1f, v)
         }
     }

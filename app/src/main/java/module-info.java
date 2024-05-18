@@ -8,7 +8,7 @@ module ykiselev.playground.app {
     requires org.lwjgl.glfw;
     requires org.lwjgl.openal;
     requires org.lwjgl.opengl;
-    requires slf4j.api;
+    requires org.slf4j;
     requires org.apache.logging.log4j;
     requires org.apache.logging.log4j.core;
     requires typesafe.config;

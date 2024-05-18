@@ -5,7 +5,7 @@ module ykiselev.playground.spi {
     requires org.lwjgl;
     requires org.lwjgl.glfw;
     requires typesafe.config;
-    requires slf4j.api;
+    requires org.slf4j;
     requires transitive ykiselev.assets.api;
     requires ykiselev.playground.common;
     requires ykiselev.playground.assets.ogl;

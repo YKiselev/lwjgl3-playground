@@ -29,6 +29,7 @@ import org.lwjgl.system.MemoryStack;
 
 import java.nio.FloatBuffer;
 
+import static com.github.ykiselev.opengl.matrices.MathKt.*;
 import static org.lwjgl.glfw.GLFW.glfwGetTime;
 
 /**
@@ -59,26 +60,26 @@ public final class Pyramids implements AutoCloseable {
             final FloatBuffer mvp = ms.mallocFloat(16);
 
             // 1
-            Matrix.rotation(0, 0, Math.toRadians(25 * sec % 360), rm);
-            Matrix.multiply(vp, rm, mvp);
+            rotation(0, 0, Math.toRadians(25 * sec % 360), rm);
+            multiply(vp, rm, mvp);
             mvpUniform.matrix4(false, mvp);
             geometry.draw();
 
             // 2
-            Matrix.identity(rm);
-            Matrix.translate(rm, 5, 0, 0, rm);
-            Matrix.rotation(0, Math.toRadians(15 * sec % 360), 0, mvp);
+            identity(rm);
+            translate(rm, 5, 0, 0, rm);
+            rotation(0, Math.toRadians(15 * sec % 360), 0, mvp);
             //Matrix.scale(rm, 3, 3, 3, rm);
-            Matrix.multiply(rm, mvp, rm);
-            Matrix.multiply(vp, rm, mvp);
+            multiply(rm, mvp, rm);
+            multiply(vp, rm, mvp);
             mvpUniform.matrix4(false, mvp);
             geometry.draw();
 
             // 3
-            Matrix.identity(rm);
-            Matrix.translate(rm, -2, 0, 0, rm);
-            Matrix.rotation(Math.toRadians(15 * sec % 360), 0, 0, rm);
-            Matrix.multiply(vp, rm, mvp);
+            identity(rm);
+            translate(rm, -2, 0, 0, rm);
+            rotation(Math.toRadians(15 * sec % 360), 0, 0, rm);
+            multiply(vp, rm, mvp);
             mvpUniform.matrix4(false, mvp);
             //geometry.draw();
         }
