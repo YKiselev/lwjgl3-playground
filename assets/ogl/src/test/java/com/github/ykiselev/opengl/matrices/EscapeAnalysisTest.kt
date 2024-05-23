@@ -75,13 +75,13 @@ object EscapeAnalysisTest {
 
     private var counter = 0L
 
-    private fun sink(v: V) {
+    private fun sink(v: Any) {
         counter += v.hashCode()
     }
 
     @JvmStatic
     fun main(args: Array<String>) {
-        val a = V(1f, 2f, 3f, 4f)
+        val a = Vector3f(1f, 2f, 3f)
         val t0 = System.currentTimeMillis()
         var i = 0L
         do {
@@ -100,7 +100,7 @@ object EscapeAnalysisTest {
             a.x = i.toFloat()
             a.y = c.y + e.y - b.y
             a.z = d.z - e.z
-            a.w = e.w - d.w
+
 //            MemoryStack.stackPush().use {
 //                val m = M.identity2(it.mallocFloat(16))
 //                m.m.put(0, i.toFloat())
@@ -108,12 +108,12 @@ object EscapeAnalysisTest {
 //                m.m.put(2, c.x)
 //                m.m.put(3, b.y)
 //                m.m.put(4, d.y)
-            val m = M2.identity()
-            m.m[0] = i.toFloat()
-            m.m[1] = b.x
-            m.m[2] = c.x
-            m.m[3] = b.y
-            m.m[4] = d.y
+            val m = Matrix.identity()
+            //m.m[0] = i.toFloat()
+            //m.m[1] = b.x
+            //m.m[2] = c.x
+            //m.m[3] = b.y
+            //m.m[4] = d.y
 
             val f = m * a
             a.set(f)

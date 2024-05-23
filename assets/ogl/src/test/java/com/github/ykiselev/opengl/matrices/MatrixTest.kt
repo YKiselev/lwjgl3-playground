@@ -16,7 +16,6 @@
 package com.github.ykiselev.opengl.matrices
 
 import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
@@ -30,7 +29,7 @@ class MatrixTest {
 
     private fun assertMatrixEquals(actual: Matrix, vararg expected: Float) {
         for ((i, v) in expected.withIndex()) {
-            val v1 = actual.m[i]
+            val v1 = actual[i]
             assertEquals(v, v1, 0.0001f, "Difference at #$i")
         }
     }
@@ -65,7 +64,7 @@ class MatrixTest {
         // add translation and store in separate matrix
         val m2 = rm.translate(1f, 2f, 3f)
 
-        assertArrayEquals(m.m, m2.m, 0.001f)
+        assertArrayEquals(m.toArray(), m2.toArray(), 0.001f)
     }
 
     @Test

@@ -26,7 +26,9 @@ import kotlin.math.tan
  */
 
 @JvmInline
-value class Matrix(val m: FloatArray = FloatArray(16)) {
+value class Matrix(private val m: FloatArray = FloatArray(16)) {
+
+    operator fun get(index: Int): Float  = m[index]
 
     /**
      * Adds this matrix to another.
@@ -117,6 +119,9 @@ value class Matrix(val m: FloatArray = FloatArray(16)) {
         inverse(m, result)
         return Matrix(result)
     }
+
+    fun toArray(): FloatArray =
+        m.copyOf()
 
     /**
      * Show matrix by rows
