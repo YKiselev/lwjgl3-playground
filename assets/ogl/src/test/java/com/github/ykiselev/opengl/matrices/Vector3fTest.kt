@@ -15,8 +15,9 @@
  */
 package com.github.ykiselev.opengl.matrices
 
-import com.github.ykiselev.opengl.pools.math
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 /**
@@ -38,10 +39,7 @@ class Vector3fTest {
 
     @Test
     fun normalize() {
-        math {
-            val v = Vector3f(1f, 1f, 1f).normalize()
-            assertVectorEquals(0.577f, 0.577f, 0.577f, v)
-        }
+        assertVectorEquals(0.577f, 0.577f, 0.577f, Vector3f(1f, 1f, 1f).normalize())
     }
 
     @Test
@@ -76,104 +74,84 @@ class Vector3fTest {
 
     @Test
     fun crossProduct() {
-        math {
-            var v = Vector3f(1f, 0f, 0f) cross Vector3f(0f, 1f, 0f)
-            assertVectorEquals(0f, 0f, 1f, v)
+        var v = Vector3f(1f, 0f, 0f) cross Vector3f(0f, 1f, 0f)
+        assertVectorEquals(0f, 0f, 1f, v)
 
-            v = Vector3f(-1f, 0f, 0f) cross Vector3f(0f, -1f, 0f)
-            assertVectorEquals(0f, 0f, 1f, v)
+        v = Vector3f(-1f, 0f, 0f) cross Vector3f(0f, -1f, 0f)
+        assertVectorEquals(0f, 0f, 1f, v)
 
-            v = Vector3f(-1f, 0f, 0f) cross Vector3f(0f, 1f, 0f)
-            assertVectorEquals(0f, 0f, -1f, v)
+        v = Vector3f(-1f, 0f, 0f) cross Vector3f(0f, 1f, 0f)
+        assertVectorEquals(0f, 0f, -1f, v)
 
-            v.set(1f, 0f, 0f)
-            v = v cross Vector3f(0f, 1f, 0f)
-            assertVectorEquals(0f, 0f, 1f, v)
-        }
+        v.set(1f, 0f, 0f)
+        v = v cross Vector3f(0f, 1f, 0f)
+        assertVectorEquals(0f, 0f, 1f, v)
     }
 
     @Test
     fun scale() {
-        math {
-            val v = Vector3f(1f, 2f, 3f) * 3f
-            assertVectorEquals(3f, 6f, 9f, v)
-        }
+        val v = Vector3f(1f, 2f, 3f) * 3f
+        assertVectorEquals(3f, 6f, 9f, v)
     }
 
     @Test
     fun addTwoArgs() {
-        math {
-            val v = Vector3f(1f, 2f, 3f) + Vector3f(4f, 5f, 6f)
-            assertVectorEquals(5f, 7f, 9f, v)
-        }
+        val v = Vector3f(1f, 2f, 3f) + Vector3f(4f, 5f, 6f)
+        assertVectorEquals(5f, 7f, 9f, v)
     }
 
     @Test
     fun add() {
-        math {
-            val v = Vector3f(1f, 2f, 3f) + Vector3f(4f, 5f, 6f)
-            assertVectorEquals(5f, 7f, 9f, v)
-        }
+        val v = Vector3f(1f, 2f, 3f) + Vector3f(4f, 5f, 6f)
+        assertVectorEquals(5f, 7f, 9f, v)
     }
 
     @Test
     fun subtractTwoArgs() {
-        math {
-            val v = Vector3f(4f, 7f, 11f) - Vector3f(1f, 2f, 3f)
-            assertVectorEquals(3f, 5f, 8f, v)
-        }
+        val v = Vector3f(4f, 7f, 11f) - Vector3f(1f, 2f, 3f)
+        assertVectorEquals(3f, 5f, 8f, v)
     }
 
     @Test
     fun subtract() {
-        math {
-            val v = Vector3f(4f, 7f, 11f) - Vector3f(1f, 2f, 3f)
-            assertVectorEquals(3f, 5f, 8f, v)
-        }
+        val v = Vector3f(4f, 7f, 11f) - Vector3f(1f, 2f, 3f)
+        assertVectorEquals(3f, 5f, 8f, v)
     }
 
     @Test
     fun multiplyTwoArgs() {
-        math {
-            val v = Vector3f(1f, 2f, 3f) * Vector3f(4f, 5f, 6f)
-            assertVectorEquals(4f, 10f, 18f, v)
-        }
+        val v = Vector3f(1f, 2f, 3f) * Vector3f(4f, 5f, 6f)
+        assertVectorEquals(4f, 10f, 18f, v)
     }
 
     @Test
     fun multiply() {
-        math {
-            val v = Vector3f(1f, 2f, 3f) * Vector3f(4f, 5f, 6f)
-            assertVectorEquals(4f, 10f, 18f, v)
-        }
+        val v = Vector3f(1f, 2f, 3f) * Vector3f(4f, 5f, 6f)
+        assertVectorEquals(4f, 10f, 18f, v)
     }
 
     @Test
     fun divideTwoArgs() {
-        math {
-            val v = Vector3f(2f, 6f, 9f) / Vector3f(1f, 2f, 3f)
-            assertVectorEquals(2f, 3f, 3f, v)
-        }
+        val v = Vector3f(2f, 6f, 9f) / Vector3f(1f, 2f, 3f)
+        assertVectorEquals(2f, 3f, 3f, v)
     }
 
     @Test
     fun divide() {
-        math {
-            val v = Vector3f(2f, 6f, 9f) / Vector3f(1f, 2f, 3f)
-            assertVectorEquals(2f, 3f, 3f, v)
-        }
+        val v = Vector3f(2f, 6f, 9f) / Vector3f(1f, 2f, 3f)
+        assertVectorEquals(2f, 3f, 3f, v)
     }
 
     @Test
     fun equals() {
         val v = Vector3f(1.0001f, 2.0001f, 3.0001f)
-        Assertions.assertTrue(
+        assertTrue(
             v.equals(
                 Vector3f(1.0002f, 2.0002f, 3.0000f),
                 0.0001f
             )
         )
-        Assertions.assertFalse(
+        assertFalse(
             v.equals(
                 Vector3f(1.0003f, 2.0002f, 3.0000f),
                 0.0001f
@@ -183,7 +161,7 @@ class Vector3fTest {
 
     @Test
     fun isEmpty() {
-        Assertions.assertTrue(
+        assertTrue(
             Vector3f(0.0001f, 0.0001f, 0.0001f)
                 .isEmpty(0.0001f)
         )

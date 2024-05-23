@@ -23,7 +23,6 @@ module ykiselev.playground.assets.ogl {
     exports com.github.ykiselev.opengl.materials;
     exports com.github.ykiselev.opengl.matrices;
     exports com.github.ykiselev.opengl.models;
-    exports com.github.ykiselev.opengl.pools;
     exports com.github.ykiselev.opengl.shaders;
     exports com.github.ykiselev.opengl.shaders.uniforms;
     exports com.github.ykiselev.opengl.sprites;

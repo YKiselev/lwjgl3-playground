@@ -20,7 +20,7 @@ class Plane {
                 "Invalid plane: ($n, $d)"
             }
             val ool = 1.0 / len
-            normal.set(n.times(ool))
+            normal.set(n * ool)
             this@Plane.d = (d * ool).toFloat()
         }
     }
