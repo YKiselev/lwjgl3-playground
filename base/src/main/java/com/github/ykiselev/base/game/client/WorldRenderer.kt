@@ -22,11 +22,11 @@ class WorldRenderer(assets: Assets) : AutoCloseable {
 
     private val countingPredicate = CountingPredicate(frustumClippingPredicate)
 
-    private var materialAtlas: MaterialAtlas? = null
+    private val materialAtlas: MaterialAtlas
 
-    private var block: Block? = null
+    private val block: Block
 
-    private var ac: AutoCloseable? = null
+    private val ac: AutoCloseable
 
     init {
         newGuard().use { guard ->
@@ -37,10 +37,10 @@ class WorldRenderer(assets: Assets) : AutoCloseable {
     }
 
     override fun close() {
-        close(ac!!)
+        close(ac)
     }
 
-    fun draw(world: World?, vp: FloatBuffer?) {
+    fun draw(world: World?, vp: FloatBuffer) {
         if (world == null) {
             return
         }
@@ -52,8 +52,8 @@ class WorldRenderer(assets: Assets) : AutoCloseable {
         frustum.setFromMatrix(vp)
 
         //glActiveTexture(GL_TEXTURE0);
-        materialAtlas!!.texture().bind()
-        block!!.begin(vp, materialAtlas!!.sScale(), materialAtlas!!.tScale())
+        materialAtlas.texture().bind()
+        block.begin(vp, materialAtlas.sScale(), materialAtlas.tScale())
 
         val blockSize = 1f
         frustumClippingPredicate.blockSize(blockSize)
@@ -89,9 +89,9 @@ class WorldRenderer(assets: Assets) : AutoCloseable {
                             throw IndexOutOfBoundsException(idx)
                         }
 
-                        val material = materialAtlas!![data[idx].toInt()]
+                        val material = materialAtlas[data[idx].toInt()]
                         if (material != null) {
-                            block!!.draw(x, y, z, material.ds, material.dt)
+                            block.draw(x, y, z, material.ds, material.dt)
                         }
                         idx++
                         i++
@@ -101,14 +101,14 @@ class WorldRenderer(assets: Assets) : AutoCloseable {
             }
         })
 
-        block!!.end()
-        materialAtlas!!.texture().unbind()
+        block.end()
+        materialAtlas.texture().unbind()
     }
 
     fun formatStats(): String {
         return String.format(
             "inst: %d, nrej: %d, npass: %d, lrej: %d, lpass: %d",
-            block!!.totalInstances(),
+            block.totalInstances(),
             countingPredicate.nodesRejected(),
             countingPredicate.nodesPassed(),
             countingPredicate.leafsRejected(),

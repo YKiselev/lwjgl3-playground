@@ -1,5 +1,6 @@
 package com.github.ykiselev.opengl.matrices
 
+import org.lwjgl.system.MemoryUtil
 import java.nio.FloatBuffer
 
 /**
@@ -22,7 +23,7 @@ import java.nio.FloatBuffer
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
 
-data class Matrix(val m: FloatBuffer) {
+data class Matrix(val m: FloatBuffer = MemoryUtil.memAllocFloat(16)) {
 
     /**
      * Show matrix by rows

@@ -8,8 +8,10 @@ class MathPoolsTest {
     fun shouldPush() {
         math {
             val m = identity()
-            val v = m * vec3f().set(1f, 2f, 3f)
+            val v = m * vec3f(1f, 2f, 3f)
         }
-        printMathPoolInfo()
+        printMathPoolInfo{
+            println(it)
+        }
     }
 }

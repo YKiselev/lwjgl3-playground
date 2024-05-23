@@ -1,108 +1,108 @@
-package com.github.ykiselev.base.game.client;
+package com.github.ykiselev.base.game.client
 
-import com.github.ykiselev.opengl.matrices.Vector3f;
-import com.github.ykiselev.opengl.pools.Vector3fPool;
-import org.lwjgl.system.MemoryStack;
+import com.github.ykiselev.opengl.matrices.*
+import com.github.ykiselev.opengl.pools.math
+import org.lwjgl.system.MemoryStack
+import java.nio.FloatBuffer
 
-import java.nio.FloatBuffer;
+class Camera {
 
-import static com.github.ykiselev.opengl.matrices.MathKt.*;
+    private val direction = Vector3f()
+    private val up = Vector3f()
+    private val right = Vector3f()
+    private var yaw = 0.0
+    private var pitch = 0.0
+    private var x = 0f
+    private var y = 0f
+    private var z = 0f
+    private var dx = 0f
+    private var dy = 0f
+    private var rx = 0f
+    private var ry = 0f
+    private val zNear = 0.1f
+    private val zFar = 100f
+    private val fow = 90f
 
-public final class Camera {
+    fun set(x: Float, y: Float, z: Float) {
+        this.x = x
+        this.y = y
+        this.z = z
+    }
 
-    private final Vector3f direction = new Vector3f(), up = new Vector3f(), right = new Vector3f();
-    private double yaw, pitch;
-    private float x, y, z, dx, dy, rx, ry, zNear = 0.1f, zFar = 100f, fow = 90f;
+    fun move(delta: Float) {
+        buildVectors()
+        x += dx * delta
+        y += dy * delta
+    }
 
-    private static double limitAngle(double value) {
-        if (value > 360) {
-            return value - 360;
+    fun strafe(delta: Float) {
+        buildVectors()
+        x += rx * delta
+        y += ry * delta
+    }
+
+    fun moveUp(delta: Float) {
+        z += delta
+    }
+
+    fun rotate(dx: Double, dy: Double) {
+        yaw = limitAngle(yaw - dy)
+        pitch = limitAngle(pitch + dx)
+    }
+
+    private fun buildVectors() {
+        //MemoryStack.stackPush().use { ms ->
+        math {
+            //val mat = identity()// ms.mallocFloat(16)
+            val mat = buildRotation(this).inverse()
+            //inverse(mat, mat)
+
+            val newDirection = mat * vec3f(0f, 0f, -1f)
+            //direction.set(0f, 0f, -1f)
+            //multiply(mat, direction, direction)
+            val newUp = mat * vec3f(0f, 1f, 0f)
+            //up.set(0f, 1f, 0f)
+            //multiply(mat, up, up)
+            val newRight = mat * vec3f(1f, 0f, 0f)
+            //right.set(1f, 0f, 0f)
+            //multiply(mat, right, right)
+
+            val v1 = vec3f(newDirection.x, newDirection.y, 0f).normalize()// vectors.allocate()
+            //v.set(direction.x, direction.y, 0f)
+            //v.normalize()
+            dx = v1.x
+            dy = v1.y
+
+            val v2 = vec3f(newRight.x, newRight.y, 0f).normalize()
+            //v.normalize()
+            rx = v2.x
+            ry = v2.y
+
+            direction.set(newDirection.normalize())
+            up.set(newUp.normalize())
+            right.set(newRight.normalize())
         }
-        if (value < -360) {
-            return value + 360;
-        }
-        return value;
+        //}
     }
 
-    public void set(float x, float y, float z) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-    }
+    private fun buildRotation(math: MathAllocator): Matrix =
+        math.rotation(Math.toRadians(yaw - 90), 0.0, Math.toRadians(pitch))
 
-    public void move(float delta) {
-        buildVectors();
-        x += dx * delta;
-        y += dy * delta;
-    }
+    fun apply(ratio: Float, m: FloatBuffer) {
+        perspective(Math.toRadians(fow.toDouble()).toFloat(), ratio, zNear, zFar, m!!)
 
-    public void strafe(float delta) {
-        buildVectors();
-        x += rx * delta;
-        y += ry * delta;
-    }
+        MemoryStack.stackPush().use { ms ->
+            val mat = ms.mallocFloat(16)
+            buildRotation(mat)
+            multiply(m, mat, m)
 
-    public void moveUp(float delta) {
-        z += delta;
-    }
-
-    public void rotate(double dx, double dy) {
-        yaw = limitAngle(yaw - dy);
-        pitch = limitAngle(pitch + dx);
-    }
-
-    private void buildVectors() {
-        try (var ms = MemoryStack.stackPush();
-             var vectors = Vector3fPool.push()) {
-            final FloatBuffer mat = ms.mallocFloat(16);
-
-            buildRotation(mat);
-            inverse(mat, mat);
-
-            direction.set(0, 0, -1);
-            multiply(mat, direction, direction);
-            up.set(0, 1, 0);
-            multiply(mat, up, up);
-            right.set(1, 0, 0);
-            multiply(mat, right, right);
-
-            Vector3f v = vectors.allocate();
-            v.set(direction.x, direction.y, 0);
-            v.normalize();
-            dx = v.x;
-            dy = v.y;
-
-            v.set(right.x, right.y, 0);
-            v.normalize();
-            rx = v.x;
-            ry = v.y;
-        }
-        direction.normalize();
-        up.normalize();
-        right.normalize();
-    }
-
-    private void buildRotation(FloatBuffer m) {
-        rotation(Math.toRadians(yaw - 90), 0, Math.toRadians(pitch), m);
-    }
-
-    public void apply(float ratio, FloatBuffer m) {
-        perspective((float) Math.toRadians(fow), ratio, zNear, zFar, m);
-
-        try (MemoryStack ms = MemoryStack.stackPush()) {
-            final FloatBuffer mat = ms.mallocFloat(16);
-
-            buildRotation(mat);
-            multiply(m, mat, m);
-
-            identity(mat);
-            translate(mat, -x, -y, -z, mat);
-            multiply(m, mat, m);
+            identity(mat)
+            translate(mat, -x, -y, -z, mat)
+            multiply(m, mat, m)
         }
     }
 
-    @Override
-    public String toString() {
+    override fun toString(): String {
         return "Camera{" +
                 "yaw=" + yaw +
                 ", pitch=" + pitch +
@@ -113,6 +113,18 @@ public final class Camera {
                 ", dy=" + dy +
                 ", rx=" + rx +
                 ", ry=" + ry +
-                '}';
+                '}'
+    }
+
+    companion object {
+        private fun limitAngle(value: Double): Double {
+            if (value > 360) {
+                return value - 360
+            }
+            if (value < -360) {
+                return value + 360
+            }
+            return value
+        }
     }
 }

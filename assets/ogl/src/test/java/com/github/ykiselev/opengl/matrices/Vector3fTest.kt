@@ -38,9 +38,10 @@ class Vector3fTest {
 
     @Test
     fun normalize() {
-        val v = Vector3f(1f, 1f, 1f)
-        v.normalize()
-        assertVectorEquals(0.577f, 0.577f, 0.577f, v)
+        math {
+            val v = Vector3f(1f, 1f, 1f).normalize()
+            assertVectorEquals(0.577f, 0.577f, 0.577f, v)
+        }
     }
 
     @Test

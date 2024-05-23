@@ -32,12 +32,12 @@ class MatrixTest {
 
     private val m: FloatBuffer = FloatBuffer.allocate(16)
 
+    private val r: FloatBuffer = FloatBuffer.allocate(16)
+
     private fun assertMatrixEquals(actual: FloatBuffer, vararg expected: Float) {
-        var i = 0
-        for (v in expected) {
+        for ((i, v) in expected.withIndex()) {
             val v1 = actual[i]
             Assertions.assertEquals(v, v1, 0.0001f, "Difference at #$i")
-            i++
         }
     }
 
@@ -60,8 +60,8 @@ class MatrixTest {
     @ParameterizedTest
     @MethodSource("translateArgs")
     fun shouldTranslate(v: Vector3f, trans: Vector3f, expected: Vector3f) {
-        translate(m, trans.x, trans.y, trans.z, m)
-        multiply(m, v, v)
+        translate(m, trans.x, trans.y, trans.z, r)
+        multiply(r, v, v)
         Assertions.assertTrue(
             expected.equals(v, 0.0001f),
             "expected $expected but was $v"
@@ -95,9 +95,9 @@ class MatrixTest {
     @Test
     fun shouldAddTranslationToExistingMatrix() {
         rotation(0.0, 0.0, Math.toRadians(45.0), m)
-        translate(m, 1f, 2f, 3f, m)
+        translate(m, 1f, 2f, 3f, r)
         val v = v(4f, 5f, 6f)
-        multiply(m, v, v)
+        multiply(r, v, v)
         assertVectorEquals(-1.414f, 8.485f, 9f, v)
     }
 
@@ -109,9 +109,9 @@ class MatrixTest {
             .put(9f).put(10f).put(11f).put(12f)
             .put(13f).put(14f).put(15f).put(16f)
             .flip()
-        scale(m, 2f, 4f, 8f, m)
+        scale(m, 2f, 4f, 8f, r)
         assertMatrixEquals(
-            m,
+            r,
             2f, 4f, 6f, 8f,
             20f, 24f, 28f, 32f,
             72f, 80f, 88f, 96f,
@@ -127,9 +127,9 @@ class MatrixTest {
             .put(9f).put(10f).put(11f).put(12f)
             .put(13f).put(14f).put(15f).put(16f)
             .flip()
-        transpose(m, m)
+        transpose(m, r)
         assertMatrixEquals(
-            m,
+            r,
             1f, 5f, 9f, 13f,
             2f, 6f, 10f, 14f,
             3f, 7f, 11f, 15f,
@@ -166,9 +166,9 @@ class MatrixTest {
         }
         a.flip()
         b.flip()
-        add(a, b, m)
+        add(a, b, r)
         assertMatrixEquals(
-            m,
+            r,
             17f, 17f, 17f, 17f,
             17f, 17f, 17f, 17f,
             17f, 17f, 17f, 17f,
@@ -184,9 +184,9 @@ class MatrixTest {
             .put(9f).put(10f).put(11f).put(12f)
             .put(13f).put(14f).put(15f).put(16f)
             .flip()
-        multiply(m, 2f, m)
+        multiply(m, 2f, r)
         assertMatrixEquals(
-            m,
+            r,
             2f, 4f, 6f, 8f,
             10f, 12f, 14f, 16f,
             18f, 20f, 22f, 24f,
@@ -225,10 +225,10 @@ class MatrixTest {
                     0f, 0f, 0f, 1f
                 )
             ),
-            m
+            r
         )
         assertMatrixEquals(
-            m,
+            r,
             1f, 5f, 9f, 1f,
             2f, 6f, 10f, 2f,
             3f, 7f, 11f, 3f,
@@ -247,9 +247,6 @@ class MatrixTest {
         )
         multiply(m, v, v)
         assertEquals(expected, v)
-        //        assertTrue(
-//                expected.equals(v, 0.0001f)
-//        );
     }
 
     @Test
@@ -276,9 +273,9 @@ class MatrixTest {
             .put(5f).put(8f).put(1f).put(12f)
             .put(9f).put(11f).put(13f).put(1f)
             .flip()
-        inverse(m, m)
+        inverse(m, r)
         assertMatrixEquals(
-            m,
+            r,
             -1643f / 2369, 744f / 2369, 194f / 2369, 90f / 2369,
             816f / 2369, -593f / 2369, 81f / 2369, 62f / 2369,
             439f / 2369, -20f / 2369, -209f / 2369, 74f / 2369,

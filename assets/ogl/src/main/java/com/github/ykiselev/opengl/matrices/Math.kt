@@ -26,6 +26,10 @@ interface MathAllocator {
 
     fun vec3f(): Vector3f = instance(Vector3f::class.java)
 
+    fun vec3f(x: Float, y: Float, z: Float): Vector3f = vec3f().set(x, y, z)
+
+    fun vec3f(src: Vector3f): Vector3f = vec3f().set(src)
+
     fun vec4f(): Vector4f = instance(Vector4f::class.java)
 
     fun <T> instance(clazz: Class<T>): T
@@ -70,8 +74,8 @@ interface MathAllocator {
      * @param m      the buffer to store resulting matrix in.
      */
     fun lookAt(target: Vector3f, eye: Vector3f, up: Vector3f, m: FloatBuffer) {
-        val zaxis = (eye - target).normalized()
-        val xaxis = up.cross(zaxis).normalized()
+        val zaxis = (eye - target).normalize()
+        val xaxis = (up.cross(zaxis)).normalize()
         val yaxis = zaxis.cross(xaxis)
         m.clear()
             .put(xaxis.x).put(xaxis.y).put(xaxis.z).put(0f)
@@ -210,7 +214,7 @@ interface MathAllocator {
         vec3f().set(x * scale, y * scale, z * scale)
 
     operator fun Vector3f.times(scale: Double): Vector3f =
-        vec3f().times(scale.toFloat())
+        vec3f(this).times(scale.toFloat())
 
     /**
      * Applies specified operation to supplied vectors.
@@ -257,15 +261,13 @@ interface MathAllocator {
     operator fun Vector3f.div(b: Vector3f) =
         vec3f().apply(this, b, Ops.DIVISION)
 
-    fun normalize(value: Vector3f): Vector3f {
-        val result = vec3f().set(value)
-        val length = value.length()
+    fun Vector3f.normalize(): Vector3f {
+        val length = length()
         if (length != 0.0) {
-            return result * (1.0 / length)
+            return this * (1.0 / length)
         }
-        return result
+        return vec3f().set(this)
     }
-
 }
 
 
@@ -794,7 +796,7 @@ fun inverse(a: FloatBuffer, result: FloatBuffer) {
 
     val ood = 1.0 / det
     for (i in 0..15) {
-        a.put(i, (a[i] * ood).toFloat())
+        result.put(i, (result[i] * ood).toFloat())
     }
 }
 

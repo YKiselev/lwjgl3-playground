@@ -43,7 +43,7 @@ class GameClient(host: GameFactoryArgs) : Updatable, AutoCloseable, WindowEvents
     private val fileSystem: FileSystem
     private val cuddles: Texture2d
     private val ttf: TrueTypeFont
-    private val vp: FloatBuffer
+    private val vp: Matrix = Matrix()
     private var lmbPressed = false
     private var rmbPressed = false
     private var active = false
@@ -73,7 +73,7 @@ class GameClient(host: GameFactoryArgs) : Updatable, AutoCloseable, WindowEvents
             ttf = atlas.value()["console"]!!
             pyramids = guard.add(Pyramids(assets))
             renderer = guard.add(WorldRenderer(assets))
-            vp = MemoryUtil.memAllocFloat(16)
+            //vp = MemoryUtil.memAllocFloat(16)
             frameBuffer = guard.add(FrameBuffer())
             closeable = guard.detach()
         }

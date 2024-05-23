@@ -14,8 +14,8 @@ fun <R> math(block: MathAllocator.() -> R): R =
         it.block()
     }
 
-fun printMathPoolInfo() {
-    MathPools.printInfo()
+fun printMathPoolInfo(consumer: (String) -> Unit) {
+    MathPools.printInfo(consumer)
 }
 
 private class MathPools(val frame: MultiPool<MathPools>.Frame) : MathAllocator, AutoCloseable {
@@ -49,13 +49,13 @@ private class MathPools(val frame: MultiPool<MathPools>.Frame) : MathAllocator, 
         fun push(): MathPools =
             TLS.get().push()
 
-        fun printInfo() {
+        fun printInfo(consumer: (String) -> Unit) {
             TLS.get().visit { framesDecorators ->
                 framesDecorators.forEach {
-                    logger.info("Frame:")
+                    consumer("Frame:")
                     it.frame.visit { map ->
                         map.forEach { (k, v) ->
-                            logger.info("\t{}: {}", k, v)
+                            consumer("\t$k: $v")
                         }
                     }
                 }

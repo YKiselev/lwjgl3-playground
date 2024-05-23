@@ -1,42 +1,37 @@
-package com.github.ykiselev.spi.camera;
+package com.github.ykiselev.spi.camera
 
-import com.github.ykiselev.opengl.matrices.Vector3f;
+import com.github.ykiselev.opengl.matrices.Vector3f
+import com.github.ykiselev.opengl.pools.math
 
-public final class Plane {
-
-    public enum Classification {
+class Plane {
+    enum class Classification {
         INSIDE, OUTSIDE, ON_PLANE
     }
 
-    private final Vector3f normal = new Vector3f();
+    val normal: Vector3f = Vector3f()
+    var d: Float = 0f
+        private set
 
-    private float d;
-
-    public void set(float a, float b, float c, float d) {
-        normal.set(a, b, c);
-        double ool = normal.normalize();
-        this.d = (float) (d * ool);
-    }
-
-    public Classification classify(Vector3f p) {
-        return classify(p, 0f);
-    }
-
-    public Classification classify(Vector3f p, float radius) {
-        double r = normal.dot(p) + d + radius;
-        if (r < 0) {
-            return Classification.OUTSIDE;
-        } else if (r == 0) {
-            return Classification.ON_PLANE;
+    fun set(a: Float, b: Float, c: Float, d: Float) {
+        math {
+            val n = vec3f(a, b, c)
+            val len = n.length()
+            check(len != 0.0) {
+                "Invalid plane: ($n, $d)"
+            }
+            val ool = 1.0 / len
+            normal.set(n.times(ool))
+            this@Plane.d = (d * ool).toFloat()
         }
-        return Classification.INSIDE;
     }
 
-    @Override
-    public String toString() {
-        return "Plane{" +
-                "normal=" + normal +
-                ", d=" + d +
-                '}';
+    fun classify(p: Vector3f, radius: Float = 0f): Classification {
+        val r = normal.dot(p) + d + radius
+        if (r < 0) {
+            return Classification.OUTSIDE
+        } else if (r == 0.0) {
+            return Classification.ON_PLANE
+        }
+        return Classification.INSIDE
     }
 }

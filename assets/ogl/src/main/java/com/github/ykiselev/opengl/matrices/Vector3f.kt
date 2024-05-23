@@ -45,28 +45,6 @@ data class Vector3f(
     }
 
     /**
-     * Normalizes vector.
-     *
-     * @return the normalizing coefficient (1/length) used
-     */
-    fun normalize(): Double {
-        val length = length()
-        if (length != 0.0) {
-            val ool = 1.0 / length
-            x *= ool.toFloat()
-            y *= ool.toFloat()
-            z *= ool.toFloat()
-            return ool
-        }
-        return 1.0
-    }
-
-    fun normalized(): Vector3f {
-        normalize()
-        return this
-    }
-
-    /**
      * Calculates squared vector length.
      *
      * @return squared length of vector
