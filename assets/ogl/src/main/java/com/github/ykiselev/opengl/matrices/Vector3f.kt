@@ -50,7 +50,7 @@ data class Vector3f(
      * @return squared length of vector
      */
     fun squareLength(): Double {
-        return (x * x + y * y + z * z).toDouble()
+        return x.toDouble() * x + y * y + z * z
     }
 
     /**
@@ -58,9 +58,8 @@ data class Vector3f(
      *
      * @return vector length
      */
-    fun length(): Double {
-        return sqrt(squareLength())
-    }
+    fun length(): Double =
+        sqrt(squareLength())
 
     /**
      * Calculates Dot product between this and supplied vector.
@@ -69,7 +68,7 @@ data class Vector3f(
      */
     infix fun dot(b: Vector3f): Double =
         x.toDouble() * b.x + y * b.y + z * b.z
-
+/*
     private enum class Ops {
         ADDITION {
             override fun apply(a: Float, b: Float): Float {
@@ -168,7 +167,7 @@ data class Vector3f(
         }
         return copy()
     }
-
+*/
     /**
      * Checks if two vectors are equal (absolute difference in each component is less than delta).
      *

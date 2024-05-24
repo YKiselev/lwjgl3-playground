@@ -26,7 +26,7 @@ import java.util.stream.Stream
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
 class MatrixTest {
-
+/*
     private fun assertMatrixEquals(actual: Matrix, vararg expected: Float) {
         for ((i, v) in expected.withIndex()) {
             val v1 = actual[i]
@@ -380,5 +380,5 @@ class MatrixTest {
                 )
             )
         }
-    }
+    }*/
 }

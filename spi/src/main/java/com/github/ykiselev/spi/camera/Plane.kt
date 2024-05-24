@@ -1,7 +1,6 @@
 package com.github.ykiselev.spi.camera
 
 import com.github.ykiselev.opengl.matrices.Vector3f
-import com.github.ykiselev.opengl.pools.math
 
 class Plane {
     enum class Classification {
@@ -13,16 +12,14 @@ class Plane {
         private set
 
     fun set(a: Float, b: Float, c: Float, d: Float) {
-        math {
-            val n = vec3f(a, b, c)
-            val len = n.length()
-            check(len != 0.0) {
-                "Invalid plane: ($n, $d)"
-            }
-            val ool = 1.0 / len
-            normal.set(n * ool)
-            this@Plane.d = (d * ool).toFloat()
+        val n = Vector3f(a, b, c)
+        val len = n.length()
+        check(len != 0.0) {
+            "Invalid plane: ($n, $d)"
         }
+        val ool = 1.0 / len
+        normal.set(n * ool)
+        this@Plane.d = (d * ool).toFloat()
     }
 
     fun classify(p: Vector3f, radius: Float = 0f): Classification {

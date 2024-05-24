@@ -84,7 +84,7 @@ class GameClient(host: GameFactoryArgs) : Updatable, AutoCloseable, WindowEvents
 
     @Throws(Exception::class)
     override fun close() {
-        MemoryUtil.memFree(vp)
+        //MemoryUtil.memFree(vp)
         closeable.close()
     }
 

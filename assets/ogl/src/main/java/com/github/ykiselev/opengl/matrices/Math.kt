@@ -15,24 +15,549 @@
  */
 package com.github.ykiselev.opengl.matrices
 
+import org.lwjgl.system.MemoryUtil
 import java.nio.FloatBuffer
-import kotlin.math.cos
-import kotlin.math.sin
-import kotlin.math.tan
+import kotlin.math.*
 
+
+interface MatrixOps : Vector3fOps {
+
+    fun matrix(): Matrix
+
+    fun identity(): Matrix {
+        val result = matrix()
+        identity(result.m)
+        return result
+    }
+
+    fun orthographic(left: Float, right: Float, top: Float, bottom: Float, near: Float, far: Float): Matrix {
+        val result = matrix()
+        orthographic(left, right, top, bottom, near, far, result.m)
+        return result
+    }
+
+    fun perspective(left: Float, right: Float, top: Float, bottom: Float, near: Float, far: Float): Matrix {
+        val result = matrix()
+        perspective(left, right, top, bottom, near, far, result.m)
+        return result
+    }
+
+    fun perspective(fow: Float, ratio: Float, near: Float, far: Float): Matrix {
+        val result = matrix()
+        perspective(fow, ratio, near, far, result.m)
+        return result
+    }
+
+    fun lookAt(target: Vector3f, eye: Vector3f, up: Vector3f): Matrix {
+        val result = matrix()
+        lookAt(target, eye, up, result.m)
+        return result
+    }
+
+
+    fun rotation(ax: Double, ay: Double, az: Double): Matrix {
+        val result = matrix()
+        rotation(ax, ay, az, result.m)
+        return result
+    }
+
+    /**
+     * Adds this matrix to another.
+     *
+     * @param b      the second matrix
+     * @return the resulting matrix
+     */
+    operator fun Matrix.plus(b: Matrix): Matrix {
+        val result = matrix()
+        add(m, b.m, result.m)
+        return result
+    }
+
+    operator fun Matrix.times(value: Float): Matrix {
+        val result = matrix()
+        multiply(m, value, result.m)
+        return result
+    }
+
+    operator fun Matrix.times(b: Matrix): Matrix {
+        val result = matrix()
+        multiply(m, b.m, result.m)
+        return result
+    }
+
+    operator fun Matrix.times(v: Vector3f): Vector3f {
+        val result = vec3f()
+        multiply(m, v, result)
+        return result
+    }
+
+    // todo - pool vec4?
+    operator fun Matrix.times(v: Vector4f): Vector4f {
+        val result = Vector4f()
+        multiply(m, v, result)
+        return result
+    }
+
+    /**
+     * Multiplies this matrix by translation matrix derived from `(dx,dy,dz)`.
+     *
+     * @param dx     x translation
+     * @param dy     y translation
+     * @param dz     z translation
+     */
+    fun Matrix.translate(dx: Float, dy: Float, dz: Float): Matrix {
+        val result = matrix()
+        translate(m, dx, dy, dz, result.m)
+        return result
+    }
+
+    /**
+     * Combines scaling `(sx,sy,sz)` with this matrix
+     *
+     * @param sx     x scaling factor
+     * @param sy     y  scaling factor
+     * @param sz     z  scaling factor
+     */
+    fun Matrix.scale(sx: Float, sy: Float, sz: Float): Matrix {
+        val result = matrix()
+        scale(m, sx, sy, sz, result.m)
+        return result
+    }
+
+    fun Matrix.transpose(): Matrix {
+        val result = matrix()
+        transpose(m, result.m)
+        return result
+    }
+
+    fun Matrix.determinant(): Double =
+        determinant(m)
+
+    fun Matrix.inverse(): Matrix {
+        val result = matrix()
+        inverse(m, result.m)
+        return result
+    }
+}
+
+@JvmInline
+value class Vector3fNew(val m: FloatBuffer = FloatBuffer.allocate(3)) {
+
+    constructor(x: Float, y: Float, z: Float) : this(FloatBuffer.allocate(3).put(0, x).put(1, y).put(2, z))
+
+    var x
+        get() = m[0]
+        set(it) {
+            m.put(0, it)
+        }
+    var y
+        get() = m[1]
+        set(it) {
+            m.put(1, it)
+        }
+    var z
+        get() = m[2]
+        set(it) {
+            m.put(2, it)
+        }
+
+    fun set(x: Float, y: Float, z: Float) {
+        m.put(0, x).put(1, y).put(2, z)
+    }
+
+    fun set(b: Vector3fNew) {
+        m.put(0, b.x).put(1, b.y).put(2, b.z)
+    }
+
+    fun set(b: FloatBuffer) {
+        m.put(0, b[0]).put(1, b[1]).put(2, b[2])
+    }
+
+}
+
+interface Vector3fNewOps {
+
+    fun vec3f(): FloatBuffer
+
+    fun Vector3fNew.squareLength(): Double =
+        squareLength(m)
+
+    /**
+     * Calculates vector length.
+     *
+     * @return vector length
+     */
+    fun Vector3fNew.length(): Double =
+        length(m)
+
+    /**
+     * Calculates Dot product between this and supplied vector.
+     *
+     * @param b the second vector
+     */
+    infix fun Vector3fNew.dot(b: Vector3fNew): Double =
+        dot(m, b.m)
+
+    infix fun Vector3fNew.cross(b: Vector3fNew): Vector3fNew =
+        Vector3fNew(cross(m, b.m))
+
+    /**
+     * Scales the vector.
+     */
+    operator fun Vector3fNew.times(scale: Float): Vector3fNew =
+        Vector3fNew(times(m, scale.toDouble()))
+
+    operator fun Vector3fNew.times(scale: Double): Vector3fNew =
+        Vector3fNew(times(m, scale))
+
+    /**
+     * Adds one vector to another.
+     *
+     * @param b the second vector
+     */
+    operator fun Vector3fNew.plus(b: Vector3fNew): Vector3fNew =
+        Vector3fNew(apply(m, b.m, Ops.ADDITION))
+
+    /**
+     * Subtracts one vector from another.
+     *
+     * @param b the second vector
+     */
+    operator fun Vector3fNew.minus(b: Vector3fNew): Vector3fNew =
+        Vector3fNew(apply(m, b.m, Ops.SUBTRACTION))
+
+
+    /**
+     * Multiplies one vector by another.
+     *
+     * @param b the second vector
+     */
+    operator fun Vector3fNew.times(b: Vector3fNew): Vector3fNew =
+        Vector3fNew(apply(m, b.m, Ops.MULTIPLICATION))
+
+    /**
+     * Divides one vector by another.
+     *
+     * @param b the second vector
+     */
+    operator fun Vector3fNew.div(b: Vector3fNew) =
+        Vector3fNew(apply(m, b.m, Ops.DIVISION))
+
+    fun Vector3fNew.normalize() =
+        Vector3fNew(normalize(m))
+
+    //========= Low level API =========
+
+    /**
+     * Calculates squared vector length.
+     *
+     * @return squared length of vector
+     */
+    fun squareLength(m: FloatBuffer): Double =
+        m[0].toDouble() * m[0] + m[1] * m[1] + m[2] * m[2]
+
+    /**
+     * Calculates vector length.
+     *
+     * @return vector length
+     */
+    fun length(m: FloatBuffer): Double =
+        sqrt(squareLength(m))
+
+    /**
+     * Calculates Dot product between this and supplied vector.
+     *
+     * @param b the second vector
+     */
+    fun dot(a: FloatBuffer, b: FloatBuffer): Double =
+        a[0].toDouble() * b[0] + a[1] * b[1] + a[2] * b[2]
+
+    private enum class Ops {
+        ADDITION {
+            override fun apply(a: Float, b: Float): Float {
+                return a + b
+            }
+        },
+        SUBTRACTION {
+            override fun apply(a: Float, b: Float): Float {
+                return a - b
+            }
+        },
+        MULTIPLICATION {
+            override fun apply(a: Float, b: Float): Float {
+                return a * b
+            }
+        },
+        DIVISION {
+            override fun apply(a: Float, b: Float): Float {
+                return a / b
+            }
+        };
+
+        abstract fun apply(a: Float, b: Float): Float
+    }
+
+    /**
+     * Calculates cross-product vector c = (a × b) that is perpendicular to both a and b, with a direction given by the right-hand rule.
+     *
+     * @param b the second vector
+     */
+    fun cross(a: FloatBuffer, b: FloatBuffer): FloatBuffer =
+        vec3f()
+            .put(0, a[1] * b[2] - a[2] * b[1])
+            .put(1, a[2] * b[0] - a[0] * b[2])
+            .put(2, a[0] * b[1] - a[1] * b[0])
+
+    /**
+     * Scales the vector.
+     */
+    private inline fun times(a: FloatBuffer, scale: Double): FloatBuffer =
+        vec3f()
+            .put(0, (a[0] * scale).toFloat())
+            .put(1, (a[1] * scale).toFloat())
+            .put(2, (a[2] * scale).toFloat())
+
+    /**
+     * Applies specified operation to this and supplied vectors.
+     *
+     * @param b the second vector
+     */
+    private inline fun apply(a: FloatBuffer, b: FloatBuffer, op: Ops): FloatBuffer =
+        vec3f()
+            .put(0, op.apply(a[0], b[0]))
+            .put(1, op.apply(a[1], b[1]))
+            .put(2, op.apply(a[2], b[2]))
+
+
+    fun normalize(m: FloatBuffer): FloatBuffer {
+        val length = length(m)
+        if (length != 0.0) {
+            return times(m, (1.0 / length))
+        }
+        return vec3f()
+            .put(0, m[0])
+            .put(1, m[1])
+            .put(2, m[2])
+    }
+
+    /**
+     * Checks if two vectors are equal (absolute difference in each component is less than delta).
+     *
+     * @param b     the second vector
+     * @param delta the maximum difference between two numbers for which they are still considered equal.
+     * @return the true if vectors are equal or false otherwise.
+     */
+    /* todo
+    fun equals(b: Vector3f, delta: Float): Boolean =
+        (equals(x, b.x, delta)
+                && equals(y, b.y, delta)
+                && equals(z, b.z, delta))
+
+    fun isEmpty(delta: Float): Boolean =
+        (equals(x, 0f, delta)
+                && equals(y, 0f, delta)
+                && equals(z, 0f, delta))
+
+    private fun equals(a: Float, b: Float, delta: Float): Boolean =
+        abs((a - b).toDouble()) <= delta + delta * abs(b.toDouble())
+*/
+}
+
+
+@Suppress("NOTHING_TO_INLINE")
+interface Vector3fOps {
+
+    fun vec3f(): Vector3f
+
+    /**
+     * Calculates cross-product vector c = (a × b) that is perpendicular to both a and b, with a direction given by the right-hand rule.
+     *
+     * @param b the second vector
+     */
+    infix fun Vector3f.cross(b: Vector3fNew): Vector3f =
+        vec3f().set(
+            y * b.z - y * b.x,
+            z * b.x - x * b.z,
+            x * b.y - y * b.x
+        )
+
+    /**
+     * Scales the vector.
+     */
+    operator fun Vector3f.times(scale: Float): Vector3f =
+        times(scale.toDouble())
+
+    /**
+     * Scales the vector.
+     */
+    operator fun Vector3f.times(scale: Double): Vector3f =
+        vec3f().set(
+            (x * scale).toFloat(),
+            (y * scale).toFloat(),
+            (z * scale).toFloat()
+        )
+
+    /**
+     * Adds one vector to another.
+     *
+     * @param b the second vector
+     */
+    operator fun Vector3f.plus(b: Vector3f): Vector3f =
+        apply(this, b, Ops.ADDITION)
+
+    /**
+     * Subtracts one vector from another.
+     *
+     * @param b the second vector
+     */
+    operator fun Vector3f.minus(b: Vector3f): Vector3f =
+        apply(this, b, Ops.SUBTRACTION)
+
+
+    /**
+     * Multiplies one vector by another.
+     *
+     * @param b the second vector
+     */
+    operator fun Vector3f.times(b: Vector3f): Vector3f =
+        apply(this, b, Ops.MULTIPLICATION)
+
+    /**
+     * Divides one vector by another.
+     *
+     * @param b the second vector
+     */
+    operator fun Vector3f.div(b: Vector3f): Vector3f =
+        apply(this, b, Ops.DIVISION)
+
+    fun Vector3f.normalize(): Vector3f {
+        val length = length()
+        if (length != 0.0) {
+            return times(1.0 / length)
+        }
+        return vec3f().set(x, y, z)
+    }
+
+    //========= Low level API =========
+
+    private enum class Ops {
+        ADDITION {
+            override fun apply(a: Float, b: Float): Float {
+                return a + b
+            }
+        },
+        SUBTRACTION {
+            override fun apply(a: Float, b: Float): Float {
+                return a - b
+            }
+        },
+        MULTIPLICATION {
+            override fun apply(a: Float, b: Float): Float {
+                return a * b
+            }
+        },
+        DIVISION {
+            override fun apply(a: Float, b: Float): Float {
+                return a / b
+            }
+        };
+
+        abstract fun apply(a: Float, b: Float): Float
+    }
+
+    /**
+     * Applies specified operation to this and supplied vectors.
+     *
+     * @param b the second vector
+     */
+    private inline fun apply(a: Vector3f, b: Vector3f, op: Ops): Vector3f =
+        vec3f().set(
+            op.apply(a.x, b.x),
+            op.apply(a.y, b.y),
+            op.apply(a.z, b.z)
+        )
+
+    /**
+     * Checks if two vectors are equal (absolute difference in each component is less than delta).
+     *
+     * @param b     the second vector
+     * @param delta the maximum difference between two numbers for which they are still considered equal.
+     * @return the true if vectors are equal or false otherwise.
+     */
+    /* todo
+    fun equals(b: Vector3f, delta: Float): Boolean =
+        (equals(x, b.x, delta)
+                && equals(y, b.y, delta)
+                && equals(z, b.z, delta))
+
+    fun isEmpty(delta: Float): Boolean =
+        (equals(x, 0f, delta)
+                && equals(y, 0f, delta)
+                && equals(z, 0f, delta))
+
+    private fun equals(a: Float, b: Float, delta: Float): Boolean =
+        abs((a - b).toDouble()) <= delta + delta * abs(b.toDouble())
+*/
+}
+
+interface MathOps : MatrixOps, Vector3fOps
+
+class MathArena : MathOps {
+
+    private val vectors = mutableListOf<Vector3f>()
+
+    private val matrices = mutableListOf<Matrix>()
+
+    @PublishedApi
+    internal var vec3Idx = 0
+
+    @PublishedApi
+    internal var matIdx = 0
+
+    override fun vec3f(): Vector3f {
+        if (vec3Idx >= vectors.size) {
+            vectors.add(Vector3f())
+        }
+        return vectors[vec3Idx++]
+    }
+
+    override fun matrix(): Matrix {
+        if (matIdx >= matrices.size) {
+            matrices.add(Matrix(MemoryUtil.memAllocFloat(16)))
+        }
+        return matrices[matIdx++]
+    }
+
+    inline operator fun invoke(block: MathOps.() -> Unit) {
+        val oldVec3Idx = vec3Idx
+        val oldMatIdx = matIdx
+        try {
+            block()
+        } finally {
+            vec3Idx = oldVec3Idx
+            matIdx = oldMatIdx
+        }
+    }
+}
+
+var TLS: ThreadLocal<MathArena> = ThreadLocal.withInitial {
+    MathArena()
+}
+
+inline fun math(block: MathOps.() -> Unit) {
+    TLS.get()(block)
+}
 
 /**
  * Initializes provided buffer with identity matrix.
  *
- * @param result the buffer to store resulting matrix in.
+ * @param m the buffer to store resulting matrix in.
  */
-fun identity(result: FloatBuffer) {
-    result.clear()
-        .put(1f).put(0f).put(0f).put(0f)
-        .put(0f).put(1f).put(0f).put(0f)
-        .put(0f).put(0f).put(1f).put(0f)
-        .put(0f).put(0f).put(0f).put(1f)
-        .flip()
+fun identity(m: FloatBuffer) {
+    m.put(0, 1f).put(1, 0f).put(2, 0f).put(3, 0f)
+        .put(4, 0f).put(5, 1f).put(6, 0f).put(7, 0f)
+        .put(8, 0f).put(9, 0f).put(10, 1f).put(11, 0f)
+        .put(12, 0f).put(13, 0f).put(14, 0f).put(15, 1f)
 }
 
 /**
@@ -43,11 +568,9 @@ fun identity(result: FloatBuffer) {
  */
 fun copy(a: FloatBuffer, result: FloatBuffer) {
     if (result !== a) {
-        require(a.remaining() == 16) { "Expected exactly 16 elements!" }
-        result.clear()
-            .put(a)
-            .flip()
-        a.flip()
+        for (i in 0..15) {
+            result.put(i, a[i])
+        }
     }
 }
 
@@ -549,6 +1072,30 @@ fun inverse(a: FloatBuffer, result: FloatBuffer) {
         result.put(i, (result[i] * ood).toFloat())
     }
 }
+
+/**
+ * Creates viewing matrix derived from the `eye` point, a reference point `target` indicating the center of the scene and vector `up`
+ * Helpful tip: it's better to think of this as a coordinate system rotation.
+ *
+ * @param target the target point in the scene
+ * @param eye    the eye point
+ * @param up     the upward vector, must not be parallel to the direction vector `dir = target - eye`
+ * @param m      the buffer to store resulting matrix in.
+ */
+fun lookAt(target: Vector3f, eye: Vector3f, up: Vector3f, m: FloatBuffer) {
+    /*    val zaxis = (eye - target).normalize()
+        val xaxis = (up.cross(zaxis)).normalize()
+        val yaxis = zaxis.cross(xaxis)
+        m.clear()
+            .put(xaxis.x).put(xaxis.y).put(xaxis.z).put(0f)
+            .put(yaxis.x).put(yaxis.y).put(yaxis.z).put(0f)
+            .put(zaxis.x).put(zaxis.y).put(zaxis.z).put(0f)
+            .put(0f).put(0f).put(0f).put(1f)
+            .flip()
+        transpose(m, m)
+        translate(m, -eye.x, -eye.y, -eye.z, m)*/
+}
+
 
 /**
  * Show matrix by rows

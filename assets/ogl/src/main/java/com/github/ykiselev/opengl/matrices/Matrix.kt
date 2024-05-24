@@ -1,5 +1,6 @@
 package com.github.ykiselev.opengl.matrices
 
+import java.nio.FloatBuffer
 import java.util.*
 import kotlin.math.cos
 import kotlin.math.sin
@@ -26,10 +27,10 @@ import kotlin.math.tan
  */
 
 @JvmInline
-value class Matrix(private val m: FloatArray = FloatArray(16)) {
+value class Matrix(val m: FloatBuffer) {
 
     operator fun get(index: Int): Float  = m[index]
-
+/*
     /**
      * Adds this matrix to another.
      *
@@ -122,7 +123,7 @@ value class Matrix(private val m: FloatArray = FloatArray(16)) {
 
     fun toArray(): FloatArray =
         m.copyOf()
-
+*/
     /**
      * Show matrix by rows
      */
@@ -132,7 +133,7 @@ value class Matrix(private val m: FloatArray = FloatArray(16)) {
                 m[2] + " " + m[6] + " " + m[10] + " " + m[14] + "), r3(" +
                 m[3] + " " + m[7] + " " + m[11] + " " + m[15] + ")}"
     }
-
+/*
     companion object {
 
         private fun identity(m: FloatArray) {
@@ -272,7 +273,6 @@ value class Matrix(private val m: FloatArray = FloatArray(16)) {
             result[2] = a[8]
             result[3] = a[12]
 
-            //val m4 = a[4]
             val m5 = a[5]
             val m6 = a[6]
             val m7 = a[7]
@@ -282,21 +282,13 @@ value class Matrix(private val m: FloatArray = FloatArray(16)) {
             result[6] = a[9]
             result[7] = a[13]
 
-            //val m8 = a[8]
-            //val m9 = a[9]
             val m10 = a[10]
             val m11 = a[11]
-
 
             result[8] = m2
             result[9] = m6
             result[10] = m10
             result[11] = a[14]
-
-            //val m12 = a[12]
-            //val m13 = a[13]
-            //val m14 = a[14]
-            //val m15 = a[15]
 
             result[12] = m3
             result[13] = m7
@@ -314,7 +306,10 @@ value class Matrix(private val m: FloatArray = FloatArray(16)) {
          * @param result the buffer to store result.
          */
         private fun translate(a: FloatArray, dx: Float, dy: Float, dz: Float, result: FloatArray) {
-            a.copyInto(result)
+            // We can't use a.copyInto(result) because it's not EA-friendly
+            for (i in 0..11) {
+                result[i]  = a[i]
+            }
 
             val m12 = a[0] * dx + a[4] * dy + a[8] * dz + a[12]
             val m13 = a[1] * dx + a[5] * dy + a[9] * dz + a[13]
@@ -411,35 +406,35 @@ value class Matrix(private val m: FloatArray = FloatArray(16)) {
             val m9 = a[1] * b[8] + a[5] * b[9] + a[9] * b[10] + a[13] * b[11]
             val m13 = a[1] * b[12] + a[5] * b[13] + a[9] * b[14] + a[13] * b[15]
             // r2
-            val m2 = a[2] * b[0] + a[6] * b[1] + a[10] * b[2] + a[14] * b[3]
-            val m6 = a[2] * b[4] + a[6] * b[5] + a[10] * b[6] + a[14] * b[7]
-            val m10 = a[2] * b[8] + a[6] * b[9] + a[10] * b[10] + a[14] * b[11]
-            val m14 = a[2] * b[12] + a[6] * b[13] + a[10] * b[14] + a[14] * b[15]
+//            val m2 = a[2] * b[0] + a[6] * b[1] + a[10] * b[2] + a[14] * b[3]
+//            val m6 = a[2] * b[4] + a[6] * b[5] + a[10] * b[6] + a[14] * b[7]
+//            val m10 = a[2] * b[8] + a[6] * b[9] + a[10] * b[10] + a[14] * b[11]
+//            val m14 = a[2] * b[12] + a[6] * b[13] + a[10] * b[14] + a[14] * b[15]
             // r3
-            val m3 = a[3] * b[0] + a[7] * b[1] + a[11] * b[2] + a[15] * b[3]
-            val m7 = a[3] * b[4] + a[7] * b[5] + a[11] * b[6] + a[15] * b[7]
-            val m11 = a[3] * b[8] + a[7] * b[9] + a[11] * b[10] + a[15] * b[11]
-            val m15 = a[3] * b[12] + a[7] * b[13] + a[11] * b[14] + a[15] * b[15]
+//            val m3 = a[3] * b[0] + a[7] * b[1] + a[11] * b[2] + a[15] * b[3]
+//            val m7 = a[3] * b[4] + a[7] * b[5] + a[11] * b[6] + a[15] * b[7]
+//            val m11 = a[3] * b[8] + a[7] * b[9] + a[11] * b[10] + a[15] * b[11]
+//            val m15 = a[3] * b[12] + a[7] * b[13] + a[11] * b[14] + a[15] * b[15]
 
             result[0] = m0
             result[1] = m1
-            result[2] = m2
-            result[3] = m3
+            //result[2] = m2
+            //result[3] = m3
 
             result[4] = m4
             result[5] = m5
-            result[6] = m6
-            result[7] = m7
+            //result[6] = m6
+            //result[7] = m7
 
             result[8] = m8
             result[9] = m9
-            result[10] = m10
-            result[11] = m11
+            //result[10] = m10
+            //result[11] = m11
 
             result[12] = m12
             result[13] = m13
-            result[14] = m14
-            result[15] = m15
+            //result[14] = m14
+            //result[15] = m15
         }
 
         /**
@@ -696,5 +691,5 @@ value class Matrix(private val m: FloatArray = FloatArray(16)) {
             rotation(ax, ay, az, m)
             return Matrix(m)
         }
-    }
+    }*/
 }
