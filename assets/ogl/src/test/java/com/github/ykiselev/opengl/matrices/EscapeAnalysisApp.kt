@@ -22,9 +22,6 @@ object EscapeAnalysisApp {
         val a = Vector3f(1f, 2f, 3f)
         val t0 = System.currentTimeMillis()
         var i = 0L
-        val touch = { it:FloatBuffer->
-            sink(it.hashCode())
-        }
         do {
             math {
                 a.set(1f + i, 0.001f * i, i.toFloat())
