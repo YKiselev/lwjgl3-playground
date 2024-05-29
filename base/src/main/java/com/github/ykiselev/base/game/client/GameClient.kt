@@ -7,7 +7,7 @@ import com.github.ykiselev.opengl.OglRecipes
 import com.github.ykiselev.opengl.buffers.FrameBuffer
 import com.github.ykiselev.opengl.fonts.TrueTypeFont
 import com.github.ykiselev.opengl.matrices.Matrix
-import com.github.ykiselev.opengl.matrices.identity
+import com.github.ykiselev.opengl.matrices.MatrixOps
 import com.github.ykiselev.opengl.sprites.Colors
 import com.github.ykiselev.opengl.sprites.TextAlignment
 import com.github.ykiselev.opengl.sprites.TextAttributes
@@ -23,10 +23,8 @@ import com.github.ykiselev.spi.window.WindowEvents
 import com.github.ykiselev.spi.world.World
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.opengl.GL11
-import org.lwjgl.system.MemoryUtil
 import org.slf4j.LoggerFactory
 import java.io.IOException
-import java.nio.FloatBuffer
 import java.util.*
 
 class GameClient(host: GameFactoryArgs) : Updatable, AutoCloseable, WindowEvents {
@@ -89,7 +87,7 @@ class GameClient(host: GameFactoryArgs) : Updatable, AutoCloseable, WindowEvents
     }
 
     private fun setupProjectionViewMatrix(width: Int, height: Int) {
-        identity(vp)
+        MatrixOps.identity(vp.m)
         camera.apply(width.toFloat() / height, vp)
     }
 

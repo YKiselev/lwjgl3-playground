@@ -1,7 +1,7 @@
 package com.github.ykiselev.spi.camera
 
+import com.github.ykiselev.opengl.matrices.MatrixOps
 import com.github.ykiselev.opengl.matrices.Vector3f
-import com.github.ykiselev.opengl.matrices.perspective
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import java.nio.FloatBuffer
@@ -14,7 +14,7 @@ internal class FrustumTest {
     fun shouldClassify() {
         val m = FloatBuffer.allocate(16)
 
-        perspective(-0.1f, 0.1f, 0.1f, -0.1f, 0.1f, 100f, m)
+        MatrixOps.perspective(-0.1f, 0.1f, 0.1f, -0.1f, 0.1f, 100f, m)
 
         frustum.setFromMatrix(m)
 

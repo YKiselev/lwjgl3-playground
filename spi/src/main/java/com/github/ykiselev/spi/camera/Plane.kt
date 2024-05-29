@@ -7,7 +7,8 @@ class Plane {
         INSIDE, OUTSIDE, ON_PLANE
     }
 
-    val normal: Vector3f = Vector3f()
+    val normal = Vector3f()
+
     var d: Float = 0f
         private set
 
@@ -18,8 +19,8 @@ class Plane {
             "Invalid plane: ($n, $d)"
         }
         val ool = 1.0 / len
-        normal.set(n * ool)
-        this@Plane.d = (d * ool).toFloat()
+        normal.set((n.x * ool).toFloat(), (n.y * ool).toFloat(), (n.z * ool).toFloat())
+        this.d = (d * ool).toFloat()
     }
 
     fun classify(p: Vector3f, radius: Float = 0f): Classification {

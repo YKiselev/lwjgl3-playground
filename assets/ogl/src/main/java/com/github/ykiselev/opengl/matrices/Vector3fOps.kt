@@ -20,6 +20,9 @@ abstract class Vector3fOps {
 
     abstract fun vec3f(): Vector3f
 
+    fun vec3f(x: Float, y: Float, z: Float): Vector3f =
+        vec3f().set(x, y, z)
+
     /**
      * Calculates cross-product vector c = (a × b) that is perpendicular to both a and b, with a direction given by the right-hand rule.
      *

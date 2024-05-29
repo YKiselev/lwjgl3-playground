@@ -120,11 +120,21 @@ abstract class MatrixOps : Vector4fOps() {
      * @param dy     y translation
      * @param dz     z translation
      */
-    fun Matrix.translate(dx: Float, dy: Float, dz: Float): Matrix {
+    fun Matrix.translate(dx: Double, dy: Double, dz: Double): Matrix {
         val result = matrix()
         translate(m, dx, dy, dz, result.m)
         return result
     }
+
+    /**
+     * Multiplies this matrix by translation matrix derived from `(dx,dy,dz)`.
+     *
+     * @param dx     x translation
+     * @param dy     y translation
+     * @param dz     z translation
+     */
+    fun Matrix.translate(dx: Float, dy: Float, dz: Float): Matrix =
+        translate(dx.toDouble(), dy.toDouble(), dz.toDouble())
 
     /**
      * Combines scaling `(sx,sy,sz)` with this matrix
@@ -154,6 +164,9 @@ abstract class MatrixOps : Vector4fOps() {
         return result
     }
 
+    /**
+     * Low level API
+     */
     companion object {
 
         /**
@@ -210,10 +223,10 @@ abstract class MatrixOps : Vector4fOps() {
                 .put(5, 2f / (top - bottom))
                 .put(6, 0f)
                 .put(7, 0f)
-                .put(8,0f)
-                .put(9,0f)
-                .put(10,-2f / (far - near))
-                .put(11,0f)
+                .put(8, 0f)
+                .put(9, 0f)
+                .put(10, -2f / (far - near))
+                .put(11, 0f)
                 .put(12, -(right + left) / (right - left))
                 .put(13, -(top + bottom) / (top - bottom))
                 .put(14, -(far + near) / (far - near))
@@ -401,6 +414,9 @@ abstract class MatrixOps : Vector4fOps() {
             )
         }
 
+        fun translate(a: FloatBuffer, dx: Float, dy: Float, dz: Float, result: FloatBuffer) =
+            translate(a, dx.toDouble(), dy.toDouble(), dz.toDouble(), result)
+
         /**
          * Multiplies matrix `a` by translation matrix derived from `(dx,dy,dz)` and stores result in `result`.
          *
@@ -410,7 +426,7 @@ abstract class MatrixOps : Vector4fOps() {
          * @param dz     z translation
          * @param result the buffer to store result.
          */
-        fun translate(a: FloatBuffer, dx: Float, dy: Float, dz: Float, result: FloatBuffer) {
+        fun translate(a: FloatBuffer, dx: Double, dy: Double, dz: Double, result: FloatBuffer) {
             copy(a, result)
 
             val m12 = a[0] * dx + a[4] * dy + a[8] * dz + a[12]
@@ -418,10 +434,10 @@ abstract class MatrixOps : Vector4fOps() {
             val m14 = a[2] * dx + a[6] * dy + a[10] * dz + a[14]
             val m15 = a[3] * dx + a[7] * dy + a[11] * dz + a[15]
 
-            result.put(12, m12)
-                .put(13, m13)
-                .put(14, m14)
-                .put(15, m15)
+            result.put(12, m12.toFloat())
+                .put(13, m13.toFloat())
+                .put(14, m14.toFloat())
+                .put(15, m15.toFloat())
         }
 
         /**

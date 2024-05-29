@@ -15,6 +15,7 @@
  */
 package com.github.ykiselev.opengl.matrices
 
+import org.lwjgl.system.MemoryUtil
 import java.nio.FloatBuffer
 
 /**
@@ -38,12 +39,16 @@ import java.nio.FloatBuffer
  */
 
 @JvmInline
-value class Matrix(val m: FloatBuffer) {
+value class Matrix(val m: FloatBuffer = MemoryUtil.memAllocFloat(16)) {
 
     operator fun get(index: Int): Float = m[index]
 
     operator fun set(index: Int, value: Float) {
         m.put(index, value)
+    }
+
+    fun set(src: Matrix) {
+        MatrixOps.copy(src.m, m)
     }
 
     /**

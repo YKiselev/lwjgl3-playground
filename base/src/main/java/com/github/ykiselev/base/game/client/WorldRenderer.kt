@@ -5,6 +5,7 @@ import com.github.ykiselev.common.closeables.Closeables.close
 import com.github.ykiselev.common.closeables.Closeables.newGuard
 import com.github.ykiselev.opengl.OglRecipes
 import com.github.ykiselev.opengl.materials.MaterialAtlas
+import com.github.ykiselev.opengl.matrices.Matrix
 import com.github.ykiselev.opengl.models.Block
 import com.github.ykiselev.spi.camera.Frustum
 import com.github.ykiselev.spi.camera.FrustumClippingPredicate
@@ -40,20 +41,16 @@ class WorldRenderer(assets: Assets) : AutoCloseable {
         close(ac)
     }
 
-    fun draw(world: World?, vp: FloatBuffer) {
+    fun draw(world: World?, vp: Matrix) {
         if (world == null) {
             return
         }
 
-        //        try (MemoryStack ms = MemoryStack.stackPush()) {
-//            final FloatBuffer mat = ms.mallocFloat(16);
-//            Matrix.inverse(vp, mat);
-//        }
-        frustum.setFromMatrix(vp)
+        frustum.setFromMatrix(vp.m)
 
         //glActiveTexture(GL_TEXTURE0);
         materialAtlas.texture().bind()
-        block.begin(vp, materialAtlas.sScale(), materialAtlas.tScale())
+        block.begin(vp.m, materialAtlas.sScale(), materialAtlas.tScale())
 
         val blockSize = 1f
         frustumClippingPredicate.blockSize(blockSize)

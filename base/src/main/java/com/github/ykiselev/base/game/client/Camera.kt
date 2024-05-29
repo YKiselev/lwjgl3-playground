@@ -1,8 +1,6 @@
 package com.github.ykiselev.base.game.client
 
 import com.github.ykiselev.opengl.matrices.*
-import org.lwjgl.system.MemoryStack
-import java.nio.FloatBuffer
 
 class Camera {
 
@@ -50,55 +48,44 @@ class Camera {
     }
 
     private fun buildVectors() {
-        MemoryStack.stackPush().use { ms ->
+        math {
+            val mat = buildRotation().inverse()
 
-            val mat = ms.mallocFloat(16)
-            buildRotation(mat)//.inverse()
-            inverse(mat, mat)
+            val newDirection = mat * vec3f(0f, 0f, -1f)
+            //direction.set(0f, 0f, -1f)
+            //multiply(mat, direction, direction)
+            val newUp = mat * vec3f(0f, 1f, 0f)
+            //up.set(0f, 1f, 0f)
+            //multiply(mat, up, up)
+            val newRight = mat * vec3f(1f, 0f, 0f)
+            //right.set(1f, 0f, 0f)
+            //multiply(mat, right, right)
 
-            //val newDirection = mat * vec3f(0f, 0f, -1f)
-            direction.set(0f, 0f, -1f)
-            multiply(mat, direction, direction)
-            //val newUp = mat * vec3f(0f, 1f, 0f)
-            up.set(0f, 1f, 0f)
-            multiply(mat, up, up)
-            //val newRight = mat * vec3f(1f, 0f, 0f)
-            right.set(1f, 0f, 0f)
-            multiply(mat, right, right)
-
-            //val v1 = vec3f(newDirection.x, newDirection.y, 0f).normalize()// vectors.allocate()
-            val v1 = Vector3f(direction.x, direction.y, 0f).normalize()
+            val v1 = vec3f(newDirection.x, newDirection.y, 0f).normalize()
+            //val v1 = Vector3f(direction.x, direction.y, 0f).normalize()
             //v.normalize()
             dx = v1.x
             dy = v1.y
 
-            val v2 = Vector3f(right.x, right.y, 0f).normalize()
+            val v2 = vec3f(newRight.x, newRight.y, 0f).normalize()
             //v.normalize()
             rx = v2.x
             ry = v2.y
 
-            direction.set(direction.normalize())
-            up.set(up.normalize())
-            right.set(right.normalize())
+            direction.set(newDirection.normalize())
+            up.set(newUp.normalize())
+            right.set(newRight.normalize())
         }
     }
 
-    // todo - debug only
-    private fun buildRotation(m: FloatBuffer) {
-        rotation(Math.toRadians(yaw - 90), 0.0, Math.toRadians(pitch), m)
-    }
+    private fun MathArena.buildRotation(): Matrix =
+        rotation(Math.toRadians(yaw - 90), 0.0, Math.toRadians(pitch))
 
-    fun apply(ratio: Float, m: FloatBuffer) {
-        perspective(Math.toRadians(fow.toDouble()).toFloat(), ratio, zNear, zFar, m!!)
-
-        MemoryStack.stackPush().use { ms ->
-            val mat = ms.mallocFloat(16)
-            buildRotation(mat)
-            multiply(m, mat, m)
-
-            identity(mat)
-            translate(mat, -x, -y, -z, mat)
-            multiply(m, mat, m)
+    fun apply(ratio: Float, m: Matrix) {
+        math {
+            val p = perspective(Math.toRadians(fow.toDouble()).toFloat(), ratio, zNear, zFar)//, m!!)
+            val pr = p * buildRotation()
+            m.set(pr * identity().translate(-x, -y, -z))
         }
     }
 

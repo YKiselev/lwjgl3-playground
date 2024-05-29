@@ -13,83 +13,73 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.github.ykiselev.base.game
 
-package com.github.ykiselev.base.game;
-
-import com.github.ykiselev.assets.Assets;
-import com.github.ykiselev.opengl.OglRecipes;
-import com.github.ykiselev.opengl.matrices.Matrix;
-import com.github.ykiselev.opengl.models.GenericIndexedGeometry;
-import com.github.ykiselev.opengl.models.Pyramid;
-import com.github.ykiselev.opengl.shaders.ProgramObject;
-import com.github.ykiselev.opengl.shaders.uniforms.UniformVariable;
-import com.github.ykiselev.opengl.vertices.VertexDefinitions;
-import com.github.ykiselev.wrap.Wrap;
-import org.lwjgl.system.MemoryStack;
-
-import java.nio.FloatBuffer;
-
-import static com.github.ykiselev.opengl.matrices.MathKt.*;
-import static org.lwjgl.glfw.GLFW.glfwGetTime;
+import com.github.ykiselev.assets.Assets
+import com.github.ykiselev.opengl.OglRecipes
+import com.github.ykiselev.opengl.matrices.Matrix
+import com.github.ykiselev.opengl.matrices.math
+import com.github.ykiselev.opengl.models.GenericIndexedGeometry
+import com.github.ykiselev.opengl.models.Pyramid
+import com.github.ykiselev.opengl.shaders.uniforms.UniformVariable
+import com.github.ykiselev.opengl.vertices.VertexDefinitions
+import org.lwjgl.glfw.GLFW
+import org.lwjgl.system.MemoryStack
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-public final class Pyramids implements AutoCloseable {
+class Pyramids(assets: Assets) : AutoCloseable {
 
-    private final GenericIndexedGeometry geometry;
+    private val geometry: GenericIndexedGeometry
 
-    private final Wrap<ProgramObject> program;
+    private val program = assets.load("progs/colored.conf", OglRecipes.PROGRAM)
 
-    private final UniformVariable mvpUniform;
+    private val mvpUniform: UniformVariable
 
-    public Pyramids(Assets assets) {
-        program = assets.load("progs/colored.conf", OglRecipes.PROGRAM);
-        try (Pyramid p = new Pyramid()) {
-            geometry = new GenericIndexedGeometry(VertexDefinitions.POSITION_COLOR, p);
+    init {
+        Pyramid().use { p ->
+            geometry = GenericIndexedGeometry(VertexDefinitions.POSITION_COLOR, p)
         }
-        mvpUniform = program.value().lookup("mvp");
+        mvpUniform = program.value().lookup("mvp")
     }
 
-    public void draw(FloatBuffer vp) {
-        geometry.begin();
-        program.value().bind();
-        final double sec = glfwGetTime();
-        try (MemoryStack ms = MemoryStack.stackPush()) {
-            final FloatBuffer rm = ms.mallocFloat(16);
-            final FloatBuffer mvp = ms.mallocFloat(16);
+    fun draw(vp: Matrix) {
+        geometry.begin()
+        program.value().bind()
+        val sec = GLFW.glfwGetTime()
+        math {
+            var rm = matrix()// ms.mallocFloat(16)
+            var mvp = matrix()// ms.mallocFloat(16)
 
             // 1
-            rotation(0, 0, Math.toRadians(25 * sec % 360), rm);
-            multiply(vp, rm, mvp);
-            mvpUniform.matrix4(false, mvp);
-            geometry.draw();
+            rm = rotation(0.0, 0.0, Math.toRadians(25.0 * sec % 360))
+            mvp = vp * rm// multiply(vp, rm, mvp)
+            mvpUniform.matrix4(false, mvp.m)
+            geometry.draw()
 
             // 2
-            identity(rm);
-            translate(rm, 5, 0, 0, rm);
-            rotation(0, Math.toRadians(15 * sec % 360), 0, mvp);
-            //Matrix.scale(rm, 3, 3, 3, rm);
-            multiply(rm, mvp, rm);
-            multiply(vp, rm, mvp);
-            mvpUniform.matrix4(false, mvp);
-            geometry.draw();
+            rm = identity().translate( 5.0, 0.0, 0.0)
+            mvp = rotation(0.0, Math.toRadians(15 * sec % 360), 0.0)
+
+            //multiply(rm, mvp, rm)
+            mvp = vp * (rm * mvp)
+            //multiply(vp, rm, mvp)
+            mvpUniform.matrix4(false, mvp.m)
+            geometry.draw()
 
             // 3
-            identity(rm);
-            translate(rm, -2, 0, 0, rm);
-            rotation(Math.toRadians(15 * sec % 360), 0, 0, rm);
-            multiply(vp, rm, mvp);
-            mvpUniform.matrix4(false, mvp);
-            //geometry.draw();
+            //????? rm = identity().translate(-2.0, 0.0, 0.0)
+            rm = rotation(Math.toRadians(15 * sec % 360), 0.0, 0.0)
+            mvp = vp * rm //multiply(vp, rm, mvp)
+            mvpUniform.matrix4(false, mvp.m)
         }
-        program.value().unbind();
-        geometry.end();
+        program.value().unbind()
+        geometry.end()
     }
 
-    @Override
-    public void close() {
-        geometry.close();
-        program.close();
+    override fun close() {
+        geometry.close()
+        program.close()
     }
 }

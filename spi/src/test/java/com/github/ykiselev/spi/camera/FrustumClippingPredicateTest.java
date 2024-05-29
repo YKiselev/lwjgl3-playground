@@ -1,12 +1,11 @@
 package com.github.ykiselev.spi.camera;
 
-import com.github.ykiselev.opengl.matrices.Matrix;
+import com.github.ykiselev.opengl.matrices.MatrixOps;
 import com.github.ykiselev.spi.world.NormalNode;
 import org.junit.jupiter.api.Test;
 
 import java.nio.FloatBuffer;
 
-import static com.github.ykiselev.opengl.matrices.MathKt.orthographic;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -19,7 +18,7 @@ class FrustumClippingPredicateTest {
     @Test
     void shouldClip() {
         FloatBuffer m = FloatBuffer.allocate(16);
-        orthographic(-1f, 1f, 1f, -1f, 1f, 10, m);
+        MatrixOps.Companion.orthographic(-1f, 1f, 1f, -1f, 1f, 10, m);
         frustum.setFromMatrix(m);
 
         predicate.blockSize(1f);
