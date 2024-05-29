@@ -8,10 +8,11 @@ import org.apache.logging.log4j.core.*
 import org.apache.logging.log4j.core.appender.AbstractAppender
 import org.apache.logging.log4j.core.config.Property
 import org.apache.logging.log4j.core.config.plugins.Plugin
-import org.apache.logging.log4j.core.config.plugins.PluginBuilderAttribute
-import org.apache.logging.log4j.core.config.plugins.PluginBuilderFactory
-import org.apache.logging.log4j.core.util.Builder
+import org.apache.logging.log4j.core.config.plugins.PluginAttribute
+import org.apache.logging.log4j.core.config.plugins.PluginElement
+import org.apache.logging.log4j.core.config.plugins.PluginFactory
 import java.io.Serializable
+
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
@@ -20,20 +21,16 @@ import java.io.Serializable
 class AppConsoleLog4j2Appender private constructor(
     name: String,
     filter: Filter?,
-    layout: Layout<out Serializable?>,
+    layout: Layout<out Serializable>,
     bufferSize: Int
 ) : AbstractAppender(name, filter, layout, true, Property.EMPTY_ARRAY) {
 
-    private val buffer: CircularBuffer<String>
+    private val buffer: CircularBuffer<String> = SynchronizedCircularBuffer(
+        ArrayCircularBuffer(String::class.java, bufferSize)
+    )
 
     fun buffer(): CircularBuffer<String> {
         return buffer
-    }
-
-    init {
-        buffer = SynchronizedCircularBuffer(
-            ArrayCircularBuffer(String::class.java, bufferSize)
-        )
     }
 
     override fun append(logEvent: LogEvent) {
@@ -47,27 +44,15 @@ class AppConsoleLog4j2Appender private constructor(
         buffer.write(layout.toSerializable(logEvent).toString())
     }
 
-    class Builder<B : Builder<B>?> : AbstractAppender.Builder<B>(),
-        org.apache.logging.log4j.core.util.Builder<AppConsoleLog4j2Appender> {
-
-        @PluginBuilderAttribute
-        private var bufferSize = 100
-
-        override fun build(): AppConsoleLog4j2Appender =
-            AppConsoleLog4j2Appender(name, filter, getOrCreateLayout(), bufferSize)
-
-        fun withBufferSize(bufferCapacity: Int): B? {
-            bufferSize = bufferCapacity
-            return asBuilder()
-        }
-    }
-
     companion object {
-
-        @PluginBuilderFactory
+        @PluginFactory
         @JvmStatic
-        fun <B : Builder<B>?> newBuilder(): B? {
-            return Builder<B>().asBuilder()
-        }
+        fun createAppender(
+            @PluginAttribute("name") name: String,
+            @PluginElement("Filter") filter: Filter?,
+            @PluginElement("PatternLayout") layout: Layout<out Serializable>,
+            @PluginAttribute("bufferSize") bufferSize: Int
+        ): AppConsoleLog4j2Appender =
+            AppConsoleLog4j2Appender(name, filter, layout, bufferSize)
     }
 }
