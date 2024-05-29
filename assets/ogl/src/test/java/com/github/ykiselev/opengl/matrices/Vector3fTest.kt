@@ -23,8 +23,8 @@ import org.junit.jupiter.api.Test
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-class Vector3fTest {
-/*
+class Vector3fTest : Vector3fOps() {
+
     private fun assertVectorEquals(x: Float, y: Float, z: Float, v: Vector3f) {
         Assertions.assertEquals(x, v.x, 0.001f, "x")
         Assertions.assertEquals(y, v.y, 0.001f, "y")
@@ -166,5 +166,7 @@ class Vector3fTest {
             Vector3f(0.0001f, 0.0001f, 0.0001f)
                 .isEmpty(0.0001f)
         )
-    }*/
+    }
+
+    override fun vec3f(): Vector3f = Vector3f()
 }

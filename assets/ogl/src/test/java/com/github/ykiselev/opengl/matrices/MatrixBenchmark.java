@@ -35,9 +35,8 @@ public final class MatrixBenchmark {
         void apply(FloatBuffer a, FloatBuffer b, FloatBuffer c);
     }
 
-    private final Operation op1 = MathKt::multiply;
+    private final Operation op1 = MatrixOps.Companion::multiply;
 
-    private final Operation op2 = MathKt::multiplyUsingLoops;
 
     public static void main(String[] args) {
         new MatrixBenchmark().run();
@@ -52,7 +51,7 @@ public final class MatrixBenchmark {
         try (MemoryStack ms = MemoryStack.stackPush()) {
             for (int i = 0; i < matrices.length; i++) {
                 matrices[i] = ms.mallocFloat(16);
-                rotation(rnd.nextFloat(), rnd.nextFloat(), rnd.nextFloat(), matrices[i]);
+                MatrixOps.Companion.rotation(rnd.nextFloat(), rnd.nextFloat(), rnd.nextFloat(), matrices[i]);
             }
             System.out.println("Starting benchmark, please wait " + (WAIT_MSEC / 1000) + " seconds...");
             while (!Thread.currentThread().isInterrupted()) {

@@ -15,7 +15,9 @@
  */
 package com.github.ykiselev.opengl.matrices
 
+import com.github.ykiselev.opengl.matrices.MatrixOps.Companion.lookAt
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -27,7 +29,7 @@ import java.util.stream.Stream
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-class OldMatrixTest {
+class MatrixOpsTest {
 
     private val m: FloatBuffer = FloatBuffer.allocate(16)
 
@@ -42,7 +44,7 @@ class OldMatrixTest {
 
     @BeforeEach
     fun setUp() {
-        identity(m)
+        MatrixOps.identity(m)
     }
 
     @Test
@@ -59,9 +61,9 @@ class OldMatrixTest {
     @ParameterizedTest
     @MethodSource("translateArgs")
     fun shouldTranslate(v: Vector3f, trans: Vector3f, expected: Vector3f) {
-        translate(m, trans.x, trans.y, trans.z, r)
-        multiply(r, v, v)
-        Assertions.assertTrue(
+        MatrixOps.translate(m, trans.x, trans.y, trans.z, r)
+        MatrixOps.multiply(r, v, v)
+        assertTrue(
             expected.equals(v, 0.0001f),
             "expected $expected but was $v"
         )
@@ -70,22 +72,22 @@ class OldMatrixTest {
     @Test
     fun addingTranslationShouldBeEqualToMultiplication() {
         val rm = FloatBuffer.allocate(16)
-        rotation(0.0, 0.0, Math.toRadians(45.0), rm)
+        MatrixOps.rotation(0.0, 0.0, Math.toRadians(45.0), rm)
         val tm = FloatBuffer.allocate(16)
-        identity(tm)
-        translate(tm, 1f, 2f, 3f, tm)
+        MatrixOps.identity(tm)
+        MatrixOps.translate(tm, 1f, 2f, 3f, tm)
 
         // multiply rm * tm
-        multiply(rm, tm, m)
-        val r1 = toArray(m)
+        MatrixOps.multiply(rm, tm, m)
+        val r1 = MatrixOps.toArray(m)
 
         // add translation and store in separate matrix
-        translate(rm, 1f, 2f, 3f, m)
-        val r2 = toArray(m)
+        MatrixOps.translate(rm, 1f, 2f, 3f, m)
+        val r2 = MatrixOps.toArray(m)
 
         // add translation in-place
-        translate(rm, 1f, 2f, 3f, rm)
-        val r3 = toArray(rm)
+        MatrixOps.translate(rm, 1f, 2f, 3f, rm)
+        val r3 = MatrixOps.toArray(rm)
 
         Assertions.assertArrayEquals(r1, r2, 0.001f)
         Assertions.assertArrayEquals(r2, r3, 0.001f)
@@ -93,10 +95,10 @@ class OldMatrixTest {
 
     @Test
     fun shouldAddTranslationToExistingMatrix() {
-        rotation(0.0, 0.0, Math.toRadians(45.0), m)
-        translate(m, 1f, 2f, 3f, r)
+        MatrixOps.rotation(0.0, 0.0, Math.toRadians(45.0), m)
+        MatrixOps.translate(m, 1f, 2f, 3f, r)
         val v = v(4f, 5f, 6f)
-        multiply(r, v, v)
+        MatrixOps.multiply(r, v, v)
         assertVectorEquals(-1.414f, 8.485f, 9f, v)
     }
 
@@ -108,7 +110,7 @@ class OldMatrixTest {
             .put(9f).put(10f).put(11f).put(12f)
             .put(13f).put(14f).put(15f).put(16f)
             .flip()
-        scale(m, 2f, 4f, 8f, r)
+        MatrixOps.scale(m, 2f, 4f, 8f, r)
         assertMatrixEquals(
             r,
             2f, 4f, 6f, 8f,
@@ -126,7 +128,7 @@ class OldMatrixTest {
             .put(9f).put(10f).put(11f).put(12f)
             .put(13f).put(14f).put(15f).put(16f)
             .flip()
-        transpose(m, r)
+        MatrixOps.transpose(m, r)
         assertMatrixEquals(
             r,
             1f, 5f, 9f, 13f,
@@ -145,7 +147,7 @@ class OldMatrixTest {
             .put(13f).put(14f).put(15f).put(16f)
             .flip()
         val b = FloatBuffer.allocate(16)
-        copy(m, b)
+        MatrixOps.copy(m, b)
         assertMatrixEquals(
             b,
             1f, 2f, 3f, 4f,
@@ -165,7 +167,7 @@ class OldMatrixTest {
         }
         a.flip()
         b.flip()
-        add(a, b, r)
+        MatrixOps.add(a, b, r)
         assertMatrixEquals(
             r,
             17f, 17f, 17f, 17f,
@@ -183,7 +185,7 @@ class OldMatrixTest {
             .put(9f).put(10f).put(11f).put(12f)
             .put(13f).put(14f).put(15f).put(16f)
             .flip()
-        multiply(m, 2f, r)
+        MatrixOps.multiply(m, 2f, r)
         assertMatrixEquals(
             r,
             2f, 4f, 6f, 8f,
@@ -202,7 +204,7 @@ class OldMatrixTest {
             .put(0f).put(0f).put(0f).put(1f)
             .flip()
         val v = Vector3f(1f, 2f, 3f)
-        multiply(m, v, v)
+        MatrixOps.multiply(m, v, v)
         assertVectorEquals(14f, 32f, 50f, v)
     }
 
@@ -214,7 +216,7 @@ class OldMatrixTest {
             .put(3f).put(7f).put(11f).put(0f)
             .put(0f).put(0f).put(0f).put(1f)
             .flip()
-        multiply(
+        MatrixOps.multiply(
             m,
             FloatBuffer.wrap(
                 floatArrayOf(
@@ -238,13 +240,13 @@ class OldMatrixTest {
     @ParameterizedTest
     @MethodSource("rotationArgs")
     fun shouldRotate(ax: Double, ay: Double, az: Double, v: Vector3f, expected: Vector3f) {
-        rotation(
+        MatrixOps.rotation(
             Math.toRadians(ax),
             Math.toRadians(ay),
             Math.toRadians(az),
             m
         )
-        multiply(m, v, v)
+        MatrixOps.multiply(m, v, v)
         assertEquals(expected, v)
     }
 
@@ -256,12 +258,12 @@ class OldMatrixTest {
             .put(6f).put(8f).put(12f).put(15f)
             .put(7f).put(13f).put(14f).put(16f)
             .flip()
-        Assertions.assertEquals(-594.0, determinant(m), 0.0001)
+        Assertions.assertEquals(-594.0, MatrixOps.determinant(m), 0.0001)
     }
 
     @Test
     fun determinantShouldBeOneForIdentity() {
-        Assertions.assertEquals(1.0, determinant(m), 0.0001)
+        Assertions.assertEquals(1.0, MatrixOps.determinant(m), 0.0001)
     }
 
     @Test
@@ -272,7 +274,7 @@ class OldMatrixTest {
             .put(5f).put(8f).put(1f).put(12f)
             .put(9f).put(11f).put(13f).put(1f)
             .flip()
-        inverse(m, r)
+        MatrixOps.inverse(m, r)
         assertMatrixEquals(
             r,
             -1643f / 2369, 744f / 2369, 194f / 2369, 90f / 2369,
@@ -290,44 +292,45 @@ class OldMatrixTest {
 
     @Test
     fun shouldBeOrthographic() {
-        orthographic(0f, 100f, 200f, 0f, -1f, 1f, m)
+        MatrixOps.orthographic(0f, 100f, 200f, 0f, -1f, 1f, m)
         val v = Vector3f(0f, 0f, 0f)
-        multiply(m, v, v)
+        MatrixOps.multiply(m, v, v)
         assertVectorEquals(-1f, -1f, 0f, v)
 
         v.set(50f, 100f, 0f)
-        multiply(m, v, v)
+        MatrixOps.multiply(m, v, v)
         assertVectorEquals(0f, 0f, 0f, v)
 
         v.set(100f, 200f, 0f)
-        multiply(m, v, v)
+        MatrixOps.multiply(m, v, v)
         assertVectorEquals(1f, 1f, 0f, v)
     }
 
     @ParameterizedTest
     @MethodSource("perspectiveArgs")
     fun shouldBePerspective(v: Vector4f, expected: Vector4f) {
-        perspective(-1f, 1f, 1f, -1f, 1f, 10f, m)
-        multiply(m, v, v)
-        Assertions.assertTrue(expected.equals(v, 0.001f), "expected $expected but was $v")
+        MatrixOps.perspective(-1f, 1f, 1f, -1f, 1f, 10f, m)
+        val r = Vector4f()
+        MatrixOps.multiply(m, v, r)
+        assertTrue(expected.equals(r, 0.001f), "expected $expected but was $v")
     }
 
-//    @ParameterizedTest
-//    @MethodSource("lookAtArgs")
-//    fun shouldLookAt(origin: Vector3f, eye: Vector3f, up: Vector3f, ax: Vector3f, ay: Vector3f, az: Vector3f) {
-//        math {
-//            lookAt(origin, eye, up, m)
-//        }
-//        val v1 = v(1f, 0f, 0f)
-//        val v2 = v(0f, 1f, 0f)
-//        val v3 = v(0f, 0f, 1f)
-//        multiply(m, v1, v1)
-//        multiply(m, v2, v2)
-//        multiply(m, v3, v3)
-//        Assertions.assertTrue(ax.equals(v1, 0.001f), "expected $ax but was $v1")
-//        Assertions.assertTrue(ay.equals(v2, 0.001f), "expected $ay but was $v2")
-//        Assertions.assertTrue(az.equals(v3, 0.001f), "expected $az but was $v3")
-//    }
+    @ParameterizedTest
+    @MethodSource("lookAtArgs")
+    fun shouldLookAt(origin: Vector3f, eye: Vector3f, up: Vector3f, ax: Vector3f, ay: Vector3f, az: Vector3f) {
+        math {
+            lookAt(origin, eye, up, m)
+        }
+        val v1 = v(1f, 0f, 0f)
+        val v2 = v(0f, 1f, 0f)
+        val v3 = v(0f, 0f, 1f)
+        MatrixOps.multiply(m, v1, v1)
+        MatrixOps.multiply(m, v2, v2)
+        MatrixOps.multiply(m, v3, v3)
+        assertTrue(ax.equals(v1, 0.001f), "expected $ax but was $v1")
+        assertTrue(ay.equals(v2, 0.001f), "expected $ay but was $v2")
+        assertTrue(az.equals(v3, 0.001f), "expected $az but was $v3")
+    }
 
     companion object {
 
@@ -442,4 +445,5 @@ class OldMatrixTest {
             )
         }
     }
+
 }

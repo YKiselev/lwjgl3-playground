@@ -13,293 +13,270 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.github.ykiselev.opengl.sprites
 
-package com.github.ykiselev.opengl.sprites;
-
-import com.github.ykiselev.opengl.shaders.ProgramObject;
-import com.github.ykiselev.opengl.shaders.uniforms.UniformInfo;
-import com.github.ykiselev.opengl.shaders.uniforms.UniformVariable;
-import com.github.ykiselev.opengl.vbo.IndexBufferObject;
-import com.github.ykiselev.opengl.vbo.VertexArrayObject;
-import com.github.ykiselev.opengl.vbo.VertexBufferObject;
-import com.github.ykiselev.opengl.vertices.VertexDefinitions;
-import com.github.ykiselev.wrap.Wrap;
-import org.lwjgl.BufferUtils;
-import org.lwjgl.system.MemoryStack;
-import org.lwjgl.system.MemoryUtil;
-
-import java.nio.ByteBuffer;
-import java.nio.FloatBuffer;
-import java.util.function.IntConsumer;
-
-import static com.github.ykiselev.opengl.matrices.MathKt.orthographic;
-import static java.util.Objects.requireNonNull;
-import static org.lwjgl.opengl.GL11.GL_BLEND;
-import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
-import static org.lwjgl.opengl.GL11.GL_SRC_ALPHA;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
-import static org.lwjgl.opengl.GL11.GL_TRIANGLES;
-import static org.lwjgl.opengl.GL11.GL_UNSIGNED_BYTE;
-import static org.lwjgl.opengl.GL11.GL_UNSIGNED_INT;
-import static org.lwjgl.opengl.GL11.GL_UNSIGNED_SHORT;
-import static org.lwjgl.opengl.GL11.glBindTexture;
-import static org.lwjgl.opengl.GL11.glBlendFunc;
-import static org.lwjgl.opengl.GL11.glDisable;
-import static org.lwjgl.opengl.GL11.glDrawElements;
-import static org.lwjgl.opengl.GL11.glEnable;
-import static org.lwjgl.opengl.GL11.glViewport;
-import static org.lwjgl.opengl.GL13.GL_TEXTURE0;
-import static org.lwjgl.opengl.GL13.glActiveTexture;
-import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
-import static org.lwjgl.opengl.GL15.GL_ELEMENT_ARRAY_BUFFER;
-import static org.lwjgl.opengl.GL15.GL_STATIC_DRAW;
-import static org.lwjgl.opengl.GL15.GL_STREAM_DRAW;
-import static org.lwjgl.opengl.GL15.glBufferData;
-import static org.lwjgl.opengl.GL20.GL_FLOAT_VEC4;
+import com.github.ykiselev.opengl.matrices.MatrixOps
+import com.github.ykiselev.opengl.shaders.ProgramObject
+import com.github.ykiselev.opengl.shaders.uniforms.UniformVariable
+import com.github.ykiselev.opengl.vbo.IndexBufferObject
+import com.github.ykiselev.opengl.vbo.VertexArrayObject
+import com.github.ykiselev.opengl.vbo.VertexBufferObject
+import com.github.ykiselev.opengl.vertices.VertexDefinitions
+import com.github.ykiselev.wrap.Wrap
+import org.lwjgl.BufferUtils
+import org.lwjgl.opengl.GL11
+import org.lwjgl.opengl.GL13
+import org.lwjgl.opengl.GL15
+import org.lwjgl.opengl.GL20
+import org.lwjgl.system.MemoryStack
+import org.lwjgl.system.MemoryUtil
+import java.nio.ByteBuffer
+import java.nio.FloatBuffer
+import java.util.*
+import java.util.function.IntConsumer
 
 /**
  * Created by Uze on 17.01.2015.
  */
-public final class TexturedQuads implements AutoCloseable {
-
-    private static final int VERTEX_SIZE_IN_FLOATS = 4;
-
+class TexturedQuads(program: Wrap<ProgramObject>) : AutoCloseable {
     /**
      * Maximum number of quads in a call to glDrawElements.
      */
-    private final int maxQuads;
+    private var maxQuads = 0
 
     /**
      * One of GL_UNSIGNED_BYTE, GL_UNSIGNED_SHORT, GL_UNSIGNED_INT depending on the length of vertex buffer.
      */
-    private final int indexValueType;
+    private var indexValueType = 0
 
-    private final Wrap<ProgramObject> program;
+    private val program: Wrap<ProgramObject> = Objects.requireNonNull(program)
 
-    private final FloatBuffer vertices;
+    private val vertices: FloatBuffer
 
-    private final FloatBuffer colors;
+    private val colors: FloatBuffer
 
-    private final VertexBufferObject vbo;
+    private val vbo: VertexBufferObject
 
-    private final VertexArrayObject vao;
+    private val vao: VertexArrayObject
 
-    private final IndexBufferObject ebo;
+    private val ebo: IndexBufferObject
 
-    private final UniformVariable texUniform;
+    private val texUniform: UniformVariable
 
-    private final UniformVariable mvpUniform;
+    private val mvpUniform: UniformVariable
 
-    private final UniformVariable colorsUniform;
+    private val colorsUniform: UniformVariable
 
-    private final FloatBuffer matrix;
+    private val matrix: FloatBuffer
 
-    private int currentTexture;
+    private var currentTexture = 0
 
-    private int quadCounter;
+    private var quadCounter = 0
 
-    private int width;
+    private var width = 0
 
-    private int height;
+    private var height = 0
 
-    private int drawCount;
+    private var drawCount = 0
 
-    public int width() {
-        return width;
-    }
+    fun width(): Int =
+        width
 
-    public int height() {
-        return height;
-    }
+    fun height(): Int =
+        height
 
-    public int drawCount() {
-        return drawCount;
-    }
+    fun drawCount(): Int =
+        drawCount
 
-    /**
-     * @param program the program to use
-     */
-    public TexturedQuads(Wrap<ProgramObject> program) {
-        this.program = requireNonNull(program);
 
-        final ProgramObject prg = program.value();
+    init {
+        val prg = program.value()
 
-        mvpUniform = prg.lookup("mvp");
-        colorsUniform = prg.lookup("colors");
-        texUniform = prg.lookup("tex");
+        mvpUniform = prg.lookup("mvp")
+        colorsUniform = prg.lookup("colors")
+        texUniform = prg.lookup("tex")
 
-        final UniformInfo info = prg.describe(colorsUniform);
+        val info = prg.describe(colorsUniform)
 
-        prg.bind();
-        vao = new VertexArrayObject();
-        vao.bind();
+        prg.bind()
+        vao = VertexArrayObject()
+        vao.bind()
 
-        vbo = new VertexBufferObject();
-        vbo.bind();
-        VertexDefinitions.POSITION2_TEXTURE2.apply();
+        vbo = VertexBufferObject()
+        vbo.bind()
+        VertexDefinitions.POSITION2_TEXTURE2.apply()
 
-        ebo = new IndexBufferObject();
-        ebo.bind();
+        ebo = IndexBufferObject()
+        ebo.bind()
 
         // Quad == 2 triangles == 6 indices (can't use stripes due to texture coordinates difference between quads)
-        final int maxIndices;
-        try (MemoryStack ms = MemoryStack.stackPush()) {
-            this.maxQuads = info.size() & ~4;
-            if (maxQuads < 1) {
-                throw new IllegalArgumentException("Invalid array length: \"colors[" + info.size() + "\"");
-            }
-            final int type = info.type();
-            if (type != GL_FLOAT_VEC4) {
-                throw new IllegalArgumentException("Expected vec4 got different type: " + type);
-            }
+        val maxIndices: Int
+        MemoryStack.stackPush().use { ms ->
+            this.maxQuads = info.size() and 4.inv()
+            require(maxQuads >= 1) { "Invalid array length: \"colors[" + info.size() + "\"" }
+            val type = info.type()
+            require(type == GL20.GL_FLOAT_VEC4) { "Expected vec4 got different type: $type" }
             // Allocate indices
-            maxIndices = maxQuads * 6;
-            this.indexValueType = maxIndices < 0xffff ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT;
+            maxIndices = maxQuads * 6
+            this.indexValueType = if (maxIndices < 0xffff) GL11.GL_UNSIGNED_SHORT else GL11.GL_UNSIGNED_INT
 
-            final ByteBuffer indices = ms.malloc(4 * maxIndices);
-            fillIndexData(indices);
-            indices.flip();
-            glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW);
+            val indices = ms.malloc(4 * maxIndices)
+            fillIndexData(indices)
+            indices.flip()
+            GL15.glBufferData(GL15.GL_ELEMENT_ARRAY_BUFFER, indices, GL15.GL_STATIC_DRAW)
         }
+        vao.unbind()
+        vbo.unbind()
+        ebo.unbind()
+        prg.unbind()
 
-        vao.unbind();
-        vbo.unbind();
-        ebo.unbind();
-        prg.unbind();
-
-        final int maxVertices = maxQuads * 4 * VERTEX_SIZE_IN_FLOATS;
-        vertices = BufferUtils.createFloatBuffer(maxVertices);
-        matrix = MemoryUtil.memAllocFloat(16);
-        colors = MemoryUtil.memAllocFloat(maxQuads * 4);
+        val maxVertices = maxQuads * 4 * VERTEX_SIZE_IN_FLOATS
+        vertices = BufferUtils.createFloatBuffer(maxVertices)
+        matrix = MemoryUtil.memAllocFloat(16)
+        colors = MemoryUtil.memAllocFloat(maxQuads * 4)
     }
 
-    private void fillIndexData(ByteBuffer b) {
-        final IntConsumer c = switch (indexValueType) {
-            case GL_UNSIGNED_BYTE -> v -> b.put((byte) v);
-            case GL_UNSIGNED_SHORT -> v -> b.putShort((short) v);
-            case GL_UNSIGNED_INT -> b::putInt;
-            default -> throw new IllegalArgumentException("Bad index value type: " + indexValueType);
-        };
-        int offset = 0;
-        for (int i = 0; i < maxQuads; i++) {
-            c.accept(offset);
-            c.accept(offset + 1);
-            c.accept(offset + 2);
-            c.accept(offset + 2);
-            c.accept(offset + 1);
-            c.accept(offset + 3);
-            offset += 4;
+    private fun fillIndexData(b: ByteBuffer) {
+        val c = when (indexValueType) {
+            GL11.GL_UNSIGNED_BYTE -> IntConsumer { v: Int -> b.put(v.toByte()) }
+            GL11.GL_UNSIGNED_SHORT -> IntConsumer { v: Int -> b.putShort(v.toShort()) }
+            GL11.GL_UNSIGNED_INT -> IntConsumer { value: Int -> b.putInt(value) }
+            else -> throw IllegalArgumentException("Bad index value type: $indexValueType")
+        }
+        var offset = 0
+        for (i in 0 until maxQuads) {
+            c.accept(offset)
+            c.accept(offset + 1)
+            c.accept(offset + 2)
+            c.accept(offset + 2)
+            c.accept(offset + 1)
+            c.accept(offset + 3)
+            offset += 4
         }
     }
 
-    @Override
-    public void close() {
-        vbo.close();
-        ebo.close();
-        vao.close();
-        program.close();
-        MemoryUtil.memFree(matrix);
-        MemoryUtil.memFree(colors);
+    override fun close() {
+        vbo.close()
+        ebo.close()
+        vao.close()
+        program.close()
+        MemoryUtil.memFree(matrix)
+        MemoryUtil.memFree(colors)
     }
 
-    private void flush() {
+    private fun flush() {
         if (quadCounter <= 0) {
-            return;
+            return
         }
-        vbo.bind();
-        vertices.flip();
-        glBufferData(GL_ARRAY_BUFFER, vertices, GL_STREAM_DRAW);
+        vbo.bind()
+        vertices.flip()
+        GL15.glBufferData(GL15.GL_ARRAY_BUFFER, vertices, GL15.GL_STREAM_DRAW)
 
-        colors.flip();
-        colorsUniform.vector4(colors);
+        colors.flip()
+        colorsUniform.vector4(colors)
 
-        glDrawElements(GL_TRIANGLES, quadCounter * 6, indexValueType, 0);
+        GL11.glDrawElements(GL11.GL_TRIANGLES, quadCounter * 6, indexValueType, 0)
 
-        colors.clear();
-        vertices.clear();
-        quadCounter = 0;
-        drawCount++;
+        colors.clear()
+        vertices.clear()
+        quadCounter = 0
+        drawCount++
     }
 
     /**
      * Add new quad (4 vertices) to queue
      * <pre>
      * (2) --- (3)
-     *  |       |
-     *  |       |
+     * |       |
+     * |       |
      * (0) --- (1)
      *
      * (x0, y1) --- (x1, y1)
-     *  |                 |
-     *  |                 |
+     * |                 |
+     * |                 |
      * (x0, y0) --- (x1, y0)
      *
      * (s0, t1) --- (s1, t1)
-     *  |                 |
-     *  |                 |
+     * |                 |
+     * |                 |
      * (s0, t0) --- (s1, t0)
      *
-     * </pre>
-     * <p>Note that if you wish to draw quad with texture loaded from external resource then s, t must be assigned as such:</p>
+    </pre> *
+     *
+     * Note that if you wish to draw quad with texture loaded from external resource then s, t must be assigned as such:
      * <pre>
      * (0, 0) --- (1, 0)
-     *  |             |
-     *  |             |
+     * |             |
+     * |             |
      * (0, 1) --- (1, 1)
-     * </pre>
+    </pre> *
      * That is because OpenGL texture origin (0,0) is in lower left corner while most of the image formats have origin in the left top corner.
      * This leads to images drawn upside-down. To re-mediate this we need to flip image vertically either
-     * <ol>
-     * <li>During resource preparation step</li>
-     * <li>At run-time before actually submitting image to OpenGL</li>
-     * <li>By flipping texture t-coordinate (cheapest solution, but leads to increased api complexity)</li>
-     * </ol>
-     * <p>Quad is rendered as two triangles with indices 0, 1, 2, 2, 1, 3</p>
+     *
+     *  1. During resource preparation step
+     *  1. At run-time before actually submitting image to OpenGL
+     *  1. By flipping texture t-coordinate (cheapest solution, but leads to increased api complexity)
+     *
+     *
+     * Quad is rendered as two triangles with indices 0, 1, 2, 2, 1, 3
      *
      * @param color the RGBA color (0xff0000ff - red, 0x00ff00ff - green, 0x0000ffff - blue)
      */
-    public void addQuad(float x0, float y0, float s0, float t0, float x1, float y1, float s1, float t1, int color) {
+    fun addQuad(x0: Float, y0: Float, s0: Float, t0: Float, x1: Float, y1: Float, s1: Float, t1: Float, color: Int) {
         if (quadCounter >= maxQuads) {
-            flush();
+            flush()
         }
 
-        vertices.put(x0).put(y0).put(s0).put(t0);
-        vertices.put(x1).put(y0).put(s1).put(t0);
-        vertices.put(x0).put(y1).put(s0).put(t1);
-        vertices.put(x1).put(y1).put(s1).put(t1);
+        vertices.put(x0).put(y0).put(s0).put(t0)
+        vertices.put(x1).put(y0).put(s1).put(t0)
+        vertices.put(x0).put(y1).put(s0).put(t1)
+        vertices.put(x1).put(y1).put(s1).put(t1)
 
-        Colors.putAsVector4(colors, color);
+        Colors.putAsVector4(colors, color)
 
-        quadCounter++;
+        quadCounter++
     }
 
     /**
      *
      */
-    public void addQuad(float x0, float y0, float s0, float t0, float x1, float y1, float s1, float t1, float r, float g, float b, float a) {
+    fun addQuad(
+        x0: Float,
+        y0: Float,
+        s0: Float,
+        t0: Float,
+        x1: Float,
+        y1: Float,
+        s1: Float,
+        t1: Float,
+        r: Float,
+        g: Float,
+        b: Float,
+        a: Float
+    ) {
         if (quadCounter >= maxQuads) {
-            flush();
+            flush()
         }
 
-        vertices.put(x0).put(y0).put(s0).put(t0);
-        vertices.put(x1).put(y0).put(s1).put(t0);
-        vertices.put(x0).put(y1).put(s0).put(t1);
-        vertices.put(x1).put(y1).put(s1).put(t1);
-        colors.put(r).put(g).put(b).put(a);
+        vertices.put(x0).put(y0).put(s0).put(t0)
+        vertices.put(x1).put(y0).put(s1).put(t0)
+        vertices.put(x0).put(y1).put(s0).put(t1)
+        vertices.put(x1).put(y1).put(s1).put(t1)
+        colors.put(r).put(g).put(b).put(a)
 
-        quadCounter++;
+        quadCounter++
     }
 
-    public void use(int texture) {
+    fun use(texture: Int) {
         if (texture == 0) {
-            flush();
-            glBindTexture(GL_TEXTURE_2D, 0);
+            flush()
+            GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0)
         } else if (texture != currentTexture) {
-            flush();
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, texture);
+            flush()
+            GL13.glActiveTexture(GL13.GL_TEXTURE0)
+            GL11.glBindTexture(GL11.GL_TEXTURE_2D, texture)
         }
-        currentTexture = texture;
+        currentTexture = texture
     }
 
     /**
@@ -307,40 +284,44 @@ public final class TexturedQuads implements AutoCloseable {
      * @param y                   the bottom viewport coordinate
      * @param width               the width of viewport
      * @param height              the height of viewport
-     * @param enableAlphaBlending set to {@code true} to use alpha-blending
+     * @param enableAlphaBlending set to `true` to use alpha-blending
      */
-    public void begin(int x, int y, int width, int height, boolean enableAlphaBlending) {
-        this.width = width;
-        this.height = height;
+    fun begin(x: Int, y: Int, width: Int, height: Int, enableAlphaBlending: Boolean) {
+        this.width = width
+        this.height = height
 
-        glViewport(x, y, width, height);
+        GL11.glViewport(x, y, width, height)
 
-        vao.bind();
-        program.value().bind();
-        use(0);
+        vao.bind()
+        program.value().bind()
+        use(0)
 
         if (enableAlphaBlending) {
-            glEnable(GL_BLEND);
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            GL11.glEnable(GL11.GL_BLEND)
+            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA)
         } else {
-            glDisable(GL_BLEND);
+            GL11.glDisable(GL11.GL_BLEND)
         }
 
-        texUniform.value(0);
+        texUniform.value(0)
 
-        orthographic(x, x + width, y + height, y, -1, 1, matrix);
-        mvpUniform.matrix4(false, matrix);
+        MatrixOps.orthographic(x.toFloat(), (x + width).toFloat(), (y + height).toFloat(), y.toFloat(), -1f, 1f, matrix)
+        mvpUniform.matrix4(false, matrix)
 
-        drawCount = 0;
+        drawCount = 0
     }
 
-    public void end() {
-        flush();
-        use(0);
-        vao.unbind();
-        vbo.unbind();
-        ebo.unbind();
-        program.value().unbind();
-        glDisable(GL_BLEND);
+    fun end() {
+        flush()
+        use(0)
+        vao.unbind()
+        vbo.unbind()
+        ebo.unbind()
+        program.value().unbind()
+        GL11.glDisable(GL11.GL_BLEND)
+    }
+
+    companion object {
+        private const val VERTEX_SIZE_IN_FLOATS = 4
     }
 }

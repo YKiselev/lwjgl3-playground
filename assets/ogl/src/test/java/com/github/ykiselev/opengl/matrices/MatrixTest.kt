@@ -20,13 +20,20 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
+import org.lwjgl.system.MemoryUtil
 import java.util.stream.Stream
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
-class MatrixTest {
-/*
+class MatrixTest : MatrixOps() {
+
+    override fun matrix(): Matrix = Matrix(MemoryUtil.memAllocFloat(16))
+
+    override fun vec4f(): Vector4f = Vector4f()
+
+    override fun vec3f(): Vector3f = Vector3f()
+
     private fun assertMatrixEquals(actual: Matrix, vararg expected: Float) {
         for ((i, v) in expected.withIndex()) {
             val v1 = actual[i]
@@ -37,7 +44,7 @@ class MatrixTest {
     @Test
     fun shouldBeIdentity() {
         assertMatrixEquals(
-            Matrix.identity(),
+            identity(),
             1f, 0f, 0f, 0f,
             0f, 1f, 0f, 0f,
             0f, 0f, 1f, 0f,
@@ -48,7 +55,7 @@ class MatrixTest {
     @ParameterizedTest
     @MethodSource("translateArgs")
     fun shouldTranslate(v: Vector3f, trans: Vector3f, expected: Vector3f) {
-        val r = Matrix.identity().translate(trans.x, trans.y, trans.z) * v
+        val r = identity().translate(trans.x, trans.y, trans.z) * v
         assertTrue(
             expected.equals(r, 0.0001f),
             "expected $expected but was $v"
@@ -57,8 +64,8 @@ class MatrixTest {
 
     @Test
     fun addingTranslationShouldBeEqualToMultiplication() {
-        val rm = Matrix.rotation(0.0, 0.0, Math.toRadians(45.0))
-        val tm = Matrix.identity().translate(1f, 2f, 3f)
+        val rm = rotation(0.0, 0.0, Math.toRadians(45.0))
+        val tm = identity().translate(1f, 2f, 3f)
         val m = rm * tm
 
         // add translation and store in separate matrix
@@ -69,16 +76,17 @@ class MatrixTest {
 
     @Test
     fun shouldAddTranslationToExistingMatrix() {
-        val r = Matrix.rotation(0.0, 0.0, Math.toRadians(45.0)).translate(1f, 2f, 3f)
+        val r = rotation(0.0, 0.0, Math.toRadians(45.0)).translate(1f, 2f, 3f)
         val v = r * v(4f, 5f, 6f)
         assertVectorEquals(-1.414f, 8.485f, 9f, v)
     }
 
+
     @Test
     fun shouldScale() {
-        val m = Matrix(FloatArray(16) {
-            (it + 1).toFloat()
-        })
+        val m = matrix { m, i ->
+            m[i] = (i + 1).toFloat()
+        }
         val r = m.scale(2f, 4f, 8f)
         assertMatrixEquals(
             r,
@@ -91,9 +99,9 @@ class MatrixTest {
 
     @Test
     fun shouldTranspose() {
-        val m = Matrix(FloatArray(16) {
-            (it + 1).toFloat()
-        })
+        val m = matrix { m, i ->
+            m[i] = (i + 1).toFloat()
+        }
         val r = m.transpose()
         assertMatrixEquals(
             r,
@@ -106,14 +114,12 @@ class MatrixTest {
 
     @Test
     fun shouldAdd() {
-        val a = FloatArray(16)
-        val b = FloatArray(16)
-        for (i in 1..16) {
-            a[i - 1] = i.toFloat()
-            b[i - 1] = (17 - i).toFloat()
+        val ma = matrix { m, i ->
+            m[i] = (i + 1).toFloat()
         }
-        val ma = Matrix(a)
-        val mb = Matrix(b)
+        val mb = matrix { m, i ->
+            m[i] = (16 - i).toFloat()
+        }
         val r = ma + mb
         assertMatrixEquals(
             r,
@@ -126,9 +132,9 @@ class MatrixTest {
 
     @Test
     fun shouldMultiplyByScalar() {
-        val m = Matrix(FloatArray(16) {
-            (it + 1).toFloat()
-        })
+        val m = matrix { m, i ->
+            m[i] = (i + 1).toFloat()
+        }
         val r = m * 2f
         assertMatrixEquals(
             r,
@@ -141,7 +147,7 @@ class MatrixTest {
 
     @Test
     fun shouldMultiplyByVector() {
-        val m = Matrix(
+        val m = matrix(
             floatArrayOf(
                 1f, 4f, 7f, 0f,
                 2f, 5f, 8f, 0f,
@@ -156,7 +162,7 @@ class MatrixTest {
 
     @Test
     fun shouldMultiply() {
-        val m = Matrix(
+        val m = matrix(
             floatArrayOf(
                 1f, 5f, 9f, 0f,
                 2f, 6f, 10f, 0f,
@@ -164,7 +170,7 @@ class MatrixTest {
                 0f, 0f, 0f, 1f
             )
         )
-        val r = m * Matrix(
+        val r = m * matrix(
             floatArrayOf(
                 1f, 0f, 0f, 1f,
                 0f, 1f, 0f, 2f,
@@ -184,7 +190,7 @@ class MatrixTest {
     @ParameterizedTest
     @MethodSource("rotationArgs")
     fun shouldRotate(ax: Double, ay: Double, az: Double, v: Vector3f, expected: Vector3f) {
-        val m = Matrix.rotation(
+        val m = rotation(
             Math.toRadians(ax),
             Math.toRadians(ay),
             Math.toRadians(az)
@@ -194,7 +200,7 @@ class MatrixTest {
 
     @Test
     fun shouldCalculateDeterminant() {
-        val m = Matrix(
+        val m = matrix(
             floatArrayOf(
                 1f, 3f, 4f, 10f,
                 2f, 5f, 9f, 11f,
@@ -207,12 +213,12 @@ class MatrixTest {
 
     @Test
     fun determinantShouldBeOneForIdentity() {
-        assertEquals(1.0, Matrix.identity().determinant(), 0.0001)
+        assertEquals(1.0, identity().determinant(), 0.0001)
     }
 
     @Test
     fun shouldInverse() {
-        val m = Matrix(
+        val m = matrix(
             floatArrayOf(
                 1f, 2f, 4f, 6f,
                 3f, 1f, 7f, 10f,
@@ -238,7 +244,7 @@ class MatrixTest {
 
     @Test
     fun shouldBeOrthographic() {
-        val m = Matrix.orthographic(0f, 100f, 200f, 0f, -1f, 1f)
+        val m = orthographic(0f, 100f, 200f, 0f, -1f, 1f)
         val v = Vector3f(0f, 0f, 0f)
         assertVectorEquals(-1f, -1f, 0f, m * v)
 
@@ -252,14 +258,14 @@ class MatrixTest {
     @ParameterizedTest
     @MethodSource("perspectiveArgs")
     fun shouldBePerspective(v: Vector4f, expected: Vector4f) {
-        val m = Matrix.perspective(-1f, 1f, 1f, -1f, 1f, 10f)
+        val m = perspective(-1f, 1f, 1f, -1f, 1f, 10f)
         assertTrue(expected.equals(m * v, 0.001f), "expected $expected but was $v")
     }
 
     @ParameterizedTest
     @MethodSource("lookAtArgs")
     fun shouldLookAt(origin: Vector3f, eye: Vector3f, up: Vector3f, ax: Vector3f, ay: Vector3f, az: Vector3f) {
-        val m = Matrix.lookAt(origin, eye, up)
+        val m = lookAt(origin, eye, up)
         val v1 = v(1f, 0f, 0f)
         val v2 = v(0f, 1f, 0f)
         val v3 = v(0f, 0f, 1f)
@@ -380,5 +386,5 @@ class MatrixTest {
                 )
             )
         }
-    }*/
+    }
 }
