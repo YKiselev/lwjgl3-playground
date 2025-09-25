@@ -4,10 +4,10 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class WorldTest {
+public class WorldTest {
 
     @Test
-    void shouldPutAndGet() {
+    public void shouldPutAndGet() {
         final byte globalRangeShift = 7;
 
         World world = new World(new DefaultNodeFactory(), globalRangeShift);

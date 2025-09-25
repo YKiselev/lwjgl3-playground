@@ -9,12 +9,12 @@ import java.nio.FloatBuffer;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class FrustumTest {
+public class FrustumTest {
 
     private final Frustum frustum = new Frustum();
 
     @Test
-    void shouldClassify() {
+    public void shouldClassify() {
         FloatBuffer m = FloatBuffer.allocate(16);
         Matrix.perspective(-0.1f, 0.1f, 0.1f, -0.1f, 0.1f, 100, m);
         frustum.setFromMatrix(m);

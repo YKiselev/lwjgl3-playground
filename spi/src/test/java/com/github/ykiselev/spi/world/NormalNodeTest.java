@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
-class NormalNodeTest {
+public class NormalNodeTest {
 
     private final Node node1 = mock(Node.class);
 
@@ -15,17 +15,17 @@ class NormalNodeTest {
     private final NormalNode block = new NormalNode().init(0, 0, 0, 4);
 
     @BeforeEach
-    void setUp() {
+    public void setUp() {
         when(factory.create(anyInt(), anyInt(), anyInt(), eq(3))).thenReturn(node1);
     }
 
     @Test
-    void shouldReturnZeroForNonExistingIndex() {
+    public void shouldReturnZeroForNonExistingIndex() {
         assertEquals(0, block.get(0, 0, 0));
     }
 
     @Test
-    void shouldPut() {
+    public void shouldPut() {
         block.put(0, 0, 0, 1, factory);
         verify(node1, times(1)).put(0, 0, 0, 1, factory);
         verify(factory, times(1)).create(0, 0, 0, 3);

@@ -5,9 +5,9 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class PlaneTest {
+public class PlaneTest {
     @Test
-    void shouldClassify() {
+    public void shouldClassify() {
         var p = new Plane();
         // yz plane translated by 0.5 in x direction
         p.set(1, 0, 0, -0.5f);

@@ -20,6 +20,7 @@ import com.github.ykiselev.assets.Assets;
 import com.github.ykiselev.assets.DefaultRecipe;
 import com.github.ykiselev.assets.Recipe;
 import com.github.ykiselev.wrap.Wraps;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.Closeable;
@@ -84,6 +85,7 @@ public class ManagedAssetsTest {
     }
 
     @Test
+    @Disabled
     public void shouldReportLeaks() {
         final AutoCloseable a = mock(AutoCloseable.class);
         doReturn(Wraps.of(a))

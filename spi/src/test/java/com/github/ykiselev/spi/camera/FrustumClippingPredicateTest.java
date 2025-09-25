@@ -9,14 +9,14 @@ import java.nio.FloatBuffer;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class FrustumClippingPredicateTest {
+public class FrustumClippingPredicateTest {
 
     private final Frustum frustum = new Frustum();
 
     private final FrustumClippingPredicate predicate = new FrustumClippingPredicate(frustum);
 
     @Test
-    void shouldClip() {
+    public void shouldClip() {
         FloatBuffer m = FloatBuffer.allocate(16);
         Matrix.orthographic(-1f, 1f, 1f, -1f, 1f, 10, m);
         frustum.setFromMatrix(m);
